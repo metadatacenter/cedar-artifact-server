@@ -1,0 +1,125 @@
+package org.metadatacenter.templates.utils;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
+import com.github.fge.jsonschema.core.exceptions.ProcessingException;
+import com.github.fge.jsonschema.core.report.ProcessingReport;
+import com.github.fge.jsonschema.main.JsonSchemaFactory;
+import com.github.fge.jsonschema.main.JsonValidator;
+import org.metadatacenter.templates.TemplatesService;
+
+import javax.management.InstanceNotFoundException;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.Map;
+
+public class JsonUtils
+{
+
+  /* JSON Schema Validation */
+
+  public void validate(JsonNode schema, JsonNode instance) throws ProcessingException
+  {
+    JsonValidator validator = JsonSchemaFactory.byDefault().getValidator();
+    ProcessingReport report = validator.validate(schema, instance);
+    if (!report.isSuccess()) {
+      throw new RuntimeException("JSON Schema validation failed");
+    }
+    // System.out.println(report.isSuccess());
+  }
+
+  /* Resolution of Json Schema references ($ref) */
+
+  public JsonNode resolveTemplateElementRefs(JsonNode node, TemplatesService<String, JsonNode> templatesService)
+    throws IOException, ProcessingException
+  {
+    ObjectMapper mapper = new ObjectMapper();
+    ObjectNode rootNode = mapper.createObjectNode();
+    Iterator it = node.fields();
+    while (it.hasNext()) {
+      Map.Entry<String, JsonNode> entry = (Map.Entry<String, JsonNode>)it.next();
+      // If the entry is an object
+      if (entry.getValue().isObject()) {
+        // If it contains only one property, which is $ref
+        if ((entry.getValue().size() == 1) && (entry.getValue().get("$ref") != null)) {
+          String ref = entry.getValue().get("$ref").asText();
+          // Load the template element
+          if (ref.length() > 0) {
+            JsonNode templateElement = null;
+            try {
+              templateElement = templatesService.findTemplateElementByLinkedDataId(ref, false, false);
+              rootNode.set(entry.getKey(), resolveTemplateElementRefs(templateElement, templatesService));
+            } catch (InstanceNotFoundException e) {
+              rootNode.put(entry.getKey(), "unresolved_reference");
+            }
+          }
+          // Empty reference
+          else {
+            rootNode.put(entry.getKey(), "unresolved_reference");
+          }
+        }
+        // If it contains more properties, or only one but it is not $ref
+        else {
+          rootNode.set(entry.getKey(), resolveTemplateElementRefs(entry.getValue(), templatesService));
+        }
+      }
+      // If it is not an object
+      else {
+//        if (entry.getKey().compareTo("_$schema") == 0) {
+//          rootNode.set("$schema", entry.getValue());
+//        } else {
+          rootNode.set(entry.getKey(), entry.getValue());
+//        }
+      }
+    }
+    return rootNode;
+  }
+
+  /* Fix for the keywords not allowed by MongoDB (e.g. $schema) */
+  // Rename JSON field to be stored into MongoDB
+  // direction: 1 -> update field names for MongoDB storage (e.g. $schema -> _$schema)
+  // direction: 2 -> update field names after reading them from MongoDB (e.g. _$schema -> $schema)
+  public JsonNode fixMongoDB(JsonNode node, int direction)
+  {
+    boolean reverse = false;
+    if (direction == 2) {
+      reverse = true;
+    }
+    updateFieldName(node, "$schema", "_$schema", reverse);
+    updateFieldName(node, "$oid", "_$oid", reverse);
+    updateFieldName(node, "$numberLong", "_$numberLong", reverse);
+    // Now, recursively invoke this method on all properties
+    for (JsonNode child : node) {
+      fixMongoDB(child, direction);
+    }
+    return node;
+  }
+
+  private JsonNode updateFieldName(JsonNode node, String fieldName, String newFieldName, boolean reverse)
+  {
+    if (reverse == true) {
+      String swap = fieldName;
+      fieldName = newFieldName;
+      newFieldName = swap;
+    }
+    if (node.has(fieldName)) {
+      ((ObjectNode)node).set(newFieldName, new TextNode(node.get(fieldName).asText()));
+      ((ObjectNode)node).remove(fieldName);
+    }
+    return node;
+  }
+
+  /* Method for testing */
+//  public static void main(String[] args) throws IOException
+//  {
+//    String json = "{ \"_$schema\": \"Some value\", \"nested\" : { \"_$schema\" : \"Some other value\", \"name\": \"Name value\"} }";
+//    ObjectMapper mapper = new ObjectMapper();
+//    final JsonNode tree = mapper.readTree(json);
+//    JsonUtils utils = new JsonUtils();
+//    utils.fixMongoDB(tree, 2);
+//    System.out.println(tree);
+//  }
+
+}
