@@ -41,7 +41,7 @@ At the project root folder:
 
 ```
 $ mvn install
-$ cd cedar-services-examples-play
+$ cd cedar-templates-api-play
 $ mvn play2:run
 ```
 
