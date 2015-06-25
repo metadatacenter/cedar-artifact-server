@@ -40,7 +40,7 @@ public class GenericDaoMongoDB implements GenericDao<String, JsonNode>
   // Create
   public JsonNode create(JsonNode element) throws IOException
   {
-    // Adapts all keys non accepted by MongoDB
+    // Adapts all keys not accepted by MongoDB
     element = jsonUtils.fixMongoDB(element, 1);
     ObjectMapper mapper = new ObjectMapper();
     Map elementMap = mapper.convertValue(element, Map.class);
@@ -105,6 +105,8 @@ public class GenericDaoMongoDB implements GenericDao<String, JsonNode>
     if (!exists(id)) {
       throw new InstanceNotFoundException();
     }
+    // Adapts all keys not accepted by MongoDB
+    modifications = jsonUtils.fixMongoDB(modifications, 1);
     ObjectMapper mapper = new ObjectMapper();
     Map modificationsMap = mapper.convertValue(modifications, Map.class);
     UpdateResult updateResult = entityCollection
