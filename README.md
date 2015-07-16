@@ -48,7 +48,9 @@ By default, the services will be running at http://localhost:9000.
 
 ## Documentation
 
-Documentation for the server, including a detailed description of its REST API, can be found in the [project wiki](https://github.com/metadatacenter/cedar-templates-api/wiki).
+Documentation for the server can be found in the [project wiki](https://github.com/metadatacenter/cedar-templates-api/wiki).
+
+A detailed description of its REST API is contained in the RESTAPI.html file in the doc subdirectory.
 
 ## IntelliJ IDEA 14 configuration
 
