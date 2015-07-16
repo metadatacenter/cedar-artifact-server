@@ -257,6 +257,7 @@
 
         <div class="method">
           <h4 id="templates.get">GET</h4>
+          <h6>/templates/{id}?expanded</h6>
           <p>Get a template.</p>
 
           <div class="exampleRequests">
@@ -264,6 +265,7 @@
             <ul>
               <li><code>http://metadatacenter.org/templates/</code></li>
               <li><code>http://metadatacenter.org/templates/basic_study_design</code></li>
+              <li><code>http://metadatacenter.org/templates/basic_study_design?expanded=true</code></li>
             </ul>
           </div> <!-- exampleRequests -->
 
@@ -275,6 +277,11 @@
               <td><p><strong>id</strong></p></td>
               <td><p><em><a href="http://www.w3.org/TR/xmlschema-2/#string">string</a></em></p></td>
               <td><p>the id of the template</p></td>
+            </tr>
+            <tr>
+              <td><p><strong>expanded</strong></p></td>
+              <td><p><em><a href="http://www.w3.org/TR/xmlschema-2/#boolean">boolean</a></em></p></td>
+              <td><p>Should all nested JSON template element objects be expanded. Default is <code>false</code>.</p></td>
             </tr>
           </table>
 
@@ -532,6 +539,8 @@
 
             <div class="method">
               <h4 id="template_elements.get">GET</h4>
+              <h6>/templates_elements/{id}?expanded</h6>
+
               <p>Get a template element.</p>
 
               <div class="exampleRequests">
@@ -551,6 +560,12 @@
                   <td><p><em><a href="http://www.w3.org/TR/xmlschema-2/#string">string</a></em></p></td>
                   <td><p>the id of the template elements</p></td>
                 </tr>
+                            <tr>
+              <td><p><strong>expanded</strong></p></td>
+              <td><p><em><a href="http://www.w3.org/TR/xmlschema-2/#boolean">boolean</a></em></p></td>
+              <td><p>Should all nested JSON element objects be expanded. Default is <code>false</code>.</p></td>
+            </tr>
+
               </table>
 
               <p>Available response representations:</p>
@@ -859,71 +874,24 @@
                           "value": "Stanford"
                           }
                           }
-                    </code></pre>
-                  </div>
-                </li>
-              </ul>
+                      </code></pre>
+                    </div>
+                  </li>
+                </ul>
 
-              <p>Responses:</p>
+                <p>Responses:</p>
 
-              <ul>
-                <li>201 If successfully created.</li>
-                <li>401 If calling user is not authorized to create a template instance</li>
-              </ul>
-
-            </div> <!-- method -->
-
-            <div class="method">
-              <h4 id="template_instances.put">PUT</h4>
-
-              <p>Update a template instance. Overwrites previous template instance with same id.</p>
-
-              <table>
-                <tr><th>parameter</th><th>value</th><th>description</th></tr>
-                <tr>
-                  <td><p><strong>id</strong></p></td>
-                  <td><p><em><a href="http://www.w3.org/TR/xmlschema-2/#string">string</a></em></p></td>
-                  <td><p>the id of the template instance</p></td>
-                </tr>
-              </table>
-
-              <p>Acceptable request representations:</p>
-
-              <ul>
-                <li>
-                  <div>200 application/json
-                    [<a onclick="toggle('template_instances.put.ex1'); return false;" href="#"><em><span id="link-template_instances.put.ex1">expand</span></em></a>]
-                  </div>
-                  <div class="toggle" id="template_instances.put.ex1">
-                    <h6>Example</h6>
-                    <p>An example of a template instance describing a name.</p>
-                    <pre><code>
-                        {                                                  
-                        "@context": {},
-                        "@type": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C25191",
-                        "@id": "http://metadatacenter.org/template_instances/full_name_343",
-                        "templateID" : "http://metadatacenter.org/templates/full_name",
-                        "value": "Billy Bob"
-                        }
-                    </code></pre>
-                  </div>
-                </li>
-              </ul>
-
-              <p>Responses:</p>
-
-              <ul>
                 <ul>
-                  <li>204 If template instance is updated successfully </li>
-                  <li>401 If calling user is not authorized to update the template instance</li>
+                  <li>201 If successfully created.</li>
+                  <li>401 If calling user is not authorized to create a template instance</li>
                 </ul>
 
               </div> <!-- method -->
 
               <div class="method">
-                <h4 id="template_instances.delete">DELETE</h4>
+                <h4 id="template_instances.put">PUT</h4>
 
-                <p>Delete a template instance.</p>
+                <p>Update a template instance. Overwrites previous template instance with same id.</p>
 
                 <table>
                   <tr><th>parameter</th><th>value</th><th>description</th></tr>
@@ -934,18 +902,65 @@
                   </tr>
                 </table>
 
+                <p>Acceptable request representations:</p>
+
+                <ul>
+                  <li>
+                    <div>200 application/json
+                      [<a onclick="toggle('template_instances.put.ex1'); return false;" href="#"><em><span id="link-template_instances.put.ex1">expand</span></em></a>]
+                    </div>
+                    <div class="toggle" id="template_instances.put.ex1">
+                      <h6>Example</h6>
+                      <p>An example of a template instance describing a name.</p>
+                      <pre><code>
+                          {                                                  
+                          "@context": {},
+                          "@type": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C25191",
+                          "@id": "http://metadatacenter.org/template_instances/full_name_343",
+                          "templateID" : "http://metadatacenter.org/templates/full_name",
+                          "value": "Billy Bob"
+                          }
+                      </code></pre>
+                    </div>
+                  </li>
+                </ul>
+
                 <p>Responses:</p>
 
                 <ul>
                   <ul>
-                    <li>200 If the template instance is deleted successfully </li>
-                    <li>401 If calling user is not authorized to delete the template instance</li>
+                    <li>204 If template instance is updated successfully </li>
+                    <li>401 If calling user is not authorized to update the template instance</li>
                   </ul>
 
                 </div> <!-- method -->
 
-              </div> <!-- methods -->
-            </div> <!-- resource -->
+                <div class="method">
+                  <h4 id="template_instances.delete">DELETE</h4>
 
-          </body>
-        </html>
+                  <p>Delete a template instance.</p>
+
+                  <table>
+                    <tr><th>parameter</th><th>value</th><th>description</th></tr>
+                    <tr>
+                      <td><p><strong>id</strong></p></td>
+                      <td><p><em><a href="http://www.w3.org/TR/xmlschema-2/#string">string</a></em></p></td>
+                      <td><p>the id of the template instance</p></td>
+                    </tr>
+                  </table>
+
+                  <p>Responses:</p>
+
+                  <ul>
+                    <ul>
+                      <li>200 If the template instance is deleted successfully </li>
+                      <li>401 If calling user is not authorized to delete the template instance</li>
+                    </ul>
+
+                  </div> <!-- method -->
+
+                </div> <!-- methods -->
+              </div> <!-- resource -->
+
+            </body>
+          </html>
