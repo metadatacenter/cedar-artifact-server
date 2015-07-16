@@ -20,31 +20,35 @@ The project contains two subdirectories:
 
 Clone the project:
 
-  git clone https://github.com/metadatacenter/cedar-templates-api.git
+    git clone https://github.com/metadatacenter/cedar-templates-api.git
 
 Install MongoDB (using Homebrew):
 
-  brew install mongodb
+    brew install mongodb
 
 Start the MongoDB server:
 
-  mongod
+    mongod
 
 ## Running the tests
 
 Go to the project root folder and execute the Maven "test" goal:
 
-  mvn test
+    mvn test
 
 ## Starting the services
 
 At the project root folder:
 
-  mvn install
-  cd cedar-templates-api-play
-  mvn play2:run
+    mvn install
+    cd cedar-templates-api-play
+    mvn play2:run
 
 By default, the services will be running at http://localhost:9000.
+
+## Documentation
+
+Documentation for the server, including a detailed description of its REST API, can be found in the [project wiki](https://github.com/metadatacenter/cedar-templates-api/wiki).
 
 ## IntelliJ IDEA 14 configuration
 
