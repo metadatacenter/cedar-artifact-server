@@ -4,15 +4,15 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.metadatacenter</groupId>
-    <artifactId>cedar-templates-api</artifactId>
-    <name>CEDAR Templates API</name>
-    <description>Services implemented in the context of the CEDAR project to manage Metadata Templates</description>
+    <artifactId>cedar-template-server</artifactId>
+    <name>CEDAR Template Server</name>
+    <description>CEDAR server to manage Metadata Templates, Template Elements, and Template Instances</description>
     <version>0.1.0</version>
     <packaging>pom</packaging>
 
     <modules>
-        <module>cedar-templates-api-core</module>
-        <module>cedar-templates-api-play</module>
+        <module>cedar-template-server-core</module>
+        <module>cedar-template-server-play</module>
     </modules>
 
     <properties>
@@ -24,12 +24,15 @@
         <apache.httpclient.version>4.4.1</apache.httpclient.version>
         <mongodb.version>3.0.0</mongodb.version>
         <jackson.core.version>2.5.0</jackson.core.version>
+
+        <junit.version>4.12</junit.version>
+        <fge.version>2.2.6</fge.version>
+
         <scala.maven.plugin.version>3.1.6</scala.maven.plugin.version>
         <play2.maven.plugin.version>1.0.0-beta1</play2.maven.plugin.version>
         <maven.surefire.plugin.version>2.16</maven.surefire.plugin.version>
         <play-java-ws.version>2.3.8</play-java-ws.version>
-        <junit.version>4.12</junit.version>
-        <fge.version>2.2.6</fge.version>
+
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>

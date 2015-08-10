@@ -4,14 +4,14 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.metadatacenter</groupId>
-    <artifactId>cedar-templates-api-core</artifactId>
-    <name>CEDAR Templates API Core</name>
+    <artifactId>cedar-template-server-core</artifactId>
+    <name>CEDAR Template Server Core</name>
     <version>0.1.0</version>
     <packaging>jar</packaging>
 
     <parent>
         <groupId>org.metadatacenter</groupId>
-        <artifactId>cedar-templates-api</artifactId>
+        <artifactId>cedar-template-server</artifactId>
         <version>0.1.0</version>
     </parent>
 

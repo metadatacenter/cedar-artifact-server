@@ -1,4 +1,4 @@
-# cedar-templates-api
+# cedar-template-server
 
 CEDAR server to manage templates, template elements, and template instances.
 
@@ -7,8 +7,9 @@ The multimodule structure of this project is based on the template [play-cedar-s
 which allows the use Maven with the Play framework.
 
 The project contains two subdirectories:
-- cedar-templates-api-core: Core server functionality
-- cedar-templates-api-play: Play-based interface to server
+
+- cedar-template-server-core: Core server functionality
+- cedar-template-server-play: Play-based interface to server
 
 ## Versions
 
@@ -20,7 +21,7 @@ The project contains two subdirectories:
 
 Clone the project:
 
-    git clone https://github.com/metadatacenter/cedar-templates-api.git
+    git clone https://github.com/metadatacenter/cedar-template-server.git
 
 Install MongoDB (using Homebrew):
 
@@ -41,14 +42,14 @@ Go to the project root folder and execute the Maven "test" goal:
 At the project root folder:
 
     mvn install
-    cd cedar-templates-api-play
+    cd cedar-template-server-play
     mvn play2:run
 
 By default, the services will be running at http://localhost:9000.
 
 ## Documentation
 
-Documentation for the server can be found in the [project wiki](https://github.com/metadatacenter/cedar-templates-api/wiki).
+Documentation for the server can be found in the [project wiki](https://github.com/metadatacenter/cedar-template-server/wiki).
 
 A detailed description of its REST API is contained in the RESTAPI.html file in the doc subdirectory.
 

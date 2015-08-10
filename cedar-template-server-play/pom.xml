@@ -4,14 +4,14 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.metadatacenter</groupId>
-    <artifactId>cedar-templates-api-play</artifactId>
-    <name>CEDAR Templates API Play</name>
+    <artifactId>cedar-template-server-play</artifactId>
+    <name>CEDAR Template Server Play</name>
     <version>0.1.0</version>
     <packaging>play2</packaging>
 
     <parent>
         <groupId>org.metadatacenter</groupId>
-        <artifactId>cedar-templates-api</artifactId>
+        <artifactId>cedar-template-server</artifactId>
         <version>0.1.0</version>
     </parent>
 
