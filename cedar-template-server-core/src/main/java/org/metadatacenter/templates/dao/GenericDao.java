@@ -1,4 +1,4 @@
-package org.metadatacenter.templates.utils;
+package org.metadatacenter.templates.dao;
 
 import javax.management.InstanceNotFoundException;
 import java.io.IOException;
@@ -6,7 +6,6 @@ import java.util.List;
 
 public interface GenericDao<K, T>
 {
-
   T create(T element) throws IOException;
 
   List<T> findAll() throws IOException;
@@ -22,5 +21,4 @@ public interface GenericDao<K, T>
   boolean exists(K id) throws IOException;
 
   void deleteAll();
-
 }

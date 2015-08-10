@@ -1,4 +1,4 @@
-package org.metadatacenter.templates;
+package org.metadatacenter.templates.service;
 
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 
@@ -8,7 +8,6 @@ import java.util.List;
 
 public interface TemplatesService<K, T>
 {
-
   /* Templates */
 
   public T createTemplate(T template) throws IOException;
@@ -61,5 +60,4 @@ public interface TemplatesService<K, T>
     throws InstanceNotFoundException, IOException;
 
   public void deleteTemplateInstance(K templateInstanceId) throws InstanceNotFoundException, IOException;
-
 }

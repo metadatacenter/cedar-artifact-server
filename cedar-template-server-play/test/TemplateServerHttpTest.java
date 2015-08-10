@@ -1,5 +1,5 @@
 import com.fasterxml.jackson.databind.JsonNode;
-import controllers.CrudController;
+import controllers.TemplateServerController;
 import org.junit.*;
 import play.libs.Json;
 import play.libs.ws.WS;
@@ -14,7 +14,7 @@ import static play.test.Helpers.*;
 /*
  * Integration Tests. They are done using a test server.
  */
-public class CrudHttpTest
+public class TemplateServerHttpTest
 {
   private static final String TEMPLATE_ELEMENTS_ROUTE = "/template_elements";
   private static final int TEST_SERVER_PORT = 3333;
@@ -205,6 +205,6 @@ public class CrudHttpTest
   // Helper method to remove all elements from the DB
   public void deleteAllTemplateElements()
   {
-    CrudController.templatesService.deleteAllTemplateElements();
+    TemplateServerController.templatesService.deleteAllTemplateElements();
   }
 }

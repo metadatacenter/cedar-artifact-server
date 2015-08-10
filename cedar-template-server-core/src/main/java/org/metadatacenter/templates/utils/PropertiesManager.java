@@ -6,52 +6,52 @@ import java.io.IOException;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Properties;
 
 public class PropertiesManager
 {
-  private static String configFile = "src/main/config/config.properties";
-  private static Properties properties;
+  private static final String configFile = "src/main/config/config.properties";
+
+  private static final Properties properties;
 
   static {
     properties = new Properties();
     try {
-      System.out.println("------------------ User dir: " + System.getProperty("user.dir"));
+      // TODO LOG ("------------------ User dir: " + System.getProperty("user.dir"));
       properties.load(new FileInputStream(configFile));
     } catch (FileNotFoundException e) {
-      e.printStackTrace();
+      // TODO LOG
     } catch (IOException e) {
-      e.printStackTrace();
+      // TODO LOG
     }
   }
 
-  public static String getProperty(String propertyName)
+  public static Optional<String> getProperty(String propertyName)
   {
-    return properties.getProperty(propertyName);
+    if (properties.getProperty(propertyName) != null)
+      return Optional.of(properties.getProperty(propertyName));
+    else
+      return Optional.empty();
   }
 
-  public static double getPropertyDouble(String propertyName)
+  public static Optional<Double> getPropertyDouble(String propertyName)
   {
     NumberFormat nf = NumberFormat.getInstance(Locale.US);
-    double result = -1;
     try {
-      result = nf.parse(properties.getProperty(propertyName)).doubleValue();
+      return Optional.of(nf.parse(properties.getProperty(propertyName)).doubleValue());
     } catch (ParseException e) {
-      e.printStackTrace();
+      // TODO Log
+      return Optional.empty();
     }
-    return result;
   }
 
-  public static int getPropertyInt(String propertyName)
+  public static Optional<Integer> getPropertyInt(String propertyName)
   {
-    return Integer.parseInt(properties.getProperty(propertyName));
+    try {
+      return Optional.of(Integer.parseInt(properties.getProperty(propertyName)));
+    } catch (NumberFormatException e) {
+      return Optional.empty();
+    }
   }
-
-  /**
-   * Test code **
-   */
-//  public static void main(String[] args)
-//  {
-//    System.out.println(PropertiesManager.getProperty("mongodb.db"));
-//  }
 }

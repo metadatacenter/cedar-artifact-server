@@ -8,7 +8,6 @@ import java.io.StringWriter;
 
 public class Utils
 {
-
   public static String prettyPrint(Object o) throws IOException
   {
     ObjectMapper mapper = new ObjectMapper();
@@ -17,5 +16,4 @@ public class Utils
     mapper.writeValue(sw, o);
     return sw.toString();
   }
-
 }

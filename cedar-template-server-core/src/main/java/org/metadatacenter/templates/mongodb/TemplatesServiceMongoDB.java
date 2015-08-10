@@ -1,11 +1,10 @@
-package org.metadatacenter.templates;
+package org.metadatacenter.templates.mongodb;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jackson.JsonLoader;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
-import org.metadatacenter.templates.template.TemplateDaoMongoDB;
-import org.metadatacenter.templates.templateelement.TemplateElementDaoMongoDB;
-import org.metadatacenter.templates.templateinstance.TemplateInstanceDaoMongoDB;
+import org.metadatacenter.templates.TemplateServerNames;
+import org.metadatacenter.templates.service.TemplatesService;
 import org.metadatacenter.templates.utils.JsonUtils;
 
 import javax.management.InstanceNotFoundException;
@@ -16,12 +15,9 @@ import java.util.List;
 
 public class TemplatesServiceMongoDB implements TemplatesService<String, JsonNode>
 {
-
-  private TemplateElementDaoMongoDB templateElementDao;
-  private TemplateDaoMongoDB templateDao;
-  private TemplateInstanceDaoMongoDB templateInstanceDao;
-
-  final String JSON_SCHEMA_URL = "http://json-schema.org/draft-04/schema#";
+  private final TemplateElementDaoMongoDB templateElementDao;
+  private final TemplateDaoMongoDB templateDao;
+  private final TemplateInstanceDaoMongoDB templateInstanceDao;
 
   public TemplatesServiceMongoDB(String db, String templatesCollection, String templateElementsCollection,
     String templateInstancesCollection)
@@ -47,10 +43,10 @@ public class TemplatesServiceMongoDB implements TemplatesService<String, JsonNod
     throws InstanceNotFoundException, IOException, ProcessingException
   {
     JsonNode template = templateDao.find(templateId);
-    if (expanded == true)
+    if (expanded)
       template = expand(template);
-    if (validation == true)
-      validate(JsonLoader.fromURL(new URL(JSON_SCHEMA_URL)), template);
+    if (validation)
+      validate(JsonLoader.fromURL(new URL(TemplateServerNames.JSON_SCHEMA_URL)), template);
     return template;
   }
 
@@ -58,10 +54,10 @@ public class TemplatesServiceMongoDB implements TemplatesService<String, JsonNod
     throws InstanceNotFoundException, IOException, ProcessingException
   {
     JsonNode template = templateDao.findByLinkedDataId(templateId);
-    if (expanded == true)
+    if (expanded)
       template = expand(template);
-    if (validation == true)
-      validate(JsonLoader.fromURL(new URL(JSON_SCHEMA_URL)), template);
+    if (validation)
+      validate(JsonLoader.fromURL(new URL(TemplateServerNames.JSON_SCHEMA_URL)), template);
     return template;
   }
 
@@ -109,10 +105,10 @@ public class TemplatesServiceMongoDB implements TemplatesService<String, JsonNod
     throws InstanceNotFoundException, IOException, ProcessingException
   {
     JsonNode templateElement = templateElementDao.find(templateElementId);
-    if (expanded == true)
+    if (expanded)
       templateElement = expand(templateElement);
-    if (validation == true)
-      validate(JsonLoader.fromURL(new URL(JSON_SCHEMA_URL)), templateElement);
+    if (validation)
+      validate(JsonLoader.fromURL(new URL(TemplateServerNames.JSON_SCHEMA_URL)), templateElement);
     return templateElement;
   }
 
@@ -120,10 +116,10 @@ public class TemplatesServiceMongoDB implements TemplatesService<String, JsonNod
     throws InstanceNotFoundException, IOException, ProcessingException
   {
     JsonNode templateElement = templateElementDao.findByLinkedDataId(templateElementId);
-    if (expanded == true)
+    if (expanded)
       templateElement = expand(templateElement);
-    if (validation == true)
-      validate(JsonLoader.fromURL(new URL(JSON_SCHEMA_URL)), templateElement);
+    if (validation)
+      validate(JsonLoader.fromURL(new URL(TemplateServerNames.JSON_SCHEMA_URL)), templateElement);
     return templateElement;
   }
 
@@ -187,7 +183,7 @@ public class TemplatesServiceMongoDB implements TemplatesService<String, JsonNod
   }
 
   // Validation against Json Schema
-  public void validate(JsonNode schema, JsonNode instance) throws IOException, ProcessingException
+  public void validate(JsonNode schema, JsonNode instance) throws ProcessingException
   {
     JsonUtils jsonUtils = new JsonUtils();
     jsonUtils.validate(schema, instance);

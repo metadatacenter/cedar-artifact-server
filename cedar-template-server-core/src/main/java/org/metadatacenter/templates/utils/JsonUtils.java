@@ -8,7 +8,7 @@ import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import com.github.fge.jsonschema.main.JsonValidator;
-import org.metadatacenter.templates.TemplatesService;
+import org.metadatacenter.templates.service.TemplatesService;
 
 import javax.management.InstanceNotFoundException;
 import java.io.IOException;
@@ -17,7 +17,6 @@ import java.util.Map;
 
 public class JsonUtils
 {
-
   /* JSON Schema Validation */
 
   public void validate(JsonNode schema, JsonNode instance) throws ProcessingException
@@ -37,9 +36,10 @@ public class JsonUtils
   {
     ObjectMapper mapper = new ObjectMapper();
     ObjectNode rootNode = mapper.createObjectNode();
-    Iterator it = node.fields();
+
+    Iterator<Map.Entry<String, JsonNode>> it = node.fields();
     while (it.hasNext()) {
-      Map.Entry<String, JsonNode> entry = (Map.Entry<String, JsonNode>)it.next();
+      Map.Entry<String, JsonNode> entry = it.next();
       // If the entry is an object
       if (entry.getValue().isObject()) {
         // If it contains only one property, which is $ref
@@ -47,9 +47,8 @@ public class JsonUtils
           String ref = entry.getValue().get("$ref").asText();
           // Load the template element
           if (ref.length() > 0) {
-            JsonNode templateElement = null;
             try {
-              templateElement = templatesService.findTemplateElementByLinkedDataId(ref, false, false);
+              JsonNode templateElement = templatesService.findTemplateElementByLinkedDataId(ref, false, false);
               rootNode.set(entry.getKey(), resolveTemplateElementRefs(templateElement, templatesService));
             } catch (InstanceNotFoundException e) {
               rootNode.put(entry.getKey(), "unresolved_reference");
@@ -67,11 +66,11 @@ public class JsonUtils
       }
       // If it is not an object
       else {
-//        if (entry.getKey().compareTo("_$schema") == 0) {
-//          rootNode.set("$schema", entry.getValue());
-//        } else {
-          rootNode.set(entry.getKey(), entry.getValue());
-//        }
+        //        if (entry.getKey().compareTo("_$schema") == 0) {
+        //          rootNode.set("$schema", entry.getValue());
+        //        } else {
+        rootNode.set(entry.getKey(), entry.getValue());
+        //        }
       }
     }
     return rootNode;
@@ -99,7 +98,7 @@ public class JsonUtils
 
   private JsonNode updateFieldName(JsonNode node, String fieldName, String newFieldName, boolean reverse)
   {
-    if (reverse == true) {
+    if (reverse) {
       String swap = fieldName;
       fieldName = newFieldName;
       newFieldName = swap;
@@ -110,16 +109,4 @@ public class JsonUtils
     }
     return node;
   }
-
-  /* Method for testing */
-//  public static void main(String[] args) throws IOException
-//  {
-//    String json = "{ \"_$schema\": \"Some value\", \"nested\" : { \"_$schema\" : \"Some other value\", \"name\": \"Name value\"} }";
-//    ObjectMapper mapper = new ObjectMapper();
-//    final JsonNode tree = mapper.readTree(json);
-//    JsonUtils utils = new JsonUtils();
-//    utils.fixMongoDB(tree, 2);
-//    System.out.println(tree);
-//  }
-
 }

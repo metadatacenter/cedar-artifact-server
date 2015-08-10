@@ -1,5 +1,7 @@
 import com.typesafe.config.ConfigFactory;
-import play.*;
+import play.Configuration;
+import play.GlobalSettings;
+import play.Mode;
 import play.libs.F.Promise;
 import play.mvc.Action;
 import play.mvc.Http;
@@ -9,7 +11,6 @@ import java.io.File;
 
 public class Global extends GlobalSettings
 {
-
   @Override public Configuration onLoadConfig(Configuration config, File path, ClassLoader classloader, Mode mode)
   {
     // System.out.println("Execution mode: " + mode.name());
@@ -52,5 +53,4 @@ public class Global extends GlobalSettings
   {
     return new ActionWrapper(super.onRequest(request, actionMethod));
   }
-
 }

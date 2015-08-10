@@ -1,5 +1,5 @@
 import com.fasterxml.jackson.databind.JsonNode;
-import controllers.CrudController;
+import controllers.TemplateServerController;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -32,9 +32,10 @@ import static play.test.Helpers.status;
  * Integration Tests for the Application routes. They are done using a "fake application" (FakeApplication class) that
  * provides a running Application as context
  */
-public class CrudRoutesTest
+public class TemplateServerRoutesTest
 {
   private static final String TEMPLATE_ELEMENTS_ROUTE = "/template_elements";
+
   private static JsonNode templateElement1;
   private static JsonNode templateElement2;
 
@@ -238,6 +239,6 @@ public class CrudRoutesTest
   // Helper method to remove all elements from the DB
   public void deleteAllTemplateElements()
   {
-    CrudController.templatesService.deleteAllTemplateElements();
+    TemplateServerController.templatesService.deleteAllTemplateElements();
   }
 }

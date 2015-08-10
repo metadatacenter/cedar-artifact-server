@@ -1,4 +1,4 @@
-package org.metadatacenter.templates.utils;
+package org.metadatacenter.templates.mongodb;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,6 +9,8 @@ import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import org.bson.Document;
 import org.bson.types.ObjectId;
+import org.metadatacenter.templates.dao.GenericDao;
+import org.metadatacenter.templates.utils.JsonUtils;
 
 import javax.management.InstanceNotFoundException;
 import java.io.IOException;
@@ -18,26 +20,31 @@ import java.util.Map;
 
 import static com.mongodb.client.model.Filters.eq;
 
-// Service to query a MongoDB database
-public class GenericDaoMongoDB implements GenericDao<String, JsonNode>
+/**
+ * Service to manage elements in a MongoDB database
+ */
+public class MongoDBDao implements GenericDao<String, JsonNode>
 {
+  protected final MongoCollection<Document> entityCollection;
+  private final JsonUtils jsonUtils;
 
-  private MongoClient mongoClient;
-  // Accessible from subclasses
-  protected MongoCollection<Document> entityCollection;
-  private JsonUtils jsonUtils;
-
-  public GenericDaoMongoDB(String dbName, String collectionName)
+  public MongoDBDao(String dbName, String collectionName)
   {
+    MongoClient mongoClient = MongoFactory.getClient();
+    entityCollection = mongoClient.getDatabase(dbName).getCollection(collectionName);
     jsonUtils = new JsonUtils();
     // TODO: close mongoClient after using it
-    mongoClient = MongoFactory.getClient();
-    entityCollection = mongoClient.getDatabase(dbName).getCollection(collectionName);
   }
 
   /* CRUD operations */
 
-  // Create
+  /**
+   * Create an element
+   *
+   * @param element An element
+   * @return The created element
+   * @throws IOException If an occurs during creation
+   */
   public JsonNode create(JsonNode element) throws IOException
   {
     // Adapts all keys not accepted by MongoDB
@@ -50,7 +57,12 @@ public class GenericDaoMongoDB implements GenericDao<String, JsonNode>
     return jsonUtils.fixMongoDB(mapper.readTree(elementDoc.toJson()), 2);
   }
 
-  // Find All
+  /**
+   * Find all elements
+   *
+   * @return A list of elements
+   * @throws IOException If an error occurs during retrieval
+   */
   public List<JsonNode> findAll() throws IOException
   {
     ObjectMapper mapper = new ObjectMapper();
@@ -68,6 +80,16 @@ public class GenericDaoMongoDB implements GenericDao<String, JsonNode>
   }
 
   // Find by Id
+
+  /**
+   * Find an element using its ID
+   *
+   * @param id The ID of the element
+   * @return A JSON representation of the element
+   * @throws IllegalArgumentException If the ID is not valid
+   * @throws InstanceNotFoundException If the element is not found
+   * @throws IOException If an error occurs during retrieval
+   */
   public JsonNode find(String id) throws InstanceNotFoundException, IOException
   {
     if (!ObjectId.isValid(id)) {
@@ -82,7 +104,14 @@ public class GenericDaoMongoDB implements GenericDao<String, JsonNode>
 
   }
 
-  // Find by Linked Data Id (@id in JSON-LD)
+  /**
+   * Find an element using its liked data ID  (@id in JSON-LD)
+   * @param id The linked data ID of the element
+   * @return A JSON representation of the element
+   * @throws IllegalArgumentException If the ID is not valid
+   * @throws InstanceNotFoundException If the element is not found
+   * @throws IOException If an error occurs during retrieval
+   */
   public JsonNode findByLinkedDataId(String id) throws InstanceNotFoundException, IOException
   {
     if ((id == null) && (id.length() == 0)) {
@@ -96,7 +125,16 @@ public class GenericDaoMongoDB implements GenericDao<String, JsonNode>
     return jsonUtils.fixMongoDB(mapper.readTree(doc.toJson()), 2);
   }
 
-  // Update
+  /**
+   * Update an element
+   *
+   * @param id The ID of the element to update
+   * @param modifications The update
+   * @return The updated JSON representation of the element
+   * @throws IllegalArgumentException If the ID is not valid
+   * @throws InstanceNotFoundException If the element is not found
+   * @throws IOException If an error occurs during update
+   */
   public JsonNode update(String id, JsonNode modifications) throws InstanceNotFoundException, IOException
   {
     if (!ObjectId.isValid(id)) {
@@ -117,7 +155,14 @@ public class GenericDaoMongoDB implements GenericDao<String, JsonNode>
       throw new InternalError();
   }
 
-  // Delete
+  /**
+   * Delete an element
+   *
+   * @param id The ID of the element to delete
+   * @throws IllegalArgumentException If the ID is not valid
+   * @throws InstanceNotFoundException If the element is not found
+   * @throws IOException If an error occurs during deletion
+   */
   public void delete(String id) throws InstanceNotFoundException, IOException
   {
     if (!ObjectId.isValid(id)) {
@@ -131,7 +176,13 @@ public class GenericDaoMongoDB implements GenericDao<String, JsonNode>
       throw new InternalError();
   }
 
-  // Exists
+  /**
+   * Does an element exist
+   *
+   * @param id The ID of the element
+   * @return True if an element with the supplied ID exists
+   * @throws IOException If an error occurs during the existence check
+   */
   public boolean exists(String id) throws IOException
   {
     try {
@@ -142,7 +193,9 @@ public class GenericDaoMongoDB implements GenericDao<String, JsonNode>
     return true;
   }
 
-  // Delete all
+  /**
+   * Delete all elements
+   */
   public void deleteAll()
   {
     entityCollection.drop();

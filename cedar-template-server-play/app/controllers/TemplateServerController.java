@@ -1,8 +1,9 @@
 package controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.metadatacenter.templates.TemplatesService;
-import org.metadatacenter.templates.TemplatesServiceMongoDB;
+import org.metadatacenter.templates.TemplateServerNames;
+import org.metadatacenter.templates.mongodb.TemplatesServiceMongoDB;
+import org.metadatacenter.templates.service.TemplatesService;
 import play.Configuration;
 import play.Play;
 import play.libs.Json;
@@ -12,16 +13,16 @@ import play.mvc.Result;
 import javax.management.InstanceNotFoundException;
 import java.util.List;
 
-public class CrudController extends Controller
+public class TemplateServerController extends Controller
 {
-
-  public static TemplatesService<String, JsonNode> templatesService;
+  public static final TemplatesService<String, JsonNode> templatesService;
 
   static {
     Configuration config = Play.application().configuration();
-    templatesService = new TemplatesServiceMongoDB(config.getString("mongodb.db"),
-      config.getString("mongodb.collections.templates"), config.getString("mongodb.collections.template_elements"),
-      config.getString("mongodb.collections.template_instances"));
+    templatesService = new TemplatesServiceMongoDB(config.getString(TemplateServerNames.MONGODB_DATABASE_NAME),
+      config.getString(TemplateServerNames.TEMPLATES_COLLECTION_NAME),
+      config.getString(TemplateServerNames.TEMPLATE_ELEMENTS_COLLECTION_NAME),
+      config.getString(TemplateServerNames.TEMPLATE_INSTANCES_COLLECTION_NAME));
   }
 
   /* Templates */

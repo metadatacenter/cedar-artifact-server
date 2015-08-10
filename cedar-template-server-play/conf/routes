@@ -5,23 +5,23 @@
 # Home page
 GET            /                              controllers.Application.index()
 # Templates
-POST           /templates                     controllers.CrudController.createTemplate()
-GET            /templates/:id                 controllers.CrudController.findTemplate(id: String, expanded: Boolean ?= false, validation: Boolean ?= false)
-GET            /templates                     controllers.CrudController.findAllTemplates()
-PUT            /templates/:id                 controllers.CrudController.updateTemplate(id: String)
-DELETE         /templates/:id                 controllers.CrudController.deleteTemplate(id: String)
+POST           /templates                     controllers.TemplateServerController.createTemplate()
+GET            /templates/:id                 controllers.TemplateServerController.findTemplate(id: String, expanded: Boolean ?= false, validation: Boolean ?= false)
+GET            /templates                     controllers.TemplateServerController.findAllTemplates()
+PUT            /templates/:id                 controllers.TemplateServerController.updateTemplate(id: String)
+DELETE         /templates/:id                 controllers.TemplateServerController.deleteTemplate(id: String)
 # Template Elements
-POST           /template_elements             controllers.CrudController.createTemplateElement()
-GET            /template_elements/:id         controllers.CrudController.findTemplateElement(id: String, expanded: Boolean ?= false, validation: Boolean ?= false)
-GET            /template_elements             controllers.CrudController.findAllTemplateElements()
-PUT            /template_elements/:id         controllers.CrudController.updateTemplateElement(id: String)
-DELETE         /template_elements/:id         controllers.CrudController.deleteTemplateElement(id: String)
+POST           /template_elements             controllers.TemplateServerController.createTemplateElement()
+GET            /template_elements/:id         controllers.TemplateServerController.findTemplateElement(id: String, expanded: Boolean ?= false, validation: Boolean ?= false)
+GET            /template_elements             controllers.TemplateServerController.findAllTemplateElements()
+PUT            /template_elements/:id         controllers.TemplateServerController.updateTemplateElement(id: String)
+DELETE         /template_elements/:id         controllers.TemplateServerController.deleteTemplateElement(id: String)
 # Template Instances
-POST           /template_instances            controllers.CrudController.createTemplateInstance()
-GET            /template_instances/:id        controllers.CrudController.findTemplateInstance(id: String)
-GET            /template_instances            controllers.CrudController.findAllTemplateInstances()
-PUT            /template_instances/:id        controllers.CrudController.updateTemplateInstance(id: String)
-DELETE         /template_instances/:id        controllers.CrudController.deleteTemplateInstance(id: String)
+POST           /template_instances            controllers.TemplateServerController.createTemplateInstance()
+GET            /template_instances/:id        controllers.TemplateServerController.findTemplateInstance(id: String)
+GET            /template_instances            controllers.TemplateServerController.findAllTemplateInstances()
+PUT            /template_instances/:id        controllers.TemplateServerController.updateTemplateInstance(id: String)
+DELETE         /template_instances/:id        controllers.TemplateServerController.deleteTemplateInstance(id: String)
 
 # For CORS - preflight request
 OPTIONS        /*all                          controllers.Application.preflight(all)
