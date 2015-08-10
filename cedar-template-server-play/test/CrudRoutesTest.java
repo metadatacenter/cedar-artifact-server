@@ -34,8 +34,7 @@ import static play.test.Helpers.status;
  */
 public class CrudRoutesTest
 {
-
-  private final String serverUrl = "http://localhost:3333";
+  private static final String TEMPLATE_ELEMENTS_ROUTE = "/template_elements";
   private static JsonNode templateElement1;
   private static JsonNode templateElement2;
 
@@ -62,6 +61,7 @@ public class CrudRoutesTest
   {
     templateElement1 = Json.newObject().put("name", "template element 1 name").put("value", "template element 1 value");
     templateElement2 = Json.newObject().put("name", "template element 2 name").put("value", "template element 2 value");
+
     running(fakeApplication(), new Runnable()
     {
       public void run()
@@ -97,7 +97,7 @@ public class CrudRoutesTest
       public void run()
       {
         // Invoke the "Create" action using the Router
-        Result result = route(new FakeRequest(POST, "/template_elements").withJsonBody(templateElement1));
+        Result result = route(new FakeRequest(POST, TEMPLATE_ELEMENTS_ROUTE).withJsonBody(templateElement1));
         // Check response is OK
         Assert.assertEquals(OK, status(result));
         // Check Content-Type
@@ -123,10 +123,12 @@ public class CrudRoutesTest
       public void run()
       {
         // Create two sample elements
-        templateElement1 = Json.parse(contentAsString(route(new FakeRequest(POST, "/template_elements").withJsonBody(templateElement1))));
-        templateElement2 = Json.parse(contentAsString(route(new FakeRequest(POST, "/template_elements").withJsonBody(templateElement2))));
+        templateElement1 = Json
+          .parse(contentAsString(route(new FakeRequest(POST, TEMPLATE_ELEMENTS_ROUTE).withJsonBody(templateElement1))));
+        templateElement2 = Json
+          .parse(contentAsString(route(new FakeRequest(POST, TEMPLATE_ELEMENTS_ROUTE).withJsonBody(templateElement2))));
         // Invoke the "Find All" action using the Router
-        Result result = route(new FakeRequest(GET, "/template_elements"));
+        Result result = route(new FakeRequest(GET, TEMPLATE_ELEMENTS_ROUTE));
         // Check response is OK
         Assert.assertEquals(OK, status(result));
         // Check Content-Type
@@ -159,10 +161,10 @@ public class CrudRoutesTest
       {
         // Create an element
         JsonNode expected = Json
-          .parse(contentAsString(route(new FakeRequest(POST, "/template_elements").withJsonBody(templateElement1))));
+          .parse(contentAsString(route(new FakeRequest(POST, TEMPLATE_ELEMENTS_ROUTE).withJsonBody(templateElement1))));
         String id = expected.get("_id").get("$oid").asText();
         // Invoke the "Find by Id" action using the Router
-        Result result = route(new FakeRequest(GET, "/template_elements/" + id));
+        Result result = route(new FakeRequest(GET, TEMPLATE_ELEMENTS_ROUTE + "/" + id));
         // Check response is OK
         Assert.assertEquals(OK, status(result));
         // Check Content-Type
@@ -184,13 +186,13 @@ public class CrudRoutesTest
       {
         // Create an element
         JsonNode elementCreated = Json
-          .parse(contentAsString(route(new FakeRequest(POST, "/template_elements").withJsonBody(templateElement1))));
+          .parse(contentAsString(route(new FakeRequest(POST, TEMPLATE_ELEMENTS_ROUTE).withJsonBody(templateElement1))));
         // Update the element created
         String id = elementCreated.get("_id").get("$oid").asText();
         String updatedName = "new name";
         JsonNode changes = Json.newObject().put("name", updatedName);
         // Invoke the "Update" action using the Router
-        Result result = route(new FakeRequest(PUT, "/template_elements/" + id).withJsonBody(changes));
+        Result result = route(new FakeRequest(PUT, TEMPLATE_ELEMENTS_ROUTE + "/" + id).withJsonBody(changes));
         // Check response is OK
         Assert.assertEquals(OK, status(result));
         // Check Content-Type
@@ -198,7 +200,7 @@ public class CrudRoutesTest
         // Check Charset
         Assert.assertEquals("utf-8", charset(result));
         // Retrieve updated element
-        JsonNode actual = Json.parse(contentAsString(route(new FakeRequest(GET, "/template_elements/" + id))));
+        JsonNode actual = Json.parse(contentAsString(route(new FakeRequest(GET, TEMPLATE_ELEMENTS_ROUTE + "/" + id))));
         // Check if the modifications have been done correctly
         Assert.assertNotNull(actual.get("name"));
         Assert.assertEquals(updatedName, actual.get("name").asText());
@@ -216,14 +218,14 @@ public class CrudRoutesTest
       {
         // Create an element
         JsonNode elementCreated = Json
-          .parse(contentAsString(route(new FakeRequest(POST, "/template_elements").withJsonBody(templateElement1))));
+          .parse(contentAsString(route(new FakeRequest(POST, TEMPLATE_ELEMENTS_ROUTE).withJsonBody(templateElement1))));
         String id = elementCreated.get("_id").get("$oid").asText();
         // Invoke the "Delete" action using the Router
-        Result result = route(new FakeRequest(DELETE, "/template_elements/" + id));
+        Result result = route(new FakeRequest(DELETE, TEMPLATE_ELEMENTS_ROUTE + "/" + id));
         // Check response is OK
         Assert.assertEquals(OK, status(result));
         // Check that the element has been deleted by trying to find it by id
-        Result result1 = route(new FakeRequest(GET, "/template_elements/" + id));
+        Result result1 = route(new FakeRequest(GET, TEMPLATE_ELEMENTS_ROUTE + "/" + id));
         Assert.assertEquals(NOT_FOUND, status(result1));
       }
     });
