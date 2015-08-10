@@ -1,5 +1,6 @@
 package org.metadatacenter.templates.utils;
 
+import checkers.nullness.quals.NonNull;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -19,7 +20,7 @@ public class JsonUtils
 {
   /* JSON Schema Validation */
 
-  public void validate(JsonNode schema, JsonNode instance) throws ProcessingException
+  public void validate(@NonNull JsonNode schema, @NonNull JsonNode instance) throws ProcessingException
   {
     JsonValidator validator = JsonSchemaFactory.byDefault().getValidator();
     ProcessingReport report = validator.validate(schema, instance);
@@ -31,8 +32,8 @@ public class JsonUtils
 
   /* Resolution of Json Schema references ($ref) */
 
-  public JsonNode resolveTemplateElementRefs(JsonNode node, TemplatesService<String, JsonNode> templatesService)
-    throws IOException, ProcessingException
+  @NonNull public JsonNode resolveTemplateElementRefs(@NonNull JsonNode node,
+    @NonNull TemplatesService<String, JsonNode> templatesService) throws IOException, ProcessingException
   {
     ObjectMapper mapper = new ObjectMapper();
     ObjectNode rootNode = mapper.createObjectNode();
@@ -80,7 +81,7 @@ public class JsonUtils
   // Rename JSON field to be stored into MongoDB
   // direction: 1 -> update field names for MongoDB storage (e.g. $schema -> _$schema)
   // direction: 2 -> update field names after reading them from MongoDB (e.g. _$schema -> $schema)
-  public JsonNode fixMongoDB(JsonNode node, int direction)
+  @NonNull public JsonNode fixMongoDB(@NonNull JsonNode node, int direction)
   {
     boolean reverse = false;
     if (direction == 2) {
@@ -96,7 +97,8 @@ public class JsonUtils
     return node;
   }
 
-  private JsonNode updateFieldName(JsonNode node, String fieldName, String newFieldName, boolean reverse)
+  @NonNull private JsonNode updateFieldName(@NonNull JsonNode node, @NonNull String fieldName,
+    @NonNull String newFieldName, boolean reverse)
   {
     if (reverse) {
       String swap = fieldName;

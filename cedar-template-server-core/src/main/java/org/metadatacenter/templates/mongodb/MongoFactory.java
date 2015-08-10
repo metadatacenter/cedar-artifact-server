@@ -1,12 +1,13 @@
 package org.metadatacenter.templates.mongodb;
 
+import checkers.nullness.quals.NonNull;
 import com.mongodb.MongoClient;
 
 public class MongoFactory
 {
-  private static final MongoClient mongoClient = new MongoClient();
+  @NonNull private static final MongoClient mongoClient = new MongoClient();
 
-  public static MongoClient getClient()
+  @NonNull public static MongoClient getClient()
   {
     return mongoClient;
   }

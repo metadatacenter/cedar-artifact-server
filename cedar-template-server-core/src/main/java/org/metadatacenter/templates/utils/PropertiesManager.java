@@ -1,5 +1,7 @@
 package org.metadatacenter.templates.utils;
 
+import checkers.nullness.quals.NonNull;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -13,7 +15,7 @@ public class PropertiesManager
 {
   private static final String configFile = "src/main/config/config.properties";
 
-  private static final Properties properties;
+  @NonNull private static final Properties properties;
 
   static {
     properties = new Properties();
@@ -27,7 +29,7 @@ public class PropertiesManager
     }
   }
 
-  public static Optional<String> getProperty(String propertyName)
+  public static Optional<String> getProperty(@NonNull String propertyName)
   {
     if (properties.getProperty(propertyName) != null)
       return Optional.of(properties.getProperty(propertyName));
@@ -35,7 +37,7 @@ public class PropertiesManager
       return Optional.empty();
   }
 
-  public static Optional<Double> getPropertyDouble(String propertyName)
+  public static Optional<Double> getPropertyDouble(@NonNull String propertyName)
   {
     NumberFormat nf = NumberFormat.getInstance(Locale.US);
     try {
@@ -46,7 +48,7 @@ public class PropertiesManager
     }
   }
 
-  public static Optional<Integer> getPropertyInt(String propertyName)
+  public static Optional<Integer> getPropertyInt(@NonNull String propertyName)
   {
     try {
       return Optional.of(Integer.parseInt(properties.getProperty(propertyName)));

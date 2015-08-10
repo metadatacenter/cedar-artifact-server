@@ -1,8 +1,10 @@
 package org.metadatacenter.templates.mongodb;
 
+import checkers.nullness.quals.NonNull;
+
 public class TemplateInstanceDaoMongoDB extends MongoDBDao
 {
-  public TemplateInstanceDaoMongoDB(String dbName, String collectionName)
+  public TemplateInstanceDaoMongoDB(@NonNull String dbName, @NonNull String collectionName)
   {
     super(dbName, collectionName);
   }
