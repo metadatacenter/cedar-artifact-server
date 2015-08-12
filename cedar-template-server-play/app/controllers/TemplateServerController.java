@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.metadatacenter.templates.TemplateServerNames;
 import org.metadatacenter.templates.mongodb.TemplatesServiceMongoDB;
 import org.metadatacenter.templates.service.TemplatesService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import play.Configuration;
 import play.Play;
 import play.libs.Json;
@@ -15,6 +17,8 @@ import java.util.List;
 
 public class TemplateServerController extends Controller
 {
+  private static Logger log = LoggerFactory.getLogger(TemplateServerController.class);
+
   public static final TemplatesService<String, JsonNode> templatesService;
 
   static {
@@ -29,6 +33,8 @@ public class TemplateServerController extends Controller
 
   public static Result createTemplate()
   {
+    log.info("Received create template request");
+
     try {
       JsonNode template = request().body().asJson();
       return ok(templatesService.createTemplate(template));
@@ -39,6 +45,8 @@ public class TemplateServerController extends Controller
 
   public static Result findTemplate(String templateId, boolean expanded, boolean validation)
   {
+    log.info("Received findTemplate request with template ID "+ templateId);
+
     try {
       JsonNode template = templatesService.findTemplate(templateId, expanded, validation);
       return ok(template);
