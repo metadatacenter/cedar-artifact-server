@@ -106,7 +106,7 @@ public class MongoDBDao implements GenericDao<String, JsonNode>
   }
 
   /**
-   * Find an element using its liked data ID  (@id in JSON-LD)
+   * Find an element using its linked data ID  (@id in JSON-LD)
    *
    * @param id The linked data ID of the element
    * @return A JSON representation of the element
@@ -116,7 +116,7 @@ public class MongoDBDao implements GenericDao<String, JsonNode>
    */
   @NonNull public JsonNode findByLinkedDataId(@NonNull String id) throws InstanceNotFoundException, IOException
   {
-    if ((id == null) && (id.length() == 0)) {
+    if ((id == null) || (id.length() == 0)) {
       throw new IllegalArgumentException();
     }
     Document doc = entityCollection.find(eq("@id", id)).first();
@@ -159,6 +159,37 @@ public class MongoDBDao implements GenericDao<String, JsonNode>
   }
 
   /**
+   * Update an element using its linked data ID  (@id in JSON-LD)
+   *
+   * @param id            The linked data ID of the element to update
+   * @param modifications The update
+   * @return The updated JSON representation of the element
+   * @throws IllegalArgumentException  If the ID is not valid
+   * @throws InstanceNotFoundException If the element is not found
+   * @throws IOException               If an error occurs during update
+   */
+  @NonNull public JsonNode updateByLinkedDataId(@NonNull String id, @NonNull JsonNode modifications)
+    throws InstanceNotFoundException, IOException
+  {
+    if ((id == null) || (id.length() == 0)) {
+      throw new IllegalArgumentException();
+    }
+    if (!existsByLinkedDataId(id)) {
+      throw new InstanceNotFoundException();
+    }
+    // Adapts all keys not accepted by MongoDB
+    modifications = jsonUtils.fixMongoDB(modifications, 1);
+    ObjectMapper mapper = new ObjectMapper();
+    Map modificationsMap = mapper.convertValue(modifications, Map.class);
+    UpdateResult updateResult = entityCollection
+      .updateOne(eq("@id", id), new Document("$set", modificationsMap));
+    if (updateResult.getModifiedCount() == 1) {
+      return find(id);
+    } else
+      throw new InternalError();
+  }
+
+  /**
    * Delete an element
    *
    * @param id The ID of the element to delete
@@ -180,7 +211,28 @@ public class MongoDBDao implements GenericDao<String, JsonNode>
   }
 
   /**
-   * Does an element exist
+   * Delete an element using its linked data ID  (@id in JSON-LD)
+   *
+   * @param id The linked data ID of the element to delete
+   * @throws IllegalArgumentException  If the ID is not valid
+   * @throws InstanceNotFoundException If the element is not found
+   * @throws IOException               If an error occurs during deletion
+   */
+  public void deleteByLinkedDataId(@NonNull String id) throws InstanceNotFoundException, IOException
+  {
+    if ((id == null) || (id.length() == 0)) {
+      throw new IllegalArgumentException();
+    }
+    if (!existsByLinkedDataId(id)) {
+      throw new InstanceNotFoundException();
+    }
+    DeleteResult deleteResult = entityCollection.deleteOne(eq("@id", id));
+    if (deleteResult.getDeletedCount() != 1)
+      throw new InternalError();
+  }
+
+  /**
+   * Check if an element exists using its ID
    *
    * @param id The ID of the element
    * @return True if an element with the supplied ID exists
@@ -190,6 +242,23 @@ public class MongoDBDao implements GenericDao<String, JsonNode>
   {
     try {
       find(id);
+    } catch (InstanceNotFoundException e) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Check if an element exists using its linked data ID
+   *
+   * @param id The linked data ID of the element
+   * @return True if an element with the supplied ID exists
+   * @throws IOException If an error occurs during the existence check
+   */
+  public boolean existsByLinkedDataId(@NonNull String id) throws IOException
+  {
+    try {
+      findByLinkedDataId(id);
     } catch (InstanceNotFoundException e) {
       return false;
     }

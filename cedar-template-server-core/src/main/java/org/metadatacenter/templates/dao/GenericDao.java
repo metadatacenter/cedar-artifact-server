@@ -18,9 +18,15 @@ public interface GenericDao<K, T>
 
   @NonNull T update(@NonNull K id, @NonNull T modifications) throws InstanceNotFoundException, IOException;
 
+  @NonNull T updateByLinkedDataId(@NonNull K id, @NonNull T modifications) throws InstanceNotFoundException, IOException;
+
   void delete(@NonNull K id) throws InstanceNotFoundException, IOException;
 
+  void deleteByLinkedDataId(@NonNull K id) throws InstanceNotFoundException, IOException;
+
   boolean exists(@NonNull K id) throws IOException;
+
+  boolean existsByLinkedDataId(@NonNull K id) throws IOException;
 
   void deleteAll();
 }

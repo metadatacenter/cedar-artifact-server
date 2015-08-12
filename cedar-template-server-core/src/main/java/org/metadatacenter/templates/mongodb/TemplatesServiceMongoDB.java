@@ -68,14 +68,30 @@ public class TemplatesServiceMongoDB implements TemplatesService<String, JsonNod
     return templateDao.update(templateId, modifications);
   }
 
+  @NonNull public JsonNode updateTemplateByLinkedDataId(@NonNull String templateId, @NonNull JsonNode modifications)
+    throws InstanceNotFoundException, IOException
+  {
+    return templateDao.updateByLinkedDataId(templateId, modifications);
+  }
+
   public void deleteTemplate(@NonNull String templateId) throws InstanceNotFoundException, IOException
   {
     templateDao.delete(templateId);
   }
 
+  public void deleteTemplateByLinkedDataId(@NonNull String templateId) throws InstanceNotFoundException, IOException
+  {
+    templateDao.deleteByLinkedDataId(templateId);
+  }
+
   public boolean existsTemplate(@NonNull String templateId) throws IOException
   {
     return templateDao.exists(templateId);
+  }
+
+  public boolean existsTemplateByLinkedDataId(@NonNull String templateId) throws IOException
+  {
+    return templateDao.existsByLinkedDataId(templateId);
   }
 
   public void deleteAllTemplates()
@@ -130,14 +146,30 @@ public class TemplatesServiceMongoDB implements TemplatesService<String, JsonNod
     return templateElementDao.update(templateElementId, modifications);
   }
 
+  @NonNull public JsonNode updateTemplateElementByLinkedDataId(@NonNull String templateElementId, @NonNull JsonNode modifications)
+    throws InstanceNotFoundException, IOException
+  {
+    return templateElementDao.updateByLinkedDataId(templateElementId, modifications);
+  }
+
   public void deleteTemplateElement(@NonNull String templateElementId) throws InstanceNotFoundException, IOException
   {
     templateElementDao.delete(templateElementId);
   }
 
+  public void deleteTemplateElementByLinkedDataId(@NonNull String templateElementId) throws InstanceNotFoundException, IOException
+  {
+    templateElementDao.deleteByLinkedDataId(templateElementId);
+  }
+
   public boolean existsTemplateElement(@NonNull String templateElementId) throws IOException
   {
     return templateElementDao.exists(templateElementId);
+  }
+
+  public boolean existsTemplateElementByLinkedDataId(@NonNull String templateElementId) throws IOException
+  {
+    return templateElementDao.existsByLinkedDataId(templateElementId);
   }
 
   public void deleteAllTemplateElements()
@@ -169,22 +201,33 @@ public class TemplatesServiceMongoDB implements TemplatesService<String, JsonNod
     return templateInstanceDao.update(templateInstanceId, modifications);
   }
 
+  @NonNull public JsonNode updateTemplateInstanceByLinkedDataId(@NonNull String templateInstanceId, @NonNull JsonNode modifications)
+    throws InstanceNotFoundException, IOException
+  {
+    return templateInstanceDao.updateByLinkedDataId(templateInstanceId, modifications);
+  }
+
   public void deleteTemplateInstance(@NonNull String templateInstanceId) throws InstanceNotFoundException, IOException
   {
     templateInstanceDao.delete(templateInstanceId);
   }
 
+  public void deleteTemplateInstanceByLinkedDataId(@NonNull String templateInstanceId) throws InstanceNotFoundException, IOException
+  {
+    templateInstanceDao.deleteByLinkedDataId(templateInstanceId);
+  }
+
   /* Other methods */
 
-  // Expands Template or a Template Element (Json Schema). All the template elements referenced using $ref are
-  // retrieved and embedded into the Json Schema code.
+  // Expands a Template or a Template Element (JSON Schema). All the template elements referenced using $ref are
+  // retrieved and embedded into the JSON Schema
   @NonNull public JsonNode expand(@NonNull JsonNode schema) throws IOException, ProcessingException
   {
     JsonUtils jsonUtils = new JsonUtils();
     return jsonUtils.resolveTemplateElementRefs(schema, this);
   }
 
-  // Validation against Json Schema
+  // Validation against JSON schema
   public void validate(@NonNull JsonNode schema, @NonNull JsonNode instance) throws ProcessingException
   {
     JsonUtils jsonUtils = new JsonUtils();
