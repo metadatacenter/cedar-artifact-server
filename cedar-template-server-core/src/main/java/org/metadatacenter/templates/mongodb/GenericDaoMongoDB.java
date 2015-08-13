@@ -24,12 +24,12 @@ import static com.mongodb.client.model.Filters.eq;
 /**
  * Service to manage elements in a MongoDB database
  */
-public class MongoDBDao implements GenericDao<String, JsonNode>
+public class GenericDaoMongoDB implements GenericDao<String, JsonNode>
 {
   @NonNull protected final MongoCollection<Document> entityCollection;
   @NonNull private final JsonUtils jsonUtils;
 
-  public MongoDBDao(@NonNull String dbName, @NonNull String collectionName)
+  public GenericDaoMongoDB(@NonNull String dbName, @NonNull String collectionName)
   {
     MongoClient mongoClient = MongoFactory.getClient();
     entityCollection = mongoClient.getDatabase(dbName).getCollection(collectionName);

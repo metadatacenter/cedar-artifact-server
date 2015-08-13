@@ -2,7 +2,7 @@ package org.metadatacenter.templates.mongodb;
 
 import checkers.nullness.quals.NonNull;
 
-public class TemplateInstanceDaoMongoDB extends MongoDBDao
+public class TemplateInstanceDaoMongoDB extends GenericDaoMongoDB
 {
   public TemplateInstanceDaoMongoDB(@NonNull String dbName, @NonNull String collectionName)
   {
