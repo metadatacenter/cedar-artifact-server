@@ -184,7 +184,7 @@ public class MongoDBDao implements GenericDao<String, JsonNode>
     UpdateResult updateResult = entityCollection
       .updateOne(eq("@id", id), new Document("$set", modificationsMap));
     if (updateResult.getModifiedCount() == 1) {
-      return find(id);
+      return findByLinkedDataId(id);
     } else
       throw new InternalError();
   }
@@ -222,9 +222,6 @@ public class MongoDBDao implements GenericDao<String, JsonNode>
   {
     if ((id == null) || (id.length() == 0)) {
       throw new IllegalArgumentException();
-    }
-    if (!existsByLinkedDataId(id)) {
-      throw new InstanceNotFoundException();
     }
     DeleteResult deleteResult = entityCollection.deleteOne(eq("@id", id));
     if (deleteResult.getDeletedCount() != 1)

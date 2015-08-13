@@ -24,9 +24,16 @@ public interface TemplatesService<K, T>
   @NonNull public T updateTemplate(@NonNull K templateId, @NonNull T modifications)
     throws InstanceNotFoundException, IOException;
 
+  @NonNull public T updateTemplateByLinkedDataId(@NonNull K templateId, @NonNull T modifications)
+    throws InstanceNotFoundException, IOException;
+
   public void deleteTemplate(@NonNull K templateId) throws InstanceNotFoundException, IOException;
 
+  public void deleteTemplateByLinkedDataId(@NonNull K templateId) throws InstanceNotFoundException, IOException;
+
   public boolean existsTemplate(@NonNull K templateId) throws IOException;
+
+  public boolean existsTemplateByLinkedDataId(@NonNull K templateId) throws IOException;
 
   public void deleteAllTemplates();
 
@@ -45,9 +52,16 @@ public interface TemplatesService<K, T>
   @NonNull public T updateTemplateElement(@NonNull K templateElementId, @NonNull T modifications)
     throws InstanceNotFoundException, IOException;
 
+  @NonNull public T updateTemplateElementByLinkedDataId(@NonNull K templateElementId, @NonNull T modifications)
+    throws InstanceNotFoundException, IOException;
+
   public void deleteTemplateElement(@NonNull K templateElementId) throws InstanceNotFoundException, IOException;
 
+  public void deleteTemplateElementByLinkedDataId(@NonNull K templateElementId) throws InstanceNotFoundException, IOException;
+
   public boolean existsTemplateElement(@NonNull K templateElementId) throws IOException;
+
+  public boolean existsTemplateElementByLinkedDataId(@NonNull K templateElementId) throws IOException;
 
   public void deleteAllTemplateElements();
 
@@ -59,8 +73,15 @@ public interface TemplatesService<K, T>
 
   @NonNull public T findTemplateInstance(@NonNull K templateInstanceId) throws InstanceNotFoundException, IOException;
 
+  @NonNull public T findTemplateInstanceByLinkedDataId(@NonNull K templateInstanceId) throws InstanceNotFoundException, IOException;
+
   @NonNull public T updateTemplateInstance(@NonNull K templateInstanceId, @NonNull T modifications)
     throws InstanceNotFoundException, IOException;
 
+  @NonNull public T updateTemplateInstanceByLinkedDataId(@NonNull K templateInstanceId, @NonNull T modifications)
+    throws InstanceNotFoundException, IOException;
+
   public void deleteTemplateInstance(@NonNull K templateInstanceId) throws InstanceNotFoundException, IOException;
+
+  public void deleteTemplateInstanceByLinkedDataId(@NonNull K templateInstanceId) throws InstanceNotFoundException, IOException;
 }

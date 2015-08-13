@@ -5,9 +5,11 @@ import play.libs.Json;
 import play.libs.ws.WS;
 import play.libs.ws.WSResponse;
 
+import java.io.UnsupportedEncodingException;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.net.URLEncoder;
 
 import static play.test.Helpers.*;
 
@@ -45,8 +47,12 @@ public class TemplateServerHttpTest
    */
   @Before public void setUp()
   {
-    templateElement1 = Json.newObject().put("name", "template element 1 name").put("value", "template element 2 value");
-    templateElement2 = Json.newObject().put("name", "template element 2 name").put("value", "template element 2 value");
+    templateElement1 = Json.newObject().
+      put("@id", "http://metadatacenter.org/template_elements/682c8141-9a61-4899-9d21-7083e861b0bf").
+      put("name", "template element 1 name").put("value", "template element 1 value");
+    templateElement2 = Json.newObject().
+      put("@id", "http://metadatacenter.org/template_elements/1dd58530-fdba-4c06-8d31-539b18296d8b").
+      put("name", "template element 2 name").put("value", "template element 2 value");
 
     running(testServer(TEST_SERVER_PORT), new Runnable()
     {
@@ -85,11 +91,18 @@ public class TemplateServerHttpTest
         Assert.assertEquals(OK, wsResponse.getStatus());
         // Check Content-Type
         Assert.assertEquals("application/json; charset=utf-8", wsResponse.getHeader("Content-Type"));
-        String actualId = wsResponse.asJson().get("_id").get("$oid").asText();
         // Retrieve the element created
-        JsonNode actual = WS.url(SERVER_URL + "/template_elements/" + actualId).get().get(TIMEOUT_MS).asJson();
+        JsonNode actual = null;
+        try {
+          actual = WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE + "/" +
+            URLEncoder.encode(templateElement1.get("@id").asText(), "UTF-8")).get().get(TIMEOUT_MS).asJson();
+        } catch (UnsupportedEncodingException e) {
+          e.printStackTrace();
+        }
         JsonNode expected = templateElement1;
         // Check fields
+        Assert.assertNotNull(actual.get("@id"));
+        Assert.assertEquals(expected.get("@id"), actual.get("@id"));
         Assert.assertNotNull(actual.get("name"));
         Assert.assertEquals(expected.get("name"), actual.get("name"));
         Assert.assertNotNull(actual.get("value"));
@@ -139,9 +152,14 @@ public class TemplateServerHttpTest
       {
         // Create an element
         JsonNode expected = WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE).post(templateElement1).get(TIMEOUT_MS).asJson();
-        String id = expected.get("_id").get("$oid").asText();
+        String id = expected.get("@id").asText();
         // Service invocation - Find by Id
-        WSResponse wsResponse = WS.url(SERVER_URL + "/template_elements/" + id).get().get(TIMEOUT_MS);
+        WSResponse wsResponse = null;
+        try {
+          wsResponse = WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE + "/" + URLEncoder.encode(id, "UTF-8")).get().get(TIMEOUT_MS);
+        } catch (UnsupportedEncodingException e) {
+          e.printStackTrace();
+        }
         // Check response is OK
         Assert.assertEquals(wsResponse.getStatus(), OK);
         // Check Content-Type
@@ -159,25 +177,37 @@ public class TemplateServerHttpTest
     {
       public void run()
       {
-        // Create an element
-        JsonNode elementCreated = WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE).post(templateElement1).get(TIMEOUT_MS).asJson();
-        // Update the element created
-        String id = elementCreated.get("_id").get("$oid").asText();
-        String updatedName = "new name";
-        JsonNode changes = Json.newObject().put("name", updatedName);
-        // Service invocation - Update
-        WSResponse wsResponse = WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE + "/" + id).put(changes).get(TIMEOUT_MS);
-        // Check response is OK
-        Assert.assertEquals(wsResponse.getStatus(), OK);
-        // Check Content-Type
-        Assert.assertEquals(wsResponse.getHeader("Content-Type"), "application/json; charset=utf-8");
-        // Retrieve updated element
-        JsonNode actual = WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE + "/" + id).get().get(TIMEOUT_MS).asJson();
-        // Check if the modifications have been done correctly
-        Assert.assertNotNull(actual.get("name"));
-        Assert.assertEquals(updatedName, actual.get("name").asText());
-        Assert.assertNotNull(actual.get("value"));
-        Assert.assertEquals(elementCreated.get("value"), actual.get("value"));
+        try {
+          // Create an element
+          JsonNode elementCreated =
+            WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE).post(templateElement1).get(TIMEOUT_MS).asJson();
+          // Update the element created
+          String id = elementCreated.get("@id").asText();
+          String updatedName = "new name";
+          JsonNode changes = Json.newObject().put("name", updatedName);
+          // Service invocation - Update
+          WSResponse wsResponse =
+            WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE + "/" + URLEncoder.encode(id, "UTF-8")).put(changes).get(TIMEOUT_MS);
+          // Check response is OK
+          Assert.assertEquals(wsResponse.getStatus(), OK);
+          // Check Content-Type
+          Assert.assertEquals(wsResponse.getHeader("Content-Type"), "application/json; charset=utf-8");
+          // Retrieve updated element
+          JsonNode actual = null;
+          try {
+            actual =
+              WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE + "/" + URLEncoder.encode(id, "UTF-8")).get().get(TIMEOUT_MS).asJson();
+          } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+          }
+          // Check if the modifications have been done correctly
+          Assert.assertNotNull(actual.get("name"));
+          Assert.assertEquals(updatedName, actual.get("name").asText());
+          Assert.assertNotNull(actual.get("value"));
+          Assert.assertEquals(elementCreated.get("value"), actual.get("value"));
+        } catch (UnsupportedEncodingException e) {
+          e.printStackTrace();
+        }
       }
     });
   }
@@ -188,16 +218,21 @@ public class TemplateServerHttpTest
     {
       public void run()
       {
-        // Create an element
-        JsonNode elementCreated = WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE).post(templateElement1).get(TIMEOUT_MS).asJson();
-        String id = elementCreated.get("_id").get("$oid").asText();
-        // Service invocation - Delete
-        WSResponse wsResponse = WS.url(SERVER_URL + "/template_elements/" + id).delete().get(TIMEOUT_MS);
-        // Check response is OK
-        Assert.assertEquals(wsResponse.getStatus(), OK);
-        // Check that the element has been deleted by trying to find it by id
-        WSResponse wsResponse1 = WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE + "/" + id).get().get(TIMEOUT_MS);
-        Assert.assertEquals(NOT_FOUND, wsResponse1.getStatus());
+        try {
+          // Create an element
+          JsonNode elementCreated = WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE).post(templateElement1).get(TIMEOUT_MS).asJson();
+          String id = elementCreated.get("@id").asText();
+          // Service invocation - Delete
+          WSResponse wsResponse = WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE + "/" + URLEncoder.encode(id, "UTF-8")).delete()
+            .get(TIMEOUT_MS);
+          // Check response is OK
+          Assert.assertEquals(wsResponse.getStatus(), OK);
+          // Check that the element has been deleted by trying to find it by id
+          WSResponse wsResponse1 = WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE + "/" + URLEncoder.encode(id, "UTF-8")).get().get(TIMEOUT_MS);
+          Assert.assertEquals(NOT_FOUND, wsResponse1.getStatus());
+        } catch (UnsupportedEncodingException e) {
+          e.printStackTrace();
+        }
       }
     });
   }

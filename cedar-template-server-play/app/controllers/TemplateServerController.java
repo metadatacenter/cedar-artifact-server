@@ -48,7 +48,7 @@ public class TemplateServerController extends Controller
     log.info("Received findTemplate request with template ID "+ templateId);
 
     try {
-      JsonNode template = templatesService.findTemplate(templateId, expanded, validation);
+      JsonNode template = templatesService.findTemplateByLinkedDataId(templateId, expanded, validation);
       return ok(template);
     } catch (IllegalArgumentException e) {
       return badRequest();
@@ -73,7 +73,7 @@ public class TemplateServerController extends Controller
   {
     JsonNode modifications = request().body().asJson();
     try {
-      JsonNode updatedTemplate = templatesService.updateTemplate(templateId, modifications);
+      JsonNode updatedTemplate = templatesService.updateTemplateByLinkedDataId(templateId, modifications);
       return ok(updatedTemplate);
     } catch (IllegalArgumentException e) {
       return badRequest();
@@ -87,7 +87,7 @@ public class TemplateServerController extends Controller
   public static Result deleteTemplate(String templateId)
   {
     try {
-      templatesService.deleteTemplate(templateId);
+      templatesService.deleteTemplateByLinkedDataId(templateId);
       return ok();
     } catch (IllegalArgumentException e) {
       return badRequest();
@@ -123,7 +123,8 @@ public class TemplateServerController extends Controller
   public static Result findTemplateElement(String templateElementId, boolean expanded, boolean validation)
   {
     try {
-      JsonNode templateElement = templatesService.findTemplateElement(templateElementId, expanded, validation);
+      JsonNode templateElement = templatesService.findTemplateElementByLinkedDataId(templateElementId, expanded,
+        validation);
       return ok(templateElement);
     } catch (IllegalArgumentException e) {
       return badRequest();
@@ -138,7 +139,8 @@ public class TemplateServerController extends Controller
   {
     JsonNode modifications = request().body().asJson();
     try {
-      JsonNode updatedTemplateElement = templatesService.updateTemplateElement(templateElementId, modifications);
+      JsonNode updatedTemplateElement = templatesService.updateTemplateElementByLinkedDataId(templateElementId,
+        modifications);
       return ok(updatedTemplateElement);
     } catch (IllegalArgumentException e) {
       return badRequest();
@@ -152,7 +154,7 @@ public class TemplateServerController extends Controller
   public static Result deleteTemplateElement(String templateElementId)
   {
     try {
-      templatesService.deleteTemplateElement(templateElementId);
+      templatesService.deleteTemplateElementByLinkedDataId(templateElementId);
       return ok();
     } catch (IllegalArgumentException e) {
       return badRequest();
@@ -188,7 +190,7 @@ public class TemplateServerController extends Controller
   public static Result findTemplateInstance(String templateInstanceId)
   {
     try {
-      JsonNode templateInstance = templatesService.findTemplateInstance(templateInstanceId);
+      JsonNode templateInstance = templatesService.findTemplateInstanceByLinkedDataId(templateInstanceId);
       return ok(templateInstance);
     } catch (IllegalArgumentException e) {
       return badRequest();
@@ -203,7 +205,8 @@ public class TemplateServerController extends Controller
   {
     JsonNode modifications = request().body().asJson();
     try {
-      JsonNode updatedTemplateInstance = templatesService.updateTemplateInstance(templateInstanceId, modifications);
+      JsonNode updatedTemplateInstance = templatesService.updateTemplateInstanceByLinkedDataId(templateInstanceId,
+        modifications);
       return ok(updatedTemplateInstance);
     } catch (IllegalArgumentException e) {
       return badRequest();
@@ -217,7 +220,7 @@ public class TemplateServerController extends Controller
   public static Result deleteTemplateInstance(String templateInstanceId)
   {
     try {
-      templatesService.deleteTemplateInstance(templateInstanceId);
+      templatesService.deleteTemplateInstanceByLinkedDataId(templateInstanceId);
       return ok();
     } catch (IllegalArgumentException e) {
       return badRequest();

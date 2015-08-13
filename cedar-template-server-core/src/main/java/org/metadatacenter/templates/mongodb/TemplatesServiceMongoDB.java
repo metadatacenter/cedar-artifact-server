@@ -40,7 +40,7 @@ public class TemplatesServiceMongoDB implements TemplatesService<String, JsonNod
     return templateDao.findAll();
   }
 
-  public JsonNode findTemplate(@NonNull String templateId, boolean expanded, boolean validation)
+  @NonNull public JsonNode findTemplate(@NonNull String templateId, boolean expanded, boolean validation)
     throws InstanceNotFoundException, IOException, ProcessingException
   {
     JsonNode template = templateDao.find(templateId);
@@ -193,6 +193,12 @@ public class TemplatesServiceMongoDB implements TemplatesService<String, JsonNod
     throws IOException, InstanceNotFoundException
   {
     return templateInstanceDao.find(templateInstanceId);
+  }
+
+  @NonNull public JsonNode findTemplateInstanceByLinkedDataId(@NonNull String templateInstanceId)
+    throws IOException, InstanceNotFoundException
+  {
+    return templateInstanceDao.findByLinkedDataId(templateInstanceId);
   }
 
   @NonNull public JsonNode updateTemplateInstance(@NonNull String templateInstanceId, @NonNull JsonNode modifications)
