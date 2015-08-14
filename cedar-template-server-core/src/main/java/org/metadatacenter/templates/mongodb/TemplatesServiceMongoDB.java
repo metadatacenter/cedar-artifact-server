@@ -35,6 +35,11 @@ public class TemplatesServiceMongoDB implements TemplatesService<String, JsonNod
     return templateDao.create(template);
   }
 
+  @NonNull public JsonNode createTemplateLinkedData(@NonNull JsonNode template) throws IOException
+  {
+    return templateDao.createLinkedData(template);
+  }
+
   @NonNull public List<JsonNode> findAllTemplates() throws IOException
   {
     return templateDao.findAll();
@@ -107,8 +112,12 @@ public class TemplatesServiceMongoDB implements TemplatesService<String, JsonNod
 
   @NonNull public JsonNode createTemplateElement(@NonNull JsonNode templateElement) throws IOException
   {
-    JsonUtils utils = new JsonUtils();
     return templateElementDao.create(templateElement);
+  }
+
+  @NonNull public JsonNode createTemplateElementLinkedData(@NonNull JsonNode templateElement) throws IOException
+  {
+    return templateElementDao.createLinkedData(templateElement);
   }
 
   @NonNull public List<JsonNode> findAllTemplateElements() throws IOException
@@ -190,6 +199,11 @@ public class TemplatesServiceMongoDB implements TemplatesService<String, JsonNod
   @NonNull public JsonNode createTemplateInstance(@NonNull JsonNode templateInstance) throws IOException
   {
     return templateInstanceDao.create(templateInstance);
+  }
+
+  @NonNull public JsonNode createTemplateInstanceLinkedData(@NonNull JsonNode templateInstance) throws IOException
+  {
+    return templateInstanceDao.createLinkedData(templateInstance);
   }
 
   @NonNull public List<JsonNode> findAllTemplateInstances() throws IOException

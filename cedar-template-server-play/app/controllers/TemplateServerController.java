@@ -37,7 +37,9 @@ public class TemplateServerController extends Controller
 
     try {
       JsonNode template = request().body().asJson();
-      return ok(templatesService.createTemplate(template));
+      return ok(templatesService.createTemplateLinkedData(template));
+    } catch (IllegalArgumentException e) {
+      return badRequest();
     } catch (Exception e) {
       return internalServerError();
     }
@@ -104,7 +106,7 @@ public class TemplateServerController extends Controller
   {
     try {
       JsonNode templateElement = request().body().asJson();
-      return ok(templatesService.createTemplateElement(templateElement));
+      return ok(templatesService.createTemplateElementLinkedData(templateElement));
     } catch (Exception e) {
       return internalServerError();
     }
@@ -171,7 +173,7 @@ public class TemplateServerController extends Controller
   {
     try {
       JsonNode templateInstance = request().body().asJson();
-      return ok(templatesService.createTemplateInstance(templateInstance));
+      return ok(templatesService.createTemplateInstanceLinkedData(templateInstance));
     } catch (Exception e) {
       return internalServerError();
     }

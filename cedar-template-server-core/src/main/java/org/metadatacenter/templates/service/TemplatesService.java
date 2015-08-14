@@ -13,6 +13,8 @@ public interface TemplatesService<K, T>
 
   @NonNull public T createTemplate(@NonNull T template) throws IOException;
 
+  @NonNull public T createTemplateLinkedData(@NonNull T template) throws IOException;
+
   @NonNull public List<T> findAllTemplates() throws IOException;
 
   public T findTemplate(@NonNull K templateId, boolean expanded, boolean validation)
@@ -41,6 +43,8 @@ public interface TemplatesService<K, T>
 
   @NonNull public T createTemplateElement(@NonNull T templateElement) throws IOException;
 
+  @NonNull public T createTemplateElementLinkedData(@NonNull T templateElement) throws IOException;
+
   @NonNull public List<T> findAllTemplateElements() throws IOException;
 
   public T findTemplateElement(@NonNull K templateElementId, boolean expanded, boolean validation)
@@ -68,6 +72,8 @@ public interface TemplatesService<K, T>
   /* Template Instances */
 
   @NonNull public T createTemplateInstance(@NonNull T templateInstance) throws IOException;
+
+  @NonNull public T createTemplateInstanceLinkedData(@NonNull T templateInstance) throws IOException;
 
   @NonNull public List<T> findAllTemplateInstances() throws IOException;
 

@@ -57,7 +57,33 @@ public class GenericDaoMongoDB implements GenericDao<String, JsonNode>
     // Returns the document created (all keys adapted for MongoDB are restored)
     return jsonUtils.fixMongoDB(mapper.readTree(elementDoc.toJson()), 2);
   }
-  
+
+  /**
+   * Create an element that contains a Linked Data identifier field (@id in JSON-LD). It is necessary to check that
+   * there are not other elements into the DB with the same @id.
+   *
+   * @param element An element
+   * @return The created element
+   * @throws IOException If an occurs during creation
+   */
+  @NonNull public JsonNode createLinkedData(@NonNull JsonNode element) throws IOException
+  {
+    if ((element.get("@id") == null) || (element.get("@id").asText().length() == 0)) {
+      throw new IllegalArgumentException();
+    }
+    // If an element with the same @id already exists
+    if (findByLinkedDataId(element.get("@id").asText()) != null)
+      throw new IllegalArgumentException();
+    // Adapts all keys not accepted by MongoDB
+    JsonNode fixedElement = jsonUtils.fixMongoDB(element, 1);
+    ObjectMapper mapper = new ObjectMapper();
+    Map elementMap = mapper.convertValue(fixedElement, Map.class);
+    Document elementDoc = new Document(elementMap);
+    entityCollection.insertOne(elementDoc);
+    // Returns the document created (all keys adapted for MongoDB are restored)
+    return jsonUtils.fixMongoDB(mapper.readTree(elementDoc.toJson()), 2);
+  }
+
   /**
    * Find all elements
    *

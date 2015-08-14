@@ -10,6 +10,8 @@ public interface GenericDao<K, T>
 {
   @NonNull T create(@NonNull T element) throws IOException;
 
+  @NonNull T createLinkedData(@NonNull T element) throws IOException;
+
   @NonNull List<T> findAll() throws IOException;
 
   T find(@NonNull K id) throws IOException;
