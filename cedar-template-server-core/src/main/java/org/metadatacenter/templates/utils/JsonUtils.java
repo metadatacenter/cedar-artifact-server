@@ -48,10 +48,10 @@ public class JsonUtils
           String ref = entry.getValue().get("$ref").asText();
           // Load the template element
           if (ref.length() > 0) {
-            try {
-              JsonNode templateElement = templatesService.findTemplateElementByLinkedDataId(ref, false, false);
+            JsonNode templateElement = templatesService.findTemplateElementByLinkedDataId(ref, false, false);
+            if (templateElement != null) {
               rootNode.set(entry.getKey(), resolveTemplateElementRefs(templateElement, templatesService));
-            } catch (InstanceNotFoundException e) {
+            } else {
               rootNode.put(entry.getKey(), "unresolved_reference");
             }
           }

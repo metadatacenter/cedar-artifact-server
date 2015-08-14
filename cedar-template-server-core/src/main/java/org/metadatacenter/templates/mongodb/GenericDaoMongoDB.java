@@ -57,7 +57,7 @@ public class GenericDaoMongoDB implements GenericDao<String, JsonNode>
     // Returns the document created (all keys adapted for MongoDB are restored)
     return jsonUtils.fixMongoDB(mapper.readTree(elementDoc.toJson()), 2);
   }
-
+  
   /**
    * Find all elements
    *
@@ -80,49 +80,42 @@ public class GenericDaoMongoDB implements GenericDao<String, JsonNode>
     return docs;
   }
 
-  // Find by Id
-
   /**
    * Find an element using its ID
    *
    * @param id The ID of the element
-   * @return A JSON representation of the element
+   * @return A JSON representation of the element or null if the element was not found
    * @throws IllegalArgumentException  If the ID is not valid
-   * @throws InstanceNotFoundException If the element is not found
    * @throws IOException               If an error occurs during retrieval
    */
-  @NonNull public JsonNode find(@NonNull String id) throws InstanceNotFoundException, IOException
+  public JsonNode find(@NonNull String id) throws IOException
   {
     if (!ObjectId.isValid(id)) {
       throw new IllegalArgumentException();
     }
     Document doc = entityCollection.find(eq("_id", new ObjectId(id))).first();
     if (doc == null)
-      throw new InstanceNotFoundException();
-    JsonNode node = null;
+      return null;
     ObjectMapper mapper = new ObjectMapper();
     return jsonUtils.fixMongoDB(mapper.readTree(doc.toJson()), 2);
-
   }
 
   /**
    * Find an element using its linked data ID  (@id in JSON-LD)
    *
    * @param id The linked data ID of the element
-   * @return A JSON representation of the element
+   * @return A JSON representation of the element or null if the element was not found
    * @throws IllegalArgumentException  If the ID is not valid
-   * @throws InstanceNotFoundException If the element is not found
    * @throws IOException               If an error occurs during retrieval
    */
-  @NonNull public JsonNode findByLinkedDataId(@NonNull String id) throws InstanceNotFoundException, IOException
+  public JsonNode findByLinkedDataId(@NonNull String id) throws IOException
   {
     if ((id == null) || (id.length() == 0)) {
       throw new IllegalArgumentException();
     }
     Document doc = entityCollection.find(eq("@id", id)).first();
     if (doc == null)
-      throw new InstanceNotFoundException();
-    JsonNode node = null;
+      return null;
     ObjectMapper mapper = new ObjectMapper();
     return jsonUtils.fixMongoDB(mapper.readTree(doc.toJson()), 2);
   }
@@ -223,6 +216,9 @@ public class GenericDaoMongoDB implements GenericDao<String, JsonNode>
     if ((id == null) || (id.length() == 0)) {
       throw new IllegalArgumentException();
     }
+    if (!existsByLinkedDataId(id)) {
+      throw new InstanceNotFoundException();
+    }
     DeleteResult deleteResult = entityCollection.deleteOne(eq("@id", id));
     if (deleteResult.getDeletedCount() != 1)
       throw new InternalError();
@@ -232,34 +228,30 @@ public class GenericDaoMongoDB implements GenericDao<String, JsonNode>
    * Check if an element exists using its ID
    *
    * @param id The ID of the element
-   * @return True if an element with the supplied ID exists
+   * @return True if an element with the supplied ID exists or False otherwise
    * @throws IOException If an error occurs during the existence check
    */
   public boolean exists(@NonNull String id) throws IOException
   {
-    try {
-      find(id);
-    } catch (InstanceNotFoundException e) {
+    if (find(id)!=null)
+      return true;
+    else
       return false;
-    }
-    return true;
   }
 
   /**
    * Check if an element exists using its linked data ID
    *
    * @param id The linked data ID of the element
-   * @return True if an element with the supplied ID exists
+   * @return True if an element with the supplied linked data ID exists or False otherwise
    * @throws IOException If an error occurs during the existence check
    */
   public boolean existsByLinkedDataId(@NonNull String id) throws IOException
   {
-    try {
-      findByLinkedDataId(id);
-    } catch (InstanceNotFoundException e) {
+    if (findByLinkedDataId(id)!=null)
+      return true;
+    else
       return false;
-    }
-    return true;
   }
 
   /**

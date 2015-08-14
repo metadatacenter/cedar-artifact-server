@@ -40,10 +40,12 @@ public class TemplatesServiceMongoDB implements TemplatesService<String, JsonNod
     return templateDao.findAll();
   }
 
-  @NonNull public JsonNode findTemplate(@NonNull String templateId, boolean expanded, boolean validation)
-    throws InstanceNotFoundException, IOException, ProcessingException
+  public JsonNode findTemplate(@NonNull String templateId, boolean expanded, boolean validation)
+    throws IOException, ProcessingException
   {
     JsonNode template = templateDao.find(templateId);
+    if (template==null)
+      return null;
     if (expanded)
       template = expand(template);
     if (validation)
@@ -51,10 +53,12 @@ public class TemplatesServiceMongoDB implements TemplatesService<String, JsonNod
     return template;
   }
 
-  @NonNull public JsonNode findTemplateByLinkedDataId(@NonNull String templateId, boolean expanded, boolean validation)
-    throws InstanceNotFoundException, IOException, ProcessingException
+  public JsonNode findTemplateByLinkedDataId(@NonNull String templateId, boolean expanded, boolean validation)
+    throws IOException, ProcessingException
   {
     JsonNode template = templateDao.findByLinkedDataId(templateId);
+    if (template==null)
+      return null;
     if (expanded)
       template = expand(template);
     if (validation)
@@ -118,10 +122,12 @@ public class TemplatesServiceMongoDB implements TemplatesService<String, JsonNod
     return templateElementsAdapted;
   }
 
-  @NonNull public JsonNode findTemplateElement(@NonNull String templateElementId, boolean expanded, boolean validation)
-    throws InstanceNotFoundException, IOException, ProcessingException
+  public JsonNode findTemplateElement(@NonNull String templateElementId, boolean expanded, boolean validation)
+    throws IOException, ProcessingException
   {
     JsonNode templateElement = templateElementDao.find(templateElementId);
+    if (templateElement==null)
+      return null;
     if (expanded)
       templateElement = expand(templateElement);
     if (validation)
@@ -129,10 +135,12 @@ public class TemplatesServiceMongoDB implements TemplatesService<String, JsonNod
     return templateElement;
   }
 
-  @NonNull public JsonNode findTemplateElementByLinkedDataId(@NonNull String templateElementId, boolean expanded,
-    boolean validation) throws InstanceNotFoundException, IOException, ProcessingException
+  public JsonNode findTemplateElementByLinkedDataId(@NonNull String templateElementId, boolean expanded,
+    boolean validation) throws IOException, ProcessingException
   {
     JsonNode templateElement = templateElementDao.findByLinkedDataId(templateElementId);
+    if (templateElement==null)
+      return null;
     if (expanded)
       templateElement = expand(templateElement);
     if (validation)
@@ -189,14 +197,14 @@ public class TemplatesServiceMongoDB implements TemplatesService<String, JsonNod
     return templateInstanceDao.findAll();
   }
 
-  @NonNull public JsonNode findTemplateInstance(@NonNull String templateInstanceId)
-    throws IOException, InstanceNotFoundException
+  public JsonNode findTemplateInstance(@NonNull String templateInstanceId)
+    throws IOException
   {
     return templateInstanceDao.find(templateInstanceId);
   }
 
-  @NonNull public JsonNode findTemplateInstanceByLinkedDataId(@NonNull String templateInstanceId)
-    throws IOException, InstanceNotFoundException
+  public JsonNode findTemplateInstanceByLinkedDataId(@NonNull String templateInstanceId)
+    throws IOException
   {
     return templateInstanceDao.findByLinkedDataId(templateInstanceId);
   }

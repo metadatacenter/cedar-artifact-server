@@ -12,9 +12,9 @@ public interface GenericDao<K, T>
 
   @NonNull List<T> findAll() throws IOException;
 
-  @NonNull T find(@NonNull K id) throws InstanceNotFoundException, IOException;
+  T find(@NonNull K id) throws IOException;
 
-  @NonNull T findByLinkedDataId(@NonNull K id) throws InstanceNotFoundException, IOException;
+  T findByLinkedDataId(@NonNull K id) throws IOException;
 
   @NonNull T update(@NonNull K id, @NonNull T modifications) throws InstanceNotFoundException, IOException;
 

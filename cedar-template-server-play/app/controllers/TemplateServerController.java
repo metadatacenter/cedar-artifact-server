@@ -49,11 +49,11 @@ public class TemplateServerController extends Controller
 
     try {
       JsonNode template = templatesService.findTemplateByLinkedDataId(templateId, expanded, validation);
-      return ok(template);
+      if (template!=null)
+        return ok(template);
+      return notFound();
     } catch (IllegalArgumentException e) {
       return badRequest();
-    } catch (InstanceNotFoundException e) {
-      return notFound();
     } catch (Exception e) {
       return internalServerError();
     }
@@ -125,11 +125,11 @@ public class TemplateServerController extends Controller
     try {
       JsonNode templateElement = templatesService.findTemplateElementByLinkedDataId(templateElementId, expanded,
         validation);
-      return ok(templateElement);
+      if (templateElement!=null)
+        return ok(templateElement);
+      return notFound();
     } catch (IllegalArgumentException e) {
       return badRequest();
-    } catch (InstanceNotFoundException e) {
-      return notFound();
     } catch (Exception e) {
       return internalServerError();
     }
@@ -191,11 +191,11 @@ public class TemplateServerController extends Controller
   {
     try {
       JsonNode templateInstance = templatesService.findTemplateInstanceByLinkedDataId(templateInstanceId);
-      return ok(templateInstance);
+      if (templateInstance!=null)
+        return ok(templateInstance);
+      return notFound();
     } catch (IllegalArgumentException e) {
       return badRequest();
-    } catch (InstanceNotFoundException e) {
-      return notFound();
     } catch (Exception e) {
       return internalServerError();
     }

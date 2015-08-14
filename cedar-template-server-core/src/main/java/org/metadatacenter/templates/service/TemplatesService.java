@@ -15,11 +15,11 @@ public interface TemplatesService<K, T>
 
   @NonNull public List<T> findAllTemplates() throws IOException;
 
-  @NonNull public T findTemplate(@NonNull K templateId, boolean expanded, boolean validation)
-    throws InstanceNotFoundException, IOException, ProcessingException;
+  public T findTemplate(@NonNull K templateId, boolean expanded, boolean validation)
+    throws IOException, ProcessingException;
 
-  @NonNull public T findTemplateByLinkedDataId(@NonNull String templateId, boolean expanded, boolean validation)
-    throws InstanceNotFoundException, IOException, ProcessingException;
+  public T findTemplateByLinkedDataId(@NonNull String templateId, boolean expanded, boolean validation)
+    throws IOException, ProcessingException;
 
   @NonNull public T updateTemplate(@NonNull K templateId, @NonNull T modifications)
     throws InstanceNotFoundException, IOException;
@@ -31,9 +31,9 @@ public interface TemplatesService<K, T>
 
   public void deleteTemplateByLinkedDataId(@NonNull K templateId) throws InstanceNotFoundException, IOException;
 
-  public boolean existsTemplate(@NonNull K templateId) throws IOException;
+  @NonNull public boolean existsTemplate(@NonNull K templateId) throws IOException;
 
-  public boolean existsTemplateByLinkedDataId(@NonNull K templateId) throws IOException;
+  @NonNull public boolean existsTemplateByLinkedDataId(@NonNull K templateId) throws IOException;
 
   public void deleteAllTemplates();
 
@@ -43,11 +43,11 @@ public interface TemplatesService<K, T>
 
   @NonNull public List<T> findAllTemplateElements() throws IOException;
 
-  @NonNull public T findTemplateElement(@NonNull K templateElementId, boolean expanded, boolean validation)
-    throws InstanceNotFoundException, IOException, ProcessingException;
+  public T findTemplateElement(@NonNull K templateElementId, boolean expanded, boolean validation)
+    throws IOException, ProcessingException;
 
-  @NonNull public T findTemplateElementByLinkedDataId(@NonNull String templateElementId, boolean expanded,
-    boolean validation) throws InstanceNotFoundException, IOException, ProcessingException;
+  public T findTemplateElementByLinkedDataId(@NonNull String templateElementId, boolean expanded,
+    boolean validation) throws IOException, ProcessingException;
 
   @NonNull public T updateTemplateElement(@NonNull K templateElementId, @NonNull T modifications)
     throws InstanceNotFoundException, IOException;
@@ -59,9 +59,9 @@ public interface TemplatesService<K, T>
 
   public void deleteTemplateElementByLinkedDataId(@NonNull K templateElementId) throws InstanceNotFoundException, IOException;
 
-  public boolean existsTemplateElement(@NonNull K templateElementId) throws IOException;
+  @NonNull public boolean existsTemplateElement(@NonNull K templateElementId) throws IOException;
 
-  public boolean existsTemplateElementByLinkedDataId(@NonNull K templateElementId) throws IOException;
+  @NonNull public boolean existsTemplateElementByLinkedDataId(@NonNull K templateElementId) throws IOException;
 
   public void deleteAllTemplateElements();
 
@@ -71,9 +71,9 @@ public interface TemplatesService<K, T>
 
   @NonNull public List<T> findAllTemplateInstances() throws IOException;
 
-  @NonNull public T findTemplateInstance(@NonNull K templateInstanceId) throws InstanceNotFoundException, IOException;
+  public T findTemplateInstance(@NonNull K templateInstanceId) throws IOException;
 
-  @NonNull public T findTemplateInstanceByLinkedDataId(@NonNull K templateInstanceId) throws InstanceNotFoundException, IOException;
+  public T findTemplateInstanceByLinkedDataId(@NonNull K templateInstanceId) throws IOException;
 
   @NonNull public T updateTemplateInstance(@NonNull K templateInstanceId, @NonNull T modifications)
     throws InstanceNotFoundException, IOException;
