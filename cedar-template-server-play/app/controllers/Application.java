@@ -7,7 +7,7 @@ public class Application extends Controller
 {
   public static Result index()
   {
-    return ok("Application started.");
+    return ok("CEDAR Template Server. Its REST API is documented here: " + request().host() + "/assets/RESTAPI.html");
   }
 
   /* For CORS */
