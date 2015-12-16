@@ -24,18 +24,7 @@ public class Global extends GlobalSettings {
     }
   }
 
-  //    @Override
-  //    public void onStart(Application app) {
-  //        Logger.info("Application has started");
-  //    }
-  //
-  //    @Override
-  //    public void onStop(Application app) {
-  //        Logger.info("Application shutdown...");
-  //    }
-
   /* For CORS */
-
   private class ActionWrapper extends Action.Simple {
     public ActionWrapper(Action<?> action) {
       this.delegate = action;
@@ -59,5 +48,10 @@ public class Global extends GlobalSettings {
   public void onStart(Application application) {
     DataServices.getInstance();
     super.onStart(application);
+  }
+
+  @Override
+  public void onStop(Application application) {
+    super.onStop(application);
   }
 }

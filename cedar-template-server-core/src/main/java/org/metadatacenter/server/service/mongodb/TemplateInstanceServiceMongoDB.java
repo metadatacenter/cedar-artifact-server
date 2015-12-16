@@ -14,8 +14,8 @@ public class TemplateInstanceServiceMongoDB extends GenericTemplateServiceMongoD
 
   private final @NonNull TemplateInstanceDaoMongoDB templateInstanceDao;
 
-  public TemplateInstanceServiceMongoDB(@NonNull String db, @NonNull String templateInstancesCollection) {
-    templateInstanceDao = new TemplateInstanceDaoMongoDB(db, templateInstancesCollection);
+  public TemplateInstanceServiceMongoDB(@NonNull String db, @NonNull String templateInstancesCollection, String linkedDataIdBasePath) {
+    templateInstanceDao = new TemplateInstanceDaoMongoDB(db, templateInstancesCollection, linkedDataIdBasePath);
   }
 
   @NonNull
@@ -42,8 +42,8 @@ public class TemplateInstanceServiceMongoDB extends GenericTemplateServiceMongoD
 
   @Override
   @NonNull
-  public List<JsonNode> findAllTemplateInstances(Integer count, Integer page, List<String> fieldNames, FieldNameInEx includeExclude) throws IOException {
-    return templateInstanceDao.findAll(count, page, fieldNames, includeExclude);
+  public List<JsonNode> findAllTemplateInstances(Integer limit, Integer offset, List<String> fieldNames, FieldNameInEx includeExclude) throws IOException {
+    return templateInstanceDao.findAll(limit, offset, fieldNames, includeExclude);
   }
 
   public JsonNode findTemplateInstance(@NonNull String templateInstanceId)

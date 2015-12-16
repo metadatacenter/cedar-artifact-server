@@ -22,7 +22,7 @@ public interface TemplateService<K, T> {
   public List<T> findAllTemplates(List<String> fieldNames, FieldNameInEx includeExclude) throws IOException;
 
   @NonNull
-  public List<T> findAllTemplates(Integer count, Integer page, List<String> fieldNames, FieldNameInEx includeExclude) throws IOException;
+  public List<T> findAllTemplates(Integer limit, Integer offset, List<String> fieldNames, FieldNameInEx includeExclude) throws IOException;
 
   public T findTemplate(@NonNull K templateId, boolean expanded, boolean validation) throws IOException, ProcessingException;
 

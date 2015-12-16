@@ -4,7 +4,7 @@ import checkers.nullness.quals.NonNull;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jackson.JsonLoader;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
-import org.metadatacenter.server.TemplateServerNames;
+import org.metadatacenter.server.Constants;
 import org.metadatacenter.server.dao.mongodb.TemplateElementDaoMongoDB;
 import org.metadatacenter.server.service.FieldNameInEx;
 import org.metadatacenter.server.service.TemplateElementService;
@@ -13,15 +13,14 @@ import org.metadatacenter.server.utils.JsonUtils;
 import javax.management.InstanceNotFoundException;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 
 public class TemplateElementServiceMongoDB extends GenericTemplateServiceMongoDB<String, JsonNode> implements TemplateElementService<String, JsonNode> {
 
   private final @NonNull TemplateElementDaoMongoDB templateElementDao;
 
-  public TemplateElementServiceMongoDB(@NonNull String db, @NonNull String templateElementsCollection) {
-    templateElementDao = new TemplateElementDaoMongoDB(db, templateElementsCollection);
+  public TemplateElementServiceMongoDB(@NonNull String db, @NonNull String templateElementsCollection, String linkedDataIdBasePath) {
+    templateElementDao = new TemplateElementDaoMongoDB(db, templateElementsCollection, linkedDataIdBasePath);
   }
 
   @NonNull
@@ -48,8 +47,8 @@ public class TemplateElementServiceMongoDB extends GenericTemplateServiceMongoDB
 
   @Override
   @NonNull
-  public List<JsonNode> findAllTemplateElements(Integer count, Integer page, List<String> fieldNames, FieldNameInEx includeExclude) throws IOException {
-    return templateElementDao.findAll(count, page, fieldNames, includeExclude);
+  public List<JsonNode> findAllTemplateElements(Integer limit, Integer offset, List<String> fieldNames, FieldNameInEx includeExclude) throws IOException {
+    return templateElementDao.findAll(limit, offset, fieldNames, includeExclude);
   }
 
   public JsonNode findTemplateElement(@NonNull String templateElementId, boolean expanded, boolean validation)
@@ -62,7 +61,7 @@ public class TemplateElementServiceMongoDB extends GenericTemplateServiceMongoDB
       templateElement = expand(templateElement);
     }
     if (validation) {
-      validate(JsonLoader.fromURL(new URL(TemplateServerNames.JSON_SCHEMA_URL)), templateElement);
+      validate(JsonLoader.fromURL(new URL(Constants.JSON_SCHEMA_URL)), templateElement);
     }
     return templateElement;
   }
@@ -77,7 +76,7 @@ public class TemplateElementServiceMongoDB extends GenericTemplateServiceMongoDB
       templateElement = expand(templateElement);
     }
     if (validation) {
-      validate(JsonLoader.fromURL(new URL(TemplateServerNames.JSON_SCHEMA_URL)), templateElement);
+      validate(JsonLoader.fromURL(new URL(Constants.JSON_SCHEMA_URL)), templateElement);
     }
     return templateElement;
   }

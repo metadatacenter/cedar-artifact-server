@@ -7,8 +7,8 @@ import java.util.List;
 
 public class TemplateDaoMongoDB extends GenericDaoMongoDB {
 
-  public TemplateDaoMongoDB(@NonNull String dbName, @NonNull String collectionName) {
-    super(dbName, collectionName);
+  public TemplateDaoMongoDB(@NonNull String dbName, @NonNull String collectionName, String linkedDataIdBasePath) {
+    super(dbName, collectionName, linkedDataIdBasePath);
   }
 
 }

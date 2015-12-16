@@ -4,7 +4,7 @@ import checkers.nullness.quals.NonNull;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jackson.JsonLoader;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
-import org.metadatacenter.server.TemplateServerNames;
+import org.metadatacenter.server.Constants;
 import org.metadatacenter.server.dao.mongodb.TemplateDaoMongoDB;
 import org.metadatacenter.server.service.FieldNameInEx;
 import org.metadatacenter.server.service.TemplateElementService;
@@ -24,8 +24,8 @@ public class TemplateServiceMongoDB extends GenericTemplateServiceMongoDB<String
   private final TemplateElementService templateElementService;
 
 
-  public TemplateServiceMongoDB(@NonNull String db, @NonNull String templatesCollection, TemplateElementService templateElementService) {
-    templateDao = new TemplateDaoMongoDB(db, templatesCollection);
+  public TemplateServiceMongoDB(@NonNull String db, @NonNull String templatesCollection, String linkedDataIdBasePath, TemplateElementService templateElementService) {
+    templateDao = new TemplateDaoMongoDB(db, templatesCollection, linkedDataIdBasePath);
     this.templateElementService = templateElementService;
   }
 
@@ -53,8 +53,8 @@ public class TemplateServiceMongoDB extends GenericTemplateServiceMongoDB<String
 
   @Override
   @NonNull
-  public List<JsonNode> findAllTemplates(Integer count, Integer page, List<String> fieldNames, FieldNameInEx includeExclude) throws IOException {
-    return templateDao.findAll(count, page, fieldNames, includeExclude);
+  public List<JsonNode> findAllTemplates(Integer limit, Integer offset, List<String> fieldNames, FieldNameInEx includeExclude) throws IOException {
+    return templateDao.findAll(limit, offset, fieldNames, includeExclude);
   }
 
   public JsonNode findTemplate(@NonNull String templateId, boolean expanded, boolean validation)
@@ -67,7 +67,7 @@ public class TemplateServiceMongoDB extends GenericTemplateServiceMongoDB<String
       template = expand(template);
     }
     if (validation) {
-      validate(JsonLoader.fromURL(new URL(TemplateServerNames.JSON_SCHEMA_URL)), template);
+      validate(JsonLoader.fromURL(new URL(Constants.JSON_SCHEMA_URL)), template);
     }
     return template;
   }
@@ -82,7 +82,7 @@ public class TemplateServiceMongoDB extends GenericTemplateServiceMongoDB<String
       template = expand(template);
     }
     if (validation) {
-      validate(JsonLoader.fromURL(new URL(TemplateServerNames.JSON_SCHEMA_URL)), template);
+      validate(JsonLoader.fromURL(new URL(Constants.JSON_SCHEMA_URL)), template);
     }
     return template;
   }

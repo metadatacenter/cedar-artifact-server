@@ -3,6 +3,7 @@ package org.metadatacenter.server.dao.mongodb;
 import checkers.nullness.quals.NonNull;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
@@ -24,6 +25,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static com.mongodb.client.model.Filters.eq;
 
@@ -37,10 +39,13 @@ public class GenericDaoMongoDB implements GenericDao<String, JsonNode> {
   @NonNull
   private final JsonUtils jsonUtils;
 
-  public GenericDaoMongoDB(@NonNull String dbName, @NonNull String collectionName) {
+  private String linkedDataIdBasePath;
+
+  public GenericDaoMongoDB(@NonNull String dbName, @NonNull String collectionName, String linkedDataIdBasePath) {
     MongoClient mongoClient = MongoFactory.getClient();
     entityCollection = mongoClient.getDatabase(dbName).getCollection(collectionName);
     jsonUtils = new JsonUtils();
+    this.linkedDataIdBasePath = linkedDataIdBasePath;
     // TODO: close mongoClient after using it
   }
 
@@ -75,13 +80,13 @@ public class GenericDaoMongoDB implements GenericDao<String, JsonNode> {
    */
   @NonNull
   public JsonNode createLinkedData(@NonNull JsonNode element) throws IOException {
-    if ((element.get("@id") == null) || (element.get("@id").asText().length() == 0)) {
-      throw new IllegalArgumentException();
-    }
-    // If an element with the same @id already exists
-    if (findByLinkedDataId(element.get("@id").asText()) != null) {
-      throw new IllegalArgumentException();
-    }
+    String id = null;
+    // Generate a non-existing uuid
+    do {
+      id = linkedDataIdBasePath + UUID.randomUUID().toString();
+    } while (findByLinkedDataId(id) != null);
+    ((ObjectNode)element).put("@id", id);
+
     // Adapts all keys not accepted by MongoDB
     JsonNode fixedElement = jsonUtils.fixMongoDB(element, FixMongoDirection.WRITE_TO_MONGO);
     ObjectMapper mapper = new ObjectMapper();
@@ -109,13 +114,13 @@ public class GenericDaoMongoDB implements GenericDao<String, JsonNode> {
   }
 
   @NonNull
-  public List<JsonNode> findAll(Integer count, Integer page, List<String> fieldNames, FieldNameInEx includeExclude) throws IOException {
+  public List<JsonNode> findAll(Integer limit, Integer offset, List<String> fieldNames, FieldNameInEx includeExclude) throws IOException {
     FindIterable<Document> findIterable = entityCollection.find();
-    if (count != null) {
-      findIterable.limit(count);
+    if (limit != null) {
+      findIterable.limit(limit);
     }
-    if (page != null) {
-      findIterable.skip(count * page);
+    if (offset != null) {
+      findIterable.skip(offset);
     }
     if (fieldNames != null && fieldNames.size() > 0) {
       Bson fn = null;

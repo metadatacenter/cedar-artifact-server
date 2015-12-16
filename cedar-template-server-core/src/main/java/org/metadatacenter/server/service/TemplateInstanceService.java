@@ -21,7 +21,7 @@ public interface TemplateInstanceService<K, T> {
   public List<T> findAllTemplateInstances(List<String> fieldNames, FieldNameInEx includeExclude) throws IOException;
 
   @NonNull
-  public List<T> findAllTemplateInstances(Integer count, Integer page, List<String> fieldNames, FieldNameInEx includeExclude) throws IOException;
+  public List<T> findAllTemplateInstances(Integer limit, Integer offset, List<String> fieldNames, FieldNameInEx includeExclude) throws IOException;
 
   public T findTemplateInstance(@NonNull K templateInstanceId) throws IOException;
 

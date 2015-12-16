@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import controllers.TemplateElementServerController;
 import controllers.TemplateInstanceServerController;
 import controllers.TemplateServerController;
-import org.metadatacenter.server.TemplateServerNames;
+import org.metadatacenter.server.Constants;
 import org.metadatacenter.server.service.mongodb.TemplateElementServiceMongoDB;
 import org.metadatacenter.server.service.mongodb.TemplateInstanceServiceMongoDB;
 import org.metadatacenter.server.service.mongodb.TemplateServiceMongoDB;
@@ -28,17 +28,20 @@ public class DataServices {
   private DataServices() {
     Configuration config = Play.application().configuration();
     templateElementService = new TemplateElementServiceMongoDB(
-        config.getString(TemplateServerNames.MONGODB_DATABASE_NAME),
-        config.getString(TemplateServerNames.TEMPLATE_ELEMENTS_COLLECTION_NAME)
+        config.getString(Constants.MONGODB_DATABASE_NAME),
+        config.getString(Constants.TEMPLATE_ELEMENTS_COLLECTION_NAME),
+        config.getString(Constants.LINKED_DATA_ID_BASE_PATH)
     );
     templateService = new TemplateServiceMongoDB(
-        config.getString(TemplateServerNames.MONGODB_DATABASE_NAME),
-        config.getString(TemplateServerNames.TEMPLATES_COLLECTION_NAME),
+        config.getString(Constants.MONGODB_DATABASE_NAME),
+        config.getString(Constants.TEMPLATES_COLLECTION_NAME),
+        config.getString(Constants.LINKED_DATA_ID_BASE_PATH),
         templateElementService
     );
     templateInstanceService = new TemplateInstanceServiceMongoDB(
-        config.getString(TemplateServerNames.MONGODB_DATABASE_NAME),
-        config.getString(TemplateServerNames.TEMPLATE_INSTANCES_COLLECTION_NAME)
+        config.getString(Constants.MONGODB_DATABASE_NAME),
+        config.getString(Constants.TEMPLATE_INSTANCES_COLLECTION_NAME),
+        config.getString(Constants.LINKED_DATA_ID_BASE_PATH)
     );
 
     TemplateElementServerController.injectTemplateElementService(templateElementService);
