@@ -1,7 +1,6 @@
-package org.metadatacenter.templates;
+package org.metadatacenter.server;
 
-public interface TemplateServerNames
-{
+public interface TemplateServerNames {
   String JSON_SCHEMA_URL = "http://json-schema.org/draft-04/schema#";
 
   String MONGODB_DATABASE_NAME = "mongodb.db";

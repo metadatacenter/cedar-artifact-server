@@ -9,6 +9,7 @@ import org.junit.Test;
 import play.libs.Json;
 import play.mvc.Result;
 import play.test.FakeRequest;
+import utils.DataServices;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -34,8 +35,8 @@ import static play.test.Helpers.status;
  * Integration Tests for the Application routes. They are done using a "fake application" (FakeApplication class) that
  * provides a running Application as context
  */
-public class TemplateServerRoutesTest
-{
+public class TemplateServerRoutesTest {
+
   private static final String TEMPLATE_ELEMENTS_ROUTE = "/template_elements";
 
   private static JsonNode templateElement1;
@@ -45,34 +46,32 @@ public class TemplateServerRoutesTest
    * One-time initialization code.
    * (Called once before any of the test methods in the class).
    */
-  @BeforeClass public static void oneTimeSetUp()
-  {
+  @BeforeClass
+  public static void oneTimeSetUp() {
   }
 
   /**
    * (Called once after all the test methods in the class).
    */
-  @AfterClass public static void oneTimeTearDown()
-  {
+  @AfterClass
+  public static void oneTimeTearDown() {
   }
 
   /**
    * Sets up the test fixture.
    * (Called before every test case method.)
    */
-  @Before public void setUp()
-  {
+  @Before
+  public void setUp() {
     templateElement1 = Json.newObject().
-      put("@id", "http://metadatacenter.org/template_elements/682c8141-9a61-4899-9d21-7083e861b0bf").
-      put("name", "template element 1 name").put("value", "template element 1 value");
+        put("@id", "http://metadatacenter.org/template_elements/682c8141-9a61-4899-9d21-7083e861b0bf").
+        put("name", "template element 1 name").put("value", "template element 1 value");
     templateElement2 = Json.newObject().
-      put("@id", "http://metadatacenter.org/template_elements/1dd58530-fdba-4c06-8d31-539b18296d8b").
-      put("name", "template element 2 name").put("value", "template element 2 value");
+        put("@id", "http://metadatacenter.org/template_elements/1dd58530-fdba-4c06-8d31-539b18296d8b").
+        put("name", "template element 2 name").put("value", "template element 2 value");
 
-    running(fakeApplication(), new Runnable()
-    {
-      public void run()
-      {
+    running(fakeApplication(), new Runnable() {
+      public void run() {
         deleteAllTemplateElements();
       }
     });
@@ -82,12 +81,10 @@ public class TemplateServerRoutesTest
    * Tears down the test fixture.
    * (Called after every test case method.)
    */
-  @After public void tearDown()
-  {
-    running(fakeApplication(), new Runnable()
-    {
-      public void run()
-      {
+  @After
+  public void tearDown() {
+    running(fakeApplication(), new Runnable() {
+      public void run() {
         deleteAllTemplateElements();
       }
     });
@@ -97,12 +94,10 @@ public class TemplateServerRoutesTest
    * TEST METHODS
    */
 
-  @Test public void createTemplateElementTest()
-  {
-    running(fakeApplication(), new Runnable()
-    {
-      public void run()
-      {
+  @Test
+  public void createTemplateElementTest() {
+    running(fakeApplication(), new Runnable() {
+      public void run() {
         // Invoke the "Create" action using the Router
         Result result = route(new FakeRequest(POST, TEMPLATE_ELEMENTS_ROUTE).withJsonBody(templateElement1));
         // Check response is OK
@@ -124,17 +119,15 @@ public class TemplateServerRoutesTest
     });
   }
 
-  @Test public void findAllTemplateElementsTest()
-  {
-    running(fakeApplication(), new Runnable()
-    {
-      public void run()
-      {
+  @Test
+  public void findAllTemplateElementsTest() {
+    running(fakeApplication(), new Runnable() {
+      public void run() {
         // Create two sample elements
         templateElement1 = Json
-          .parse(contentAsString(route(new FakeRequest(POST, TEMPLATE_ELEMENTS_ROUTE).withJsonBody(templateElement1))));
+            .parse(contentAsString(route(new FakeRequest(POST, TEMPLATE_ELEMENTS_ROUTE).withJsonBody(templateElement1))));
         templateElement2 = Json
-          .parse(contentAsString(route(new FakeRequest(POST, TEMPLATE_ELEMENTS_ROUTE).withJsonBody(templateElement2))));
+            .parse(contentAsString(route(new FakeRequest(POST, TEMPLATE_ELEMENTS_ROUTE).withJsonBody(templateElement2))));
         // Invoke the "Find All" action using the Router
         Result result = route(new FakeRequest(GET, TEMPLATE_ELEMENTS_ROUTE));
         // Check response is OK
@@ -161,15 +154,13 @@ public class TemplateServerRoutesTest
     });
   }
 
-  @Test public void findTemplateElementByIdTest()
-  {
-    running(fakeApplication(), new Runnable()
-    {
-      public void run()
-      {
+  @Test
+  public void findTemplateElementByIdTest() {
+    running(fakeApplication(), new Runnable() {
+      public void run() {
         // Create an element
         JsonNode expected = Json
-          .parse(contentAsString(route(new FakeRequest(POST, TEMPLATE_ELEMENTS_ROUTE).withJsonBody(templateElement1))));
+            .parse(contentAsString(route(new FakeRequest(POST, TEMPLATE_ELEMENTS_ROUTE).withJsonBody(templateElement1))));
         String id = expected.get("@id").asText();
         // Invoke the "Find by Id" action using the Router
         Result result = null;
@@ -191,35 +182,33 @@ public class TemplateServerRoutesTest
     });
   }
 
-  @Test public void updateTemplateElementTest()
-  {
-    running(fakeApplication(), new Runnable()
-    {
-      public void run()
-      {
+  @Test
+  public void updateTemplateElementTest() {
+    running(fakeApplication(), new Runnable() {
+      public void run() {
         try {
-        // Create an element
-        JsonNode elementCreated = Json
-          .parse(contentAsString(route(new FakeRequest(POST, TEMPLATE_ELEMENTS_ROUTE).withJsonBody(templateElement1))));
-        // Update the element created
-        String id = elementCreated.get("@id").asText();
-        String updatedName = "new name";
-        JsonNode changes = Json.newObject().put("name", updatedName);
-        // Invoke the "Update" action using the Router
-        Result result = route(new FakeRequest(PUT, TEMPLATE_ELEMENTS_ROUTE + "/" + URLEncoder.encode(id, "UTF-8")).withJsonBody(changes));
-        // Check response is OK
-        Assert.assertEquals(OK, status(result));
-        // Check Content-Type
-        Assert.assertEquals("application/json", contentType(result));
-        // Check Charset
-        Assert.assertEquals("utf-8", charset(result));
-        // Retrieve updated element
-        JsonNode actual = Json.parse(contentAsString(route(new FakeRequest(GET, TEMPLATE_ELEMENTS_ROUTE + "/" + URLEncoder.encode(id, "UTF-8")))));
-        // Check if the modifications have been done correctly
-        Assert.assertNotNull(actual.get("name"));
-        Assert.assertEquals(updatedName, actual.get("name").asText());
-        Assert.assertNotNull(actual.get("value"));
-        Assert.assertEquals(elementCreated.get("value"), actual.get("value"));
+          // Create an element
+          JsonNode elementCreated = Json
+              .parse(contentAsString(route(new FakeRequest(POST, TEMPLATE_ELEMENTS_ROUTE).withJsonBody(templateElement1))));
+          // Update the element created
+          String id = elementCreated.get("@id").asText();
+          String updatedName = "new name";
+          JsonNode changes = Json.newObject().put("name", updatedName);
+          // Invoke the "Update" action using the Router
+          Result result = route(new FakeRequest(PUT, TEMPLATE_ELEMENTS_ROUTE + "/" + URLEncoder.encode(id, "UTF-8")).withJsonBody(changes));
+          // Check response is OK
+          Assert.assertEquals(OK, status(result));
+          // Check Content-Type
+          Assert.assertEquals("application/json", contentType(result));
+          // Check Charset
+          Assert.assertEquals("utf-8", charset(result));
+          // Retrieve updated element
+          JsonNode actual = Json.parse(contentAsString(route(new FakeRequest(GET, TEMPLATE_ELEMENTS_ROUTE + "/" + URLEncoder.encode(id, "UTF-8")))));
+          // Check if the modifications have been done correctly
+          Assert.assertNotNull(actual.get("name"));
+          Assert.assertEquals(updatedName, actual.get("name").asText());
+          Assert.assertNotNull(actual.get("value"));
+          Assert.assertEquals(elementCreated.get("value"), actual.get("value"));
         } catch (UnsupportedEncodingException e) {
           e.printStackTrace();
         }
@@ -227,16 +216,14 @@ public class TemplateServerRoutesTest
     });
   }
 
-  @Test public void deleteTemplateElementTest()
-  {
-    running(fakeApplication(), new Runnable()
-    {
-      public void run()
-      {
+  @Test
+  public void deleteTemplateElementTest() {
+    running(fakeApplication(), new Runnable() {
+      public void run() {
         try {
           // Create an element
           JsonNode elementCreated = Json.parse(
-            contentAsString(route(new FakeRequest(POST, TEMPLATE_ELEMENTS_ROUTE).withJsonBody(templateElement1))));
+              contentAsString(route(new FakeRequest(POST, TEMPLATE_ELEMENTS_ROUTE).withJsonBody(templateElement1))));
           String id = elementCreated.get("@id").asText();
           // Invoke the "Delete" action using the Router
           Result result = null;
@@ -258,8 +245,7 @@ public class TemplateServerRoutesTest
    */
 
   // Helper method to remove all elements from the DB
-  public void deleteAllTemplateElements()
-  {
-    TemplateServerController.templatesService.deleteAllTemplateElements();
+  public void deleteAllTemplateElements() {
+    DataServices.getInstance().getTemplateElementService().deleteAllTemplateElements();
   }
 }

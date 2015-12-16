@@ -34,6 +34,8 @@
     <scala.maven.plugin.version>3.1.6</scala.maven.plugin.version>
     <play2.maven.plugin.version>1.0.0-beta1</play2.maven.plugin.version>
     <maven.surefire.plugin.version>2.16</maven.surefire.plugin.version>
+    <maven.compiler.plugin.version>3.1</maven.compiler.plugin.version>
+
     <play-java-ws.version>2.3.8</play-java-ws.version>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

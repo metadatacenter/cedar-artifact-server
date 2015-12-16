@@ -1,17 +1,23 @@
-package org.metadatacenter.templates.mongodb;
+package org.metadatacenter.server.dao.mongodb;
 
 import checkers.nullness.quals.NonNull;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.MongoClient;
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
+import com.mongodb.client.model.Projections;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
-import org.metadatacenter.templates.dao.GenericDao;
-import org.metadatacenter.templates.utils.JsonUtils;
+import org.metadatacenter.server.dao.GenericDao;
+import org.metadatacenter.server.service.FieldNameInEx;
+import org.metadatacenter.server.utils.FixMongoDirection;
+import org.metadatacenter.server.utils.MongoFactory;
+import org.metadatacenter.server.utils.JsonUtils;
 
 import javax.management.InstanceNotFoundException;
 import java.io.IOException;
@@ -24,13 +30,14 @@ import static com.mongodb.client.model.Filters.eq;
 /**
  * Service to manage elements in a MongoDB database
  */
-public class GenericDaoMongoDB implements GenericDao<String, JsonNode>
-{
-  @NonNull protected final MongoCollection<Document> entityCollection;
-  @NonNull private final JsonUtils jsonUtils;
+public class GenericDaoMongoDB implements GenericDao<String, JsonNode> {
 
-  public GenericDaoMongoDB(@NonNull String dbName, @NonNull String collectionName)
-  {
+  @NonNull
+  protected final MongoCollection<Document> entityCollection;
+  @NonNull
+  private final JsonUtils jsonUtils;
+
+  public GenericDaoMongoDB(@NonNull String dbName, @NonNull String collectionName) {
     MongoClient mongoClient = MongoFactory.getClient();
     entityCollection = mongoClient.getDatabase(dbName).getCollection(collectionName);
     jsonUtils = new JsonUtils();
@@ -46,16 +53,16 @@ public class GenericDaoMongoDB implements GenericDao<String, JsonNode>
    * @return The created element
    * @throws IOException If an occurs during creation
    */
-  @NonNull public JsonNode create(@NonNull JsonNode element) throws IOException
-  {
+  @NonNull
+  public JsonNode create(@NonNull JsonNode element) throws IOException {
     // Adapts all keys not accepted by MongoDB
-    JsonNode fixedElement = jsonUtils.fixMongoDB(element, 1);
+    JsonNode fixedElement = jsonUtils.fixMongoDB(element, FixMongoDirection.WRITE_TO_MONGO);
     ObjectMapper mapper = new ObjectMapper();
     Map elementMap = mapper.convertValue(fixedElement, Map.class);
     Document elementDoc = new Document(elementMap);
     entityCollection.insertOne(elementDoc);
     // Returns the document created (all keys adapted for MongoDB are restored)
-    return jsonUtils.fixMongoDB(mapper.readTree(elementDoc.toJson()), 2);
+    return jsonUtils.fixMongoDB(mapper.readTree(elementDoc.toJson()), FixMongoDirection.READ_FROM_MONGO);
   }
 
   /**
@@ -66,22 +73,23 @@ public class GenericDaoMongoDB implements GenericDao<String, JsonNode>
    * @return The created element
    * @throws IOException If an occurs during creation
    */
-  @NonNull public JsonNode createLinkedData(@NonNull JsonNode element) throws IOException
-  {
+  @NonNull
+  public JsonNode createLinkedData(@NonNull JsonNode element) throws IOException {
     if ((element.get("@id") == null) || (element.get("@id").asText().length() == 0)) {
       throw new IllegalArgumentException();
     }
     // If an element with the same @id already exists
-    if (findByLinkedDataId(element.get("@id").asText()) != null)
+    if (findByLinkedDataId(element.get("@id").asText()) != null) {
       throw new IllegalArgumentException();
+    }
     // Adapts all keys not accepted by MongoDB
-    JsonNode fixedElement = jsonUtils.fixMongoDB(element, 1);
+    JsonNode fixedElement = jsonUtils.fixMongoDB(element, FixMongoDirection.WRITE_TO_MONGO);
     ObjectMapper mapper = new ObjectMapper();
     Map elementMap = mapper.convertValue(fixedElement, Map.class);
     Document elementDoc = new Document(elementMap);
     entityCollection.insertOne(elementDoc);
     // Returns the document created (all keys adapted for MongoDB are restored)
-    return jsonUtils.fixMongoDB(mapper.readTree(elementDoc.toJson()), 2);
+    return jsonUtils.fixMongoDB(mapper.readTree(elementDoc.toJson()), FixMongoDirection.READ_FROM_MONGO);
   }
 
   /**
@@ -90,14 +98,45 @@ public class GenericDaoMongoDB implements GenericDao<String, JsonNode>
    * @return A list of elements
    * @throws IOException If an error occurs during retrieval
    */
-  @NonNull public List<JsonNode> findAll() throws IOException
-  {
+  @NonNull
+  public List<JsonNode> findAll() throws IOException {
+    return findAll(null, null, null, FieldNameInEx.UNDEFINED);
+  }
+
+  @NonNull
+  public List<JsonNode> findAll(List<String> fieldNames, FieldNameInEx includeExclude) throws IOException {
+    return findAll(null, null, fieldNames, includeExclude);
+  }
+
+  @NonNull
+  public List<JsonNode> findAll(Integer count, Integer page, List<String> fieldNames, FieldNameInEx includeExclude) throws IOException {
+    FindIterable<Document> findIterable = entityCollection.find();
+    if (count != null) {
+      findIterable.limit(count);
+    }
+    if (page != null) {
+      findIterable.skip(count * page);
+    }
+    if (fieldNames != null && fieldNames.size() > 0) {
+      Bson fn = null;
+      switch (includeExclude) {
+        case INCLUDE:
+          fn = Projections.include(fieldNames);
+          break;
+        case EXCLUDE:
+          fn = Projections.exclude(fieldNames);
+          break;
+      }
+      if (fn != null) {
+        findIterable.projection(Projections.fields(fn));
+      }
+    }
+    MongoCursor<Document> cursor = findIterable.iterator();
     ObjectMapper mapper = new ObjectMapper();
-    MongoCursor<Document> cursor = entityCollection.find().iterator();
-    List<JsonNode> docs = new ArrayList<JsonNode>();
+    List<JsonNode> docs = new ArrayList<>();
     try {
       while (cursor.hasNext()) {
-        JsonNode node = jsonUtils.fixMongoDB(mapper.readTree(cursor.next().toJson()), 2);
+        JsonNode node = jsonUtils.fixMongoDB(mapper.readTree(cursor.next().toJson()), FixMongoDirection.READ_FROM_MONGO);
         docs.add(node);
       }
     } finally {
@@ -111,19 +150,19 @@ public class GenericDaoMongoDB implements GenericDao<String, JsonNode>
    *
    * @param id The ID of the element
    * @return A JSON representation of the element or null if the element was not found
-   * @throws IllegalArgumentException  If the ID is not valid
-   * @throws IOException               If an error occurs during retrieval
+   * @throws IllegalArgumentException If the ID is not valid
+   * @throws IOException              If an error occurs during retrieval
    */
-  public JsonNode find(@NonNull String id) throws IOException
-  {
+  public JsonNode find(@NonNull String id) throws IOException {
     if (!ObjectId.isValid(id)) {
       throw new IllegalArgumentException();
     }
     Document doc = entityCollection.find(eq("_id", new ObjectId(id))).first();
-    if (doc == null)
+    if (doc == null) {
       return null;
+    }
     ObjectMapper mapper = new ObjectMapper();
-    return jsonUtils.fixMongoDB(mapper.readTree(doc.toJson()), 2);
+    return jsonUtils.fixMongoDB(mapper.readTree(doc.toJson()), FixMongoDirection.READ_FROM_MONGO);
   }
 
   /**
@@ -131,19 +170,19 @@ public class GenericDaoMongoDB implements GenericDao<String, JsonNode>
    *
    * @param id The linked data ID of the element
    * @return A JSON representation of the element or null if the element was not found
-   * @throws IllegalArgumentException  If the ID is not valid
-   * @throws IOException               If an error occurs during retrieval
+   * @throws IllegalArgumentException If the ID is not valid
+   * @throws IOException              If an error occurs during retrieval
    */
-  public JsonNode findByLinkedDataId(@NonNull String id) throws IOException
-  {
+  public JsonNode findByLinkedDataId(@NonNull String id) throws IOException {
     if ((id == null) || (id.length() == 0)) {
       throw new IllegalArgumentException();
     }
     Document doc = entityCollection.find(eq("@id", id)).first();
-    if (doc == null)
+    if (doc == null) {
       return null;
+    }
     ObjectMapper mapper = new ObjectMapper();
-    return jsonUtils.fixMongoDB(mapper.readTree(doc.toJson()), 2);
+    return jsonUtils.fixMongoDB(mapper.readTree(doc.toJson()), FixMongoDirection.READ_FROM_MONGO);
   }
 
   /**
@@ -156,9 +195,9 @@ public class GenericDaoMongoDB implements GenericDao<String, JsonNode>
    * @throws InstanceNotFoundException If the element is not found
    * @throws IOException               If an error occurs during update
    */
-  @NonNull public JsonNode update(@NonNull String id, @NonNull JsonNode modifications)
-    throws InstanceNotFoundException, IOException
-  {
+  @NonNull
+  public JsonNode update(@NonNull String id, @NonNull JsonNode modifications)
+      throws InstanceNotFoundException, IOException {
     if (!ObjectId.isValid(id)) {
       throw new IllegalArgumentException();
     }
@@ -166,15 +205,16 @@ public class GenericDaoMongoDB implements GenericDao<String, JsonNode>
       throw new InstanceNotFoundException();
     }
     // Adapts all keys not accepted by MongoDB
-    modifications = jsonUtils.fixMongoDB(modifications, 1);
+    modifications = jsonUtils.fixMongoDB(modifications, FixMongoDirection.WRITE_TO_MONGO);
     ObjectMapper mapper = new ObjectMapper();
     Map modificationsMap = mapper.convertValue(modifications, Map.class);
     UpdateResult updateResult = entityCollection
-      .updateOne(eq("_id", new ObjectId(id)), new Document("$set", modificationsMap));
+        .updateOne(eq("_id", new ObjectId(id)), new Document("$set", modificationsMap));
     if (updateResult.getModifiedCount() == 1) {
       return find(id);
-    } else
+    } else {
       throw new InternalError();
+    }
   }
 
   /**
@@ -187,9 +227,9 @@ public class GenericDaoMongoDB implements GenericDao<String, JsonNode>
    * @throws InstanceNotFoundException If the element is not found
    * @throws IOException               If an error occurs during update
    */
-  @NonNull public JsonNode updateByLinkedDataId(@NonNull String id, @NonNull JsonNode modifications)
-    throws InstanceNotFoundException, IOException
-  {
+  @NonNull
+  public JsonNode updateByLinkedDataId(@NonNull String id, @NonNull JsonNode modifications)
+      throws InstanceNotFoundException, IOException {
     if ((id == null) || (id.length() == 0)) {
       throw new IllegalArgumentException();
     }
@@ -197,15 +237,15 @@ public class GenericDaoMongoDB implements GenericDao<String, JsonNode>
       throw new InstanceNotFoundException();
     }
     // Adapts all keys not accepted by MongoDB
-    modifications = jsonUtils.fixMongoDB(modifications, 1);
+    modifications = jsonUtils.fixMongoDB(modifications, FixMongoDirection.WRITE_TO_MONGO);
     ObjectMapper mapper = new ObjectMapper();
     Map modificationsMap = mapper.convertValue(modifications, Map.class);
-    UpdateResult updateResult = entityCollection
-      .updateOne(eq("@id", id), new Document("$set", modificationsMap));
+    UpdateResult updateResult = entityCollection.updateOne(eq("@id", id), new Document("$set", modificationsMap));
     if (updateResult.getModifiedCount() == 1) {
       return findByLinkedDataId(id);
-    } else
+    } else {
       throw new InternalError();
+    }
   }
 
   /**
@@ -216,8 +256,7 @@ public class GenericDaoMongoDB implements GenericDao<String, JsonNode>
    * @throws InstanceNotFoundException If the element is not found
    * @throws IOException               If an error occurs during deletion
    */
-  public void delete(@NonNull String id) throws InstanceNotFoundException, IOException
-  {
+  public void delete(@NonNull String id) throws InstanceNotFoundException, IOException {
     if (!ObjectId.isValid(id)) {
       throw new IllegalArgumentException();
     }
@@ -225,8 +264,9 @@ public class GenericDaoMongoDB implements GenericDao<String, JsonNode>
       throw new InstanceNotFoundException();
     }
     DeleteResult deleteResult = entityCollection.deleteOne(eq("_id", new ObjectId(id)));
-    if (deleteResult.getDeletedCount() != 1)
+    if (deleteResult.getDeletedCount() != 1) {
       throw new InternalError();
+    }
   }
 
   /**
@@ -237,8 +277,7 @@ public class GenericDaoMongoDB implements GenericDao<String, JsonNode>
    * @throws InstanceNotFoundException If the element is not found
    * @throws IOException               If an error occurs during deletion
    */
-  public void deleteByLinkedDataId(@NonNull String id) throws InstanceNotFoundException, IOException
-  {
+  public void deleteByLinkedDataId(@NonNull String id) throws InstanceNotFoundException, IOException {
     if ((id == null) || (id.length() == 0)) {
       throw new IllegalArgumentException();
     }
@@ -246,8 +285,9 @@ public class GenericDaoMongoDB implements GenericDao<String, JsonNode>
       throw new InstanceNotFoundException();
     }
     DeleteResult deleteResult = entityCollection.deleteOne(eq("@id", id));
-    if (deleteResult.getDeletedCount() != 1)
+    if (deleteResult.getDeletedCount() != 1) {
       throw new InternalError();
+    }
   }
 
   /**
@@ -257,12 +297,12 @@ public class GenericDaoMongoDB implements GenericDao<String, JsonNode>
    * @return True if an element with the supplied ID exists or False otherwise
    * @throws IOException If an error occurs during the existence check
    */
-  public boolean exists(@NonNull String id) throws IOException
-  {
-    if (find(id)!=null)
+  public boolean exists(@NonNull String id) throws IOException {
+    if (find(id) != null) {
       return true;
-    else
+    } else {
       return false;
+    }
   }
 
   /**
@@ -272,19 +312,23 @@ public class GenericDaoMongoDB implements GenericDao<String, JsonNode>
    * @return True if an element with the supplied linked data ID exists or False otherwise
    * @throws IOException If an error occurs during the existence check
    */
-  public boolean existsByLinkedDataId(@NonNull String id) throws IOException
-  {
-    if (findByLinkedDataId(id)!=null)
+  public boolean existsByLinkedDataId(@NonNull String id) throws IOException {
+    if (findByLinkedDataId(id) != null) {
       return true;
-    else
+    } else {
       return false;
+    }
   }
 
   /**
    * Delete all elements
    */
-  public void deleteAll()
-  {
+  public void deleteAll() {
     entityCollection.drop();
   }
+
+  public long count() {
+    return entityCollection.count();
+  }
+
 }

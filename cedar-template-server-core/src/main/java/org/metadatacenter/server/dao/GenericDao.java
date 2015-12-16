@@ -1,18 +1,23 @@
-package org.metadatacenter.templates.dao;
+package org.metadatacenter.server.dao;
 
 import checkers.nullness.quals.NonNull;
+import org.metadatacenter.server.service.FieldNameInEx;
 
 import javax.management.InstanceNotFoundException;
 import java.io.IOException;
 import java.util.List;
 
-public interface GenericDao<K, T>
-{
+public interface GenericDao<K, T> {
+
   @NonNull T create(@NonNull T element) throws IOException;
 
   @NonNull T createLinkedData(@NonNull T element) throws IOException;
 
   @NonNull List<T> findAll() throws IOException;
+
+  @NonNull List<T> findAll(Integer count, Integer page, List<String> fieldNames, FieldNameInEx includeExclude) throws IOException;
+
+  @NonNull List<T> findAll(List<String> fieldNames, FieldNameInEx includeExclude) throws IOException;
 
   T find(@NonNull K id) throws IOException;
 
@@ -31,4 +36,6 @@ public interface GenericDao<K, T>
   boolean existsByLinkedDataId(@NonNull K id) throws IOException;
 
   void deleteAll();
+
+  long count();
 }
