@@ -241,7 +241,7 @@ public class GenericDaoMongoDB implements GenericDao<String, JsonNode> {
     ObjectMapper mapper = new ObjectMapper();
     Map modificationsMap = mapper.convertValue(modifications, Map.class);
     UpdateResult updateResult = entityCollection.updateOne(eq("@id", id), new Document("$set", modificationsMap));
-    if (updateResult.getModifiedCount() == 1) {
+    if (updateResult.getMatchedCount() == 1) {
       return findByLinkedDataId(id);
     } else {
       throw new InternalError();
