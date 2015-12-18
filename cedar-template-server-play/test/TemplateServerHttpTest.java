@@ -19,7 +19,7 @@ import static play.test.Helpers.*;
  */
 public class TemplateServerHttpTest {
 
-  private static final String TEMPLATE_ELEMENTS_ROUTE = "/template_elements";
+  private static final String TEMPLATE_ELEMENTS_ROUTE = "/template-elements";
   private static final int TEST_SERVER_PORT = 3333;
   private static final String SERVER_URL = "http://localhost:" + TEST_SERVER_PORT;
   private static final int TIMEOUT_MS = 10000;
@@ -49,10 +49,10 @@ public class TemplateServerHttpTest {
   @Before
   public void setUp() {
     templateElement1 = Json.newObject().
-        put("@id", "http://metadatacenter.org/template_elements/682c8141-9a61-4899-9d21-7083e861b0bf").
+        put("@id", "http://metadatacenter.org/template-elements/682c8141-9a61-4899-9d21-7083e861b0bf").
         put("name", "template element 1 name").put("value", "template element 1 value");
     templateElement2 = Json.newObject().
-        put("@id", "http://metadatacenter.org/template_elements/1dd58530-fdba-4c06-8d31-539b18296d8b").
+        put("@id", "http://metadatacenter.org/template-elements/1dd58530-fdba-4c06-8d31-539b18296d8b").
         put("name", "template element 2 name").put("value", "template element 2 value");
 
     running(testServer(TEST_SERVER_PORT), new Runnable() {

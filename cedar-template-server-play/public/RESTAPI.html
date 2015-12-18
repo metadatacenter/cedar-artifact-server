@@ -227,10 +227,10 @@
         <a href="#templates">/templates</a> [<a href="#templates.post">POST</a>, <a href="#templates.get">GET</a>, <a href="#templates.put">PUT</a>, <a href="#templates.delete">DELETE</a>]
       </li>
       <li>
-        <a href="#template_elements">/template_elements</a> [<a href="#template_elements.post">POST</a>, <a href="#template_elements.get">GET</a>, <a href="#template_elements.put">PUT</a>, <a href="#template_elements.delete">DELETE</a>]
+        <a href="#template-elements">/template-elements</a> [<a href="#template-elements.post">POST</a>, <a href="#template-elements.get">GET</a>, <a href="#template-elements.put">PUT</a>, <a href="#template-elements.delete">DELETE</a>]
       </li>
       <li>
-        <a href="#template_instances">/template_instances</a> [<a href="#template_instances.post">POST</a>, <a href="#template_instances.get">GET</a>, <a href="#template_instances.put">PUT</a>, <a href="#template_instances.delete">DELETE</a>]
+        <a href="#template-instances">/template-instances</a> [<a href="#template-instances.post">POST</a>, <a href="#template-instances.get">GET</a>, <a href="#template-instances.put">PUT</a>, <a href="#template-instances.delete">DELETE</a>]
       </li>
     </ul>
 
@@ -519,7 +519,7 @@
         </div> <!-- resource -->
 
         <div class="resource">
-          <h3 id="template_elements">/template_elements/{id}</h3>
+          <h3 id="template-elements">/template-elements/{id}</h3>
 
           <p>Template elements are represented using JSON Schema. This representation is detailed in the "CEDAR Repository Model" document.</p>
 
@@ -538,7 +538,7 @@
           <div class="methods">
 
             <div class="method">
-              <h4 id="template_elements.get">GET</h4>
+              <h4 id="template-elements.get">GET</h4>
               <h6>/templates_elements/{id}?expanded</h6>
 
               <p>Get a template element.</p>
@@ -546,8 +546,8 @@
               <div class="exampleRequests">
                 <p>Example request URI(s):</p>
                 <ul>
-                  <li><code>http://metadatacenter.org/template_elements/</code></li>
-                  <li><code>http://metadatacenter.org/template_elements/principal_investigator</code></li>
+                  <li><code>http://metadatacenter.org/template-elements/</code></li>
+                  <li><code>http://metadatacenter.org/template-elements/principal_investigator</code></li>
                 </ul>
               </div> <!-- exampleRequests -->
 
@@ -573,9 +573,9 @@
               <ul>
                 <li>
                   <div>200 application/json
-                    [<a onclick="toggle('template_elements.get.ex1'); return false;" href="#"><em><span id="link-template_elements.get.ex1">expand</span></em></a>]
+                    [<a onclick="toggle('template-elements.get.ex1'); return false;" href="#"><em><span id="link-template-elements.get.ex1">expand</span></em></a>]
                   </div>
-                  <div class="toggle" id="template_elements.get.ex1">
+                  <div class="toggle" id="template-elements.get.ex1">
                     <p><h6>Example</h6>
                     <p>An example of a template element describing a brief title.</p>
                     <pre><code>
@@ -624,15 +624,15 @@
               <ul>
                 <li>
                   <div>200 application/json
-                    [<a onclick="toggle('template_elements.post.ex1'); return false;" href="#"><em><span id="link-template_elements.post.ex1">expand</span></em></a>]
+                    [<a onclick="toggle('template-elements.post.ex1'); return false;" href="#"><em><span id="link-template-elements.post.ex1">expand</span></em></a>]
                   </div>
-                  <div class="toggle" id="template_elements.post.ex1">
+                  <div class="toggle" id="template-elements.post.ex1">
                     <p><h6>Example</h6>
                     <p>An example of a template element describing a principal investigator.</p>
                     <pre><code>
                         {
                         "$schema": "http://json-schema.org/draft-04/schema#",
-                        "@id": "http://metadatacenter.org/template_elements/principal_investigator",
+                        "@id": "http://metadatacenter.org/template-elements/principal_investigator",
                         "title": "Principal Investigator",
                         "description": "The lead researcher for the study",
                         "properties": {
@@ -676,7 +676,7 @@
             </div> <!-- method -->
 
             <div class="method">
-              <h4 id="template_elements.put">PUT</h4>
+              <h4 id="template-elements.put">PUT</h4>
 
               <p>Update a template element. Overwrites previous template element with same id.</p>
 
@@ -694,15 +694,15 @@
               <ul>
                 <li>
                   <div>200 application/json
-                    [<a onclick="toggle('template_elements.put.ex1'); return false;" href="#"><em><span id="link-template_elements.put.ex1">expand</span></em></a>]
+                    [<a onclick="toggle('template-elements.put.ex1'); return false;" href="#"><em><span id="link-template-elements.put.ex1">expand</span></em></a>]
                   </div>
-                  <div class="toggle" id="template_elements.put.ex1">
+                  <div class="toggle" id="template-elements.put.ex1">
                     <h6>Example</h6>
                     <p>An example of a template element describing a name.</p>
                     <pre><code>
                         {
                         "$schema": "http://json-schema.org/draft-04/schema#",
-                        "@id": "http://metadatacenter.org/template_elements/full_name",
+                        "@id": "http://metadatacenter.org/template-elements/full_name",
                         "title": "Full name",
                         "description": "Whole name, including first, middle, and last name",
                         "properties": {
@@ -741,7 +741,7 @@
             </div> <!-- method -->
 
             <div class="method">
-              <h4 id="template_elements.delete">DELETE</h4>
+              <h4 id="template-elements.delete">DELETE</h4>
 
               <p>Delete a template element.</p>
 
@@ -768,7 +768,7 @@
           </div> <!-- resource -->
 
           <div class="resource">
-            <h3 id="template_instances">/template_instances/{id}</h3>
+            <h3 id="template-instances">/template-instances/{id}</h3>
 
             <p>Templates instances are represented using JSON Schema. This representation is detailed in the "CEDAR Repository Model" document.</p>
 
@@ -787,7 +787,7 @@
             <div class="methods">
 
               <div class="method">
-                <h4 id="template_instances.get">GET</h4>
+                <h4 id="template-instances.get">GET</h4>
                 <p>Get a template.</p>
 
                 <div class="exampleRequests">
@@ -814,16 +814,16 @@
                 <ul>
                   <li>
                     <div>200 application/json
-                      [<a onclick="toggle('template_instances.get.ex1'); return false;" href="#"><em><span id="link-template_instances.get.ex1">expand</span></em></a>]
+                      [<a onclick="toggle('template-instances.get.ex1'); return false;" href="#"><em><span id="link-template-instances.get.ex1">expand</span></em></a>]
                     </div>
-                    <div class="toggle" id="template_instances.get.ex1">
+                    <div class="toggle" id="template-instances.get.ex1">
                       <h6>Example</h6>
                       <p>An example of a template instance describing a name.</p>
                       <pre><code>
                           {                                                  
                           "@context": {},
                           "@type": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C25191",
-                          "@id": "http://metadatacenter.org/template_instances/full_name_343",
+                          "@id": "http://metadatacenter.org/template-instances/full_name_343",
                           "templateID" : "http://metadatacenter.org/templates/full_name",
                           "value": "Billy Bob"
                           }
@@ -836,7 +836,7 @@
               </div> <!-- method -->
 
               <div class="method">
-                <h4 id="template_instances.post">POST</h4>
+                <h4 id="template-instances.post">POST</h4>
 
                 <p>Create a template instances.</p>
 
@@ -845,9 +845,9 @@
                 <ul>
                   <li>
                     <div>200 application/json
-                      [<a onclick="toggle('template_instances.post.ex1'); return false;" href="#"><em><span id="link-template_instances.post.ex1">expand</span></em></a>]
+                      [<a onclick="toggle('template-instances.post.ex1'); return false;" href="#"><em><span id="link-template-instances.post.ex1">expand</span></em></a>]
                     </div>
-                    <div class="toggle" id="template_instances.post.ex1">
+                    <div class="toggle" id="template-instances.post.ex1">
                       <h6>Example</h6>
                       <p>An example of a template instance describing a principal investigator</p>
                       <pre><code>
@@ -861,7 +861,7 @@
                           },
                           "templateID": "http://metadatacenter.org/templates/",
                           "@type": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C19924",
-                          "@id": "http://metadatacenter.org/template_instances/principal_investigator_323",
+                          "@id": "http://metadatacenter.org/template-instances/principal_investigator_323",
                           "institution": "http://metadatacenter.org/properties/institution",
                           "full_name": { 
                           "@context": {},
@@ -889,7 +889,7 @@
               </div> <!-- method -->
 
               <div class="method">
-                <h4 id="template_instances.put">PUT</h4>
+                <h4 id="template-instances.put">PUT</h4>
 
                 <p>Update a template instance. Overwrites previous template instance with same id.</p>
 
@@ -907,16 +907,16 @@
                 <ul>
                   <li>
                     <div>200 application/json
-                      [<a onclick="toggle('template_instances.put.ex1'); return false;" href="#"><em><span id="link-template_instances.put.ex1">expand</span></em></a>]
+                      [<a onclick="toggle('template-instances.put.ex1'); return false;" href="#"><em><span id="link-template-instances.put.ex1">expand</span></em></a>]
                     </div>
-                    <div class="toggle" id="template_instances.put.ex1">
+                    <div class="toggle" id="template-instances.put.ex1">
                       <h6>Example</h6>
                       <p>An example of a template instance describing a name.</p>
                       <pre><code>
                           {                                                  
                           "@context": {},
                           "@type": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C25191",
-                          "@id": "http://metadatacenter.org/template_instances/full_name_343",
+                          "@id": "http://metadatacenter.org/template-instances/full_name_343",
                           "templateID" : "http://metadatacenter.org/templates/full_name",
                           "value": "Billy Bob"
                           }
@@ -936,7 +936,7 @@
                 </div> <!-- method -->
 
                 <div class="method">
-                  <h4 id="template_instances.delete">DELETE</h4>
+                  <h4 id="template-instances.delete">DELETE</h4>
 
                   <p>Delete a template instance.</p>
 
