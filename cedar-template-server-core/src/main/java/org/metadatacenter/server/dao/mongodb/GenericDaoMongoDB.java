@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.fasterxml.jackson.databind.node.JsonNodeType.NULL;
 import static com.mongodb.client.model.Filters.eq;
 
 /**
@@ -80,6 +81,9 @@ public class GenericDaoMongoDB implements GenericDao<String, JsonNode> {
    */
   @NonNull
   public JsonNode createLinkedData(@NonNull JsonNode element) throws IOException {
+    if ((element.get("@id") != null) && (!NULL.equals(element.get("@id").getNodeType()))) {
+      throw new IllegalArgumentException("Specifying @id for new objects is not allowed");
+    }
     String id = null;
     // Generate a non-existing uuid
     do {

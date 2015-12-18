@@ -48,7 +48,7 @@ public class TemplateServerController extends GenericElementServerController {
       // Return created response
       return created(createdTemplate);
     } catch (IllegalArgumentException e) {
-      return badRequest();
+      return badRequestWithError(e);
     } catch (Exception e) {
       return internalServerErrorWithError(e);
     }
@@ -65,7 +65,7 @@ public class TemplateServerController extends GenericElementServerController {
       }
       return notFound();
     } catch (IllegalArgumentException e) {
-      return badRequest();
+      return badRequestWithError(e);
     } catch (Exception e) {
       return internalServerErrorWithError(e);
     }
@@ -97,7 +97,7 @@ public class TemplateServerController extends GenericElementServerController {
       updatedTemplate = JsonUtils.removeField(updatedTemplate, "_id");
       return ok(updatedTemplate);
     } catch (IllegalArgumentException e) {
-      return badRequest();
+      return badRequestWithError(e);
     } catch (InstanceNotFoundException e) {
       return notFound();
     } catch (Exception e) {
@@ -110,7 +110,7 @@ public class TemplateServerController extends GenericElementServerController {
       templateService.deleteTemplateByLinkedDataId(templateId);
       return noContent();
     } catch (IllegalArgumentException e) {
-      return badRequest();
+      return badRequestWithError(e);
     } catch (InstanceNotFoundException e) {
       return notFound();
     } catch (Exception e) {

@@ -19,21 +19,25 @@ public class GenericElementServerController extends Controller {
   }
 
 
-  protected static ObjectNode generateErrorDescription(Exception e) {
+  protected static ObjectNode generateErrorDescription(Throwable t) {
     ObjectNode errorDescription = JsonNodeFactory.instance.objectNode();
     errorDescription.put("errorType", "exception");
-    errorDescription.put("message", e.getMessage());
-    errorDescription.put("localizedMessage", e.getLocalizedMessage());
-    errorDescription.put("string", e.toString());
+    errorDescription.put("message", t.getMessage());
+    errorDescription.put("localizedMessage", t.getLocalizedMessage());
+    errorDescription.put("string", t.toString());
     ArrayNode jsonST = errorDescription.putArray("stackTrace");
-    for (StackTraceElement ste : e.getStackTrace()) {
+    for (StackTraceElement ste : t.getStackTrace()) {
       jsonST.add(ste.toString());
     }
     return errorDescription;
   }
 
-  protected static Result internalServerErrorWithError(Exception e) {
-    return internalServerError(generateErrorDescription(e));
+  protected static Result internalServerErrorWithError(Throwable t) {
+    return internalServerError(generateErrorDescription(t));
+  }
+
+  protected static Result badRequestWithError(Throwable t) {
+    return badRequest(generateErrorDescription(t));
   }
 
 

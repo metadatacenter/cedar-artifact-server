@@ -30,18 +30,21 @@ public class DataServices {
     templateElementService = new TemplateElementServiceMongoDB(
         config.getString(Constants.MONGODB_DATABASE_NAME),
         config.getString(Constants.TEMPLATE_ELEMENTS_COLLECTION_NAME),
-        config.getString(Constants.LINKED_DATA_ID_BASE_PATH)
+        config.getString(Constants.LINKED_DATA_ID_PATH_BASE) + config.getString(Constants
+            .LINKED_DATA_ID_PATH_SUFFIX_TEMPLATE_ELEMENTS)
     );
     templateService = new TemplateServiceMongoDB(
         config.getString(Constants.MONGODB_DATABASE_NAME),
         config.getString(Constants.TEMPLATES_COLLECTION_NAME),
-        config.getString(Constants.LINKED_DATA_ID_BASE_PATH),
+        config.getString(Constants.LINKED_DATA_ID_PATH_BASE) + config.getString(Constants
+            .LINKED_DATA_ID_PATH_SUFFIX_TEMPLATES),
         templateElementService
     );
     templateInstanceService = new TemplateInstanceServiceMongoDB(
         config.getString(Constants.MONGODB_DATABASE_NAME),
         config.getString(Constants.TEMPLATE_INSTANCES_COLLECTION_NAME),
-        config.getString(Constants.LINKED_DATA_ID_BASE_PATH)
+        config.getString(Constants.LINKED_DATA_ID_PATH_BASE) + config.getString(Constants
+            .LINKED_DATA_ID_PATH_SUFFIX_TEMPLATE_INSTANCES)
     );
 
     TemplateElementServerController.injectTemplateElementService(templateElementService);

@@ -8,5 +8,8 @@ public interface Constants {
   String TEMPLATE_ELEMENTS_COLLECTION_NAME = "mongodb.collections.template-elements";
   String TEMPLATE_INSTANCES_COLLECTION_NAME = "mongodb.collections.template-instances";
 
-  String LINKED_DATA_ID_BASE_PATH = "linkedData.idBasePath";
+  String LINKED_DATA_ID_PATH_BASE = "linkedData.idPath.base";
+  String LINKED_DATA_ID_PATH_SUFFIX_TEMPLATES = "linkedData.idPath.suffix.templates";
+  String LINKED_DATA_ID_PATH_SUFFIX_TEMPLATE_ELEMENTS = "linkedData.idPath.suffix.template-elements";
+  String LINKED_DATA_ID_PATH_SUFFIX_TEMPLATE_INSTANCES = "linkedData.idPath.suffix.template-instances";
 }
