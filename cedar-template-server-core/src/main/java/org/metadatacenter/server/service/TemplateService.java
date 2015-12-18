@@ -22,17 +22,22 @@ public interface TemplateService<K, T> {
   public List<T> findAllTemplates(List<String> fieldNames, FieldNameInEx includeExclude) throws IOException;
 
   @NonNull
-  public List<T> findAllTemplates(Integer limit, Integer offset, List<String> fieldNames, FieldNameInEx includeExclude) throws IOException;
+  public List<T> findAllTemplates(Integer limit, Integer offset, List<String> fieldNames, FieldNameInEx
+      includeExclude) throws IOException;
 
-  public T findTemplate(@NonNull K templateId, boolean expanded, boolean validation) throws IOException, ProcessingException;
+  public T findTemplate(@NonNull K templateId, boolean expanded, boolean validation) throws IOException,
+      ProcessingException;
 
-  public T findTemplateByLinkedDataId(@NonNull String templateId, boolean expanded, boolean validation) throws IOException, ProcessingException;
+  public T findTemplateByLinkedDataId(@NonNull String templateId, boolean expanded, boolean validation) throws
+      IOException, ProcessingException;
 
   @NonNull
-  public T updateTemplate(@NonNull K templateId, @NonNull T modifications) throws InstanceNotFoundException, IOException;
+  public T updateTemplate(@NonNull K templateId, @NonNull T modifications) throws InstanceNotFoundException,
+      IOException;
 
   @NonNull
-  public T updateTemplateByLinkedDataId(@NonNull K templateId, @NonNull T modifications) throws InstanceNotFoundException, IOException;
+  public T updateTemplateByLinkedDataId(@NonNull K templateId, @NonNull T modifications) throws
+      InstanceNotFoundException, IOException;
 
   public void deleteTemplate(@NonNull K templateId) throws InstanceNotFoundException, IOException;
 

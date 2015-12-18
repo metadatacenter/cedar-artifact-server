@@ -31,7 +31,8 @@ public class JsonUtils {
 
   @NonNull
   public JsonNode resolveTemplateElementRefs(@NonNull JsonNode node,
-                                             @NonNull TemplateElementService<String, JsonNode> templateElementService) throws IOException, ProcessingException {
+                                             @NonNull TemplateElementService<String, JsonNode>
+                                                 templateElementService) throws IOException, ProcessingException {
     ObjectMapper mapper = new ObjectMapper();
     ObjectNode rootNode = mapper.createObjectNode();
 

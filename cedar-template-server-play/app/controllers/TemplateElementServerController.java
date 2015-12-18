@@ -41,7 +41,8 @@ public class TemplateElementServerController extends GenericElementServerControl
       createdTemplateElement = JsonUtils.removeField(createdTemplateElement, "_id");
       // Set Location header pointing to the newly created element
       String id = createdTemplateElement.get("@id").asText();
-      String absoluteUrl = routes.TemplateElementServerController.findTemplateElement(id, false, false).absoluteURL(request());
+      String absoluteUrl = routes.TemplateElementServerController.findTemplateElement(id, false, false).absoluteURL
+          (request());
       response().setHeader("Location", absoluteUrl);
       // Return created response
       return created(createdTemplateElement);
@@ -55,10 +56,12 @@ public class TemplateElementServerController extends GenericElementServerControl
       Map<String, Object> r = new HashMap<>();
       List<JsonNode> elements = null;
       if (summary) {
-        elements = templateElementService.findAllTemplateElements(limit, offset, FIELD_NAMES_SUMMARY_LIST, FieldNameInEx.INCLUDE);
+        elements = templateElementService.findAllTemplateElements(limit, offset, FIELD_NAMES_SUMMARY_LIST,
+            FieldNameInEx.INCLUDE);
         response().setHeader("Cedar-Field-Names", Json.toJson(FIELD_NAMES_SUMMARY_LIST).toString());
       } else {
-        elements = templateElementService.findAllTemplateElements(limit, offset, FIELD_NAMES_EXCLUSION_LIST, FieldNameInEx.EXCLUDE);
+        elements = templateElementService.findAllTemplateElements(limit, offset, FIELD_NAMES_EXCLUSION_LIST,
+            FieldNameInEx.EXCLUDE);
       }
       long total = templateElementService.count();
       response().setHeader("Total-Count", String.valueOf(total));

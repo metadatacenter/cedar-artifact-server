@@ -10,11 +10,13 @@ import javax.management.InstanceNotFoundException;
 import java.io.IOException;
 import java.util.List;
 
-public class TemplateInstanceServiceMongoDB extends GenericTemplateServiceMongoDB<String, JsonNode> implements TemplateInstanceService<String, JsonNode> {
+public class TemplateInstanceServiceMongoDB extends GenericTemplateServiceMongoDB<String, JsonNode> implements
+    TemplateInstanceService<String, JsonNode> {
 
   private final @NonNull TemplateInstanceDaoMongoDB templateInstanceDao;
 
-  public TemplateInstanceServiceMongoDB(@NonNull String db, @NonNull String templateInstancesCollection, String linkedDataIdBasePath) {
+  public TemplateInstanceServiceMongoDB(@NonNull String db, @NonNull String templateInstancesCollection, String
+      linkedDataIdBasePath) {
     templateInstanceDao = new TemplateInstanceDaoMongoDB(db, templateInstancesCollection, linkedDataIdBasePath);
   }
 
@@ -36,13 +38,15 @@ public class TemplateInstanceServiceMongoDB extends GenericTemplateServiceMongoD
 
   @Override
   @NonNull
-  public List<JsonNode> findAllTemplateInstances(List<String> fieldNames, FieldNameInEx includeExclude) throws IOException {
+  public List<JsonNode> findAllTemplateInstances(List<String> fieldNames, FieldNameInEx includeExclude) throws
+      IOException {
     return templateInstanceDao.findAll(fieldNames, includeExclude);
   }
 
   @Override
   @NonNull
-  public List<JsonNode> findAllTemplateInstances(Integer limit, Integer offset, List<String> fieldNames, FieldNameInEx includeExclude) throws IOException {
+  public List<JsonNode> findAllTemplateInstances(Integer limit, Integer offset, List<String> fieldNames,
+                                                 FieldNameInEx includeExclude) throws IOException {
     return templateInstanceDao.findAll(limit, offset, fieldNames, includeExclude);
   }
 
@@ -63,7 +67,8 @@ public class TemplateInstanceServiceMongoDB extends GenericTemplateServiceMongoD
   }
 
   @NonNull
-  public JsonNode updateTemplateInstanceByLinkedDataId(@NonNull String templateInstanceId, @NonNull JsonNode modifications)
+  public JsonNode updateTemplateInstanceByLinkedDataId(@NonNull String templateInstanceId, @NonNull JsonNode
+      modifications)
       throws InstanceNotFoundException, IOException {
     return templateInstanceDao.updateByLinkedDataId(templateInstanceId, modifications);
   }
@@ -72,7 +77,8 @@ public class TemplateInstanceServiceMongoDB extends GenericTemplateServiceMongoD
     templateInstanceDao.delete(templateInstanceId);
   }
 
-  public void deleteTemplateInstanceByLinkedDataId(@NonNull String templateInstanceId) throws InstanceNotFoundException, IOException {
+  public void deleteTemplateInstanceByLinkedDataId(@NonNull String templateInstanceId) throws
+      InstanceNotFoundException, IOException {
     templateInstanceDao.deleteByLinkedDataId(templateInstanceId);
   }
 

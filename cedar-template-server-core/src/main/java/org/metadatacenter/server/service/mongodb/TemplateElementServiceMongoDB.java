@@ -15,11 +15,13 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 
-public class TemplateElementServiceMongoDB extends GenericTemplateServiceMongoDB<String, JsonNode> implements TemplateElementService<String, JsonNode> {
+public class TemplateElementServiceMongoDB extends GenericTemplateServiceMongoDB<String, JsonNode> implements
+    TemplateElementService<String, JsonNode> {
 
   private final @NonNull TemplateElementDaoMongoDB templateElementDao;
 
-  public TemplateElementServiceMongoDB(@NonNull String db, @NonNull String templateElementsCollection, String linkedDataIdBasePath) {
+  public TemplateElementServiceMongoDB(@NonNull String db, @NonNull String templateElementsCollection, String
+      linkedDataIdBasePath) {
     templateElementDao = new TemplateElementDaoMongoDB(db, templateElementsCollection, linkedDataIdBasePath);
   }
 
@@ -41,13 +43,15 @@ public class TemplateElementServiceMongoDB extends GenericTemplateServiceMongoDB
 
   @Override
   @NonNull
-  public List<JsonNode> findAllTemplateElements(List<String> fieldNames, FieldNameInEx includeExclude) throws IOException {
+  public List<JsonNode> findAllTemplateElements(List<String> fieldNames, FieldNameInEx includeExclude) throws
+      IOException {
     return templateElementDao.findAll(fieldNames, includeExclude);
   }
 
   @Override
   @NonNull
-  public List<JsonNode> findAllTemplateElements(Integer limit, Integer offset, List<String> fieldNames, FieldNameInEx includeExclude) throws IOException {
+  public List<JsonNode> findAllTemplateElements(Integer limit, Integer offset, List<String> fieldNames, FieldNameInEx
+      includeExclude) throws IOException {
     return templateElementDao.findAll(limit, offset, fieldNames, includeExclude);
   }
 
@@ -88,7 +92,8 @@ public class TemplateElementServiceMongoDB extends GenericTemplateServiceMongoDB
   }
 
   @NonNull
-  public JsonNode updateTemplateElementByLinkedDataId(@NonNull String templateElementId, @NonNull JsonNode modifications)
+  public JsonNode updateTemplateElementByLinkedDataId(@NonNull String templateElementId, @NonNull JsonNode
+      modifications)
       throws InstanceNotFoundException, IOException {
     return templateElementDao.updateByLinkedDataId(templateElementId, modifications);
   }
@@ -97,7 +102,8 @@ public class TemplateElementServiceMongoDB extends GenericTemplateServiceMongoDB
     templateElementDao.delete(templateElementId);
   }
 
-  public void deleteTemplateElementByLinkedDataId(@NonNull String templateElementId) throws InstanceNotFoundException, IOException {
+  public void deleteTemplateElementByLinkedDataId(@NonNull String templateElementId) throws
+      InstanceNotFoundException, IOException {
     templateElementDao.deleteByLinkedDataId(templateElementId);
   }
 

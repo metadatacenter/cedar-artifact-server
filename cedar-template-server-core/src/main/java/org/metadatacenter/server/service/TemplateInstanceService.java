@@ -21,21 +21,25 @@ public interface TemplateInstanceService<K, T> {
   public List<T> findAllTemplateInstances(List<String> fieldNames, FieldNameInEx includeExclude) throws IOException;
 
   @NonNull
-  public List<T> findAllTemplateInstances(Integer limit, Integer offset, List<String> fieldNames, FieldNameInEx includeExclude) throws IOException;
+  public List<T> findAllTemplateInstances(Integer limit, Integer offset, List<String> fieldNames, FieldNameInEx
+      includeExclude) throws IOException;
 
   public T findTemplateInstance(@NonNull K templateInstanceId) throws IOException;
 
   public T findTemplateInstanceByLinkedDataId(@NonNull K templateInstanceId) throws IOException;
 
   @NonNull
-  public T updateTemplateInstance(@NonNull K templateInstanceId, @NonNull T modifications) throws InstanceNotFoundException, IOException;
+  public T updateTemplateInstance(@NonNull K templateInstanceId, @NonNull T modifications) throws
+      InstanceNotFoundException, IOException;
 
   @NonNull
-  public T updateTemplateInstanceByLinkedDataId(@NonNull K templateInstanceId, @NonNull T modifications) throws InstanceNotFoundException, IOException;
+  public T updateTemplateInstanceByLinkedDataId(@NonNull K templateInstanceId, @NonNull T modifications) throws
+      InstanceNotFoundException, IOException;
 
   public void deleteTemplateInstance(@NonNull K templateInstanceId) throws InstanceNotFoundException, IOException;
 
-  public void deleteTemplateInstanceByLinkedDataId(@NonNull K templateInstanceId) throws InstanceNotFoundException, IOException;
+  public void deleteTemplateInstanceByLinkedDataId(@NonNull K templateInstanceId) throws InstanceNotFoundException,
+      IOException;
 
   public long count();
 }

@@ -15,7 +15,8 @@ public interface GenericDao<K, T> {
 
   @NonNull List<T> findAll() throws IOException;
 
-  @NonNull List<T> findAll(Integer count, Integer page, List<String> fieldNames, FieldNameInEx includeExclude) throws IOException;
+  @NonNull List<T> findAll(Integer count, Integer page, List<String> fieldNames, FieldNameInEx includeExclude) throws
+      IOException;
 
   @NonNull List<T> findAll(List<String> fieldNames, FieldNameInEx includeExclude) throws IOException;
 
@@ -25,7 +26,8 @@ public interface GenericDao<K, T> {
 
   @NonNull T update(@NonNull K id, @NonNull T modifications) throws InstanceNotFoundException, IOException;
 
-  @NonNull T updateByLinkedDataId(@NonNull K id, @NonNull T modifications) throws InstanceNotFoundException, IOException;
+  @NonNull T updateByLinkedDataId(@NonNull K id, @NonNull T modifications) throws InstanceNotFoundException,
+      IOException;
 
   void delete(@NonNull K id) throws InstanceNotFoundException, IOException;
 

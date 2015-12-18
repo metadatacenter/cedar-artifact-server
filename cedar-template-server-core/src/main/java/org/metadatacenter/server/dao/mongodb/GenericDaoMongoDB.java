@@ -17,8 +17,8 @@ import org.bson.types.ObjectId;
 import org.metadatacenter.server.dao.GenericDao;
 import org.metadatacenter.server.service.FieldNameInEx;
 import org.metadatacenter.server.utils.FixMongoDirection;
-import org.metadatacenter.server.utils.MongoFactory;
 import org.metadatacenter.server.utils.JsonUtils;
+import org.metadatacenter.server.utils.MongoFactory;
 
 import javax.management.InstanceNotFoundException;
 import java.io.IOException;
@@ -85,7 +85,7 @@ public class GenericDaoMongoDB implements GenericDao<String, JsonNode> {
     do {
       id = linkedDataIdBasePath + UUID.randomUUID().toString();
     } while (findByLinkedDataId(id) != null);
-    ((ObjectNode)element).put("@id", id);
+    ((ObjectNode) element).put("@id", id);
 
     // Adapts all keys not accepted by MongoDB
     JsonNode fixedElement = jsonUtils.fixMongoDB(element, FixMongoDirection.WRITE_TO_MONGO);
@@ -114,7 +114,8 @@ public class GenericDaoMongoDB implements GenericDao<String, JsonNode> {
   }
 
   @NonNull
-  public List<JsonNode> findAll(Integer limit, Integer offset, List<String> fieldNames, FieldNameInEx includeExclude) throws IOException {
+  public List<JsonNode> findAll(Integer limit, Integer offset, List<String> fieldNames, FieldNameInEx includeExclude)
+      throws IOException {
     FindIterable<Document> findIterable = entityCollection.find();
     if (limit != null) {
       findIterable.limit(limit);
@@ -141,7 +142,8 @@ public class GenericDaoMongoDB implements GenericDao<String, JsonNode> {
     List<JsonNode> docs = new ArrayList<>();
     try {
       while (cursor.hasNext()) {
-        JsonNode node = jsonUtils.fixMongoDB(mapper.readTree(cursor.next().toJson()), FixMongoDirection.READ_FROM_MONGO);
+        JsonNode node = jsonUtils.fixMongoDB(mapper.readTree(cursor.next().toJson()), FixMongoDirection
+            .READ_FROM_MONGO);
         docs.add(node);
       }
     } finally {

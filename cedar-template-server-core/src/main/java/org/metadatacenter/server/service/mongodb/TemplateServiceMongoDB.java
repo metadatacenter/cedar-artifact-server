@@ -16,7 +16,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 
-public class TemplateServiceMongoDB extends GenericTemplateServiceMongoDB<String, JsonNode> implements TemplateService<String, JsonNode> {
+public class TemplateServiceMongoDB extends GenericTemplateServiceMongoDB<String, JsonNode> implements
+    TemplateService<String, JsonNode> {
 
   private final @NonNull TemplateDaoMongoDB templateDao;
 
@@ -24,7 +25,8 @@ public class TemplateServiceMongoDB extends GenericTemplateServiceMongoDB<String
   private final TemplateElementService templateElementService;
 
 
-  public TemplateServiceMongoDB(@NonNull String db, @NonNull String templatesCollection, String linkedDataIdBasePath, TemplateElementService templateElementService) {
+  public TemplateServiceMongoDB(@NonNull String db, @NonNull String templatesCollection, String linkedDataIdBasePath,
+                                TemplateElementService templateElementService) {
     templateDao = new TemplateDaoMongoDB(db, templatesCollection, linkedDataIdBasePath);
     this.templateElementService = templateElementService;
   }
@@ -53,7 +55,8 @@ public class TemplateServiceMongoDB extends GenericTemplateServiceMongoDB<String
 
   @Override
   @NonNull
-  public List<JsonNode> findAllTemplates(Integer limit, Integer offset, List<String> fieldNames, FieldNameInEx includeExclude) throws IOException {
+  public List<JsonNode> findAllTemplates(Integer limit, Integer offset, List<String> fieldNames, FieldNameInEx
+      includeExclude) throws IOException {
     return templateDao.findAll(limit, offset, fieldNames, includeExclude);
   }
 

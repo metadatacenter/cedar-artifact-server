@@ -22,21 +22,27 @@ public interface TemplateElementService<K, T> {
   public List<T> findAllTemplateElements(List<String> fieldName, FieldNameInEx includeExclude) throws IOException;
 
   @NonNull
-  public List<T> findAllTemplateElements(Integer limit, Integer offset, List<String> fieldName, FieldNameInEx includeExclude) throws IOException;
+  public List<T> findAllTemplateElements(Integer limit, Integer offset, List<String> fieldName, FieldNameInEx
+      includeExclude) throws IOException;
 
-  public T findTemplateElement(@NonNull K templateElementId, boolean expanded, boolean validation) throws IOException, ProcessingException;
+  public T findTemplateElement(@NonNull K templateElementId, boolean expanded, boolean validation) throws
+      IOException, ProcessingException;
 
-  public T findTemplateElementByLinkedDataId(@NonNull String templateElementId, boolean expanded, boolean validation) throws IOException, ProcessingException;
+  public T findTemplateElementByLinkedDataId(@NonNull String templateElementId, boolean expanded, boolean validation)
+      throws IOException, ProcessingException;
 
   @NonNull
-  public T updateTemplateElement(@NonNull K templateElementId, @NonNull T modifications) throws InstanceNotFoundException, IOException;
+  public T updateTemplateElement(@NonNull K templateElementId, @NonNull T modifications) throws
+      InstanceNotFoundException, IOException;
 
   @NonNull
-  public T updateTemplateElementByLinkedDataId(@NonNull K templateElementId, @NonNull T modifications) throws InstanceNotFoundException, IOException;
+  public T updateTemplateElementByLinkedDataId(@NonNull K templateElementId, @NonNull T modifications) throws
+      InstanceNotFoundException, IOException;
 
   public void deleteTemplateElement(@NonNull K templateElementId) throws InstanceNotFoundException, IOException;
 
-  public void deleteTemplateElementByLinkedDataId(@NonNull K templateElementId) throws InstanceNotFoundException, IOException;
+  public void deleteTemplateElementByLinkedDataId(@NonNull K templateElementId) throws InstanceNotFoundException,
+      IOException;
 
   @NonNull
   public boolean existsTemplateElement(@NonNull K templateElementId) throws IOException;

@@ -5,12 +5,12 @@ import controllers.TemplateElementServerController;
 import controllers.TemplateInstanceServerController;
 import controllers.TemplateServerController;
 import org.metadatacenter.server.Constants;
-import org.metadatacenter.server.service.mongodb.TemplateElementServiceMongoDB;
-import org.metadatacenter.server.service.mongodb.TemplateInstanceServiceMongoDB;
-import org.metadatacenter.server.service.mongodb.TemplateServiceMongoDB;
 import org.metadatacenter.server.service.TemplateElementService;
 import org.metadatacenter.server.service.TemplateInstanceService;
 import org.metadatacenter.server.service.TemplateService;
+import org.metadatacenter.server.service.mongodb.TemplateElementServiceMongoDB;
+import org.metadatacenter.server.service.mongodb.TemplateInstanceServiceMongoDB;
+import org.metadatacenter.server.service.mongodb.TemplateServiceMongoDB;
 import play.Configuration;
 import play.Play;
 
