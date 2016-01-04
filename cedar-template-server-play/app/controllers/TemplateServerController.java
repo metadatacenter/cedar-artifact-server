@@ -1,6 +1,7 @@
 package controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.metadatacenter.server.Constants;
 import org.metadatacenter.server.service.FieldNameInEx;
 import org.metadatacenter.server.service.TemplateService;
 import org.slf4j.Logger;
@@ -8,12 +9,16 @@ import org.slf4j.LoggerFactory;
 import play.libs.Json;
 import play.mvc.Result;
 import utils.JsonUtils;
+import utils.LinkHeaderUtil;
+import utils.Utils;
 
 import javax.management.InstanceNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.metadatacenter.server.Constants.HTTP_HEADER_LINK;
 
 public class TemplateServerController extends GenericElementServerController {
   private static Logger log = LoggerFactory.getLogger(TemplateServerController.class);
@@ -44,7 +49,7 @@ public class TemplateServerController extends GenericElementServerController {
       // Set Location header pointing to the newly created template
       String id = createdTemplate.get("@id").asText();
       String absoluteUrl = routes.TemplateServerController.findTemplate(id, false, false).absoluteURL(request());
-      response().setHeader("Location", absoluteUrl);
+      response().setHeader(Constants.HTTP_HEADER_LOCATION, absoluteUrl);
       // Return created response
       return created(createdTemplate);
     } catch (IllegalArgumentException e) {
@@ -73,6 +78,8 @@ public class TemplateServerController extends GenericElementServerController {
 
   public static Result findAllTemplates(Integer limit, Integer offset, boolean summary) {
     try {
+      limit = ensureLimit(limit);
+      checkPagingParameters(limit, offset);
       Map<String, Object> r = new HashMap<>();
       List<JsonNode> templates = null;
       if (summary) {
@@ -82,7 +89,14 @@ public class TemplateServerController extends GenericElementServerController {
         templates = templateService.findAllTemplates(limit, offset, FIELD_NAMES_EXCLUSION_LIST, FieldNameInEx.EXCLUDE);
       }
       long total = templateService.count();
-      response().setHeader("Total-Count", String.valueOf(total));
+      response().setHeader(Constants.HTTP_CUSTOM_HEADER_TOTAL_COUNT, String.valueOf(total));
+      checkPagingParametersAgainstTotal(offset, total);
+      String absoluteUrl = routes.TemplateServerController.findAllTemplates(0, 0, false).absoluteURL(request());
+      absoluteUrl = Utils.trimUrlParameters(absoluteUrl);
+      String linkHeader = LinkHeaderUtil.getPagingLinkHeader(absoluteUrl, total, limit, offset);
+      if (!linkHeader.isEmpty()) {
+        response().setHeader(HTTP_HEADER_LINK, linkHeader);
+      }
       return ok(Json.toJson(templates));
     } catch (Exception e) {
       return internalServerErrorWithError(e);

@@ -21,7 +21,7 @@
     <scala.dependencies.version>2.11</scala.dependencies.version>
     <play2.version>2.3.8</play2.version>
     <play2.scala.version>2.11</play2.scala.version>
-    <apache.httpclient.version>4.4.1</apache.httpclient.version>
+    <apache.httpclient.version>4.5.1</apache.httpclient.version>
     <mongodb.version>3.0.0</mongodb.version>
     <jackson.core.version>2.5.0</jackson.core.version>
     <checker.framework.version>1.7.5</checker.framework.version>

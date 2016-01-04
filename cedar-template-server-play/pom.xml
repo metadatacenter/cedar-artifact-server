@@ -69,12 +69,11 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- Required for IntegrationSpec -->
+        <!-- Required for IntegrationSpec and URI building -->
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
             <version>${apache.httpclient.version}</version>
-            <scope>test</scope>
         </dependency>
 
         <!-- Jackson -->

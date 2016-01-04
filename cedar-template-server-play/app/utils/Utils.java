@@ -19,4 +19,14 @@ public final class Utils {
     mapper.writeValue(sw, o);
     return sw.toString();
   }
+
+  public static String trimUrlParameters(String url) {
+    if (url != null) {
+      int p = url.indexOf('?');
+      if (p > -1) {
+        return url.substring(0, p - 1);
+      }
+    }
+    return url;
+  }
 }

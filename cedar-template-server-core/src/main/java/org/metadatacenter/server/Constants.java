@@ -12,4 +12,20 @@ public interface Constants {
   String LINKED_DATA_ID_PATH_SUFFIX_TEMPLATES = "linkedData.idPath.suffix.templates";
   String LINKED_DATA_ID_PATH_SUFFIX_TEMPLATE_ELEMENTS = "linkedData.idPath.suffix.template-elements";
   String LINKED_DATA_ID_PATH_SUFFIX_TEMPLATE_INSTANCES = "linkedData.idPath.suffix.template-instances";
+
+  String PAGINATION_DEFAULT_PAGE_SIZE = "pagination.defaultPageSize";
+  String PAGINATION_MAX_PAGE_SIZE = "pagination.maxPageSize";
+
+  String HTTP_HEADER_LOCATION = "Location";
+  String HTTP_HEADER_LINK = "Link";
+  String HTTP_CUSTOM_HEADER_TOTAL_COUNT = "Total-Count";
+
+  String HEADER_LINK_TYPE_FIRST = "first";
+  String HEADER_LINK_TYPE_LAST = "last";
+  String HEADER_LINK_TYPE_PREV = "prev";
+  String HEADER_LINK_TYPE_NEXT = "next";
+
+  String PARAM_OFFSET = "offset";
+  String PARAM_LIMIT = "limit";
+
 }
