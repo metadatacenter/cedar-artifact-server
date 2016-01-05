@@ -3,6 +3,7 @@ package org.metadatacenter.server;
 public interface Constants {
   String JSON_SCHEMA_URL = "http://json-schema.org/draft-04/schema#";
 
+  // application.conf keys
   String MONGODB_DATABASE_NAME = "mongodb.db";
   String TEMPLATES_COLLECTION_NAME = "mongodb.collections.templates";
   String TEMPLATE_ELEMENTS_COLLECTION_NAME = "mongodb.collections.template-elements";
@@ -16,15 +17,24 @@ public interface Constants {
   String PAGINATION_DEFAULT_PAGE_SIZE = "pagination.defaultPageSize";
   String PAGINATION_MAX_PAGE_SIZE = "pagination.maxPageSize";
 
+  String FIELD_NAMES_SUMMARY_TEMPLATE_ELEMENT = "summary.templateElement.fields";
+  String FIELD_NAMES_SUMMARY_TEMPLATE = "summary.template.fields";
+  String FIELD_NAMES_SUMMARY_TEMPLATE_INSTANCE = "summary.templateInstance.fields";
+
+  String FIELD_NAMES_LIST_EXCLUSION = "list.excludedFields";
+
+  // HTTP headers
   String HTTP_HEADER_LOCATION = "Location";
   String HTTP_HEADER_LINK = "Link";
   String HTTP_CUSTOM_HEADER_TOTAL_COUNT = "Total-Count";
 
+  // HTTP Link header types
   String HEADER_LINK_TYPE_FIRST = "first";
   String HEADER_LINK_TYPE_LAST = "last";
   String HEADER_LINK_TYPE_PREV = "prev";
   String HEADER_LINK_TYPE_NEXT = "next";
 
+  // Query String parameter names
   String PARAM_OFFSET = "offset";
   String PARAM_LIMIT = "limit";
 

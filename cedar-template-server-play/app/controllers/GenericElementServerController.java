@@ -11,8 +11,7 @@ import play.mvc.Result;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.metadatacenter.server.Constants.PAGINATION_DEFAULT_PAGE_SIZE;
-import static org.metadatacenter.server.Constants.PAGINATION_MAX_PAGE_SIZE;
+import static org.metadatacenter.server.Constants.*;
 
 public class GenericElementServerController extends Controller {
 
@@ -20,9 +19,9 @@ public class GenericElementServerController extends Controller {
   protected static Configuration config;
 
   static {
-    FIELD_NAMES_EXCLUSION_LIST = new ArrayList<>();
-    FIELD_NAMES_EXCLUSION_LIST.add("_id");
     config = Play.application().configuration();
+    FIELD_NAMES_EXCLUSION_LIST = new ArrayList<>();
+    FIELD_NAMES_EXCLUSION_LIST.addAll(config.getStringList(FIELD_NAMES_LIST_EXCLUSION));
   }
 
   protected static ObjectNode generateErrorDescription(Throwable t) {

@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.metadatacenter.server.Constants.FIELD_NAMES_SUMMARY_TEMPLATE_ELEMENT;
 import static org.metadatacenter.server.Constants.HTTP_HEADER_LINK;
 
 public class TemplateElementServerController extends GenericElementServerController {
@@ -27,11 +28,8 @@ public class TemplateElementServerController extends GenericElementServerControl
   protected static List<String> FIELD_NAMES_SUMMARY_LIST;
 
   static {
-    FIELD_NAMES_SUMMARY_LIST = new ArrayList<String>();
-    FIELD_NAMES_SUMMARY_LIST.add("@id");
-    FIELD_NAMES_SUMMARY_LIST.add("title");
-    FIELD_NAMES_SUMMARY_LIST.add("properties.info.title");
-    FIELD_NAMES_SUMMARY_LIST.add("properties.info.description");
+    FIELD_NAMES_SUMMARY_LIST = new ArrayList<>();
+    FIELD_NAMES_SUMMARY_LIST.addAll(config.getStringList(FIELD_NAMES_SUMMARY_TEMPLATE_ELEMENT));
   }
 
   public static void injectTemplateElementService(TemplateElementService<String, JsonNode> tes) {
@@ -65,7 +63,6 @@ public class TemplateElementServerController extends GenericElementServerControl
       if (summary) {
         elements = templateElementService.findAllTemplateElements(limit, offset, FIELD_NAMES_SUMMARY_LIST,
             FieldNameInEx.INCLUDE);
-        response().setHeader("Cedar-Field-Names", Json.toJson(FIELD_NAMES_SUMMARY_LIST).toString());
       } else {
         elements = templateElementService.findAllTemplateElements(limit, offset, FIELD_NAMES_EXCLUSION_LIST,
             FieldNameInEx.EXCLUDE);

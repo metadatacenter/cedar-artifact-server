@@ -128,17 +128,17 @@ public class GenericDaoMongoDB implements GenericDao<String, JsonNode> {
       findIterable.skip(offset);
     }
     if (fieldNames != null && fieldNames.size() > 0) {
-      Bson fn = null;
+      Bson fields = null;
       switch (includeExclude) {
         case INCLUDE:
-          fn = Projections.include(fieldNames);
+          fields = Projections.fields(Projections.include(fieldNames), Projections.excludeId());
           break;
         case EXCLUDE:
-          fn = Projections.exclude(fieldNames);
+          fields = Projections.exclude(fieldNames);
           break;
       }
-      if (fn != null) {
-        findIterable.projection(Projections.fields(fn));
+      if (fields != null) {
+        findIterable.projection(fields);
       }
     }
     MongoCursor<Document> cursor = findIterable.iterator();
