@@ -8,21 +8,21 @@ GET            /                              controllers.Application.index()
 # Templates
 POST           /templates                     controllers.TemplateServerController.createTemplate()
 GET            /templates/:id                 controllers.TemplateServerController.findTemplate(id: String, expanded: Boolean ?= false, validation: Boolean ?= false)
-GET            /templates                     controllers.TemplateServerController.findAllTemplates(limit: Integer ?= null, offset: Integer ?= 0, summary: Boolean ?= false)
+GET            /templates                     controllers.TemplateServerController.findAllTemplates(limit: Integer ?= null, offset: Integer ?= 0, summary: Boolean ?= false, fieldNames: String ?= null)
 PUT            /templates/:id                 controllers.TemplateServerController.updateTemplate(id: String)
 DELETE         /templates/:id                 controllers.TemplateServerController.deleteTemplate(id: String)
 
 # Template Elements
 POST           /template-elements             controllers.TemplateElementServerController.createTemplateElement()
 GET            /template-elements/:id         controllers.TemplateElementServerController.findTemplateElement(id: String, expanded: Boolean ?= false, validation: Boolean ?= false)
-GET            /template-elements             controllers.TemplateElementServerController.findAllTemplateElements(limit: Integer ?= null, offset: Integer ?= 0, summary: Boolean ?= false)
+GET            /template-elements             controllers.TemplateElementServerController.findAllTemplateElements(limit: Integer ?= null, offset: Integer ?= 0, summary: Boolean ?= false, fieldNames: String ?= null)
 PUT            /template-elements/:id         controllers.TemplateElementServerController.updateTemplateElement(id: String)
 DELETE         /template-elements/:id         controllers.TemplateElementServerController.deleteTemplateElement(id: String)
 
 # Template Instances
 POST           /template-instances            controllers.TemplateInstanceServerController.createTemplateInstance()
 GET            /template-instances/:id        controllers.TemplateInstanceServerController.findTemplateInstance(id: String)
-GET            /template-instances            controllers.TemplateInstanceServerController.findAllTemplateInstances(limit: Integer ?= null, offset: Integer ?= 0, summary: Boolean ?= false)
+GET            /template-instances            controllers.TemplateInstanceServerController.findAllTemplateInstances(limit: Integer ?= null, offset: Integer ?= 0, summary: Boolean ?= false, fieldNames: String ?= null)
 PUT            /template-instances/:id        controllers.TemplateInstanceServerController.updateTemplateInstance(id: String)
 DELETE         /template-instances/:id        controllers.TemplateInstanceServerController.deleteTemplateInstance(id: String)
 

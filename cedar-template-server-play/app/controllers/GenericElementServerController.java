@@ -9,6 +9,7 @@ import play.mvc.Controller;
 import play.mvc.Result;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.metadatacenter.server.Constants.*;
@@ -71,4 +72,16 @@ public class GenericElementServerController extends Controller {
     }
   }
 
+
+  protected static List<String> getAndCheckFieldNames(String fieldNames, boolean summary) {
+    if (fieldNames != null) {
+      if (summary == true) {
+        throw new IllegalArgumentException("It is no allowed to specify parameter 'fieldNames' and also set 'summary'" +
+            " to true!");
+      } else if (fieldNames.length() > 0) {
+        return Arrays.asList(fieldNames.split(","));
+      }
+    }
+    return null;
+  }
 }

@@ -54,15 +54,18 @@ public class TemplateElementServerController extends GenericElementServerControl
     }
   }
 
-  public static Result findAllTemplateElements(Integer limit, Integer offset, boolean summary) {
+  public static Result findAllTemplateElements(Integer limit, Integer offset, boolean summary, String fieldNames) {
     try {
       limit = ensureLimit(limit);
       checkPagingParameters(limit, offset);
+      List<String> fieldNameList = getAndCheckFieldNames(fieldNames, summary);
       Map<String, Object> r = new HashMap<>();
       List<JsonNode> elements = null;
       if (summary) {
         elements = templateElementService.findAllTemplateElements(limit, offset, FIELD_NAMES_SUMMARY_LIST,
             FieldNameInEx.INCLUDE);
+      } else if (fieldNameList != null) {
+        elements = templateElementService.findAllTemplateElements(limit, offset, fieldNameList, FieldNameInEx.INCLUDE);
       } else {
         elements = templateElementService.findAllTemplateElements(limit, offset, FIELD_NAMES_EXCLUSION_LIST,
             FieldNameInEx.EXCLUDE);
@@ -70,7 +73,7 @@ public class TemplateElementServerController extends GenericElementServerControl
       long total = templateElementService.count();
       response().setHeader(Constants.HTTP_CUSTOM_HEADER_TOTAL_COUNT, String.valueOf(total));
       checkPagingParametersAgainstTotal(offset, total);
-      String absoluteUrl = routes.TemplateElementServerController.findAllTemplateElements(0, 0, false).absoluteURL
+      String absoluteUrl = routes.TemplateElementServerController.findAllTemplateElements(0, 0, false, null).absoluteURL
           (request());
       absoluteUrl = Utils.trimUrlParameters(absoluteUrl);
       String linkHeader = LinkHeaderUtil.getPagingLinkHeader(absoluteUrl, total, limit, offset);
