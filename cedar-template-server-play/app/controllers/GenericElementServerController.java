@@ -14,7 +14,7 @@ import java.util.List;
 
 import static org.metadatacenter.server.Constants.*;
 
-public class GenericElementServerController extends Controller {
+public class GenericElementServerController extends GenericCedarController {
 
   protected static List<String> FIELD_NAMES_EXCLUSION_LIST;
   protected static Configuration config;
@@ -83,5 +83,20 @@ public class GenericElementServerController extends Controller {
       }
     }
     return null;
+  }
+
+
+  protected static boolean requestIsForLinkedData() {
+    return config.getString(SERVER_LINKED_DATA).equals(request().getHeader(HTTP_HEADER_HOST));
+  }
+
+  protected static boolean requestIsForRESTAPI() {
+    return config.getString(SERVER_REST_API).equals(request().getHeader(HTTP_HEADER_HOST));
+  }
+
+  protected static void checkServerName() {
+    if (!requestIsForLinkedData() && !requestIsForRESTAPI()) {
+      throw new IllegalArgumentException("Unknown server name:" + request().getHeader(HTTP_HEADER_HOST) + "!");
+    }
   }
 }

@@ -1,11 +1,16 @@
 package controllers;
 
-import play.mvc.Controller;
 import play.mvc.Result;
 
-public class Application extends Controller {
+public class Application extends GenericCedarController {
+
   public static Result index() {
-    return ok("CEDAR Template Server. Its REST API is documented here: " + request().host() + "/assets/RESTAPI.html");
+    if (requestIsForRESTAPI()) {
+      return ok("CEDAR REST Server. Its REST API is documented here: " + request().host() + "/assets/RESTAPI.html");
+    } else if (requestIsForLinkedData()) {
+      return ok("CEDAR Repo Server.");
+    }
+    return badRequest("Unknown server requested.");
   }
 
   /* For CORS */
