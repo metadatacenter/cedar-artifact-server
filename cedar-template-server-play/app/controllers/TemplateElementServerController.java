@@ -86,16 +86,8 @@ public class TemplateElementServerController extends GenericElementServerControl
     }
   }
 
-  public static Result findTemplateElement(String id, boolean expanded, boolean validation) {
+  public static Result findTemplateElement(String templateElementId, boolean expanded, boolean validation) {
     try {
-      checkServerName();
-      String templateElementId = null;
-      if (requestIsForRESTAPI()) {
-        templateElementId = id;
-      } else if (requestIsForLinkedData()) {
-        templateElementId = config.getString(Constants.LINKED_DATA_ID_PATH_BASE) + config.getString(Constants
-            .LINKED_DATA_ID_PATH_SUFFIX_TEMPLATE_ELEMENTS) + id;
-      }
       JsonNode templateElement = templateElementService.findTemplateElementByLinkedDataId(templateElementId, expanded,
           validation);
       if (templateElement != null) {

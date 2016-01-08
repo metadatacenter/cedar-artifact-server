@@ -23,10 +23,6 @@ public interface Constants {
 
   String FIELD_NAMES_LIST_EXCLUSION = "list.excludedFields";
 
-  String SERVER_REST_API = "server.restAPI";
-  String SERVER_LINKED_DATA = "server.linkedData";
-
-
   // HTTP headers
   String HTTP_HEADER_LOCATION = "Location";
   String HTTP_HEADER_LINK = "Link";

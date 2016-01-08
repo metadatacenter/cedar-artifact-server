@@ -13,6 +13,7 @@
   <modules>
     <module>cedar-template-server-core</module>
     <module>cedar-template-server-play</module>
+    <module>cedar-repo-server-play</module>
   </modules>
 
   <properties>

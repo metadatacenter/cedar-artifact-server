@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import play.Configuration;
 import play.Play;
-import play.mvc.Controller;
 import play.mvc.Result;
 
 import java.util.ArrayList;
@@ -85,18 +84,4 @@ public class GenericElementServerController extends GenericCedarController {
     return null;
   }
 
-
-  protected static boolean requestIsForLinkedData() {
-    return config.getString(SERVER_LINKED_DATA).equals(request().getHeader(HTTP_HEADER_HOST));
-  }
-
-  protected static boolean requestIsForRESTAPI() {
-    return config.getString(SERVER_REST_API).equals(request().getHeader(HTTP_HEADER_HOST));
-  }
-
-  protected static void checkServerName() {
-    if (!requestIsForLinkedData() && !requestIsForRESTAPI()) {
-      throw new IllegalArgumentException("Unknown server name:" + request().getHeader(HTTP_HEADER_HOST) + "!");
-    }
-  }
 }
