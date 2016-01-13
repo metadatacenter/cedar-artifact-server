@@ -13,6 +13,7 @@
   <modules>
     <module>cedar-template-server-core</module>
     <module>cedar-template-server-play</module>
+    <module>cedar-repo-server-play</module>
   </modules>
 
   <properties>
@@ -21,7 +22,7 @@
     <scala.dependencies.version>2.11</scala.dependencies.version>
     <play2.version>2.3.8</play2.version>
     <play2.scala.version>2.11</play2.scala.version>
-    <apache.httpclient.version>4.4.1</apache.httpclient.version>
+    <apache.httpclient.version>4.5.1</apache.httpclient.version>
     <mongodb.version>3.0.0</mongodb.version>
     <jackson.core.version>2.5.0</jackson.core.version>
     <checker.framework.version>1.7.5</checker.framework.version>
@@ -34,6 +35,8 @@
     <scala.maven.plugin.version>3.1.6</scala.maven.plugin.version>
     <play2.maven.plugin.version>1.0.0-beta1</play2.maven.plugin.version>
     <maven.surefire.plugin.version>2.16</maven.surefire.plugin.version>
+    <maven.compiler.plugin.version>3.1</maven.compiler.plugin.version>
+
     <play-java-ws.version>2.3.8</play-java-ws.version>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

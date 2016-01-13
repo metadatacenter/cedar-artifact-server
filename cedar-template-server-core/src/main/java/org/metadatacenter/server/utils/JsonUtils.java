@@ -1,4 +1,4 @@
-package org.metadatacenter.templates.utils;
+package org.metadatacenter.server.utils;
 
 import checkers.nullness.quals.NonNull;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -9,19 +9,16 @@ import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import com.github.fge.jsonschema.main.JsonValidator;
-import org.metadatacenter.templates.service.TemplatesService;
+import org.metadatacenter.server.service.TemplateElementService;
 
-import javax.management.InstanceNotFoundException;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
 
-public class JsonUtils
-{
+public class JsonUtils {
   /* JSON Schema Validation */
 
-  public void validate(@NonNull JsonNode schema, @NonNull JsonNode instance) throws ProcessingException
-  {
+  public void validate(@NonNull JsonNode schema, @NonNull JsonNode instance) throws ProcessingException {
     JsonValidator validator = JsonSchemaFactory.byDefault().getValidator();
     ProcessingReport report = validator.validate(schema, instance);
     if (!report.isSuccess()) {
@@ -32,9 +29,10 @@ public class JsonUtils
 
   /* Resolution of Json Schema references ($ref) */
 
-  @NonNull public JsonNode resolveTemplateElementRefs(@NonNull JsonNode node,
-    @NonNull TemplatesService<String, JsonNode> templatesService) throws IOException, ProcessingException
-  {
+  @NonNull
+  public JsonNode resolveTemplateElementRefs(@NonNull JsonNode node,
+                                             @NonNull TemplateElementService<String, JsonNode>
+                                                 templateElementService) throws IOException, ProcessingException {
     ObjectMapper mapper = new ObjectMapper();
     ObjectNode rootNode = mapper.createObjectNode();
 
@@ -48,9 +46,9 @@ public class JsonUtils
           String ref = entry.getValue().get("$ref").asText();
           // Load the template element
           if (ref.length() > 0) {
-            JsonNode templateElement = templatesService.findTemplateElementByLinkedDataId(ref, false, false);
+            JsonNode templateElement = templateElementService.findTemplateElementByLinkedDataId(ref, false, false);
             if (templateElement != null) {
-              rootNode.set(entry.getKey(), resolveTemplateElementRefs(templateElement, templatesService));
+              rootNode.set(entry.getKey(), resolveTemplateElementRefs(templateElement, templateElementService));
             } else {
               rootNode.put(entry.getKey(), "unresolved_reference");
             }
@@ -62,7 +60,7 @@ public class JsonUtils
         }
         // If it contains more properties, or only one but it is not $ref
         else {
-          rootNode.set(entry.getKey(), resolveTemplateElementRefs(entry.getValue(), templatesService));
+          rootNode.set(entry.getKey(), resolveTemplateElementRefs(entry.getValue(), templateElementService));
         }
       }
       // If it is not an object
@@ -79,12 +77,12 @@ public class JsonUtils
 
   /* Fix for the keywords not allowed by MongoDB (e.g. $schema) */
   // Rename JSON field to be stored into MongoDB
-  // direction: 1 -> update field names for MongoDB storage (e.g. $schema -> _$schema)
-  // direction: 2 -> update field names after reading them from MongoDB (e.g. _$schema -> $schema)
-  @NonNull public JsonNode fixMongoDB(@NonNull JsonNode node, int direction)
-  {
+  // direction: WRITE_TO_MONGO  -> update field names for MongoDB storage (e.g. $schema -> _$schema)
+  // direction: READ_FROM_MONGO -> update field names after reading them from MongoDB (e.g. _$schema -> $schema)
+  @NonNull
+  public JsonNode fixMongoDB(@NonNull JsonNode node, FixMongoDirection direction) {
     boolean reverse = false;
-    if (direction == 2) {
+    if (direction == FixMongoDirection.READ_FROM_MONGO) {
       reverse = true;
     }
     updateFieldName(node, "$schema", "_$schema", reverse);
@@ -97,17 +95,17 @@ public class JsonUtils
     return node;
   }
 
-  @NonNull private JsonNode updateFieldName(@NonNull JsonNode node, @NonNull String fieldName,
-    @NonNull String newFieldName, boolean reverse)
-  {
+  @NonNull
+  private JsonNode updateFieldName(@NonNull JsonNode node, @NonNull String fieldName,
+                                   @NonNull String newFieldName, boolean reverse) {
     if (reverse) {
       String swap = fieldName;
       fieldName = newFieldName;
       newFieldName = swap;
     }
     if (node.has(fieldName)) {
-      ((ObjectNode)node).set(newFieldName, new TextNode(node.get(fieldName).asText()));
-      ((ObjectNode)node).remove(fieldName);
+      ((ObjectNode) node).set(newFieldName, new TextNode(node.get(fieldName).asText()));
+      ((ObjectNode) node).remove(fieldName);
     }
     return node;
   }

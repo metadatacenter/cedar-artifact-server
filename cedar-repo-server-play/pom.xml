@@ -4,8 +4,8 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.metadatacenter</groupId>
-    <artifactId>cedar-template-server-play</artifactId>
-    <name>CEDAR Template Server Play</name>
+    <artifactId>cedar-repo-server-play</artifactId>
+    <name>CEDAR Repo Server Play</name>
     <version>0.1.0</version>
     <packaging>play2</packaging>
 
@@ -139,7 +139,7 @@
                 <version>${play2.maven.plugin.version}</version>
                 <extensions>true</extensions>
                 <configuration>
-                    <httpPort>9000</httpPort>
+                    <httpPort>9001</httpPort>
                 </configuration>
             </plugin>
 

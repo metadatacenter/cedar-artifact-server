@@ -1,4 +1,4 @@
-package org.metadatacenter.templates.utils;
+package org.metadatacenter.server.utils;
 
 import checkers.nullness.quals.NonNull;
 
@@ -11,11 +11,11 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.Properties;
 
-public class PropertiesManager
-{
+public class PropertiesManager {
   private static final String configFile = "src/main/config/config.properties";
 
-  @NonNull private static final Properties properties;
+  @NonNull
+  private static final Properties properties;
 
   static {
     properties = new Properties();
@@ -29,16 +29,15 @@ public class PropertiesManager
     }
   }
 
-  public static Optional<String> getProperty(@NonNull String propertyName)
-  {
-    if (properties.getProperty(propertyName) != null)
+  public static Optional<String> getProperty(@NonNull String propertyName) {
+    if (properties.getProperty(propertyName) != null) {
       return Optional.of(properties.getProperty(propertyName));
-    else
+    } else {
       return Optional.empty();
+    }
   }
 
-  public static Optional<Double> getPropertyDouble(@NonNull String propertyName)
-  {
+  public static Optional<Double> getPropertyDouble(@NonNull String propertyName) {
     NumberFormat nf = NumberFormat.getInstance(Locale.US);
     try {
       return Optional.of(nf.parse(properties.getProperty(propertyName)).doubleValue());
@@ -48,8 +47,7 @@ public class PropertiesManager
     }
   }
 
-  public static Optional<Integer> getPropertyInt(@NonNull String propertyName)
-  {
+  public static Optional<Integer> getPropertyInt(@NonNull String propertyName) {
     try {
       return Optional.of(Integer.parseInt(properties.getProperty(propertyName)));
     } catch (NumberFormatException e) {
