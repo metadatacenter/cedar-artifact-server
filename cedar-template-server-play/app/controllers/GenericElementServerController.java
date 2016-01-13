@@ -65,7 +65,7 @@ public class GenericElementServerController extends GenericCedarController {
   }
 
   protected static void checkPagingParametersAgainstTotal(Integer offset, long total) {
-    if (offset > total - 1) {
+    if (offset != 0 && offset > total - 1) {
       throw new IllegalArgumentException("Parameter 'offset' must be smaller than the total count of objects, which " +
           "is " + total + "!");
     }
