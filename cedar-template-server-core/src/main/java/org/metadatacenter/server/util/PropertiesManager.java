@@ -1,4 +1,4 @@
-package org.metadatacenter.server.utils;
+package org.metadatacenter.server.util;
 
 import checkers.nullness.quals.NonNull;
 

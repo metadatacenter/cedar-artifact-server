@@ -1,4 +1,4 @@
-package utils;
+package org.metadatacenter.util;
 
 import checkers.nullness.quals.NonNull;
 import org.apache.http.NameValuePair;
@@ -16,7 +16,6 @@ import static org.metadatacenter.server.Constants.*;
 public final class LinkHeaderUtil {
 
   private LinkHeaderUtil() {
-
   }
 
   public static String getPagingLinkHeader(@NonNull String baseUrl, @NonNull Long total, Integer limit, Integer

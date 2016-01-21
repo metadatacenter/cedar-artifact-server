@@ -1,4 +1,4 @@
-package utils;
+package org.metadatacenter.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -9,7 +9,6 @@ import java.io.StringWriter;
 public final class Utils {
 
   private Utils() {
-
   }
 
   public static String prettyPrint(Object o) throws IOException {

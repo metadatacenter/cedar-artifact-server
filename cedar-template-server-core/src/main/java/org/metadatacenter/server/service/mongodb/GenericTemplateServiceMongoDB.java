@@ -3,7 +3,7 @@ package org.metadatacenter.server.service.mongodb;
 import checkers.nullness.quals.NonNull;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
-import org.metadatacenter.server.utils.JsonUtils;
+import org.metadatacenter.server.util.JsonUtils;
 
 public class GenericTemplateServiceMongoDB<K, T> {
 

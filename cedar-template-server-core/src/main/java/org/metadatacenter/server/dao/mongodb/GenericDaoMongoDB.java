@@ -16,9 +16,9 @@ import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 import org.metadatacenter.server.dao.GenericDao;
 import org.metadatacenter.server.service.FieldNameInEx;
-import org.metadatacenter.server.utils.FixMongoDirection;
-import org.metadatacenter.server.utils.JsonUtils;
-import org.metadatacenter.server.utils.MongoFactory;
+import org.metadatacenter.server.util.FixMongoDirection;
+import org.metadatacenter.server.util.JsonUtils;
+import org.metadatacenter.server.util.MongoFactory;
 
 import javax.management.InstanceNotFoundException;
 import java.io.IOException;

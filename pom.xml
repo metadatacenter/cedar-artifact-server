@@ -11,9 +11,11 @@
   <packaging>pom</packaging>
 
   <modules>
+    <module>cedar-template-server-common</module>
     <module>cedar-template-server-core</module>
     <module>cedar-template-server-play</module>
     <module>cedar-repo-server-play</module>
+    <module>cedar-schema-server-play</module>
   </modules>
 
   <properties>
@@ -49,13 +51,13 @@
       <artifactId>scala-library</artifactId>
       <version>${scala.version}</version>
     </dependency>
-    
+
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
       <version>${slf4j.version}</version>
     </dependency>
-    
+
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>

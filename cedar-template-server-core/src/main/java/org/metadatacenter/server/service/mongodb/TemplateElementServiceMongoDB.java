@@ -8,7 +8,7 @@ import org.metadatacenter.server.Constants;
 import org.metadatacenter.server.dao.mongodb.TemplateElementDaoMongoDB;
 import org.metadatacenter.server.service.FieldNameInEx;
 import org.metadatacenter.server.service.TemplateElementService;
-import org.metadatacenter.server.utils.JsonUtils;
+import org.metadatacenter.server.util.JsonUtils;
 
 import javax.management.InstanceNotFoundException;
 import java.io.IOException;

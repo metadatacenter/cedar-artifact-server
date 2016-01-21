@@ -1,13 +1,12 @@
-package utils;
+package org.metadatacenter.util;
 
 import checkers.nullness.quals.NonNull;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-public final class JsonUtils {
+public final class JsonObjectUtils {
 
-  private JsonUtils() {
-
+  private JsonObjectUtils() {
   }
 
   // Remove a particular field from a JsonNode object
