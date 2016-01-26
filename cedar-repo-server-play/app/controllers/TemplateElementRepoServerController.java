@@ -8,8 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import play.mvc.Result;
 
-public class TemplateElementRepoServerRepoServerController extends AbstractRepoServerController {
-  private static Logger log = LoggerFactory.getLogger(TemplateElementRepoServerRepoServerController.class);
+public class TemplateElementRepoServerController extends AbstractRepoServerController {
+  private static Logger log = LoggerFactory.getLogger(TemplateElementRepoServerController.class);
 
   private static TemplateElementService<String, JsonNode> templateElementService;
 

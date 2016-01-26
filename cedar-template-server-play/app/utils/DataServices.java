@@ -2,13 +2,16 @@ package utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import controllers.TemplateElementServerController;
+import controllers.TemplateFieldServerController;
 import controllers.TemplateInstanceServerController;
 import controllers.TemplateServerController;
 import org.metadatacenter.server.Constants;
 import org.metadatacenter.server.service.TemplateElementService;
+import org.metadatacenter.server.service.TemplateFieldService;
 import org.metadatacenter.server.service.TemplateInstanceService;
 import org.metadatacenter.server.service.TemplateService;
 import org.metadatacenter.server.service.mongodb.TemplateElementServiceMongoDB;
+import org.metadatacenter.server.service.mongodb.TemplateFieldServiceMongoDB;
 import org.metadatacenter.server.service.mongodb.TemplateInstanceServiceMongoDB;
 import org.metadatacenter.server.service.mongodb.TemplateServiceMongoDB;
 import play.Configuration;
@@ -17,8 +20,9 @@ import play.Play;
 public class DataServices {
 
   private static DataServices instance = new DataServices();
-  public static TemplateElementService<String, JsonNode> templateElementService;
   public static TemplateService<String, JsonNode> templateService;
+  public static TemplateElementService<String, JsonNode> templateElementService;
+  public static TemplateFieldService<String, JsonNode> templateFieldService;
   public static TemplateInstanceService<String, JsonNode> templateInstanceService;
 
   public static DataServices getInstance() {
@@ -46,10 +50,19 @@ public class DataServices {
         config.getString(Constants.LINKED_DATA_ID_PATH_BASE) + config.getString(Constants
             .LINKED_DATA_ID_PATH_SUFFIX_TEMPLATE_INSTANCES)
     );
+    templateFieldService = new TemplateFieldServiceMongoDB(
+        config.getString(Constants.MONGODB_DATABASE_NAME),
+        config.getString(Constants.TEMPLATE_FIELDS_COLLECTION_NAME),
+        config.getString(Constants.LINKED_DATA_ID_PATH_BASE) + config.getString(Constants
+            .LINKED_DATA_ID_PATH_SUFFIX_TEMPLATE_FIELDS)
+    );
 
     TemplateElementServerController.injectTemplateElementService(templateElementService);
+    TemplateElementServerController.injectTemplateFieldService(templateFieldService);
     TemplateServerController.injectTemplateService(templateService);
+    TemplateServerController.injectTemplateFieldService(templateFieldService);
     TemplateInstanceServerController.injectTemplateInstanceService(templateInstanceService);
+    TemplateFieldServerController.injectTemplateFieldService(templateFieldService);
   }
 
   public static TemplateElementService<String, JsonNode> getTemplateElementService() {

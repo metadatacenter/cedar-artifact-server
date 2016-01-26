@@ -19,6 +19,10 @@ GET            /template-elements             controllers.TemplateElementServerC
 PUT            /template-elements/:id         controllers.TemplateElementServerController.updateTemplateElement(id: String)
 DELETE         /template-elements/:id         controllers.TemplateElementServerController.deleteTemplateElement(id: String)
 
+#Template Fields
+GET            /template-fields/:id           controllers.TemplateFieldServerController.findTemplateField(id: String, validation: Boolean ?= false)
+GET            /template-fields               controllers.TemplateFieldServerController.findAllTemplateFields(limit: Integer ?= null, offset: Integer ?= 0, summary: Boolean ?= false, fieldNames: String ?= null)
+
 # Template Instances
 POST           /template-instances            controllers.TemplateInstanceServerController.createTemplateInstance()
 GET            /template-instances/:id        controllers.TemplateInstanceServerController.findTemplateInstance(id: String)

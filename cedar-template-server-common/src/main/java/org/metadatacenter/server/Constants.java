@@ -7,18 +7,21 @@ public interface Constants {
   String MONGODB_DATABASE_NAME = "mongodb.db";
   String TEMPLATES_COLLECTION_NAME = "mongodb.collections.templates";
   String TEMPLATE_ELEMENTS_COLLECTION_NAME = "mongodb.collections.template-elements";
+  String TEMPLATE_FIELDS_COLLECTION_NAME = "mongodb.collections.template-fields";
   String TEMPLATE_INSTANCES_COLLECTION_NAME = "mongodb.collections.template-instances";
 
   String LINKED_DATA_ID_PATH_BASE = "linkedData.idPath.base";
   String LINKED_DATA_ID_PATH_SUFFIX_TEMPLATES = "linkedData.idPath.suffix.templates";
   String LINKED_DATA_ID_PATH_SUFFIX_TEMPLATE_ELEMENTS = "linkedData.idPath.suffix.template-elements";
+  String LINKED_DATA_ID_PATH_SUFFIX_TEMPLATE_FIELDS = "linkedData.idPath.suffix.template-fields";
   String LINKED_DATA_ID_PATH_SUFFIX_TEMPLATE_INSTANCES = "linkedData.idPath.suffix.template-instances";
 
   String PAGINATION_DEFAULT_PAGE_SIZE = "pagination.defaultPageSize";
   String PAGINATION_MAX_PAGE_SIZE = "pagination.maxPageSize";
 
-  String FIELD_NAMES_SUMMARY_TEMPLATE_ELEMENT = "summary.templateElement.fields";
   String FIELD_NAMES_SUMMARY_TEMPLATE = "summary.template.fields";
+  String FIELD_NAMES_SUMMARY_TEMPLATE_ELEMENT = "summary.templateElement.fields";
+  String FIELD_NAMES_SUMMARY_TEMPLATE_FIELD = "summary.templateField.fields";
   String FIELD_NAMES_SUMMARY_TEMPLATE_INSTANCE = "summary.templateInstance.fields";
 
   String FIELD_NAMES_LIST_EXCLUSION = "list.excludedFields";
