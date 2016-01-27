@@ -52,12 +52,6 @@
 
     <dependency>
       <groupId>org.metadatacenter</groupId>
-      <artifactId>cedar-template-server-common</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.metadatacenter</groupId>
       <artifactId>cedar-template-server-core</artifactId>
       <version>${project.version}</version>
     </dependency>
