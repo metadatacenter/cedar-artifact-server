@@ -11,7 +11,6 @@ object MyBuild extends Build {
 
   val playProjectName = "cedar-template-server-play"
   val playRepoProjectName = "cedar-repo-server-play"
-  val playSchemaProjectName = "cedar-schema-server-play"
 
   val commonProject = Project(commonProjectName, file(commonProjectName))
     .settings(
@@ -35,14 +34,6 @@ object MyBuild extends Build {
       libraryDependencies ++= Pom.dependencies(baseDirectory.value).filterNot(d => d.name == coreProject.id || d.name == commonProject.id))
 
   val playRepoProject = Project(playRepoProjectName, file(playRepoProjectName))
-    .enablePlugins(play.PlayScala)
-    .dependsOn(commonProject, coreProject)
-    .settings(
-      version := Pom.projectVersion(baseDirectory.value),
-      scalaVersion := projectScalaVersion,
-      libraryDependencies ++= Pom.dependencies(baseDirectory.value).filterNot(d => d.name == coreProject.id || d.name == commonProject.id))
-
-  val playSchemaProject = Project(playSchemaProjectName, file(playSchemaProjectName))
     .enablePlugins(play.PlayScala)
     .dependsOn(commonProject, coreProject)
     .settings(
