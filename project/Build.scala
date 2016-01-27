@@ -5,22 +5,50 @@ object MyBuild extends Build {
 
   val projectArtifactId = Pom.projectArtifactId(file("."))
   val projectScalaVersion = Pom.scalaVersion(file("."))
-  val coreProjectName = projectArtifactId + "-core"
-  val playProjectName = projectArtifactId + "-play"
 
-  val coreProject = Project(coreProjectName, file(coreProjectName))
+  val commonProjectName = "cedar-template-server-common"
+  val coreProjectName = "cedar-template-server-core"
+
+  val playProjectName = "cedar-template-server-play"
+  val playRepoProjectName = "cedar-repo-server-play"
+  val playSchemaProjectName = "cedar-schema-server-play"
+
+  val commonProject = Project(commonProjectName, file(commonProjectName))
     .settings(
       version := Pom.projectVersion(baseDirectory.value),
       scalaVersion := projectScalaVersion,
       libraryDependencies ++= Pom.dependencies(baseDirectory.value))
 
-  val playProject = Project(playProjectName, file(playProjectName))
-    .enablePlugins(play.PlayScala)
-    .dependsOn(coreProject)
+  val coreProject = Project(coreProjectName, file(coreProjectName))
+    .dependsOn(commonProject)
     .settings(
       version := Pom.projectVersion(baseDirectory.value),
       scalaVersion := projectScalaVersion,
-      libraryDependencies ++= Pom.dependencies(baseDirectory.value).filterNot(d => d.name == coreProject.id))
+      libraryDependencies ++= Pom.dependencies(baseDirectory.value).filterNot(d => d.name == commonProject.id))
+
+  val playProject = Project(playProjectName, file(playProjectName))
+    .enablePlugins(play.PlayScala)
+    .dependsOn(commonProject, coreProject)
+    .settings(
+      version := Pom.projectVersion(baseDirectory.value),
+      scalaVersion := projectScalaVersion,
+      libraryDependencies ++= Pom.dependencies(baseDirectory.value).filterNot(d => d.name == coreProject.id || d.name == commonProject.id))
+
+  val playRepoProject = Project(playRepoProjectName, file(playRepoProjectName))
+    .enablePlugins(play.PlayScala)
+    .dependsOn(commonProject, coreProject)
+    .settings(
+      version := Pom.projectVersion(baseDirectory.value),
+      scalaVersion := projectScalaVersion,
+      libraryDependencies ++= Pom.dependencies(baseDirectory.value).filterNot(d => d.name == coreProject.id || d.name == commonProject.id))
+
+  val playSchemaProject = Project(playSchemaProjectName, file(playSchemaProjectName))
+    .enablePlugins(play.PlayScala)
+    .dependsOn(commonProject, coreProject)
+    .settings(
+      version := Pom.projectVersion(baseDirectory.value),
+      scalaVersion := projectScalaVersion,
+      libraryDependencies ++= Pom.dependencies(baseDirectory.value).filterNot(d => d.name == coreProject.id || d.name == commonProject.id))
 
   override def rootProject = Some(playProject)
 }
