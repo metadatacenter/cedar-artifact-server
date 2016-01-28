@@ -32,8 +32,8 @@ import static play.test.Helpers.running;
 import static play.test.Helpers.status;
 
 /*
- * Integration Tests for the Application routes. They are done using a "fake application" (FakeApplication class) that
- * provides a running Application as context
+ * Integration Tests for the MainTemplateServerController routes. They are done using a "fake application" (FakeApplication class) that
+ * provides a running MainTemplateServerController as context
  */
 public class TemplateServerRoutesTest {
 

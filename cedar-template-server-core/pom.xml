@@ -1,13 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.metadatacenter</groupId>
-  <artifactId>cedar-template-server-core</artifactId>
-  <name>CEDAR Template Server Core</name>
-  <version>0.1.0</version>
-  <packaging>jar</packaging>
 
   <parent>
     <groupId>org.metadatacenter</groupId>
@@ -15,64 +8,18 @@
     <version>0.1.0</version>
   </parent>
 
-  <dependencies>
+  <groupId>org.metadatacenter</groupId>
+  <artifactId>cedar-template-server-core</artifactId>
+  <version>0.1.0</version>
+  <packaging>jar</packaging>
 
-    <dependency>
-      <groupId>org.metadatacenter</groupId>
-      <artifactId>cedar-template-server-common</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.mongodb</groupId>
-      <artifactId>mongo-java-driver</artifactId>
-      <version>${mongodb.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-core</artifactId>
-      <version>${jackson.core.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-databind</artifactId>
-      <version>${jackson.core.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-annotations</artifactId>
-      <version>${jackson.core.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>edu.washington.cs.types.checker</groupId>
-      <artifactId>checker-framework</artifactId>
-      <version>${checker.framework.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>${junit.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>com.github.fge</groupId>
-      <artifactId>json-schema-validator</artifactId>
-      <version>${fge.version}</version>
-    </dependency>
-
-  </dependencies>
+  <name>CEDAR Template Server Core</name>
 
   <build>
     <sourceDirectory>src/main/java</sourceDirectory>
-    <!--<testSourceDirectory>src/test/java</testSourceDirectory>-->
+    <testSourceDirectory>src/test/java</testSourceDirectory>
 
     <plugins>
-
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -82,7 +29,7 @@
           <target>1.8</target>
         </configuration>
       </plugin>
-
+      
       <plugin>
         <groupId>net.alchim31.maven</groupId>
         <artifactId>scala-maven-plugin</artifactId>
@@ -101,9 +48,6 @@
           </execution>
         </executions>
       </plugin>
-
     </plugins>
-
   </build>
-
 </project>

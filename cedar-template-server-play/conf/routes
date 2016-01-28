@@ -3,24 +3,24 @@
 # ~~~~
 
 # Home page
-GET            /                              controllers.Application.index()
+GET            /                              controllers.MainTemplateServerController.index()
 
 # Templates
 POST           /templates                     controllers.TemplateServerController.createTemplate()
-GET            /templates/:id                 controllers.TemplateServerController.findTemplate(id: String, expanded: Boolean ?= false, validation: Boolean ?= false)
+GET            /templates/:id                 controllers.TemplateServerController.findTemplate(id: String)
 GET            /templates                     controllers.TemplateServerController.findAllTemplates(limit: Integer ?= null, offset: Integer ?= 0, summary: Boolean ?= false, fieldNames: String ?= null)
 PUT            /templates/:id                 controllers.TemplateServerController.updateTemplate(id: String)
 DELETE         /templates/:id                 controllers.TemplateServerController.deleteTemplate(id: String)
 
 # Template Elements
 POST           /template-elements             controllers.TemplateElementServerController.createTemplateElement()
-GET            /template-elements/:id         controllers.TemplateElementServerController.findTemplateElement(id: String, expanded: Boolean ?= false, validation: Boolean ?= false)
+GET            /template-elements/:id         controllers.TemplateElementServerController.findTemplateElement(id: String)
 GET            /template-elements             controllers.TemplateElementServerController.findAllTemplateElements(limit: Integer ?= null, offset: Integer ?= 0, summary: Boolean ?= false, fieldNames: String ?= null)
 PUT            /template-elements/:id         controllers.TemplateElementServerController.updateTemplateElement(id: String)
 DELETE         /template-elements/:id         controllers.TemplateElementServerController.deleteTemplateElement(id: String)
 
 #Template Fields
-GET            /template-fields/:id           controllers.TemplateFieldServerController.findTemplateField(id: String, validation: Boolean ?= false)
+GET            /template-fields/:id           controllers.TemplateFieldServerController.findTemplateField(id: String)
 GET            /template-fields               controllers.TemplateFieldServerController.findAllTemplateFields(limit: Integer ?= null, offset: Integer ?= 0, summary: Boolean ?= false, fieldNames: String ?= null)
 
 # Template Instances
@@ -31,7 +31,7 @@ PUT            /template-instances/:id        controllers.TemplateInstanceServer
 DELETE         /template-instances/:id        controllers.TemplateInstanceServerController.deleteTemplateInstance(id: String)
 
 # For CORS - preflight request
-OPTIONS        /*all                          controllers.Application.preflight(all)
+OPTIONS        /*all                          controllers.MainTemplateServerController.preflight(all)
 
 ## Map static resources from the /public folder to the /assets URL path
 GET         /assets/*file            controllers.Assets.at(path="/public", file)

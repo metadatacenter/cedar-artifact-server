@@ -3,25 +3,24 @@ package controllers;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.metadatacenter.constant.ConfigConstants;
 import play.Configuration;
 import play.Play;
+import play.mvc.Controller;
 import play.mvc.Result;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.metadatacenter.server.Constants.*;
-
-public class GenericElementServerController extends GenericCedarController {
-
+public class AbstractTemplateServerController extends Controller {
   protected static List<String> FIELD_NAMES_EXCLUSION_LIST;
   protected static Configuration config;
 
   static {
     config = Play.application().configuration();
     FIELD_NAMES_EXCLUSION_LIST = new ArrayList<>();
-    FIELD_NAMES_EXCLUSION_LIST.addAll(config.getStringList(FIELD_NAMES_LIST_EXCLUSION));
+    FIELD_NAMES_EXCLUSION_LIST.addAll(config.getStringList(ConfigConstants.FIELD_NAMES_LIST_EXCLUSION));
   }
 
   protected static ObjectNode generateErrorDescription(Throwable t) {
@@ -46,7 +45,7 @@ public class GenericElementServerController extends GenericCedarController {
   }
 
   protected static Integer ensureLimit(Integer limit) {
-    return limit == null ? config.getInt(PAGINATION_DEFAULT_PAGE_SIZE) : limit;
+    return limit == null ? config.getInt(ConfigConstants.PAGINATION_DEFAULT_PAGE_SIZE) : limit;
   }
 
   protected static void checkPagingParameters(Integer limit, Integer offset) {
@@ -58,7 +57,7 @@ public class GenericElementServerController extends GenericCedarController {
     if (limit <= 0) {
       throw new IllegalArgumentException("Parameter 'limit' must be greater than zero!");
     }
-    int maxPageSize = config.getInt(PAGINATION_MAX_PAGE_SIZE);
+    int maxPageSize = config.getInt(ConfigConstants.PAGINATION_MAX_PAGE_SIZE);
     if (limit > maxPageSize) {
       throw new IllegalArgumentException("Parameter 'limit' must be at most " + maxPageSize + "!");
     }
@@ -83,5 +82,6 @@ public class GenericElementServerController extends GenericCedarController {
     }
     return null;
   }
+
 
 }

@@ -2,10 +2,10 @@ package controllers;
 
 import play.mvc.Result;
 
-public class MainRepoServerController extends AbstractRepoServerController {
+public class MainTemplateServerController extends AbstractTemplateServerController {
 
   public static Result index() {
-    return ok("CEDAR Repo Server.");
+    return ok("CEDAR REST Server. Its REST API is documented here: " + request().host() + "/assets/RESTAPI.html");
   }
 
   /* For CORS */

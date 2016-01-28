@@ -5,7 +5,7 @@ import controllers.TemplateElementServerController;
 import controllers.TemplateFieldServerController;
 import controllers.TemplateInstanceServerController;
 import controllers.TemplateServerController;
-import org.metadatacenter.server.Constants;
+import org.metadatacenter.constant.ConfigConstants;
 import org.metadatacenter.server.service.TemplateElementService;
 import org.metadatacenter.server.service.TemplateFieldService;
 import org.metadatacenter.server.service.TemplateInstanceService;
@@ -32,28 +32,28 @@ public class DataServices {
   private DataServices() {
     Configuration config = Play.application().configuration();
     templateElementService = new TemplateElementServiceMongoDB(
-        config.getString(Constants.MONGODB_DATABASE_NAME),
-        config.getString(Constants.TEMPLATE_ELEMENTS_COLLECTION_NAME),
-        config.getString(Constants.LINKED_DATA_ID_PATH_BASE) + config.getString(Constants
+        config.getString(ConfigConstants.MONGODB_DATABASE_NAME),
+        config.getString(ConfigConstants.TEMPLATE_ELEMENTS_COLLECTION_NAME),
+        config.getString(ConfigConstants.LINKED_DATA_ID_PATH_BASE) + config.getString(ConfigConstants
             .LINKED_DATA_ID_PATH_SUFFIX_TEMPLATE_ELEMENTS)
     );
     templateService = new TemplateServiceMongoDB(
-        config.getString(Constants.MONGODB_DATABASE_NAME),
-        config.getString(Constants.TEMPLATES_COLLECTION_NAME),
-        config.getString(Constants.LINKED_DATA_ID_PATH_BASE) + config.getString(Constants
+        config.getString(ConfigConstants.MONGODB_DATABASE_NAME),
+        config.getString(ConfigConstants.TEMPLATES_COLLECTION_NAME),
+        config.getString(ConfigConstants.LINKED_DATA_ID_PATH_BASE) + config.getString(ConfigConstants
             .LINKED_DATA_ID_PATH_SUFFIX_TEMPLATES),
         templateElementService
     );
     templateInstanceService = new TemplateInstanceServiceMongoDB(
-        config.getString(Constants.MONGODB_DATABASE_NAME),
-        config.getString(Constants.TEMPLATE_INSTANCES_COLLECTION_NAME),
-        config.getString(Constants.LINKED_DATA_ID_PATH_BASE) + config.getString(Constants
+        config.getString(ConfigConstants.MONGODB_DATABASE_NAME),
+        config.getString(ConfigConstants.TEMPLATE_INSTANCES_COLLECTION_NAME),
+        config.getString(ConfigConstants.LINKED_DATA_ID_PATH_BASE) + config.getString(ConfigConstants
             .LINKED_DATA_ID_PATH_SUFFIX_TEMPLATE_INSTANCES)
     );
     templateFieldService = new TemplateFieldServiceMongoDB(
-        config.getString(Constants.MONGODB_DATABASE_NAME),
-        config.getString(Constants.TEMPLATE_FIELDS_COLLECTION_NAME),
-        config.getString(Constants.LINKED_DATA_ID_PATH_BASE) + config.getString(Constants
+        config.getString(ConfigConstants.MONGODB_DATABASE_NAME),
+        config.getString(ConfigConstants.TEMPLATE_FIELDS_COLLECTION_NAME),
+        config.getString(ConfigConstants.LINKED_DATA_ID_PATH_BASE) + config.getString(ConfigConstants
             .LINKED_DATA_ID_PATH_SUFFIX_TEMPLATE_FIELDS)
     );
 
