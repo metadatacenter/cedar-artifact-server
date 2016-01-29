@@ -48,18 +48,6 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.metadatacenter</groupId>
-      <artifactId>cedar-server-utils</artifactId>
-      <version>${org.metadatacenter.cedar.server.utils.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.metadatacenter</groupId>
-      <artifactId>cedar-template-operations</artifactId>
-      <version>${org.metadatacenter.cedar.template.operations.version}</version>
-    </dependency>
-
-    <dependency>
       <groupId>org.scala-lang</groupId>
       <artifactId>scala-library</artifactId>
       <version>${scala.version}</version>

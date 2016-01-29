@@ -8,6 +8,10 @@ object MyBuild extends Build {
   val coreProjectName = projectArtifactId + "-core"
   val playProjectName = projectArtifactId + "-play"
 
+  val buildResolvers = resolvers ++= Seq(
+    "Local Maven Repository"    at "file://" + Path.userHome.absolutePath + "/.m2/repository"
+  )
+
   val coreProject = Project(coreProjectName, file(coreProjectName))
       .settings(
         version := Pom.projectVersion(baseDirectory.value),
@@ -21,6 +25,7 @@ object MyBuild extends Build {
       version := Pom.projectVersion(baseDirectory.value),
       scalaVersion := projectScalaVersion,
       libraryDependencies ++= Pom.dependencies(baseDirectory.value).filterNot(d => d.name == coreProject.id))
+    .settings(buildResolvers:_*)
 
   override def rootProject = Some(playProject)
 }
