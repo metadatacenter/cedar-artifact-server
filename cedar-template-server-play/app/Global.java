@@ -8,6 +8,7 @@ import play.mvc.Action;
 import play.mvc.Http;
 import play.mvc.Result;
 import utils.DataServices;
+import com.metadatacenter.server.security.UserAuthService;
 
 import java.io.File;
 
@@ -47,6 +48,7 @@ public class Global extends GlobalSettings {
   @Override
   public void onStart(Application application) {
     DataServices.getInstance();
+    UserAuthService.getInstance();
     super.onStart(application);
   }
 

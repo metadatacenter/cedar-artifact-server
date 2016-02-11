@@ -1,5 +1,4 @@
 import com.fasterxml.jackson.databind.JsonNode;
-import controllers.TemplateServerController;
 import org.junit.*;
 import play.libs.Json;
 import play.libs.ws.WS;
@@ -142,12 +141,14 @@ public class TemplateServerHttpTest {
     running(testServer(TEST_SERVER_PORT), new Runnable() {
       public void run() {
         // Create an element
-        JsonNode expected = WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE).post(templateElement1).get(TIMEOUT_MS).asJson();
+        JsonNode expected = WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE).post(templateElement1).get(TIMEOUT_MS)
+            .asJson();
         String id = expected.get("@id").asText();
         // Service invocation - Find by Id
         WSResponse wsResponse = null;
         try {
-          wsResponse = WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE + "/" + URLEncoder.encode(id, "UTF-8")).get().get(TIMEOUT_MS);
+          wsResponse = WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE + "/" + URLEncoder.encode(id, "UTF-8")).get().get
+              (TIMEOUT_MS);
         } catch (UnsupportedEncodingException e) {
           e.printStackTrace();
         }
@@ -176,7 +177,8 @@ public class TemplateServerHttpTest {
           JsonNode changes = Json.newObject().put("name", updatedName);
           // Service invocation - Update
           WSResponse wsResponse =
-              WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE + "/" + URLEncoder.encode(id, "UTF-8")).put(changes).get(TIMEOUT_MS);
+              WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE + "/" + URLEncoder.encode(id, "UTF-8")).put(changes).get
+                  (TIMEOUT_MS);
           // Check response is OK
           Assert.assertEquals(wsResponse.getStatus(), OK);
           // Check Content-Type
@@ -185,7 +187,8 @@ public class TemplateServerHttpTest {
           JsonNode actual = null;
           try {
             actual =
-                WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE + "/" + URLEncoder.encode(id, "UTF-8")).get().get(TIMEOUT_MS).asJson();
+                WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE + "/" + URLEncoder.encode(id, "UTF-8")).get().get
+                    (TIMEOUT_MS).asJson();
           } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
           }
@@ -207,15 +210,18 @@ public class TemplateServerHttpTest {
       public void run() {
         try {
           // Create an element
-          JsonNode elementCreated = WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE).post(templateElement1).get(TIMEOUT_MS).asJson();
+          JsonNode elementCreated = WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE).post(templateElement1).get
+              (TIMEOUT_MS).asJson();
           String id = elementCreated.get("@id").asText();
           // Service invocation - Delete
-          WSResponse wsResponse = WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE + "/" + URLEncoder.encode(id, "UTF-8")).delete()
+          WSResponse wsResponse = WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE + "/" + URLEncoder.encode(id, "UTF-8"))
+              .delete()
               .get(TIMEOUT_MS);
           // Check response is OK
           Assert.assertEquals(wsResponse.getStatus(), OK);
           // Check that the element has been deleted by trying to find it by id
-          WSResponse wsResponse1 = WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE + "/" + URLEncoder.encode(id, "UTF-8")).get().get(TIMEOUT_MS);
+          WSResponse wsResponse1 = WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE + "/" + URLEncoder.encode(id, "UTF-8")
+          ).get().get(TIMEOUT_MS);
           Assert.assertEquals(NOT_FOUND, wsResponse1.getStatus());
         } catch (UnsupportedEncodingException e) {
           e.printStackTrace();

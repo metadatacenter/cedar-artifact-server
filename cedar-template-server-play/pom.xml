@@ -63,6 +63,12 @@
 
     <dependency>
       <groupId>org.metadatacenter</groupId>
+      <artifactId>cedar-auth-operations</artifactId>
+      <version>${org.metadatacenter.cedar.auth.operations.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.metadatacenter</groupId>
       <artifactId>cedar-template-server-core</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -78,13 +84,6 @@
       <artifactId>play-test_${play2.scala.version}</artifactId>
       <version>${play2.version}</version>
       <scope>test</scope>
-    </dependency>
-
-    <!-- Required for IntegrationSpec and URI building -->
-    <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpclient</artifactId>
-      <version>${apache.httpclient.version}</version>
     </dependency>
 
     <!-- Jackson -->
@@ -111,6 +110,13 @@
       <groupId>com.typesafe.play</groupId>
       <artifactId>play-java-ws_2.11</artifactId>
       <version>${play-java-ws.version}</version>
+    </dependency>
+
+    <!-- Keycloak -->
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>${apache.httpclient.version}</version>
     </dependency>
 
   </dependencies>

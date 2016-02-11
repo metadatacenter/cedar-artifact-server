@@ -19,7 +19,7 @@ GET            /template-elements             controllers.TemplateElementServerC
 PUT            /template-elements/:id         controllers.TemplateElementServerController.updateTemplateElement(id: String)
 DELETE         /template-elements/:id         controllers.TemplateElementServerController.deleteTemplateElement(id: String)
 
-#Template Fields
+# Template Fields
 GET            /template-fields/:id           controllers.TemplateFieldServerController.findTemplateField(id: String)
 GET            /template-fields               controllers.TemplateFieldServerController.findAllTemplateFields(limit: Integer ?= null, offset: Integer ?= 0, summary: Boolean ?= false, fieldNames: String ?= null)
 
@@ -29,6 +29,9 @@ GET            /template-instances/:id        controllers.TemplateInstanceServer
 GET            /template-instances            controllers.TemplateInstanceServerController.findAllTemplateInstances(limit: Integer ?= null, offset: Integer ?= 0, summary: Boolean ?= false, fieldNames: String ?= null)
 PUT            /template-instances/:id        controllers.TemplateInstanceServerController.updateTemplateInstance(id: String)
 DELETE         /template-instances/:id        controllers.TemplateInstanceServerController.deleteTemplateInstance(id: String)
+
+# Heartbeat
+GET            /heartbeat                     controllers.DiagnosticsController.heartbeat()
 
 # For CORS - preflight request
 OPTIONS        /*all                          controllers.MainTemplateServerController.preflight(all)

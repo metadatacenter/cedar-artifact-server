@@ -1,29 +1,21 @@
 package utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import controllers.TemplateElementServerController;
-import controllers.TemplateFieldServerController;
-import controllers.TemplateInstanceServerController;
-import controllers.TemplateServerController;
+import controllers.*;
 import org.metadatacenter.constant.ConfigConstants;
-import org.metadatacenter.server.service.TemplateElementService;
-import org.metadatacenter.server.service.TemplateFieldService;
-import org.metadatacenter.server.service.TemplateInstanceService;
-import org.metadatacenter.server.service.TemplateService;
-import org.metadatacenter.server.service.mongodb.TemplateElementServiceMongoDB;
-import org.metadatacenter.server.service.mongodb.TemplateFieldServiceMongoDB;
-import org.metadatacenter.server.service.mongodb.TemplateInstanceServiceMongoDB;
-import org.metadatacenter.server.service.mongodb.TemplateServiceMongoDB;
+import org.metadatacenter.server.service.*;
+import org.metadatacenter.server.service.mongodb.*;
 import play.Configuration;
 import play.Play;
 
 public class DataServices {
 
   private static DataServices instance = new DataServices();
-  public static TemplateService<String, JsonNode> templateService;
-  public static TemplateElementService<String, JsonNode> templateElementService;
-  public static TemplateFieldService<String, JsonNode> templateFieldService;
-  public static TemplateInstanceService<String, JsonNode> templateInstanceService;
+  public TemplateService<String, JsonNode> templateService;
+  public TemplateElementService<String, JsonNode> templateElementService;
+  public TemplateFieldService<String, JsonNode> templateFieldService;
+  public TemplateInstanceService<String, JsonNode> templateInstanceService;
+  public DiagnosticsService<JsonNode> diagnosticsService;
 
   public static DataServices getInstance() {
     return instance;
@@ -56,6 +48,7 @@ public class DataServices {
         config.getString(ConfigConstants.LINKED_DATA_ID_PATH_BASE) + config.getString(ConfigConstants
             .LINKED_DATA_ID_PATH_SUFFIX_TEMPLATE_FIELDS)
     );
+    diagnosticsService = new DiagnosticsServiceMongoDB(config.getString(ConfigConstants.MONGODB_DATABASE_NAME));
 
     TemplateElementServerController.injectTemplateElementService(templateElementService);
     TemplateElementServerController.injectTemplateFieldService(templateFieldService);
@@ -63,9 +56,10 @@ public class DataServices {
     TemplateServerController.injectTemplateFieldService(templateFieldService);
     TemplateInstanceServerController.injectTemplateInstanceService(templateInstanceService);
     TemplateFieldServerController.injectTemplateFieldService(templateFieldService);
+    DiagnosticsController.injectDiagnosticsService(diagnosticsService);
   }
 
-  public static TemplateElementService<String, JsonNode> getTemplateElementService() {
+  public TemplateElementService<String, JsonNode> getTemplateElementService() {
     return templateElementService;
   }
 }
