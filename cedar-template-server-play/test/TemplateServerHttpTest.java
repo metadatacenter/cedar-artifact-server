@@ -80,7 +80,14 @@ public class TemplateServerHttpTest {
     running(testServer(TEST_SERVER_PORT), new Runnable() {
       public void run() {
         // Service invocation - Create
-        WSResponse wsResponse = WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE).post(templateElement1).get(TIMEOUT_MS);
+        String url = SERVER_URL + TEMPLATE_ELEMENTS_ROUTE;
+        //System.out.println("url:" + url);
+        WSResponse wsResponse = WS.url(url).post(templateElement1).get(TIMEOUT_MS);
+        /*try {
+          Thread.sleep(60 * 1000);
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }*/
         // Check HTTP response
         Assert.assertEquals(OK, wsResponse.getStatus());
         // Check Content-Type

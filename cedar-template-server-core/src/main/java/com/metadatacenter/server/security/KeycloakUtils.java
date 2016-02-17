@@ -96,7 +96,7 @@ public class KeycloakUtils {
   }
 
   private static IAccountInfo getAccountInfo(IAuthRequest authRequest) {
-    final KeycloakDeployment deployment = UserAuthService.getInstance().getKeycloakDeployment();
+    final KeycloakDeployment deployment = KeycloakDeploymentProvider.getInstance().getKeycloakDeployment();
 
     IAccountInfo accountInfo = null;
 
@@ -132,7 +132,7 @@ public class KeycloakUtils {
   }
 
   private static IUserInfo getUserInfo(IAuthRequest authRequest) {
-    final KeycloakDeployment deployment = UserAuthService.getInstance().getKeycloakDeployment();
+    final KeycloakDeployment deployment = KeycloakDeploymentProvider.getInstance().getKeycloakDeployment();
     IUserInfo userInfo = null;
 
     String url = deployment.getRealmInfoUrl() + KeycloakUtils.KEYCLOAK_USERINFO_URL_SUFFIX;

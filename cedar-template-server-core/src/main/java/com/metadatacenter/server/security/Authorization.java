@@ -6,18 +6,17 @@ import play.mvc.Http;
 
 public final class Authorization {
 
-  private static final int connectTimeout = 1000;
-  private static final int socketTimeout = 10000;
+  private static IAuthorizationResolver resolver;
 
   private Authorization() {
   }
 
+  public static void setAuthorizationResolver(IAuthorizationResolver r) {
+    resolver = r;
+  }
+
   public static void mustHaveCapability(Http.Request request, CedarCapability capability) throws CedarAccessException {
-    String cn = capability.getCapabilityName();
-    System.out.println("Must have capability:" + cn);
-    KeycloakUtils.enforceRealmRoleOnOfflineToken(new CedarFrontendToPlayAuthRequest(request), cn);
-    System.out.println("Token must be active");
-    KeycloakUtils.checkIfTokenIsStillActiveByUserInfo(new CedarFrontendToPlayAuthRequest(request));
+    resolver.mustHaveCapability(new CedarFrontendToPlayAuthRequest(request), capability);
   }
 
 }
