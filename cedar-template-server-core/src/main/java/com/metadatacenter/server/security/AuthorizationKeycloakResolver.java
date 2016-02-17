@@ -9,9 +9,9 @@ public class AuthorizationKeycloakResolver implements IAuthorizationResolver {
   public void mustHaveCapability(CedarFrontendToPlayAuthRequest authRequest, CedarCapability capability) throws
       CedarAccessException {
     String cn = capability.getCapabilityName();
-    System.out.println("AuthorizationKeycloakResolver: Must have capability:" + cn);
+    //System.out.println("AuthorizationKeycloakResolver: Must have capability:" + cn);
     KeycloakUtils.enforceRealmRoleOnOfflineToken(authRequest, cn);
-    System.out.println("AuthorizationKeycloakResolver: Token must be active");
+    //System.out.println("AuthorizationKeycloakResolver: Token must be active");
     KeycloakUtils.checkIfTokenIsStillActiveByUserInfo(authRequest);
   }
 }
