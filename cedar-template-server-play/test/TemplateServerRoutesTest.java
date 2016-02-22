@@ -17,6 +17,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import static play.mvc.Http.Status.CREATED;
+import static play.mvc.Http.Status.NO_CONTENT;
 import static play.test.Helpers.DELETE;
 import static play.test.Helpers.GET;
 import static play.test.Helpers.NOT_FOUND;
@@ -64,10 +66,10 @@ public class TemplateServerRoutesTest {
   @Before
   public void setUp() {
     templateElement1 = Json.newObject().
-        put("@id", "http://metadatacenter.org/template-elements/682c8141-9a61-4899-9d21-7083e861b0bf").
+        //put("@id", "http://metadatacenter.org/template-elements/682c8141-9a61-4899-9d21-7083e861b0bf").
         put("name", "template element 1 name").put("value", "template element 1 value");
     templateElement2 = Json.newObject().
-        put("@id", "http://metadatacenter.org/template-elements/1dd58530-fdba-4c06-8d31-539b18296d8b").
+        //put("@id", "http://metadatacenter.org/template-elements/1dd58530-fdba-4c06-8d31-539b18296d8b").
         put("name", "template element 2 name").put("value", "template element 2 value");
 
     running(fakeApplication(), new Runnable() {
@@ -101,7 +103,7 @@ public class TemplateServerRoutesTest {
         // Invoke the "Create" action using the Router
         Result result = route(new FakeRequest(POST, TEMPLATE_ELEMENTS_ROUTE).withJsonBody(templateElement1));
         // Check response is OK
-        Assert.assertEquals(OK, status(result));
+        Assert.assertEquals(CREATED, status(result));
         // Check Content-Type
         Assert.assertEquals("application/json", contentType(result));
         // Check Charset
@@ -110,7 +112,6 @@ public class TemplateServerRoutesTest {
         JsonNode actual = Json.parse(contentAsString(result));
         JsonNode expected = templateElement1;
         Assert.assertNotNull(actual.get("@id"));
-        Assert.assertEquals(expected.get("@id"), actual.get("@id"));
         Assert.assertNotNull(actual.get("name"));
         Assert.assertEquals(expected.get("name"), actual.get("name"));
         Assert.assertNotNull(actual.get("value"));
@@ -229,7 +230,7 @@ public class TemplateServerRoutesTest {
           Result result = null;
           result = route(new FakeRequest(DELETE, TEMPLATE_ELEMENTS_ROUTE + "/" + URLEncoder.encode(id, "UTF-8")));
           // Check response is OK
-          Assert.assertEquals(OK, status(result));
+          Assert.assertEquals(NO_CONTENT, status(result));
           // Check that the element has been deleted by trying to find it by id
           Result result1 = route(new FakeRequest(GET, TEMPLATE_ELEMENTS_ROUTE + "/" + URLEncoder.encode(id, "UTF-8")));
           Assert.assertEquals(NOT_FOUND, status(result1));

@@ -17,6 +17,7 @@ object MyBuild extends Build {
         version := Pom.projectVersion(baseDirectory.value),
         scalaVersion := projectScalaVersion,
         libraryDependencies ++= Pom.dependencies(baseDirectory.value))
+      .settings(buildResolvers:_*)
 
   val playProject = Project(playProjectName, file(playProjectName))
     .enablePlugins(play.PlayScala)
@@ -28,4 +29,7 @@ object MyBuild extends Build {
     .settings(buildResolvers:_*)
 
   override def rootProject = Some(playProject)
+
+  //javaOptions in Test += "-Dconfig.file=" + Option(System.getProperty("conf/application.test.conf")).getOrElse("conf/application.conf")
+  javaOptions in Test += "-Dconfig.file=" + Option(System.getProperty("conf/application.test.conf"))
 }

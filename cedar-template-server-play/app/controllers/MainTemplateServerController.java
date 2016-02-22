@@ -14,7 +14,7 @@ public class MainTemplateServerController extends AbstractTemplateServerControll
     response().setHeader("Allow", "*");
     response().setHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
     response().setHeader("Access-Control-Allow-Headers",
-        "Origin, X-Requested-With, Content-Type, Accept, Referer, User-Agent");
+        "Origin, X-Requested-With, Content-Type, Accept, Referer, User-Agent, Authorization");
     return ok();
   }
 
