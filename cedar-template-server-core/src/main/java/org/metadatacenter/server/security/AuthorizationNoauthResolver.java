@@ -1,4 +1,4 @@
-package com.metadatacenter.server.security;
+package org.metadatacenter.server.security;
 
 import org.metadatacenter.server.security.exception.CedarAccessException;
 import org.metadatacenter.server.security.model.CedarCapability;

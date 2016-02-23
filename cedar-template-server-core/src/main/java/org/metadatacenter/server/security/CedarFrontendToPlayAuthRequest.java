@@ -1,12 +1,10 @@
-package com.metadatacenter.server.security;
+package org.metadatacenter.server.security;
 
-
+import org.metadatacenter.constant.HttpConstants;
 import org.metadatacenter.server.security.model.play.IAuthRequest;
 import play.mvc.Http;
 
 public class CedarFrontendToPlayAuthRequest implements IAuthRequest {
-
-  private final static String AUTH_TOKEN_PREFIX = "bearer ";
 
   private String token;
 
@@ -14,8 +12,8 @@ public class CedarFrontendToPlayAuthRequest implements IAuthRequest {
     if (request != null) {
       String auth = request.getHeader(Http.HeaderNames.AUTHORIZATION);
       if (auth != null) {
-        if (auth.startsWith(AUTH_TOKEN_PREFIX)) {
-          token = auth.substring(AUTH_TOKEN_PREFIX.length());
+        if (auth.startsWith(HttpConstants.HTTP_AUTH_HEADER_BEARER_PREFIX)) {
+          token = auth.substring(HttpConstants.HTTP_AUTH_HEADER_BEARER_PREFIX.length());
         }
       }
     }

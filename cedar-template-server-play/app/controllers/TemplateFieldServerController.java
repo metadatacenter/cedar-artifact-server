@@ -1,7 +1,8 @@
 package controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.metadatacenter.server.security.Authorization;
+import org.metadatacenter.constant.CustomHttpConstants;
+import org.metadatacenter.server.security.Authorization;
 import org.metadatacenter.constant.ConfigConstants;
 import org.metadatacenter.constant.HttpConstants;
 import org.metadatacenter.server.security.exception.CedarAccessException;
@@ -54,7 +55,7 @@ public class TemplateFieldServerController extends AbstractTemplateServerControl
             FieldNameInEx.EXCLUDE);
       }
       long total = templateFieldService.count();
-      response().setHeader(HttpConstants.HTTP_CUSTOM_HEADER_TOTAL_COUNT, String.valueOf(total));
+      response().setHeader(CustomHttpConstants.HEADER_TOTAL_COUNT, String.valueOf(total));
       checkPagingParametersAgainstTotal(offset, total);
       String absoluteUrl = routes.TemplateFieldServerController.findAllTemplateFields(0, 0, false, null).absoluteURL
           (request());

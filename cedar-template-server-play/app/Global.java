@@ -1,5 +1,5 @@
-import com.metadatacenter.server.security.*;
 import com.typesafe.config.ConfigFactory;
+import org.metadatacenter.server.security.*;
 import play.Application;
 import play.Configuration;
 import play.GlobalSettings;

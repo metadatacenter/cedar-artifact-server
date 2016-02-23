@@ -2,6 +2,7 @@ package controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.metadatacenter.constant.ConfigConstants;
+import org.metadatacenter.constant.CustomHttpConstants;
 import org.metadatacenter.constant.HttpConstants;
 import org.metadatacenter.server.security.exception.CedarAccessException;
 import org.metadatacenter.server.security.model.CedarCapability;
@@ -14,7 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import play.libs.Json;
 import play.mvc.Result;
-import com.metadatacenter.server.security.Authorization;
+import org.metadatacenter.server.security.Authorization;
 
 import javax.management.InstanceNotFoundException;
 import java.util.ArrayList;
@@ -77,7 +78,7 @@ public class TemplateInstanceServerController extends AbstractTemplateServerCont
             FieldNameInEx.EXCLUDE);
       }
       long total = templateInstanceService.count();
-      response().setHeader(HttpConstants.HTTP_CUSTOM_HEADER_TOTAL_COUNT, String.valueOf(total));
+      response().setHeader(CustomHttpConstants.HEADER_TOTAL_COUNT, String.valueOf(total));
       checkPagingParametersAgainstTotal(offset, total);
       String absoluteUrl = routes.TemplateInstanceServerController.findAllTemplateInstances(0, 0, false, null)
           .absoluteURL
