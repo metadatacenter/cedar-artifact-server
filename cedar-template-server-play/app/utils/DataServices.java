@@ -8,14 +8,19 @@ import org.metadatacenter.server.service.mongodb.*;
 import play.Configuration;
 import play.Play;
 
+import static org.metadatacenter.constant.ConfigConstants.MONGODB_DATABASE_NAME;
+import static org.metadatacenter.constant.ConfigConstants.USERS_COLLECTION_NAME;
+
 public class DataServices {
 
   private static DataServices instance = new DataServices();
-  public TemplateService<String, JsonNode> templateService;
-  public TemplateElementService<String, JsonNode> templateElementService;
-  public TemplateFieldService<String, JsonNode> templateFieldService;
-  public TemplateInstanceService<String, JsonNode> templateInstanceService;
-  public DiagnosticsService<JsonNode> diagnosticsService;
+  public static TemplateService<String, JsonNode> templateService;
+  public static TemplateElementService<String, JsonNode> templateElementService;
+  public static TemplateFieldService<String, JsonNode> templateFieldService;
+  public static TemplateInstanceService<String, JsonNode> templateInstanceService;
+  public static DiagnosticsService<JsonNode> diagnosticsService;
+  public static UserService<String, String, JsonNode> userService;
+
 
   public static DataServices getInstance() {
     return instance;
@@ -49,6 +54,10 @@ public class DataServices {
             .LINKED_DATA_ID_PATH_SUFFIX_TEMPLATE_FIELDS)
     );
     diagnosticsService = new DiagnosticsServiceMongoDB(config.getString(ConfigConstants.MONGODB_DATABASE_NAME));
+    userService = new UserServiceMongoDB(
+        config.getString(MONGODB_DATABASE_NAME),
+        config.getString(USERS_COLLECTION_NAME));
+
 
     TemplateElementServerController.injectTemplateElementService(templateElementService);
     TemplateElementServerController.injectTemplateFieldService(templateFieldService);
@@ -61,5 +70,9 @@ public class DataServices {
 
   public TemplateElementService<String, JsonNode> getTemplateElementService() {
     return templateElementService;
+  }
+
+  public UserService<String, String, JsonNode> getUserService() {
+    return userService;
   }
 }
