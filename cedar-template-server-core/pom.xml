@@ -16,18 +16,6 @@
 
   <name>CEDAR Template Server Core</name>
 
-  <repositories>
-
-    <repository>
-      <id>typesafe-releases</id>
-      <url>http://repo.typesafe.com/typesafe/releases/</url>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-
-  </repositories>
-
   <dependencies>
 
     <dependency>
@@ -94,30 +82,11 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>${maven.compiler.plugin.version}</version>
-        <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
-        </configuration>
       </plugin>
 
       <plugin>
         <groupId>net.alchim31.maven</groupId>
         <artifactId>scala-maven-plugin</artifactId>
-        <version>${scala.maven.plugin.version}</version>
-        <configuration>
-          <source>${java.version}</source>
-          <target>${java.version}</target>
-          <checkMultipleScalaVersions>false</checkMultipleScalaVersions>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>compile</goal>
-              <goal>testCompile</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
     </plugins>
   </build>
