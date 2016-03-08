@@ -15,93 +15,102 @@
     <version>0.1.0</version>
   </parent>
 
+
   <dependencies>
     <dependency>
       <groupId>org.metadatacenter</groupId>
       <artifactId>cedar-server-utils-core</artifactId>
-      <version>${org.metadatacenter.cedar.server.utils.version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.metadatacenter</groupId>
       <artifactId>cedar-server-utils-play</artifactId>
-      <version>${org.metadatacenter.cedar.server.utils.version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.metadatacenter</groupId>
       <artifactId>cedar-template-operations</artifactId>
-      <version>${org.metadatacenter.cedar.template.operations.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.metadatacenter</groupId>
+      <artifactId>cedar-auth-operations</artifactId>
     </dependency>
 
     <dependency>
       <groupId>org.metadatacenter</groupId>
       <artifactId>cedar-auth-operations-noauth</artifactId>
-      <version>${org.metadatacenter.cedar.auth.operations.version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.metadatacenter</groupId>
       <artifactId>cedar-auth-operations-keycloak</artifactId>
-      <version>${org.metadatacenter.cedar.auth.operations.version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.metadatacenter</groupId>
       <artifactId>cedar-user-operations</artifactId>
-      <version>${org.metadatacenter.cedar.user.operations.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.metadatacenter</groupId>
-      <artifactId>cedar-template-server-core</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>com.typesafe.play</groupId>
-      <artifactId>play_${play2.scala.version}</artifactId>
-      <version>${play2.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>com.typesafe.play</groupId>
-      <artifactId>play-test_${play2.scala.version}</artifactId>
-      <version>${play2.version}</version>
-      <scope>test</scope>
-    </dependency>
-
-    <!-- Jackson -->
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-core</artifactId>
-      <version>${jackson.core.version}</version>
     </dependency>
 
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>${jackson.core.version}</version>
     </dependency>
 
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-annotations</artifactId>
-      <version>${jackson.core.version}</version>
-    </dependency>
-
-    <!-- Play WS -->
     <dependency>
       <groupId>com.typesafe.play</groupId>
-      <artifactId>play-java-ws_2.11</artifactId>
-      <version>${play-java-ws.version}</version>
+      <artifactId>play_${play2.scala.version}</artifactId>
     </dependency>
 
-    <!-- Keycloak -->
     <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpclient</artifactId>
-      <version>${apache.httpclient.version}</version>
+      <groupId>com.typesafe.play</groupId>
+      <artifactId>play-json_${play2.scala.version}</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.typesafe.play</groupId>
+      <artifactId>play-java-ws_${play2.scala.version}</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.typesafe.play</groupId>
+      <artifactId>play-test_${play2.scala.version}</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.scala-lang</groupId>
+      <artifactId>scala-library</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.scala-lang.modules</groupId>
+      <artifactId>scala-xml_${play2.scala.version}</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.typesafe</groupId>
+      <artifactId>config</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.typesafe.play</groupId>
+      <artifactId>twirl-api_${play2.scala.version}</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.typesafe.play</groupId>
+      <artifactId>build-link</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
     </dependency>
 
   </dependencies>

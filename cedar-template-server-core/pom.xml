@@ -16,64 +16,6 @@
 
   <name>CEDAR Template Server Core</name>
 
-  <dependencies>
-
-    <dependency>
-      <groupId>org.metadatacenter</groupId>
-      <artifactId>cedar-auth-operations</artifactId>
-      <version>${org.metadatacenter.cedar.auth.operations.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.metadatacenter</groupId>
-      <artifactId>cedar-auth-operations-keycloak</artifactId>
-      <version>${org.metadatacenter.cedar.auth.operations.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.metadatacenter</groupId>
-      <artifactId>cedar-server-utils-core</artifactId>
-      <version>${org.metadatacenter.cedar.server.utils.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>com.typesafe.play</groupId>
-      <artifactId>play_${play2.scala.version}</artifactId>
-      <version>${play2.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-core</artifactId>
-      <version>${jackson.core.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-databind</artifactId>
-      <version>${jackson.core.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-annotations</artifactId>
-      <version>${jackson.core.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
-      <version>2.4</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>fluent-hc</artifactId>
-      <version>${apache.httpclient.version}</version>
-    </dependency>
-
-  </dependencies>
-
   <build>
     <sourceDirectory>src/main/java</sourceDirectory>
     <testSourceDirectory>src/test/java</testSourceDirectory>
