@@ -17,6 +17,11 @@
   <name>CEDAR Template Server</name>
   <description>CEDAR server to manage Metadata Templates, Template Elements, and Template Instances</description>
 
+  <properties>
+    <!-- Do Not Remove This! We need it in Pom.scala -->
+    <scala.version>2.11.5</scala.version>
+  </properties>
+
   <modules>
     <module>cedar-template-server-core</module>
     <module>cedar-template-server-play</module>
