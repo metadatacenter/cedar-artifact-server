@@ -6,7 +6,7 @@ import org.metadatacenter.constant.CustomHttpConstants;
 import org.metadatacenter.constant.HttpConstants;
 import org.metadatacenter.server.security.Authorization;
 import org.metadatacenter.server.security.CedarAuthFromRequestFactory;
-import org.metadatacenter.server.security.model.CedarCapability;
+import org.metadatacenter.server.security.model.auth.CedarPermission;
 import org.metadatacenter.server.service.FieldNameInEx;
 import org.metadatacenter.server.service.TemplateFieldService;
 import org.metadatacenter.server.service.TemplateService;
@@ -47,7 +47,7 @@ public class TemplateServerController extends AbstractTemplateServerController {
 
   public static Result createTemplate() {
     try {
-      Authorization.mustHaveCapability(CedarAuthFromRequestFactory.fromRequest(request()), CedarCapability
+      Authorization.mustHavePermission(CedarAuthFromRequestFactory.fromRequest(request()), CedarPermission
           .TEMPLATE_CREATE);
       JsonNode template = request().body().asJson();
       templateFieldService.saveNewFieldsAndReplaceIds(template);
@@ -71,7 +71,7 @@ public class TemplateServerController extends AbstractTemplateServerController {
 
   public static Result findTemplate(String templateId) {
     try {
-      Authorization.mustHaveCapability(CedarAuthFromRequestFactory.fromRequest(request()), CedarCapability
+      Authorization.mustHavePermission(CedarAuthFromRequestFactory.fromRequest(request()), CedarPermission
           .TEMPLATE_READ);
       JsonNode template = templateService.findTemplate(templateId);
       if (template != null) {
@@ -91,7 +91,7 @@ public class TemplateServerController extends AbstractTemplateServerController {
 
   public static Result findAllTemplates(Integer limit, Integer offset, boolean summary, String fieldNames) {
     try {
-      Authorization.mustHaveCapability(CedarAuthFromRequestFactory.fromRequest(request()), CedarCapability
+      Authorization.mustHavePermission(CedarAuthFromRequestFactory.fromRequest(request()), CedarPermission
           .TEMPLATE_READ);
       limit = ensureLimit(limit);
       checkPagingParameters(limit, offset);
@@ -124,7 +124,7 @@ public class TemplateServerController extends AbstractTemplateServerController {
 
   public static Result updateTemplate(String templateId) {
     try {
-      Authorization.mustHaveCapability(CedarAuthFromRequestFactory.fromRequest(request()), CedarCapability
+      Authorization.mustHavePermission(CedarAuthFromRequestFactory.fromRequest(request()), CedarPermission
           .TEMPLATE_UPDATE);
       JsonNode modifications = request().body().asJson();
       templateFieldService.saveNewFieldsAndReplaceIds(modifications);
@@ -145,7 +145,7 @@ public class TemplateServerController extends AbstractTemplateServerController {
 
   public static Result deleteTemplate(String templateId) {
     try {
-      Authorization.mustHaveCapability(CedarAuthFromRequestFactory.fromRequest(request()), CedarCapability
+      Authorization.mustHavePermission(CedarAuthFromRequestFactory.fromRequest(request()), CedarPermission
           .TEMPLATE_DELETE);
       templateService.deleteTemplate(templateId);
       return noContent();

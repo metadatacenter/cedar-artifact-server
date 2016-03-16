@@ -19,7 +19,7 @@ public class DataServices {
   public static TemplateFieldService<String, JsonNode> templateFieldService;
   public static TemplateInstanceService<String, JsonNode> templateInstanceService;
   public static DiagnosticsService<JsonNode> diagnosticsService;
-  public static UserService<String, String, JsonNode> userService;
+  public static UserService userService;
 
 
   public static DataServices getInstance() {
@@ -72,7 +72,7 @@ public class DataServices {
     return templateElementService;
   }
 
-  public UserService<String, String, JsonNode> getUserService() {
+  public UserService getUserService() {
     return userService;
   }
 }

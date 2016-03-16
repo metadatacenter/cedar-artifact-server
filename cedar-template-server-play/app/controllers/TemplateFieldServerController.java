@@ -7,7 +7,7 @@ import org.metadatacenter.constant.HttpConstants;
 import org.metadatacenter.server.security.Authorization;
 import org.metadatacenter.server.security.CedarAuthFromRequestFactory;
 import org.metadatacenter.server.security.exception.CedarAccessException;
-import org.metadatacenter.server.security.model.CedarCapability;
+import org.metadatacenter.server.security.model.auth.CedarPermission;
 import org.metadatacenter.server.service.FieldNameInEx;
 import org.metadatacenter.server.service.TemplateFieldService;
 import org.metadatacenter.util.http.LinkHeaderUtil;
@@ -40,7 +40,7 @@ public class TemplateFieldServerController extends AbstractTemplateServerControl
 
   public static Result findAllTemplateFields(Integer limit, Integer offset, boolean summary, String fieldNames) {
     try {
-      Authorization.mustHaveCapability(CedarAuthFromRequestFactory.fromRequest(request()), CedarCapability
+      Authorization.mustHavePermission(CedarAuthFromRequestFactory.fromRequest(request()), CedarPermission
           .TEMPLATE_FIELD_READ);
       limit = ensureLimit(limit);
       checkPagingParameters(limit, offset);
@@ -76,7 +76,7 @@ public class TemplateFieldServerController extends AbstractTemplateServerControl
 
   public static Result findTemplateField(String templateFieldId) {
     try {
-      Authorization.mustHaveCapability(CedarAuthFromRequestFactory.fromRequest(request()), CedarCapability
+      Authorization.mustHavePermission(CedarAuthFromRequestFactory.fromRequest(request()), CedarPermission
           .TEMPLATE_FIELD_READ);
       JsonNode templateField = templateFieldService.findTemplateField(templateFieldId);
       if (templateField != null) {
