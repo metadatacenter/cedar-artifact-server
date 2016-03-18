@@ -143,7 +143,7 @@
         <groupId>com.google.code.play2-maven-plugin</groupId>
         <artifactId>play2-maven-plugin</artifactId>
         <configuration>
-          <httpPort>9000</httpPort>
+          <httpPort>9001</httpPort>
         </configuration>
       </plugin>
 

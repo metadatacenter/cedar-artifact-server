@@ -14,12 +14,12 @@ import static org.metadatacenter.constant.ConfigConstants.USERS_COLLECTION_NAME;
 public class DataServices {
 
   private static DataServices instance = new DataServices();
-  public static TemplateService<String, JsonNode> templateService;
-  public static TemplateElementService<String, JsonNode> templateElementService;
-  public static TemplateFieldService<String, JsonNode> templateFieldService;
-  public static TemplateInstanceService<String, JsonNode> templateInstanceService;
-  public static DiagnosticsService<JsonNode> diagnosticsService;
-  public static UserService userService;
+  private static TemplateService<String, JsonNode> templateService;
+  private static TemplateElementService<String, JsonNode> templateElementService;
+  private static TemplateFieldService<String, JsonNode> templateFieldService;
+  private static TemplateInstanceService<String, JsonNode> templateInstanceService;
+  private static DiagnosticsService<JsonNode> diagnosticsService;
+  private static UserService userService;
 
 
   public static DataServices getInstance() {
