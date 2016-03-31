@@ -21,6 +21,12 @@ public class AbstractTemplateServerController extends AbstractCedarController {
   protected static Configuration config;
   protected static String USER_BASE_PATH;
 
+  private static final String PAV_CREATED_ON = "pav:createdOn";
+  private static final String PAV_CREATED_BY = "pav:createdBy";
+  private static final String PAV_LAST_UPDATED_ON = "pav:lastUpdatedOn";
+  private static final String CEDAR_LAST_UPDATED_BY = "cedar:lastUpdatedBy";
+
+
   static {
     config = Play.application().configuration();
     FIELD_NAMES_EXCLUSION_LIST = new ArrayList<>();
@@ -66,8 +72,7 @@ public class AbstractTemplateServerController extends AbstractCedarController {
     return null;
   }
 
-
-  protected static void addProvenanceInfo(JsonNode node, IAuthRequest authRequest) {
+  private static void setProvenanceInfo(JsonNode node, IAuthRequest authRequest, boolean justModification) {
     String id = null;
     try {
       IAccountInfo accountInfo = Authorization.getAccountInfo(authRequest);
@@ -79,10 +84,21 @@ public class AbstractTemplateServerController extends AbstractCedarController {
     Date now = new Date();
     String nowString = xsdDateTimeFormat.format(now);
     String userId = USER_BASE_PATH + id;
-    resource.put("pav:createdOn", nowString);
-    resource.put("pav:lastUpdatedOn", nowString);
-    resource.put("pav:createdBy", userId);
-    resource.put("cedar:lastUpdatedBy", userId);
+    if (!justModification) {
+      resource.put(PAV_CREATED_ON, nowString);
+      resource.put(PAV_CREATED_BY, userId);
+    }
+    resource.put(PAV_LAST_UPDATED_ON, nowString);
+    resource.put(CEDAR_LAST_UPDATED_BY, userId);
+  }
+
+
+  protected static void addProvenanceInfo(JsonNode node, IAuthRequest authRequest) {
+    setProvenanceInfo(node, authRequest, false);
+  }
+
+  protected static void patchProvenanceInfo(JsonNode node, IAuthRequest authRequest) {
+    setProvenanceInfo(node, authRequest, true);
   }
 
 }
