@@ -1,8 +1,7 @@
 package controllers;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.metadatacenter.constant.ConfigConstants;
+import org.metadatacenter.provenance.ProvenanceInfo;
 import org.metadatacenter.server.play.AbstractCedarController;
 import org.metadatacenter.server.security.Authorization;
 import org.metadatacenter.server.security.exception.CedarAccessException;
@@ -20,12 +19,6 @@ public class AbstractTemplateServerController extends AbstractCedarController {
   protected static List<String> FIELD_NAMES_EXCLUSION_LIST;
   protected static Configuration config;
   protected static String USER_BASE_PATH;
-
-  private static final String PAV_CREATED_ON = "pav:createdOn";
-  private static final String PAV_CREATED_BY = "pav:createdBy";
-  private static final String PAV_LAST_UPDATED_ON = "pav:lastUpdatedOn";
-  private static final String CEDAR_LAST_UPDATED_BY = "cedar:lastUpdatedBy";
-
 
   static {
     config = Play.application().configuration();
@@ -72,7 +65,8 @@ public class AbstractTemplateServerController extends AbstractCedarController {
     return null;
   }
 
-  private static void setProvenanceInfo(JsonNode node, IAuthRequest authRequest, boolean justModification) {
+  protected static ProvenanceInfo buildProvenanceInfo(IAuthRequest authRequest) {
+    ProvenanceInfo pi = new ProvenanceInfo();
     String id = null;
     try {
       IAccountInfo accountInfo = Authorization.getAccountInfo(authRequest);
@@ -80,25 +74,13 @@ public class AbstractTemplateServerController extends AbstractCedarController {
     } catch (CedarAccessException e) {
       e.printStackTrace();
     }
-    ObjectNode resource = (ObjectNode) node;
     Date now = new Date();
     String nowString = xsdDateTimeFormat.format(now);
     String userId = USER_BASE_PATH + id;
-    if (!justModification) {
-      resource.put(PAV_CREATED_ON, nowString);
-      resource.put(PAV_CREATED_BY, userId);
-    }
-    resource.put(PAV_LAST_UPDATED_ON, nowString);
-    resource.put(CEDAR_LAST_UPDATED_BY, userId);
+    pi.setCreatedOn(nowString);
+    pi.setCreatedBy(userId);
+    pi.setLastUpdatedOn(nowString);
+    pi.setLastUpdatedBy(userId);
+    return pi;
   }
-
-
-  protected static void addProvenanceInfo(JsonNode node, IAuthRequest authRequest) {
-    setProvenanceInfo(node, authRequest, false);
-  }
-
-  protected static void patchProvenanceInfo(JsonNode node, IAuthRequest authRequest) {
-    setProvenanceInfo(node, authRequest, true);
-  }
-
 }
