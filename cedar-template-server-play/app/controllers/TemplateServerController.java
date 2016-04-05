@@ -16,8 +16,7 @@ import org.metadatacenter.server.service.TemplateService;
 import org.metadatacenter.util.http.LinkHeaderUtil;
 import org.metadatacenter.util.http.UrlUtil;
 import org.metadatacenter.util.json.JsonUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import play.Logger;
 import play.libs.Json;
 import play.mvc.Result;
 
@@ -29,7 +28,6 @@ import java.util.List;
 import java.util.Map;
 
 public class TemplateServerController extends AbstractTemplateServerController {
-  private static Logger log = LoggerFactory.getLogger(TemplateServerController.class);
 
   private static TemplateService<String, JsonNode> templateService;
   private static TemplateFieldService<String, JsonNode> templateFieldService;
@@ -69,10 +67,13 @@ public class TemplateServerController extends AbstractTemplateServerController {
       // Return created response
       return created(createdTemplate);
     } catch (IllegalArgumentException e) {
+      Logger.error("Illegal Argument while creating the template", e);
       return badRequestWithError(e);
     } catch (AccessException e) {
+      Logger.error("Access Error while creating the template", e);
       return forbiddenWithError(e);
     } catch (Exception e) {
+      Logger.error("Error while creating the template", e);
       return internalServerErrorWithError(e);
     }
   }
@@ -87,12 +88,16 @@ public class TemplateServerController extends AbstractTemplateServerController {
         template = JsonUtils.removeField(template, "_id");
         return ok(template);
       }
+      Logger.error("Template not found:(" + templateId + ")");
       return notFound();
     } catch (IllegalArgumentException e) {
+      Logger.error("Illegal Argument while reading the template", e);
       return badRequestWithError(e);
     } catch (AccessException e) {
+      Logger.error("Access Error while reading the template", e);
       return forbiddenWithError(e);
     } catch (Exception e) {
+      Logger.error("Error while reading the template", e);
       return internalServerErrorWithError(e);
     }
   }
@@ -124,8 +129,10 @@ public class TemplateServerController extends AbstractTemplateServerController {
       }
       return ok(Json.toJson(templates));
     } catch (AccessException e) {
+      Logger.error("Access Error while reading the templates", e);
       return forbiddenWithError(e);
     } catch (Exception e) {
+      Logger.error("Error while reading the templates", e);
       return internalServerErrorWithError(e);
     }
   }
@@ -143,12 +150,16 @@ public class TemplateServerController extends AbstractTemplateServerController {
       updatedTemplate = JsonUtils.removeField(updatedTemplate, "_id");
       return ok(updatedTemplate);
     } catch (IllegalArgumentException e) {
+      Logger.error("Illegal Argument while reading the template", e);
       return badRequestWithError(e);
     } catch (InstanceNotFoundException e) {
+      Logger.error("Template not found for update:(" + templateId + ")");
       return notFound();
     } catch (AccessException e) {
+      Logger.error("Access Error while reading the template", e);
       return forbiddenWithError(e);
     } catch (Exception e) {
+      Logger.error("Error while updating the template", e);
       return internalServerErrorWithError(e);
     }
   }
@@ -160,12 +171,16 @@ public class TemplateServerController extends AbstractTemplateServerController {
       templateService.deleteTemplate(templateId);
       return noContent();
     } catch (IllegalArgumentException e) {
+      Logger.error("Illegal Argument while deleting the template", e);
       return badRequestWithError(e);
     } catch (InstanceNotFoundException e) {
+      Logger.error("Template not found while deleting:(" + templateId + ")");
       return notFound();
     } catch (AccessException e) {
+      Logger.error("Access Error while deleting the template", e);
       return forbiddenWithError(e);
     } catch (Exception e) {
+      Logger.error("Error while deleting the template", e);
       return internalServerErrorWithError(e);
     }
   }

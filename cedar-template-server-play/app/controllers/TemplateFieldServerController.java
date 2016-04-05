@@ -13,8 +13,7 @@ import org.metadatacenter.server.service.TemplateFieldService;
 import org.metadatacenter.util.http.LinkHeaderUtil;
 import org.metadatacenter.util.http.UrlUtil;
 import org.metadatacenter.util.json.JsonUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import play.Logger;
 import play.libs.Json;
 import play.mvc.Result;
 
@@ -24,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 
 public class TemplateFieldServerController extends AbstractTemplateServerController {
-  private static Logger log = LoggerFactory.getLogger(TemplateFieldServerController.class);
 
   private static TemplateFieldService<String, JsonNode> templateFieldService;
   protected static List<String> FIELD_NAMES_SUMMARY_LIST;
@@ -68,8 +66,10 @@ public class TemplateFieldServerController extends AbstractTemplateServerControl
       }
       return ok(Json.toJson(elements));
     } catch (CedarAccessException e) {
+      Logger.error("Access Error while reading the template fields", e);
       return forbiddenWithError(e);
     } catch (Exception e) {
+      Logger.error("Error while reading the template fields", e);
       return internalServerErrorWithError(e);
     }
   }
@@ -84,12 +84,16 @@ public class TemplateFieldServerController extends AbstractTemplateServerControl
         templateField = JsonUtils.removeField(templateField, "_id");
         return ok(templateField);
       }
+      Logger.error("Template field not found:(" + templateFieldId + ")");
       return notFound();
     } catch (IllegalArgumentException e) {
+      Logger.error("Illegal Argument while reading the template field", e);
       return badRequestWithError(e);
     } catch (CedarAccessException e) {
+      Logger.error("Access Error while reading the template field", e);
       return forbiddenWithError(e);
     } catch (Exception e) {
+      Logger.error("Error while reading the template field", e);
       return internalServerErrorWithError(e);
     }
   }

@@ -17,8 +17,7 @@ import org.metadatacenter.server.service.TemplateFieldService;
 import org.metadatacenter.util.http.LinkHeaderUtil;
 import org.metadatacenter.util.http.UrlUtil;
 import org.metadatacenter.util.json.JsonUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import play.Logger;
 import play.libs.Json;
 import play.mvc.Result;
 
@@ -29,7 +28,6 @@ import java.util.List;
 import java.util.Map;
 
 public class TemplateElementServerController extends AbstractTemplateServerController {
-  private static Logger log = LoggerFactory.getLogger(TemplateElementServerController.class);
 
   private static TemplateElementService<String, JsonNode> templateElementService;
   private static TemplateFieldService<String, JsonNode> templateFieldService;
@@ -68,8 +66,10 @@ public class TemplateElementServerController extends AbstractTemplateServerContr
       // Return created response
       return created(createdTemplateElement);
     } catch (CedarAccessException e) {
+      Logger.error("Access Error while creating the template element", e);
       return forbiddenWithError(e);
     } catch (Exception e) {
+      Logger.error("Error while creating the template element", e);
       return internalServerErrorWithError(e);
     }
   }
@@ -104,8 +104,10 @@ public class TemplateElementServerController extends AbstractTemplateServerContr
       }
       return ok(Json.toJson(elements));
     } catch (CedarAccessException e) {
+      Logger.error("Access Error while reading the template elements", e);
       return forbiddenWithError(e);
     } catch (Exception e) {
+      Logger.error("Error while reading the template elements", e);
       return internalServerErrorWithError(e);
     }
   }
@@ -120,12 +122,16 @@ public class TemplateElementServerController extends AbstractTemplateServerContr
         templateElement = JsonUtils.removeField(templateElement, "_id");
         return ok(templateElement);
       }
+      Logger.error("Template element not found:(" + templateElementId + ")");
       return notFound();
     } catch (IllegalArgumentException e) {
+      Logger.error("Illegal Argument while reading the template element", e);
       return badRequestWithError(e);
     } catch (CedarAccessException e) {
+      Logger.error("Access Error while reading the template element", e);
       return forbiddenWithError(e);
     } catch (Exception e) {
+      Logger.error("Error while reading the template elements", e);
       return internalServerErrorWithError(e);
     }
   }
@@ -144,12 +150,16 @@ public class TemplateElementServerController extends AbstractTemplateServerContr
       updatedTemplateElement = JsonUtils.removeField(updatedTemplateElement, "_id");
       return ok(updatedTemplateElement);
     } catch (IllegalArgumentException e) {
+      Logger.error("Illegal Argument while reading the template element", e);
       return badRequestWithError(e);
     } catch (InstanceNotFoundException e) {
+      Logger.error("Template element not found for update:(" + templateElementId + ")");
       return notFound();
     } catch (CedarAccessException e) {
+      Logger.error("Access Error while reading the template element", e);
       return forbiddenWithError(e);
     } catch (Exception e) {
+      Logger.error("Error while updating the template element", e);
       return internalServerErrorWithError(e);
     }
   }
@@ -161,12 +171,16 @@ public class TemplateElementServerController extends AbstractTemplateServerContr
       templateElementService.deleteTemplateElement(templateElementId);
       return noContent();
     } catch (IllegalArgumentException e) {
+      Logger.error("Illegal Argument while deleting the template element", e);
       return badRequestWithError(e);
     } catch (InstanceNotFoundException e) {
+      Logger.error("Template element not found while deleting:(" + templateElementId + ")");
       return notFound();
     } catch (CedarAccessException e) {
+      Logger.error("Access Error while deleting the template element", e);
       return forbiddenWithError(e);
     } catch (Exception e) {
+      Logger.error("Error while deleting the template element", e);
       return internalServerErrorWithError(e);
     }
   }

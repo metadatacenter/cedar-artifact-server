@@ -16,8 +16,7 @@ import org.metadatacenter.server.service.TemplateInstanceService;
 import org.metadatacenter.util.http.LinkHeaderUtil;
 import org.metadatacenter.util.http.UrlUtil;
 import org.metadatacenter.util.json.JsonUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import play.Logger;
 import play.libs.Json;
 import play.mvc.Result;
 
@@ -29,7 +28,6 @@ import java.util.Map;
 
 
 public class TemplateInstanceServerController extends AbstractTemplateServerController {
-  private static Logger log = LoggerFactory.getLogger(TemplateInstanceServerController.class);
 
   private static TemplateInstanceService<String, JsonNode> templateInstanceService;
   protected static List<String> FIELD_NAMES_SUMMARY_LIST;
@@ -62,8 +60,10 @@ public class TemplateInstanceServerController extends AbstractTemplateServerCont
       // Return created response
       return created(createdTemplateInstance);
     } catch (CedarAccessException e) {
+      Logger.error("Access Error while creating the template instance", e);
       return forbiddenWithError(e);
     } catch (Exception e) {
+      Logger.error("Error while creating the template instance", e);
       return internalServerErrorWithError(e);
     }
   }
@@ -100,8 +100,10 @@ public class TemplateInstanceServerController extends AbstractTemplateServerCont
       }
       return ok(Json.toJson(instances));
     } catch (CedarAccessException e) {
+      Logger.error("Access Error while reading the template instances", e);
       return forbiddenWithError(e);
     } catch (Exception e) {
+      Logger.error("Error while reading the template instances", e);
       return internalServerErrorWithError(e);
     }
   }
@@ -116,12 +118,16 @@ public class TemplateInstanceServerController extends AbstractTemplateServerCont
         templateInstance = JsonUtils.removeField(templateInstance, "_id");
         return ok(templateInstance);
       }
+      Logger.error("Template instance not found:(" + templateInstanceId + ")");
       return notFound();
     } catch (IllegalArgumentException e) {
+      Logger.error("Illegal Argument while reading the template instance", e);
       return badRequestWithError(e);
     } catch (CedarAccessException e) {
+      Logger.error("Access Error while reading the template instance", e);
       return forbiddenWithError(e);
     } catch (Exception e) {
+      Logger.error("Error while reading the template instance", e);
       return internalServerErrorWithError(e);
     }
   }
@@ -139,12 +145,16 @@ public class TemplateInstanceServerController extends AbstractTemplateServerCont
       updatedTemplateInstance = JsonUtils.removeField(updatedTemplateInstance, "_id");
       return ok(updatedTemplateInstance);
     } catch (IllegalArgumentException e) {
+      Logger.error("Illegal Argument while reading the template instance", e);
       return badRequestWithError(e);
     } catch (InstanceNotFoundException e) {
+      Logger.error("Template instance not found for update:(" + templateInstanceId + ")");
       return notFound();
     } catch (CedarAccessException e) {
+      Logger.error("Access Error while reading the template instance", e);
       return forbiddenWithError(e);
     } catch (Exception e) {
+      Logger.error("Error while updating the template instance", e);
       return internalServerErrorWithError(e);
     }
   }
@@ -156,12 +166,16 @@ public class TemplateInstanceServerController extends AbstractTemplateServerCont
       templateInstanceService.deleteTemplateInstance(templateInstanceId);
       return noContent();
     } catch (IllegalArgumentException e) {
+      Logger.error("Illegal Argument while deleting the template instance", e);
       return badRequestWithError(e);
     } catch (InstanceNotFoundException e) {
+      Logger.error("Template instance not found while deleting:(" + templateInstanceId + ")");
       return notFound();
     } catch (CedarAccessException e) {
+      Logger.error("Access Error while deleting the template instance", e);
       return forbiddenWithError(e);
     } catch (Exception e) {
+      Logger.error("Error while deleting the template instance", e);
       return internalServerErrorWithError(e);
     }
   }
