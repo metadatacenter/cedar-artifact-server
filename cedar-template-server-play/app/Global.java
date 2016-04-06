@@ -1,9 +1,6 @@
 import com.typesafe.config.ConfigFactory;
 import org.metadatacenter.server.security.*;
-import play.Application;
-import play.Configuration;
-import play.GlobalSettings;
-import play.Mode;
+import play.*;
 import play.libs.F.Promise;
 import play.mvc.Action;
 import play.mvc.Http;
@@ -11,8 +8,14 @@ import play.mvc.Result;
 import utils.DataServices;
 
 import java.io.File;
+import java.lang.reflect.Method;
+
+import static play.mvc.Results.badRequest;
+import static play.mvc.Results.notFound;
 
 public class Global extends GlobalSettings {
+
+  private final Logger.ALogger accessLogger = Logger.of("access");
 
   @Override
   public Configuration onLoadConfig(Configuration config, File path, ClassLoader classloader, Mode mode) {
@@ -23,6 +26,19 @@ public class Global extends GlobalSettings {
     } else {
       return onLoadConfig(config, path, classloader); // default implementation
     }
+  }
+
+  // If the framework doesn’t find an action method for a request, the onHandlerNotFound operation will be called:
+  @Override
+  public Promise<Result> onHandlerNotFound(Http.RequestHeader request) {
+    return Promise.<Result>pure(notFound(request.uri()));
+  }
+
+  // The onBadRequest operation will be called if a route was found, but it was not possible to bind the request
+  // parameters
+  @Override
+  public Promise<Result> onBadRequest(Http.RequestHeader request, String error) {
+    return Promise.<Result>pure(badRequest(error));
   }
 
   /* For CORS */
@@ -40,10 +56,17 @@ public class Global extends GlobalSettings {
     }
   }
 
+  /* Log all requests */
   @Override
-  public Action<?> onRequest(Http.Request request, java.lang.reflect.Method actionMethod) {
-    return new ActionWrapper(super.onRequest(request, actionMethod));
+  @SuppressWarnings("rawtypes")
+  public Action<?> onRequest(Http.Request request, Method method) {
+    // Log request
+    accessLogger.info("method=" + request.method() + " uri=" + request.uri()
+        + " remote-address=" + request.remoteAddress());
+    // The ActionWrapper is used for CORS
+    return new ActionWrapper(super.onRequest(request, method));
   }
+
 
   @Override
   public void onStart(Application application) {
