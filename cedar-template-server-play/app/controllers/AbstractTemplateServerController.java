@@ -6,7 +6,7 @@ import org.metadatacenter.server.play.AbstractCedarController;
 import org.metadatacenter.server.security.Authorization;
 import org.metadatacenter.server.security.exception.CedarAccessException;
 import org.metadatacenter.server.security.model.IAuthRequest;
-import org.metadatacenter.server.security.model.auth.IAccountInfo;
+import org.metadatacenter.server.security.model.user.CedarUser;
 import play.Configuration;
 import play.Play;
 
@@ -69,8 +69,8 @@ public class AbstractTemplateServerController extends AbstractCedarController {
     ProvenanceInfo pi = new ProvenanceInfo();
     String id = null;
     try {
-      IAccountInfo accountInfo = Authorization.getAccountInfo(authRequest);
-      id = accountInfo.getId();
+      CedarUser accountInfo = Authorization.getAccountInfo(authRequest);
+      id = accountInfo.getUserId();
     } catch (CedarAccessException e) {
       e.printStackTrace();
     }
