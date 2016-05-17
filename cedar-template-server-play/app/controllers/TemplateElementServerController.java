@@ -49,7 +49,7 @@ public class TemplateElementServerController extends AbstractTemplateServerContr
   public static Result createTemplateElement() {
     try {
       IAuthRequest authRequest = CedarAuthFromRequestFactory.fromRequest(request());
-      Authorization.mustHavePermission(authRequest, CedarPermission.TEMPLATE_ELEMENT_CREATE);
+      Authorization.getUserAndEnsurePermission(authRequest, CedarPermission.TEMPLATE_ELEMENT_CREATE);
       JsonNode templateElement = request().body().asJson();
 
       ProvenanceInfo pi = buildProvenanceInfo(authRequest);
@@ -76,7 +76,7 @@ public class TemplateElementServerController extends AbstractTemplateServerContr
 
   public static Result findAllTemplateElements(Integer limit, Integer offset, boolean summary, String fieldNames) {
     try {
-      Authorization.mustHavePermission(CedarAuthFromRequestFactory.fromRequest(request()), CedarPermission
+      Authorization.getUserAndEnsurePermission(CedarAuthFromRequestFactory.fromRequest(request()), CedarPermission
           .TEMPLATE_ELEMENT_READ);
       limit = ensureLimit(limit);
       checkPagingParameters(limit, offset);
@@ -114,7 +114,7 @@ public class TemplateElementServerController extends AbstractTemplateServerContr
 
   public static Result findTemplateElement(String templateElementId) {
     try {
-      Authorization.mustHavePermission(CedarAuthFromRequestFactory.fromRequest(request()), CedarPermission
+      Authorization.getUserAndEnsurePermission(CedarAuthFromRequestFactory.fromRequest(request()), CedarPermission
           .TEMPLATE_ELEMENT_READ);
       JsonNode templateElement = templateElementService.findTemplateElement(templateElementId);
       if (templateElement != null) {
@@ -139,7 +139,7 @@ public class TemplateElementServerController extends AbstractTemplateServerContr
   public static Result updateTemplateElement(String templateElementId) {
     try {
       IAuthRequest authRequest = CedarAuthFromRequestFactory.fromRequest(request());
-      Authorization.mustHavePermission(authRequest, CedarPermission.TEMPLATE_ELEMENT_UPDATE);
+      Authorization.getUserAndEnsurePermission(authRequest, CedarPermission.TEMPLATE_ELEMENT_UPDATE);
       JsonNode modifications = request().body().asJson();
 
       ProvenanceInfo pi = buildProvenanceInfo(authRequest);
@@ -166,7 +166,7 @@ public class TemplateElementServerController extends AbstractTemplateServerContr
 
   public static Result deleteTemplateElement(String templateElementId) {
     try {
-      Authorization.mustHavePermission(CedarAuthFromRequestFactory.fromRequest(request()), CedarPermission
+      Authorization.getUserAndEnsurePermission(CedarAuthFromRequestFactory.fromRequest(request()), CedarPermission
           .TEMPLATE_ELEMENT_DELETE);
       templateElementService.deleteTemplateElement(templateElementId);
       return noContent();

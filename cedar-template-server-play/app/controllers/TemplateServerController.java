@@ -49,7 +49,7 @@ public class TemplateServerController extends AbstractTemplateServerController {
   public static Result createTemplate() {
     try {
       IAuthRequest authRequest = CedarAuthFromRequestFactory.fromRequest(request());
-      Authorization.mustHavePermission(authRequest, CedarPermission
+      Authorization.getUserAndEnsurePermission(authRequest, CedarPermission
           .TEMPLATE_CREATE);
       JsonNode template = request().body().asJson();
 
@@ -80,7 +80,7 @@ public class TemplateServerController extends AbstractTemplateServerController {
 
   public static Result findTemplate(String templateId) {
     try {
-      Authorization.mustHavePermission(CedarAuthFromRequestFactory.fromRequest(request()), CedarPermission
+      Authorization.getUserAndEnsurePermission(CedarAuthFromRequestFactory.fromRequest(request()), CedarPermission
           .TEMPLATE_READ);
       JsonNode template = templateService.findTemplate(templateId);
       if (template != null) {
@@ -104,7 +104,7 @@ public class TemplateServerController extends AbstractTemplateServerController {
 
   public static Result findAllTemplates(Integer limit, Integer offset, boolean summary, String fieldNames) {
     try {
-      Authorization.mustHavePermission(CedarAuthFromRequestFactory.fromRequest(request()), CedarPermission
+      Authorization.getUserAndEnsurePermission(CedarAuthFromRequestFactory.fromRequest(request()), CedarPermission
           .TEMPLATE_READ);
       limit = ensureLimit(limit);
       checkPagingParameters(limit, offset);
@@ -140,7 +140,7 @@ public class TemplateServerController extends AbstractTemplateServerController {
   public static Result updateTemplate(String templateId) {
     try {
       IAuthRequest authRequest = CedarAuthFromRequestFactory.fromRequest(request());
-      Authorization.mustHavePermission(authRequest, CedarPermission.TEMPLATE_UPDATE);
+      Authorization.getUserAndEnsurePermission(authRequest, CedarPermission.TEMPLATE_UPDATE);
       JsonNode modifications = request().body().asJson();
       ProvenanceInfo pi = buildProvenanceInfo(authRequest);
       ProvenanceUtil.patchProvenanceInfo(modifications, pi);
@@ -166,7 +166,7 @@ public class TemplateServerController extends AbstractTemplateServerController {
 
   public static Result deleteTemplate(String templateId) {
     try {
-      Authorization.mustHavePermission(CedarAuthFromRequestFactory.fromRequest(request()), CedarPermission
+      Authorization.getUserAndEnsurePermission(CedarAuthFromRequestFactory.fromRequest(request()), CedarPermission
           .TEMPLATE_DELETE);
       templateService.deleteTemplate(templateId);
       return noContent();

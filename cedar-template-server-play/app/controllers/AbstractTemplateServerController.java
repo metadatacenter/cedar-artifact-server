@@ -69,7 +69,7 @@ public class AbstractTemplateServerController extends AbstractCedarController {
     ProvenanceInfo pi = new ProvenanceInfo();
     String id = null;
     try {
-      CedarUser accountInfo = Authorization.getAccountInfo(authRequest);
+      CedarUser accountInfo = Authorization.getUser(authRequest);
       id = accountInfo.getUserId();
     } catch (CedarAccessException e) {
       e.printStackTrace();

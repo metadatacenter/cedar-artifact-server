@@ -81,7 +81,7 @@ public class Global extends GlobalSettings {
     if (noAuth != null && noAuth.booleanValue()) {
       authResolver = new AuthorizationNoauthResolver();
     } else {
-      authResolver = new AuthorizationKeycloakAndApiKeyResolver(DataServices.getInstance().getUserService());
+      authResolver = new AuthorizationKeycloakAndApiKeyResolver();
     }
     Authorization.setAuthorizationResolver(authResolver);
     Authorization.setUserService(DataServices.getInstance().getUserService());

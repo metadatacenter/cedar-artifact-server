@@ -44,7 +44,7 @@ public class TemplateFieldServerController extends AbstractTemplateServerControl
   public static Result createTemplateField() {
     try {
       IAuthRequest authRequest = CedarAuthFromRequestFactory.fromRequest(request());
-      Authorization.mustHavePermission(authRequest, CedarPermission.TEMPLATE_FIELD_CREATE);
+      Authorization.getUserAndEnsurePermission(authRequest, CedarPermission.TEMPLATE_FIELD_CREATE);
       JsonNode templateField = request().body().asJson();
 
       ProvenanceInfo pi = buildProvenanceInfo(authRequest);
@@ -70,7 +70,7 @@ public class TemplateFieldServerController extends AbstractTemplateServerControl
 
   public static Result findAllTemplateFields(Integer limit, Integer offset, boolean summary, String fieldNames) {
     try {
-      Authorization.mustHavePermission(CedarAuthFromRequestFactory.fromRequest(request()), CedarPermission
+      Authorization.getUserAndEnsurePermission(CedarAuthFromRequestFactory.fromRequest(request()), CedarPermission
           .TEMPLATE_FIELD_READ);
       limit = ensureLimit(limit);
       checkPagingParameters(limit, offset);
@@ -108,7 +108,7 @@ public class TemplateFieldServerController extends AbstractTemplateServerControl
 
   public static Result findTemplateField(String templateFieldId) {
     try {
-      Authorization.mustHavePermission(CedarAuthFromRequestFactory.fromRequest(request()), CedarPermission
+      Authorization.getUserAndEnsurePermission(CedarAuthFromRequestFactory.fromRequest(request()), CedarPermission
           .TEMPLATE_FIELD_READ);
       JsonNode templateField = templateFieldService.findTemplateField(templateFieldId);
       if (templateField != null) {
@@ -133,7 +133,7 @@ public class TemplateFieldServerController extends AbstractTemplateServerControl
   public static Result updateTemplateField(String templateFieldId) {
     try {
       IAuthRequest authRequest = CedarAuthFromRequestFactory.fromRequest(request());
-      Authorization.mustHavePermission(authRequest, CedarPermission.TEMPLATE_FIELD_UPDATE);
+      Authorization.getUserAndEnsurePermission(authRequest, CedarPermission.TEMPLATE_FIELD_UPDATE);
       JsonNode modifications = request().body().asJson();
 
       ProvenanceInfo pi = buildProvenanceInfo(authRequest);
@@ -159,7 +159,7 @@ public class TemplateFieldServerController extends AbstractTemplateServerControl
 
   public static Result deleteTemplateField(String templateFieldId) {
     try {
-      Authorization.mustHavePermission(CedarAuthFromRequestFactory.fromRequest(request()), CedarPermission
+      Authorization.getUserAndEnsurePermission(CedarAuthFromRequestFactory.fromRequest(request()), CedarPermission
           .TEMPLATE_FIELD_DELETE);
       templateFieldService.deleteTemplateField(templateFieldId);
       return noContent();
