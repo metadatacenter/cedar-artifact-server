@@ -1,7 +1,6 @@
 package controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.metadatacenter.constant.ConfigConstants;
 import org.metadatacenter.constant.CustomHttpConstants;
 import org.metadatacenter.constant.HttpConstants;
 import org.metadatacenter.provenance.ProvenanceInfo;
@@ -35,7 +34,7 @@ public class TemplateServerController extends AbstractTemplateServerController {
 
   static {
     FIELD_NAMES_SUMMARY_LIST = new ArrayList<>();
-    FIELD_NAMES_SUMMARY_LIST.addAll(config.getStringList(ConfigConstants.FIELD_NAMES_SUMMARY_TEMPLATE));
+    FIELD_NAMES_SUMMARY_LIST.addAll(cedarConfig.getTemplateRESTAPISummaries().getTemplate().getFields());
   }
 
   public static void injectTemplateService(TemplateService<String, JsonNode> ts) {

@@ -1,14 +1,13 @@
 package controllers;
 
-import org.metadatacenter.constant.ConfigConstants;
+import org.metadatacenter.config.CedarConfig;
+import org.metadatacenter.model.CedarNodeType;
 import org.metadatacenter.provenance.ProvenanceInfo;
 import org.metadatacenter.server.play.AbstractCedarController;
 import org.metadatacenter.server.security.Authorization;
 import org.metadatacenter.server.security.exception.CedarAccessException;
 import org.metadatacenter.server.security.model.IAuthRequest;
 import org.metadatacenter.server.security.model.user.CedarUser;
-import play.Configuration;
-import play.Play;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,19 +15,19 @@ import java.util.Date;
 import java.util.List;
 
 public class AbstractTemplateServerController extends AbstractCedarController {
+  protected static CedarConfig cedarConfig;
   protected static List<String> FIELD_NAMES_EXCLUSION_LIST;
-  protected static Configuration config;
   protected static String USER_BASE_PATH;
 
   static {
-    config = Play.application().configuration();
+    cedarConfig = CedarConfig.getInstance();
     FIELD_NAMES_EXCLUSION_LIST = new ArrayList<>();
-    FIELD_NAMES_EXCLUSION_LIST.addAll(config.getStringList(ConfigConstants.FIELD_NAMES_LIST_EXCLUSION));
-    USER_BASE_PATH = config.getString(ConfigConstants.USER_DATA_ID_PATH_BASE);
+    FIELD_NAMES_EXCLUSION_LIST.addAll(cedarConfig.getTemplateRESTAPI().getExcludedFields());
+    USER_BASE_PATH = cedarConfig.getLinkedDataPrefix(CedarNodeType.USER);
   }
 
   protected static Integer ensureLimit(Integer limit) {
-    return limit == null ? config.getInt(ConfigConstants.PAGINATION_DEFAULT_PAGE_SIZE) : limit;
+    return limit == null ? cedarConfig.getTemplateRESTAPI().getPagination().getDefaultPageSize() : limit;
   }
 
   protected static void checkPagingParameters(Integer limit, Integer offset) {
@@ -40,7 +39,7 @@ public class AbstractTemplateServerController extends AbstractCedarController {
     if (limit <= 0) {
       throw new IllegalArgumentException("Parameter 'limit' must be greater than zero!");
     }
-    int maxPageSize = config.getInt(ConfigConstants.PAGINATION_MAX_PAGE_SIZE);
+    int maxPageSize = cedarConfig.getTemplateRESTAPI().getPagination().getMaxPageSize();
     if (limit > maxPageSize) {
       throw new IllegalArgumentException("Parameter 'limit' must be at most " + maxPageSize + "!");
     }
