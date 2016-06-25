@@ -3,8 +3,8 @@ package controllers;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.metadatacenter.constant.CustomHttpConstants;
 import org.metadatacenter.constant.HttpConstants;
-import org.metadatacenter.provenance.ProvenanceInfo;
-import org.metadatacenter.provenance.ProvenanceUtil;
+import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.server.model.provenance.ProvenanceInfo;
 import org.metadatacenter.server.security.Authorization;
 import org.metadatacenter.server.security.CedarAuthFromRequestFactory;
 import org.metadatacenter.server.security.exception.CedarAccessException;
@@ -16,7 +16,9 @@ import org.metadatacenter.server.service.TemplateFieldService;
 import org.metadatacenter.util.http.LinkHeaderUtil;
 import org.metadatacenter.util.http.UrlUtil;
 import org.metadatacenter.util.mongo.MongoUtils;
+import org.metadatacenter.util.provenance.ProvenanceUtil;
 import play.Logger;
+import play.libs.F;
 import play.libs.Json;
 import play.mvc.Result;
 
@@ -45,15 +47,16 @@ public class TemplateElementServerController extends AbstractTemplateServerContr
     templateFieldService = tfs;
   }
 
-  public static Result createTemplateElement() {
+  public static Result createTemplateElement(F.Option<Boolean> importMode) {
     try {
       IAuthRequest authRequest = CedarAuthFromRequestFactory.fromRequest(request());
       Authorization.getUserAndEnsurePermission(authRequest, CedarPermission.TEMPLATE_ELEMENT_CREATE);
       JsonNode templateElement = request().body().asJson();
 
-      ProvenanceInfo pi = buildProvenanceInfo(authRequest);
+      ProvenanceInfo pi = ProvenanceUtil.build(cedarConfig, authRequest);
+      checkImportModeSetProvenanceAndId(CedarNodeType.ELEMENT, templateElement, pi, importMode);
+
       templateFieldService.saveNewFieldsAndReplaceIds(templateElement, pi);
-      ProvenanceUtil.addProvenanceInfo(templateElement, pi);
       JsonNode createdTemplateElement = templateElementService.createTemplateElement(templateElement);
       MongoUtils.removeIdField(createdTemplateElement);
 
@@ -141,7 +144,7 @@ public class TemplateElementServerController extends AbstractTemplateServerContr
       Authorization.getUserAndEnsurePermission(authRequest, CedarPermission.TEMPLATE_ELEMENT_UPDATE);
       JsonNode modifications = request().body().asJson();
 
-      ProvenanceInfo pi = buildProvenanceInfo(authRequest);
+      ProvenanceInfo pi = ProvenanceUtil.build(cedarConfig, authRequest);
       ProvenanceUtil.patchProvenanceInfo(modifications, pi);
       templateFieldService.saveNewFieldsAndReplaceIds(modifications, pi);
       JsonNode updatedTemplateElement = templateElementService.updateTemplateElement(templateElementId, modifications);

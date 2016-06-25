@@ -27,24 +27,20 @@ public class DataServices {
 
     templateElementService = new TemplateElementServiceMongoDB(
         cedarConfig.getMongoConfig().getDatabaseName(),
-        cedarConfig.getMongoCollectionName(CedarNodeType.ELEMENT),
-        cedarConfig.getLinkedDataPrefix(CedarNodeType.ELEMENT));
+        cedarConfig.getMongoCollectionName(CedarNodeType.ELEMENT));
 
     templateService = new TemplateServiceMongoDB(
         cedarConfig.getMongoConfig().getDatabaseName(),
         cedarConfig.getMongoCollectionName(CedarNodeType.TEMPLATE),
-        cedarConfig.getLinkedDataPrefix(CedarNodeType.TEMPLATE),
         templateElementService);
 
     templateInstanceService = new TemplateInstanceServiceMongoDB(
         cedarConfig.getMongoConfig().getDatabaseName(),
-        cedarConfig.getMongoCollectionName(CedarNodeType.INSTANCE),
-        cedarConfig.getLinkedDataPrefix(CedarNodeType.INSTANCE));
+        cedarConfig.getMongoCollectionName(CedarNodeType.INSTANCE));
 
     templateFieldService = new TemplateFieldServiceMongoDB(
         cedarConfig.getMongoConfig().getDatabaseName(),
-        cedarConfig.getMongoCollectionName(CedarNodeType.FIELD),
-        cedarConfig.getLinkedDataPrefix(CedarNodeType.FIELD));
+        cedarConfig.getMongoCollectionName(CedarNodeType.FIELD));
 
     diagnosticsService = new DiagnosticsServiceMongoDB(
         cedarConfig.getMongoConfig().getDatabaseName());

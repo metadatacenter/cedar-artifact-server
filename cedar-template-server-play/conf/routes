@@ -6,28 +6,28 @@
 GET            /                              controllers.MainTemplateServerController.index()
 
 # Templates
-POST           /templates                     controllers.TemplateServerController.createTemplate()
+POST           /templates                     controllers.TemplateServerController.createTemplate(importMode: play.libs.F.Option[java.lang.Boolean])
 GET            /templates/:id                 controllers.TemplateServerController.findTemplate(id: String)
 GET            /templates                     controllers.TemplateServerController.findAllTemplates(limit: Integer ?= null, offset: Integer ?= 0, summary: Boolean ?= false, fieldNames: String ?= null)
 PUT            /templates/:id                 controllers.TemplateServerController.updateTemplate(id: String)
 DELETE         /templates/:id                 controllers.TemplateServerController.deleteTemplate(id: String)
 
 # Template Elements
-POST           /template-elements             controllers.TemplateElementServerController.createTemplateElement()
+POST           /template-elements             controllers.TemplateElementServerController.createTemplateElement(importMode: play.libs.F.Option[java.lang.Boolean])
 GET            /template-elements/:id         controllers.TemplateElementServerController.findTemplateElement(id: String)
 GET            /template-elements             controllers.TemplateElementServerController.findAllTemplateElements(limit: Integer ?= null, offset: Integer ?= 0, summary: Boolean ?= false, fieldNames: String ?= null)
 PUT            /template-elements/:id         controllers.TemplateElementServerController.updateTemplateElement(id: String)
 DELETE         /template-elements/:id         controllers.TemplateElementServerController.deleteTemplateElement(id: String)
 
 # Template Fields
-POST           /template-fields               controllers.TemplateFieldServerController.createTemplateField()
+POST           /template-fields               controllers.TemplateFieldServerController.createTemplateField(importMode: play.libs.F.Option[java.lang.Boolean])
 GET            /template-fields/:id           controllers.TemplateFieldServerController.findTemplateField(id: String)
 GET            /template-fields               controllers.TemplateFieldServerController.findAllTemplateFields(limit: Integer ?= null, offset: Integer ?= 0, summary: Boolean ?= false, fieldNames: String ?= null)
 PUT            /template-fields/:id           controllers.TemplateFieldServerController.updateTemplateField(id: String)
 DELETE         /template-fields/:id           controllers.TemplateFieldServerController.deleteTemplateField(id: String)
 
 # Template Instances
-POST           /template-instances            controllers.TemplateInstanceServerController.createTemplateInstance()
+POST           /template-instances            controllers.TemplateInstanceServerController.createTemplateInstance(importMode: play.libs.F.Option[java.lang.Boolean])
 GET            /template-instances/:id        controllers.TemplateInstanceServerController.findTemplateInstance(id: String)
 GET            /template-instances            controllers.TemplateInstanceServerController.findAllTemplateInstances(limit: Integer ?= null, offset: Integer ?= 0, summary: Boolean ?= false, fieldNames: String ?= null)
 PUT            /template-instances/:id        controllers.TemplateInstanceServerController.updateTemplateInstance(id: String)

@@ -1,18 +1,20 @@
 package controllers;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.model.CedarNodeType;
-import org.metadatacenter.provenance.ProvenanceInfo;
+import org.metadatacenter.server.model.provenance.ProvenanceInfo;
 import org.metadatacenter.server.play.AbstractCedarController;
-import org.metadatacenter.server.security.Authorization;
-import org.metadatacenter.server.security.exception.CedarAccessException;
-import org.metadatacenter.server.security.model.IAuthRequest;
-import org.metadatacenter.server.security.model.user.CedarUser;
+import org.metadatacenter.util.provenance.ProvenanceUtil;
+import play.libs.F;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
+import java.util.UUID;
+
+import static com.fasterxml.jackson.databind.node.JsonNodeType.NULL;
 
 public class AbstractTemplateServerController extends AbstractCedarController {
   protected static CedarConfig cedarConfig;
@@ -64,22 +66,22 @@ public class AbstractTemplateServerController extends AbstractCedarController {
     return null;
   }
 
-  protected static ProvenanceInfo buildProvenanceInfo(IAuthRequest authRequest) {
-    ProvenanceInfo pi = new ProvenanceInfo();
-    String id = null;
-    try {
-      CedarUser accountInfo = Authorization.getUser(authRequest);
-      id = accountInfo.getUserId();
-    } catch (CedarAccessException e) {
-      e.printStackTrace();
+
+  protected static void checkImportModeSetProvenanceAndId(CedarNodeType cedarNodeType, JsonNode element,
+                                                          ProvenanceInfo pi, F.Option<Boolean> importMode) {
+    boolean im = (importMode != null && importMode.isDefined() && importMode.get());
+    System.out.println("***TEMPLATE: CheckImport:" + importMode + ":" + im);
+    if (im) {
+      if ((element.get("@id") == null) || (NULL.equals(element.get("@id").getNodeType()))) {
+        throw new IllegalArgumentException("You must specify @id when importing data");
+      }
+    } else {
+      if ((element.get("@id") != null) && (!NULL.equals(element.get("@id").getNodeType()))) {
+        throw new IllegalArgumentException("Specifying @id for new objects is not allowed");
+      }
+      ProvenanceUtil.addProvenanceInfo(element, pi);
+      String id = cedarConfig.getLinkedDataPrefix(cedarNodeType) + UUID.randomUUID().toString();
+      ((ObjectNode) element).put("@id", id);
     }
-    Date now = new Date();
-    String nowString = xsdDateTimeFormat.format(now);
-    String userId = USER_BASE_PATH + id;
-    pi.setCreatedOn(nowString);
-    pi.setCreatedBy(userId);
-    pi.setLastUpdatedOn(nowString);
-    pi.setLastUpdatedBy(userId);
-    return pi;
   }
 }

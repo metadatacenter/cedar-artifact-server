@@ -3,8 +3,8 @@ package controllers;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.metadatacenter.constant.CustomHttpConstants;
 import org.metadatacenter.constant.HttpConstants;
-import org.metadatacenter.provenance.ProvenanceInfo;
-import org.metadatacenter.provenance.ProvenanceUtil;
+import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.server.model.provenance.ProvenanceInfo;
 import org.metadatacenter.server.security.Authorization;
 import org.metadatacenter.server.security.CedarAuthFromRequestFactory;
 import org.metadatacenter.server.security.exception.CedarAccessException;
@@ -15,7 +15,9 @@ import org.metadatacenter.server.service.TemplateInstanceService;
 import org.metadatacenter.util.http.LinkHeaderUtil;
 import org.metadatacenter.util.http.UrlUtil;
 import org.metadatacenter.util.mongo.MongoUtils;
+import org.metadatacenter.util.provenance.ProvenanceUtil;
 import play.Logger;
+import play.libs.F;
 import play.libs.Json;
 import play.mvc.Result;
 
@@ -40,14 +42,15 @@ public class TemplateInstanceServerController extends AbstractTemplateServerCont
     templateInstanceService = tis;
   }
 
-  public static Result createTemplateInstance() {
+  public static Result createTemplateInstance(F.Option<Boolean> importMode) {
     try {
       IAuthRequest authRequest = CedarAuthFromRequestFactory.fromRequest(request());
       Authorization.getUserAndEnsurePermission(authRequest, CedarPermission.TEMPLATE_INSTANCE_CREATE);
       JsonNode templateInstance = request().body().asJson();
 
-      ProvenanceInfo pi = buildProvenanceInfo(authRequest);
-      ProvenanceUtil.addProvenanceInfo(templateInstance, pi);
+      ProvenanceInfo pi = ProvenanceUtil.build(cedarConfig, authRequest);
+      checkImportModeSetProvenanceAndId(CedarNodeType.INSTANCE, templateInstance, pi, importMode);
+
       JsonNode createdTemplateInstance = templateInstanceService.createTemplateInstance(templateInstance);
       MongoUtils.removeIdField(createdTemplateInstance);
 
@@ -136,7 +139,7 @@ public class TemplateInstanceServerController extends AbstractTemplateServerCont
       IAuthRequest authRequest = CedarAuthFromRequestFactory.fromRequest(request());
       Authorization.getUserAndEnsurePermission(authRequest, CedarPermission.TEMPLATE_INSTANCE_UPDATE);
       JsonNode modifications = request().body().asJson();
-      ProvenanceInfo pi = buildProvenanceInfo(authRequest);
+      ProvenanceInfo pi = ProvenanceUtil.build(cedarConfig, authRequest);
       ProvenanceUtil.patchProvenanceInfo(modifications, pi);
       JsonNode updatedTemplateInstance = templateInstanceService.updateTemplateInstance(templateInstanceId,
           modifications);
