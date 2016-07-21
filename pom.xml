@@ -10,7 +10,7 @@
 
   <groupId>org.metadatacenter</groupId>
   <artifactId>cedar-template-server</artifactId>
-  <version>0.5.5-SNAPSHOT</version>
+  <version>0.5.5</version>
   <packaging>pom</packaging>
 
   <name>CEDAR Template Server</name>
