@@ -10,7 +10,7 @@
 
   <groupId>org.metadatacenter</groupId>
   <artifactId>cedar-template-server</artifactId>
-  <version>0.5.5</version>
+  <version>0.5.5-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>CEDAR Template Server</name>
@@ -20,6 +20,12 @@
     <!-- Do Not Remove This! We need it in Pom.scala -->
     <scala.version>2.11.5</scala.version>
   </properties>
+
+  <scm>
+    <connection>scm:git:git@github.com:metadatacenter/cedar-template-server.git</connection>
+    <developerConnection>scm:git:git@github.com:metadatacenter/cedar-template-server.git</developerConnection>
+    <url>https://github.com/metadatacenter/cedar-template-server</url>
+  </scm>
 
   <modules>
     <module>cedar-template-server-core</module>
