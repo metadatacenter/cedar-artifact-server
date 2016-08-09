@@ -1,30 +1,27 @@
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.*;
+import org.metadatacenter.config.CedarConfig;
 import play.libs.Json;
 import play.libs.ws.WS;
 import play.libs.ws.WSResponse;
 import utils.DataServices;
+import utils.TestUtils;
 
 import java.io.UnsupportedEncodingException;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
 import java.net.URLEncoder;
 
 import static play.test.Helpers.*;
 
-/*
- * Integration Tests. They are done using a test server.
- */
 public class TemplateServerHttpTest {
 
-  private static final String TEMPLATE_ELEMENTS_ROUTE = "/template-elements";
-  private static final int TEST_SERVER_PORT = 3333;
-  private static final String SERVER_URL = "http://localhost:" + TEST_SERVER_PORT;
-  private static final int TIMEOUT_MS = 10000;
+  private static final int TEST_SERVER_PORT = CedarConfig.getInstance().getTestConfig().getPort();
+  private static final String SERVER_URL = CedarConfig.getInstance().getTestConfig().getBase() + ":" + TEST_SERVER_PORT;
+  private static final String BASE_ROUTE = CedarConfig.getInstance().getTestConfig().getTemplate().getBaseRoute();
+  private static final int TIMEOUT_MS = CedarConfig.getInstance().getTestConfig().getTimeout();
+  private static final String AUTH_HEADER = TestUtils.getTestAuthHeader();
 
-  private static JsonNode templateElement1;
-  private static JsonNode templateElement2;
+  private static JsonNode template1;
+  private static JsonNode template2;
 
   /**
    * One-time initialization code.
@@ -47,18 +44,14 @@ public class TemplateServerHttpTest {
    */
   @Before
   public void setUp() {
-    templateElement1 = Json.newObject().
+    // TODO: create valid template
+    template1 = Json.newObject().
         //put("@id", "http://metadatacenter.org/template-elements/682c8141-9a61-4899-9d21-7083e861b0bf").
-        put("name", "template element 1 name").put("value", "template element 1 value");
-    templateElement2 = Json.newObject().
+            put("name", "template element 1 name").put("value", "template element 1 value");
+    template2 = Json.newObject().
         //put("@id", "http://metadatacenter.org/template-elements/1dd58530-fdba-4c06-8d31-539b18296d8b").
-        put("name", "template element 2 name").put("value", "template element 2 value");
-
-    running(testServer(TEST_SERVER_PORT), new Runnable() {
-      public void run() {
-        deleteAllTemplateElements();
-      }
-    });
+            put("name", "template element 2 name").put("value", "template element 2 value");
+    deleteAllTemplates();
   }
 
   /**
@@ -67,20 +60,17 @@ public class TemplateServerHttpTest {
    */
   @After
   public void tearDown() {
-    running(testServer(TEST_SERVER_PORT), new Runnable() {
-      public void run() {
-        // Remove the elements created
-        deleteAllTemplateElements();
-      }
-    });
+    deleteAllTemplates();
   }
 
   @Test
-  public void createTemplateElementTest() {
+  public void createTemplateTest() {
     running(testServer(TEST_SERVER_PORT), new Runnable() {
       public void run() {
         // Service invocation - Create
-        WSResponse wsResponse = WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE).post(templateElement1).get(TIMEOUT_MS);
+        WSResponse wsResponse =
+            WS.url(SERVER_URL + BASE_ROUTE).setHeader("Authorization", AUTH_HEADER).post(template1).get(TIMEOUT_MS);
+
         String createdId = wsResponse.asJson().get("@id").asText();
         // Check HTTP response
         Assert.assertEquals(CREATED, wsResponse.getStatus());
@@ -89,12 +79,12 @@ public class TemplateServerHttpTest {
         // Retrieve the element created
         JsonNode actual = null;
         try {
-          actual = WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE + "/" +
-              URLEncoder.encode(createdId, "UTF-8")).get().get(TIMEOUT_MS).asJson();
+          actual = WS.url(SERVER_URL + BASE_ROUTE + "/" + URLEncoder.encode(createdId, "UTF-8"))
+              .setHeader("Authorization", AUTH_HEADER).get().get(TIMEOUT_MS).asJson();
         } catch (UnsupportedEncodingException e) {
           e.printStackTrace();
         }
-        JsonNode expected = templateElement1;
+        JsonNode expected = template1;
         // Check fields
         Assert.assertNotNull(actual.get("name"));
         Assert.assertEquals(expected.get("name"), actual.get("name"));
@@ -104,133 +94,12 @@ public class TemplateServerHttpTest {
     });
   }
 
-  @Test
-  public void findAllTemplateElementsTest() {
+  // Helper method to remove all templates from DB
+  public void deleteAllTemplates() {
     running(testServer(TEST_SERVER_PORT), new Runnable() {
       public void run() {
-        // Create two sample elements
-        templateElement1 = WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE).post(templateElement1).get(TIMEOUT_MS).asJson();
-        templateElement2 = WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE).post(templateElement2).get(TIMEOUT_MS).asJson();
-        // Service invocation - Find all
-        WSResponse wsResponse = WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE).get().get(TIMEOUT_MS);
-        // Check response is OK
-        Assert.assertEquals(wsResponse.getStatus(), OK);
-        // Check Content-Type
-        Assert.assertEquals(wsResponse.getHeader("Content-Type"), "application/json; charset=utf-8");
-        // Store actual and expected results into two sets, to compare them
-        Set expectedSet = new HashSet<JsonNode>();
-        expectedSet.add(templateElement1);
-        expectedSet.add(templateElement2);
-        Set actualSet = new HashSet<JsonNode>();
-        JsonNode jsonResponse = wsResponse.asJson();
-        Iterator it = jsonResponse.iterator();
-        while (it.hasNext()) {
-          actualSet.add(it.next());
-        }
-        // Check the number of results
-        Assert.assertEquals(expectedSet.size(), actualSet.size());
-        // Check the results
-        Assert.assertEquals(expectedSet, actualSet);
+        DataServices.getInstance().getTemplateService().deleteAllTemplates();
       }
     });
-  }
-
-  @Test
-  public void findTemplateElementTest() {
-    running(testServer(TEST_SERVER_PORT), new Runnable() {
-      public void run() {
-        // Create an element
-        JsonNode expected = WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE).post(templateElement1).get(TIMEOUT_MS)
-            .asJson();
-        String id = expected.get("@id").asText();
-        // Service invocation - Find by Id
-        WSResponse wsResponse = null;
-        try {
-          wsResponse = WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE + "/" + URLEncoder.encode(id, "UTF-8")).get().get
-              (TIMEOUT_MS);
-        } catch (UnsupportedEncodingException e) {
-          e.printStackTrace();
-        }
-        // Check response is OK
-        Assert.assertEquals(wsResponse.getStatus(), OK);
-        // Check Content-Type
-        Assert.assertEquals(wsResponse.getHeader("Content-Type"), "application/json; charset=utf-8");
-        // Check the element retrieved
-        JsonNode actual = wsResponse.asJson();
-        Assert.assertEquals(expected, actual);
-      }
-    });
-  }
-
-  @Test
-  public void updateTemplateElementTest() {
-    running(testServer(TEST_SERVER_PORT), new Runnable() {
-      public void run() {
-        try {
-          // Create an element
-          JsonNode elementCreated =
-              WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE).post(templateElement1).get(TIMEOUT_MS).asJson();
-          // Update the element created
-          String id = elementCreated.get("@id").asText();
-          String updatedName = "new name";
-          JsonNode changes = Json.newObject().put("name", updatedName);
-          // Service invocation - Update
-          WSResponse wsResponse =
-              WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE + "/" + URLEncoder.encode(id, "UTF-8")).put(changes).get
-                  (TIMEOUT_MS);
-          // Check response is OK
-          Assert.assertEquals(wsResponse.getStatus(), OK);
-          // Check Content-Type
-          Assert.assertEquals(wsResponse.getHeader("Content-Type"), "application/json; charset=utf-8");
-          // Retrieve updated element
-          JsonNode actual = null;
-          try {
-            actual =
-                WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE + "/" + URLEncoder.encode(id, "UTF-8")).get().get
-                    (TIMEOUT_MS).asJson();
-          } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-          }
-          // Check if the modifications have been done correctly
-          Assert.assertNotNull(actual.get("name"));
-          Assert.assertEquals(updatedName, actual.get("name").asText());
-          Assert.assertNotNull(actual.get("value"));
-          Assert.assertEquals(elementCreated.get("value"), actual.get("value"));
-        } catch (UnsupportedEncodingException e) {
-          e.printStackTrace();
-        }
-      }
-    });
-  }
-
-  @Test
-  public void deleteTemplateElementTest() {
-    running(testServer(TEST_SERVER_PORT), new Runnable() {
-      public void run() {
-        try {
-          // Create an element
-          JsonNode elementCreated = WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE).post(templateElement1).get
-              (TIMEOUT_MS).asJson();
-          String id = elementCreated.get("@id").asText();
-          // Service invocation - Delete
-          WSResponse wsResponse = WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE + "/" + URLEncoder.encode(id, "UTF-8"))
-              .delete()
-              .get(TIMEOUT_MS);
-          // Check response is OK
-          Assert.assertEquals(wsResponse.getStatus(), NO_CONTENT);
-          // Check that the element has been deleted by trying to find it by id
-          WSResponse wsResponse1 = WS.url(SERVER_URL + TEMPLATE_ELEMENTS_ROUTE + "/" + URLEncoder.encode(id, "UTF-8")
-          ).get().get(TIMEOUT_MS);
-          Assert.assertEquals(NOT_FOUND, wsResponse1.getStatus());
-        } catch (UnsupportedEncodingException e) {
-          e.printStackTrace();
-        }
-      }
-    });
-  }
-
-  // Helper method to remove all elements from the DB
-  public void deleteAllTemplateElements() {
-    DataServices.getInstance().getTemplateElementService().deleteAllTemplateElements();
   }
 }

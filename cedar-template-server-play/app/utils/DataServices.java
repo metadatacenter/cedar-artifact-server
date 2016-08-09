@@ -17,38 +17,46 @@ public class DataServices {
   private static DiagnosticsService<JsonNode> diagnosticsService;
   private static UserService userService;
   private static CedarConfig cedarConfig;
+  private static boolean initialized = false;
 
   public static DataServices getInstance() {
+    if (!initialized) {
+      // Default initializer
+      init();
+    }
     return instance;
   }
 
-  private DataServices() {
+  // Regular initialization
+  public static void init() {
     cedarConfig = CedarConfig.getInstance();
+    initializeTemplateServices(cedarConfig.getMongoConfig().getDatabaseName());
+    initializeOtherServices(cedarConfig.getMongoConfig().getDatabaseName());
+    initialized = true;
+  }
 
+  // Initialization for testing
+  public static void initForTest() {
+    cedarConfig = CedarConfig.getInstance();
+    initializeTemplateServices(cedarConfig.getMongoConfig().getDatabaseNameTest());
+    // All the rest information, such as users, will be read from the regular DB
+    initializeOtherServices(cedarConfig.getMongoConfig().getDatabaseName());
+    initialized = true;
+  }
+
+  private static void initializeTemplateServices(String dbName) {
     templateElementService = new TemplateElementServiceMongoDB(
-        cedarConfig.getMongoConfig().getDatabaseName(),
-        cedarConfig.getMongoCollectionName(CedarNodeType.ELEMENT));
+        dbName, cedarConfig.getMongoCollectionName(CedarNodeType.ELEMENT));
 
     templateService = new TemplateServiceMongoDB(
-        cedarConfig.getMongoConfig().getDatabaseName(),
-        cedarConfig.getMongoCollectionName(CedarNodeType.TEMPLATE),
+        dbName, cedarConfig.getMongoCollectionName(CedarNodeType.TEMPLATE),
         templateElementService);
 
     templateInstanceService = new TemplateInstanceServiceMongoDB(
-        cedarConfig.getMongoConfig().getDatabaseName(),
-        cedarConfig.getMongoCollectionName(CedarNodeType.INSTANCE));
+        dbName, cedarConfig.getMongoCollectionName(CedarNodeType.INSTANCE));
 
     templateFieldService = new TemplateFieldServiceMongoDB(
-        cedarConfig.getMongoConfig().getDatabaseName(),
-        cedarConfig.getMongoCollectionName(CedarNodeType.FIELD));
-
-    diagnosticsService = new DiagnosticsServiceMongoDB(
-        cedarConfig.getMongoConfig().getDatabaseName());
-
-    userService = new UserServiceMongoDB(
-        cedarConfig.getMongoConfig().getDatabaseName(),
-        cedarConfig.getMongoCollectionName(CedarNodeType.USER));
-
+        dbName, cedarConfig.getMongoCollectionName(CedarNodeType.FIELD));
 
     TemplateElementServerController.injectTemplateElementService(templateElementService);
     TemplateElementServerController.injectTemplateFieldService(templateFieldService);
@@ -56,6 +64,12 @@ public class DataServices {
     TemplateServerController.injectTemplateFieldService(templateFieldService);
     TemplateInstanceServerController.injectTemplateInstanceService(templateInstanceService);
     TemplateFieldServerController.injectTemplateFieldService(templateFieldService);
+  }
+
+  private static void initializeOtherServices(String dbName) {
+    diagnosticsService = new DiagnosticsServiceMongoDB(dbName);
+    userService = new UserServiceMongoDB(dbName, cedarConfig.getMongoCollectionName(CedarNodeType.USER));
+
     DiagnosticsController.injectDiagnosticsService(diagnosticsService);
   }
 
@@ -63,7 +77,15 @@ public class DataServices {
     return templateElementService;
   }
 
+  public TemplateService<String, JsonNode> getTemplateService() {
+    return templateService;
+  }
+
   public UserService getUserService() {
     return userService;
+  }
+
+  public CedarConfig getCedarConfig() {
+    return cedarConfig;
   }
 }
