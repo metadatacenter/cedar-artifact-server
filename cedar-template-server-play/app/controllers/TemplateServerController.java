@@ -7,6 +7,7 @@ import org.metadatacenter.model.CedarNodeType;
 import org.metadatacenter.server.model.provenance.ProvenanceInfo;
 import org.metadatacenter.server.security.Authorization;
 import org.metadatacenter.server.security.CedarAuthFromRequestFactory;
+import org.metadatacenter.server.security.exception.AuthorizationTypeNotFoundException;
 import org.metadatacenter.server.security.model.IAuthRequest;
 import org.metadatacenter.server.security.model.auth.CedarPermission;
 import org.metadatacenter.server.service.FieldNameInEx;
@@ -75,6 +76,9 @@ public class TemplateServerController extends AbstractTemplateServerController {
     } catch (AccessException e) {
       Logger.error("Access Error while creating the template", e);
       return forbiddenWithError(e);
+    } catch (AuthorizationTypeNotFoundException e) {
+      Logger.error("Authorization header not found", e);
+      return unauthorizedWithError(e);
     } catch (Exception e) {
       Logger.error("Error while creating the template", e);
       return internalServerErrorWithError(e);

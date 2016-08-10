@@ -12,7 +12,7 @@ public class TestUtils {
 
   public static String getTestAuthHeader() {
     CedarConfig cedarConfig = DataServices.getInstance().getCedarConfig();
-    // TODO: we should probably use a user specifically created for tests here instead of admin
+    // TODO: use here a user specifically created for tests instead of admin
     String adminUserUUID = cedarConfig.getKeycloakConfig().getAdminUser().getUuid();
     CedarUser user = null;
     try {

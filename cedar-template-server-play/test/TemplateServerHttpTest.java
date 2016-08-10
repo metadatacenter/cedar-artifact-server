@@ -1,16 +1,21 @@
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.*;
+import org.junit.rules.TestRule;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
 import org.metadatacenter.config.CedarConfig;
-import play.libs.Json;
 import play.libs.ws.WS;
 import play.libs.ws.WSResponse;
 import utils.DataServices;
 import utils.TestUtils;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
+import java.io.File;
+import java.io.IOException;
 
 import static play.test.Helpers.*;
+import static utils.TestConstants.*;
 
 public class TemplateServerHttpTest {
 
@@ -21,7 +26,6 @@ public class TemplateServerHttpTest {
   private static final String AUTH_HEADER = TestUtils.getTestAuthHeader();
 
   private static JsonNode template1;
-  private static JsonNode template2;
 
   /**
    * One-time initialization code.
@@ -44,13 +48,12 @@ public class TemplateServerHttpTest {
    */
   @Before
   public void setUp() {
-    // TODO: create valid template
-    template1 = Json.newObject().
-        //put("@id", "http://metadatacenter.org/template-elements/682c8141-9a61-4899-9d21-7083e861b0bf").
-            put("name", "template element 1 name").put("value", "template element 1 value");
-    template2 = Json.newObject().
-        //put("@id", "http://metadatacenter.org/template-elements/1dd58530-fdba-4c06-8d31-539b18296d8b").
-            put("name", "template element 2 name").put("value", "template element 2 value");
+    ObjectMapper mapper = new ObjectMapper();
+    try {
+      template1 = mapper.readTree(new File(SAMPLE_TEMPLATE_PATH));
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
     deleteAllTemplates();
   }
 
@@ -63,6 +66,15 @@ public class TemplateServerHttpTest {
     deleteAllTemplates();
   }
 
+  @Rule
+  public TestRule watcher = new TestWatcher() {
+    protected void starting(Description description) {
+      System.out.println("\n------ Test class: " +
+          this.getClass().getName().substring(0, this.getClass().getName().indexOf("$")) +
+          ", Test: " + description.getMethodName() + " ------");
+    }
+  };
+
   @Test
   public void createTemplateTest() {
     running(testServer(TEST_SERVER_PORT), new Runnable() {
@@ -70,31 +82,47 @@ public class TemplateServerHttpTest {
         // Service invocation - Create
         WSResponse wsResponse =
             WS.url(SERVER_URL + BASE_ROUTE).setHeader("Authorization", AUTH_HEADER).post(template1).get(TIMEOUT_MS);
-
-        String createdId = wsResponse.asJson().get("@id").asText();
         // Check HTTP response
         Assert.assertEquals(CREATED, wsResponse.getStatus());
         // Check Content-Type
         Assert.assertEquals("application/json; charset=utf-8", wsResponse.getHeader("Content-Type"));
+        // Read location header
+        String location = wsResponse.getHeader(LOCATION);
         // Retrieve the element created
-        JsonNode actual = null;
-        try {
-          actual = WS.url(SERVER_URL + BASE_ROUTE + "/" + URLEncoder.encode(createdId, "UTF-8"))
-              .setHeader("Authorization", AUTH_HEADER).get().get(TIMEOUT_MS).asJson();
-        } catch (UnsupportedEncodingException e) {
-          e.printStackTrace();
-        }
+        JsonNode actual = WS.url(location).setHeader("Authorization", AUTH_HEADER).get().get(TIMEOUT_MS).asJson();
         JsonNode expected = template1;
-        // Check fields
-        Assert.assertNotNull(actual.get("name"));
-        Assert.assertEquals(expected.get("name"), actual.get("name"));
-        Assert.assertNotNull(actual.get("value"));
-        Assert.assertEquals(expected.get("value"), actual.get("value"));
+        // Check that id and provenance information have been generated
+        Assert.assertNotEquals(actual.get(ID_FIELD), null);
+        for (String provField : PROV_FIELDS) {
+          Assert.assertNotEquals(actual.get(provField), null);
+        }
+        // Check that all the other fields contain the expected values
+        ((ObjectNode) expected).remove(ID_FIELD);
+        ((ObjectNode) actual).remove(ID_FIELD);
+        for (String provField : PROV_FIELDS) {
+          ((ObjectNode) expected).remove(provField);
+          ((ObjectNode) actual).remove(provField);
+        }
+        Assert.assertEquals(expected, actual);
       }
     });
   }
 
-  // Helper method to remove all templates from DB
+  @Test
+  public void missingAuthorizationHeaderTest() {
+    running(testServer(TEST_SERVER_PORT), new Runnable() {
+      public void run() {
+        // Service invocation - Create
+        WSResponse wsResponse =
+            WS.url(SERVER_URL + BASE_ROUTE).post(template1).get(TIMEOUT_MS);
+        // Check HTTP response
+        Assert.assertEquals(UNAUTHORIZED, wsResponse.getStatus());
+      }
+    });
+  }
+  
+  /*** Helper methods ***/
+
   public void deleteAllTemplates() {
     running(testServer(TEST_SERVER_PORT), new Runnable() {
       public void run() {
