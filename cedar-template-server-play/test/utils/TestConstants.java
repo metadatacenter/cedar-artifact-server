@@ -1,5 +1,8 @@
 package utils;
 
+import org.metadatacenter.config.CedarConfig;
+import org.metadatacenter.model.CedarNodeType;
+
 public class TestConstants {
 
   static {
@@ -11,14 +14,39 @@ public class TestConstants {
       cedarPath = workingFolder.substring(0, workingFolder.indexOf(projectFolderName));
     }
     TEST_RESOURCES_PATH = cedarPath + "cedar-template-server/cedar-template-server-play/test/resources/";
-
   }
 
+  /* General constants */
   public static final String TEST_RESOURCES_PATH;
-  public static final String SAMPLE_TEMPLATE_PATH = TEST_RESOURCES_PATH + "SampleTemplate.json";
   public static final String[] PROV_FIELDS = {"pav:createdOn", "pav:createdBy", "pav:lastUpdatedOn", "cedar:lastUpdatedBy"};
   public static final String ID_FIELD = "@id";
+  public static final String WRONG_API_KEY = "11111111-2222-3333-4444-555555555555";
+  public static final String CONTENT_TYPE_HEADER = "application/json; charset=utf-8";
+  public static final String INVALID_JSON = "{sometext}";
+  public static final int TEST_SERVER_PORT = CedarConfig.getInstance().getTestConfig().getPort();
+  public static final String SERVER_URL = CedarConfig.getInstance().getTestConfig().getBase() + ":" + TEST_SERVER_PORT;
+  public static final int TIMEOUT_MS = CedarConfig.getInstance().getTestConfig().getTimeout();
+  public static final String AUTH_HEADER = TestUtils.getTestAuthHeader();
 
+  /* Templates */
+  public static final String RESOURCE_TYPE_TEMPLATE = CedarNodeType.TEMPLATE.name();
+  public static final String TEMPLATE_ROUTE = CedarConfig.getInstance().getTestConfig().getTemplate().getBaseRoute();
+  public static final String SAMPLE_TEMPLATE_PATH = TEST_RESOURCES_PATH + "SampleTemplate.json";
+
+  /* Template Elements */
+  public static final String RESOURCE_TYPE_ELEMENT = CedarNodeType.ELEMENT.name();
+  public static final String ELEMENT_ROUTE = CedarConfig.getInstance().getTestConfig().getElement().getBaseRoute();
+  public static final String SAMPLE_ELEMENT_PATH = TEST_RESOURCES_PATH + "SampleElement.json";
+
+  /* Template Fields */
+  public static final String RESOURCE_TYPE_FIELD = CedarNodeType.FIELD.name();
+  public static final String FIELD_ROUTE = CedarConfig.getInstance().getTestConfig().getField().getBaseRoute();
+  public static final String SAMPLE_FIELD_PATH = TEST_RESOURCES_PATH + "SampleField.json";
+
+  /* Template Instances */
+  public static final String RESOURCE_TYPE_INSTANCE = CedarNodeType.INSTANCE.name();
+  public static final String INSTANCE_ROUTE = CedarConfig.getInstance().getTestConfig().getInstance().getBaseRoute();
+  public static final String SAMPLE_INSTANCE_PATH = TEST_RESOURCES_PATH + "SampleInstance.json";
 
 
   // PRIVATE //

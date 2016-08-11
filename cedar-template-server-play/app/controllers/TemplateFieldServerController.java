@@ -7,7 +7,9 @@ import org.metadatacenter.model.CedarNodeType;
 import org.metadatacenter.server.model.provenance.ProvenanceInfo;
 import org.metadatacenter.server.security.Authorization;
 import org.metadatacenter.server.security.CedarAuthFromRequestFactory;
+import org.metadatacenter.server.security.exception.AuthorizationTypeNotFoundException;
 import org.metadatacenter.server.security.exception.CedarAccessException;
+import org.metadatacenter.server.security.exception.CedarUserNotFoundException;
 import org.metadatacenter.server.security.model.IAuthRequest;
 import org.metadatacenter.server.security.model.auth.CedarPermission;
 import org.metadatacenter.server.service.FieldNameInEx;
@@ -22,6 +24,7 @@ import play.libs.Json;
 import play.mvc.Result;
 
 import javax.management.InstanceNotFoundException;
+import java.rmi.AccessException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -46,7 +49,12 @@ public class TemplateFieldServerController extends AbstractTemplateServerControl
     try {
       IAuthRequest authRequest = CedarAuthFromRequestFactory.fromRequest(request());
       Authorization.getUserAndEnsurePermission(authRequest, CedarPermission.TEMPLATE_FIELD_CREATE);
+
       JsonNode templateField = request().body().asJson();
+      if (templateField == null) {
+        Logger.error("Expecting Json data");
+        return badRequest("Expecting Json data");
+      }
 
       ProvenanceInfo pi = ProvenanceUtil.build(cedarConfig, authRequest);
       checkImportModeSetProvenanceAndId(CedarNodeType.FIELD, templateField, pi, importMode);
@@ -61,9 +69,18 @@ public class TemplateFieldServerController extends AbstractTemplateServerControl
       response().setHeader(HttpConstants.HTTP_HEADER_LOCATION, absoluteUrl);
       // Return created response
       return created(createdTemplateField);
-    } catch (CedarAccessException e) {
+    } catch (IllegalArgumentException e) {
+      Logger.error("Illegal Argument while creating the template field", e);
+      return badRequestWithError(e);
+    } catch (CedarUserNotFoundException e) {
+      Logger.error("User not found", e);
+      return unauthorizedWithError(e);
+    } catch (AccessException e) {
       Logger.error("Access Error while creating the template field", e);
       return forbiddenWithError(e);
+    } catch (AuthorizationTypeNotFoundException e) {
+      Logger.error("Authorization header not found", e);
+      return badRequestWithError(e);
     } catch (Exception e) {
       Logger.error("Error while creating the template field", e);
       return internalServerErrorWithError(e);

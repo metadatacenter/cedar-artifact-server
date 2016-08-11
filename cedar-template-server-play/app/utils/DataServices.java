@@ -45,25 +45,28 @@ public class DataServices {
   }
 
   private static void initializeTemplateServices(String dbName) {
-    templateElementService = new TemplateElementServiceMongoDB(
-        dbName, cedarConfig.getMongoCollectionName(CedarNodeType.ELEMENT));
-
     templateService = new TemplateServiceMongoDB(
         dbName, cedarConfig.getMongoCollectionName(CedarNodeType.TEMPLATE),
         templateElementService);
 
-    templateInstanceService = new TemplateInstanceServiceMongoDB(
-        dbName, cedarConfig.getMongoCollectionName(CedarNodeType.INSTANCE));
+    templateElementService = new TemplateElementServiceMongoDB(
+        dbName, cedarConfig.getMongoCollectionName(CedarNodeType.ELEMENT));
 
     templateFieldService = new TemplateFieldServiceMongoDB(
         dbName, cedarConfig.getMongoCollectionName(CedarNodeType.FIELD));
 
-    TemplateElementServerController.injectTemplateElementService(templateElementService);
-    TemplateElementServerController.injectTemplateFieldService(templateFieldService);
+    templateInstanceService = new TemplateInstanceServiceMongoDB(
+        dbName, cedarConfig.getMongoCollectionName(CedarNodeType.INSTANCE));
+
     TemplateServerController.injectTemplateService(templateService);
     TemplateServerController.injectTemplateFieldService(templateFieldService);
-    TemplateInstanceServerController.injectTemplateInstanceService(templateInstanceService);
+
+    TemplateElementServerController.injectTemplateElementService(templateElementService);
+    TemplateElementServerController.injectTemplateFieldService(templateFieldService);
+
     TemplateFieldServerController.injectTemplateFieldService(templateFieldService);
+
+    TemplateInstanceServerController.injectTemplateInstanceService(templateInstanceService);
   }
 
   private static void initializeOtherServices(String dbName) {
@@ -73,12 +76,20 @@ public class DataServices {
     DiagnosticsController.injectDiagnosticsService(diagnosticsService);
   }
 
+  public TemplateService<String, JsonNode> getTemplateService() {
+    return templateService;
+  }
+
   public TemplateElementService<String, JsonNode> getTemplateElementService() {
     return templateElementService;
   }
 
-  public TemplateService<String, JsonNode> getTemplateService() {
-    return templateService;
+  public TemplateFieldService<String, JsonNode> getTemplateFieldService() {
+    return templateFieldService;
+  }
+
+  public TemplateInstanceService<String, JsonNode> getTemplateInstanceService() {
+    return templateInstanceService;
   }
 
   public UserService getUserService() {
