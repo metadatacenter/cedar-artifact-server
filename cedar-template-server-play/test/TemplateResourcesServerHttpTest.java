@@ -8,7 +8,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import play.Logger;
-import play.libs.Json;
 import play.libs.ws.WS;
 import play.libs.ws.WSResponse;
 import utils.DataServices;
@@ -39,10 +38,10 @@ public class TemplateResourcesServerHttpTest {
   @Parameters(name="{0}")
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
-        {RESOURCE_TYPE_TEMPLATE, TEMPLATE_ROUTE, SAMPLE_TEMPLATE_PATH},
-        {RESOURCE_TYPE_ELEMENT, ELEMENT_ROUTE, SAMPLE_ELEMENT_PATH},
-        {RESOURCE_TYPE_FIELD, FIELD_ROUTE, SAMPLE_FIELD_PATH},
-        {RESOURCE_TYPE_INSTANCE, INSTANCE_ROUTE, SAMPLE_INSTANCE_PATH}
+        {RESOURCE_TYPE_TEMPLATE, TEMPLATE_ROUTE, SAMPLE_TEMPLATE_PATH, NON_EXISTENT_TEMPLATE_ID},
+        {RESOURCE_TYPE_ELEMENT, ELEMENT_ROUTE, SAMPLE_ELEMENT_PATH, NON_EXISTENT_ELEMENT_ID},
+        {RESOURCE_TYPE_FIELD, FIELD_ROUTE, SAMPLE_FIELD_PATH, NON_EXISTENT_FIELD_ID},
+        {RESOURCE_TYPE_INSTANCE, INSTANCE_ROUTE, SAMPLE_INSTANCE_PATH, NON_EXISTENT_INSTANCE_ID}
     });
   }
 
@@ -52,8 +51,10 @@ public class TemplateResourcesServerHttpTest {
   // receive an error before sending the json to the service. By using String, we force the service to do the json
   // conversion and we can test whether the server returns the appropriate HTTP status codes
   private String sampleResource;
+  public String nonExistentResourceId;
 
-  public TemplateResourcesServerHttpTest(String resourceType, String resourceUrlRoute, String sampleResourcePath) {
+  public TemplateResourcesServerHttpTest(String resourceType, String resourceUrlRoute,
+                                         String sampleResourcePath, String nonExistentResourceId) {
     this.resourceType = resourceType;
     this.resourceUrlRoute = resourceUrlRoute;
     try {
@@ -61,6 +62,7 @@ public class TemplateResourcesServerHttpTest {
     } catch (IOException e) {
       e.printStackTrace();
     }
+    this.nonExistentResourceId = nonExistentResourceId;
   }
 
   /**
@@ -108,48 +110,9 @@ public class TemplateResourcesServerHttpTest {
     }
   };
 
-  @Test
-  public void malformedBodyTest() {
-    running(testServer(TEST_SERVER_PORT), new Runnable() {
-      public void run() {
-        WSResponse wsResponse = null;
-        // Empty json
-        wsResponse = WS.url(SERVER_URL + resourceUrlRoute).setHeader("Authorization", AUTH_HEADER).post("").get(TIMEOUT_MS);
-        Assert.assertEquals(BAD_REQUEST, wsResponse.getStatus());
-        // Invalid json
-        wsResponse = WS.url(SERVER_URL + resourceUrlRoute).setHeader("Authorization", AUTH_HEADER).post(INVALID_JSON).get
-            (TIMEOUT_MS);
-        Assert.assertEquals(BAD_REQUEST, wsResponse.getStatus());
-      }
-    });
-  }
-
-  @Test
-  public void missingAuthorizationHeaderTest() {
-    running(testServer(TEST_SERVER_PORT), new Runnable() {
-      public void run() {
-        // Service invocation - Create
-        WSResponse wsResponse =
-            WS.url(SERVER_URL + resourceUrlRoute).post(sampleResource).get(TIMEOUT_MS);
-        // Check HTTP response
-        Assert.assertEquals(BAD_REQUEST, wsResponse.getStatus());
-      }
-    });
-  }
-
-  @Test
-  public void unauthorizedKeyTest() {
-    running(testServer(TEST_SERVER_PORT), new Runnable() {
-      public void run() {
-        String authHeader = "apiKey " + WRONG_API_KEY;
-        // Service invocation - Create
-        WSResponse wsResponse =
-            WS.url(SERVER_URL + resourceUrlRoute).setHeader("Authorization", authHeader).post(sampleResource).get(TIMEOUT_MS);
-        // Check HTTP response
-        Assert.assertEquals(UNAUTHORIZED, wsResponse.getStatus());
-      }
-    });
-  }
+  /**
+   * 'CREATE' TESTS
+   */
 
   @Test
   public void createResourceTest() {
@@ -187,6 +150,53 @@ public class TemplateResourcesServerHttpTest {
   }
 
   @Test
+  public void createResourceMalformedBodyTest() {
+    running(testServer(TEST_SERVER_PORT), new Runnable() {
+      public void run() {
+        WSResponse wsResponse = null;
+        // Empty json
+        wsResponse = WS.url(SERVER_URL + resourceUrlRoute).setHeader("Authorization", AUTH_HEADER).post("").get(TIMEOUT_MS);
+        Assert.assertEquals(BAD_REQUEST, wsResponse.getStatus());
+        // Invalid json
+        wsResponse = WS.url(SERVER_URL + resourceUrlRoute).setHeader("Authorization", AUTH_HEADER).post(INVALID_JSON).get
+            (TIMEOUT_MS);
+        Assert.assertEquals(BAD_REQUEST, wsResponse.getStatus());
+      }
+    });
+  }
+
+  @Test
+  public void createResourceMissingAuthorizationHeaderTest() {
+    running(testServer(TEST_SERVER_PORT), new Runnable() {
+      public void run() {
+        // Service invocation - Create
+        WSResponse wsResponse =
+            WS.url(SERVER_URL + resourceUrlRoute).post(sampleResource).get(TIMEOUT_MS);
+        // Check HTTP response
+        Assert.assertEquals(BAD_REQUEST, wsResponse.getStatus());
+      }
+    });
+  }
+
+  @Test
+  public void createResourceUnauthorizedKeyTest() {
+    running(testServer(TEST_SERVER_PORT), new Runnable() {
+      public void run() {
+        String authHeader = "apiKey " + NON_EXISTENT_API_KEY;
+        // Service invocation - Create
+        WSResponse wsResponse =
+            WS.url(SERVER_URL + resourceUrlRoute).setHeader("Authorization", authHeader).post(sampleResource).get(TIMEOUT_MS);
+        // Check HTTP response
+        Assert.assertEquals(UNAUTHORIZED, wsResponse.getStatus());
+      }
+    });
+  }
+
+  /**
+   * 'FIND' TESTS
+   */
+
+  @Test
   public void findResourceTest() {
     running(testServer(TEST_SERVER_PORT), new Runnable() {
       public void run() {
@@ -214,6 +224,106 @@ public class TemplateResourcesServerHttpTest {
         // Check the element retrieved
         JsonNode actual = wsResponseFind.asJson();
         Assert.assertEquals(expected, actual);
+      }
+    });
+  }
+
+  @Test
+  public void findNonExistentResourceTest() {
+    running(testServer(TEST_SERVER_PORT), new Runnable() {
+      public void run() {
+        // Service invocation - Find by Id
+        WSResponse wsResponseFind = null;
+        try {
+          wsResponseFind = WS.url(SERVER_URL + resourceUrlRoute + "/" + URLEncoder.encode(nonExistentResourceId,
+              "UTF-8"))
+              .setHeader("Authorization", AUTH_HEADER)
+              .get().get(TIMEOUT_MS);
+        } catch (UnsupportedEncodingException e) {
+          e.printStackTrace();
+        }
+        // Check response
+        Assert.assertEquals(NOT_FOUND, wsResponseFind.getStatus());
+      }
+    });
+  }
+
+  @Test
+  // How to use multiple invalid ids? "bla", null, unencoded URL
+  public void findInvalidIdTest() {
+    running(testServer(TEST_SERVER_PORT), new Runnable() {
+      public void run() {
+        String id1 = "bla";
+        String id2 = null;
+        // Service invocation - Find by Id
+        WSResponse wsResponseFind1 = null;
+        WSResponse wsResponseFind2 = null;
+        try {
+          wsResponseFind = WS.url(SERVER_URL + resourceUrlRoute + "/" + id1)
+              .setHeader("Authorization", AUTH_HEADER)
+              .get().get(TIMEOUT_MS);
+          wsResponseFind2 = WS.url(SERVER_URL + resourceUrlRoute + "/" + id2)
+              .setHeader("Authorization", AUTH_HEADER)
+              .get().get(TIMEOUT_MS);
+        } catch (UnsupportedEncodingException e) {
+          e.printStackTrace();
+        }
+        // Check response
+        Assert.assertEquals(NOT_FOUND, wsResponseFind.getStatus());
+      }
+    });
+  }
+
+  @Test
+  public void findResourceMissingAuthorizationHeaderTest() {
+    running(testServer(TEST_SERVER_PORT), new Runnable() {
+      public void run() {
+        // Create a resource
+        WSResponse wsResponseCreate =
+            WS.url(SERVER_URL + resourceUrlRoute)
+                .setHeader("Content-Type", CONTENT_TYPE_HEADER)
+                .setHeader("Authorization", AUTH_HEADER).post(sampleResource).get(TIMEOUT_MS);
+        JsonNode expected = wsResponseCreate.asJson();
+        // Use generated id to retrieve the resource
+        String id = expected.get("@id").asText();
+        // Service invocation - Find by Id
+        WSResponse wsResponseFind = null;
+        try {
+          wsResponseFind = WS.url(SERVER_URL + resourceUrlRoute + "/" + URLEncoder.encode(id, "UTF-8"))
+              .get().get(TIMEOUT_MS);
+        } catch (UnsupportedEncodingException e) {
+          e.printStackTrace();
+        }
+        // Check HTTP response
+        Assert.assertEquals(BAD_REQUEST, wsResponseFind.getStatus());
+      }
+    });
+  }
+
+  @Test
+  public void findResourceUnauthorizedKeyTest() {
+    running(testServer(TEST_SERVER_PORT), new Runnable() {
+      public void run() {
+        // Create a resource
+        WSResponse wsResponseCreate =
+            WS.url(SERVER_URL + resourceUrlRoute)
+                .setHeader("Content-Type", CONTENT_TYPE_HEADER)
+                .setHeader("Authorization", AUTH_HEADER).post(sampleResource).get(TIMEOUT_MS);
+        JsonNode expected = wsResponseCreate.asJson();
+        // Use generated id to retrieve the resource
+        String id = expected.get("@id").asText();
+        // Service invocation - Find by Id
+        String authHeader = "apiKey " + NON_EXISTENT_API_KEY;
+        WSResponse wsResponseFind = null;
+        try {
+          wsResponseFind = WS.url(SERVER_URL + resourceUrlRoute + "/" + URLEncoder.encode(id, "UTF-8"))
+              .setHeader("Authorization", authHeader)
+              .get().get(TIMEOUT_MS);
+        } catch (UnsupportedEncodingException e) {
+          e.printStackTrace();
+        }
+        // Check HTTP response
+        Assert.assertEquals(UNAUTHORIZED, wsResponseFind.getStatus());
       }
     });
   }
@@ -254,16 +364,20 @@ public class TemplateResourcesServerHttpTest {
                   .setHeader("Content-Type", CONTENT_TYPE_HEADER)
                   .setHeader("Authorization", AUTH_HEADER).put(updated).get(TIMEOUT_MS);
           // Check response
-          Assert.assertEquals(NO_CONTENT, wsResponseUpdate.getStatus());
+          Assert.assertEquals(OK, wsResponseUpdate.getStatus());
+          // Check Content-Type
+          Assert.assertEquals("application/json; charset=utf-8", wsResponseUpdate.getHeader("Content-Type"));
           // Retrieve updated element
           WSResponse wsResponseFind = WS.url(SERVER_URL + resourceUrlRoute + "/" + URLEncoder.encode(id, "UTF-8"))
               .setHeader("Authorization", AUTH_HEADER).get().get(TIMEOUT_MS);
           JsonNode actual = wsResponseFind.asJson();
-          // Check if the modifications have been done correctly
+          // Check that the modifications have been done correctly
           Assert.assertNotNull(actual.get(fieldName));
-          Assert.assertEquals(updated, actual);
+          Assert.assertEquals(fieldNewValue, actual.get(fieldName).asText());
           // Check that all the other fields contain the expected values
+          ((ObjectNode) original).remove(fieldName);
           ((ObjectNode) actual).remove(fieldName);
+          Assert.assertEquals(original, actual);
         } catch (UnsupportedEncodingException e) {
           e.printStackTrace();
         }
