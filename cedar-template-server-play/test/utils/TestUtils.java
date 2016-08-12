@@ -50,8 +50,4 @@ public class TestUtils {
     return json;
   }
 
-  public static String getTestHeader(Description description, String resourceType) {
-    return "\n------ Test: " + description + " (Resource type: " + resourceType +  ") ------";
-  }
-
 }

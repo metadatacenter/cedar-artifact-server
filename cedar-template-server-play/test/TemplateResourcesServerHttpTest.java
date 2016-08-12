@@ -7,6 +7,8 @@ import org.junit.runner.Description;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import play.Logger;
+import play.libs.Json;
 import play.libs.ws.WS;
 import play.libs.ws.WSResponse;
 import utils.DataServices;
@@ -30,9 +32,11 @@ public class TemplateResourcesServerHttpTest {
    * - Check that error is returned if Authorization header is provided and apiKey is valid but it is inactive
    * - Check that error is returned if Authorization header is provided but the user does not have enough permissions
    * . It requires creating a new user without permissions to perform certain operations (e.g. TEMPLATE_CREATE)
+   * - Update non existing resource should create it (http://stackoverflow.com/questions/797834/should-a-restful-put-operation-return-something)
+   * - Find all resources
    */
 
-  @Parameters
+  @Parameters(name="{0}")
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
         {RESOURCE_TYPE_TEMPLATE, TEMPLATE_ROUTE, SAMPLE_TEMPLATE_PATH},
@@ -98,7 +102,9 @@ public class TemplateResourcesServerHttpTest {
   @Rule
   public TestRule watcher = new TestWatcher() {
     protected void starting(Description description) {
-      System.out.println(TestUtils.getTestHeader(description, resourceType));
+      log("------------------------------------------------------------------------");
+      log("TEST: " + description);
+      log("------------------------------------------------------------------------");
     }
   };
 
@@ -213,6 +219,93 @@ public class TemplateResourcesServerHttpTest {
   }
 
 //  @Test
+//  public void findAllResourcesTest() {
+//
+//  }
+
+//  @Test
+//  public void findResourceDetails() {
+//    running(testServer(TEST_SERVER_PORT), new Runnable() {
+//      public void run() {
+//
+//      }
+//    });
+//  }
+
+  @Test
+  public void updateResourceTest() {
+    running(testServer(TEST_SERVER_PORT), new Runnable() {
+      public void run() {
+        try {
+          // Create a resource
+          WSResponse wsResponseCreate =
+              WS.url(SERVER_URL + resourceUrlRoute)
+                  .setHeader("Content-Type", CONTENT_TYPE_HEADER)
+                  .setHeader("Authorization", AUTH_HEADER).post(sampleResource).get(TIMEOUT_MS);
+          JsonNode original = wsResponseCreate.asJson();
+          String id = original.get("@id").asText();
+          // Update the resource
+          String fieldName = "title";
+          String fieldNewValue = "This is a new title";
+          JsonNode updated = ((ObjectNode) original).put(fieldName, fieldNewValue);
+          // Service invocation - Update
+          WSResponse wsResponseUpdate =
+              WS.url(SERVER_URL + resourceUrlRoute + "/" + URLEncoder.encode(id, "UTF-8"))
+                  .setHeader("Content-Type", CONTENT_TYPE_HEADER)
+                  .setHeader("Authorization", AUTH_HEADER).put(updated).get(TIMEOUT_MS);
+          // Check response
+          Assert.assertEquals(NO_CONTENT, wsResponseUpdate.getStatus());
+          // Retrieve updated element
+          WSResponse wsResponseFind = WS.url(SERVER_URL + resourceUrlRoute + "/" + URLEncoder.encode(id, "UTF-8"))
+              .setHeader("Authorization", AUTH_HEADER).get().get(TIMEOUT_MS);
+          JsonNode actual = wsResponseFind.asJson();
+          // Check if the modifications have been done correctly
+          Assert.assertNotNull(actual.get(fieldName));
+          Assert.assertEquals(updated, actual);
+          // Check that all the other fields contain the expected values
+          ((ObjectNode) actual).remove(fieldName);
+        } catch (UnsupportedEncodingException e) {
+          e.printStackTrace();
+        }
+      }
+    });
+  }
+
+  @Test
+  public void deleteResourceTest() {
+    running(testServer(TEST_SERVER_PORT), new Runnable() {
+      public void run() {
+        try {
+          // Create a resource
+          WSResponse wsResponseCreate =
+              WS.url(SERVER_URL + resourceUrlRoute)
+                  .setHeader("Content-Type", CONTENT_TYPE_HEADER)
+                  .setHeader("Authorization", AUTH_HEADER).post(sampleResource).get(TIMEOUT_MS);
+          JsonNode created = wsResponseCreate.asJson();
+          String id = created.get("@id").asText();
+          // Service invocation - Delete
+          WSResponse wsResponse = WS.url(SERVER_URL + resourceUrlRoute + "/" + URLEncoder.encode(id, "UTF-8"))
+              .setHeader("Authorization", AUTH_HEADER)
+              .delete()
+              .get(TIMEOUT_MS);
+          // Check response is OK
+          Assert.assertEquals(NO_CONTENT, wsResponse.getStatus());
+          // Check that the resource has been deleted
+          WSResponse wsResponseFind = WS.url(SERVER_URL + resourceUrlRoute + "/" + URLEncoder.encode(id, "UTF-8"))
+              .setHeader("Authorization", AUTH_HEADER)
+              .get().get(TIMEOUT_MS);
+
+          Assert.assertEquals(NOT_FOUND, wsResponseFind.getStatus());
+
+        } catch (UnsupportedEncodingException e) {
+          e.printStackTrace();
+        }
+      }
+    });
+  }
+
+
+//  @Test
 //  public void findAllTemplatesTest() {}
 //  @Test
 //  public void findTemplateDetailsTest() {}
@@ -240,4 +333,13 @@ public class TemplateResourcesServerHttpTest {
       }
     });
   }
+
+  public void log(String message) {
+    running(testServer(TEST_SERVER_PORT), new Runnable() {
+      public void run() {
+        Logger.info(message);
+      }
+    });
+  }
+
 }
