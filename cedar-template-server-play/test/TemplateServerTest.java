@@ -1,9 +1,9 @@
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import junitparams.naming.TestCaseName;
+import org.apache.http.client.utils.URIBuilder;
 import org.junit.*;
 import org.junit.rules.TestRule;
 import org.junit.rules.TestWatcher;
@@ -15,13 +15,16 @@ import play.Logger;
 import play.libs.ws.WS;
 import play.libs.ws.WSResponse;
 import utils.DataServices;
+import utils.TestParameterUtils;
 import utils.TestUtils;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static play.test.Helpers.*;
@@ -350,39 +353,78 @@ public class TemplateServerTest {
    */
 
   @Test
-  @TestCaseName(TEST_NAME_PATTERN)
-  @Parameters(method = "getCommonParams1")
-  public void findAllResourcesTest(String resourceUrlRoute, String sampleResource) {
+  @TestCaseName(TEST_NAME_PATTERN + " limit={2}, offset={3}, summary={4}")
+  @Parameters
+  public void findAllResourcesTest(String resourceUrlRoute, String sampleResource, String limit, String offset,
+                                   String summary) {
     running(testServer(TEST_SERVER_PORT), new Runnable() {
       public void run() {
-        // Create several resources
-        List<JsonNode> resources = new ArrayList<>();
-        int num = 3;
-        for (int i = 0; i < num; i++) {
-          JsonNode created = WS.url(SERVER_URL + resourceUrlRoute)
-              .setHeader("Content-Type", CONTENT_TYPE_HEADER)
-              .setHeader("Authorization", AUTH_HEADER).post(sampleResource).get(TIMEOUT_MS).asJson();
-          resources.add(created);
+        try {
+          // Create several resources
+          List<JsonNode> resources = new ArrayList<>();
+          int num = 3;
+          for (int i = 0; i < num; i++) {
+            JsonNode created = WS.url(SERVER_URL + resourceUrlRoute)
+                .setHeader("Content-Type", CONTENT_TYPE_HEADER)
+                .setHeader("Authorization", AUTH_HEADER).post(sampleResource).get(TIMEOUT_MS).asJson();
+            resources.add(created);
+          }
+          // Find All
+          URIBuilder b = new URIBuilder(SERVER_URL + resourceUrlRoute);
+          if (limit.length() > 0) {
+            b.addParameter("limit", limit);
+          }
+          if (offset.length() > 0) {
+            b.addParameter("offset", offset);
+          }
+          if (summary.length() > 0) {
+            b.addParameter("summary", summary);
+          }
+          String url = b.build().toString();
+          WSResponse wsResponseFindAll = WS.url(url)
+              .setHeader("Authorization", AUTH_HEADER)
+              .get().get(TIMEOUT_MS);
+          // Check response is OK
+          Assert.assertEquals(OK, wsResponseFindAll.getStatus());
+          // Check headers
+          Assert.assertEquals(wsResponseFindAll.getHeader("Content-Type"), "application/json; charset=utf-8");
+          Assert.assertNotNull(wsResponseFindAll.getHeader(CustomHttpConstants.HEADER_TOTAL_COUNT));
+          Assert.assertNotNull(wsResponseFindAll.getHeader(HttpConstants.HTTP_HEADER_LINK));
+          // Check the number of elements retrieved
+          List<JsonNode> actual = new ArrayList<>();
+          for (JsonNode r : wsResponseFindAll.asJson()) {
+            actual.add(r);
+          }
+          int expectedSize = num;
+          if (limit.length() > 0) {
+            expectedSize = Math.min(num, Integer.parseInt(limit));
+          }
+          Assert.assertEquals(expectedSize, actual.size());
+          // Check the elements retrieved
+          List<JsonNode> expected = resources;
+          if (summary.compareTo("true") != 0) {
+            Assert.assertTrue(expected.containsAll(actual));
+          } else {
+            Assert.assertFalse(expected.containsAll(actual));
+          }
+        } catch (URISyntaxException e) {
+          e.printStackTrace();
         }
-        // Find All
-        WSResponse wsResponseFindAll = WS.url(SERVER_URL + resourceUrlRoute)
-            .setHeader("Authorization", AUTH_HEADER)
-            .get().get(TIMEOUT_MS);
-        // Check response is OK
-        Assert.assertEquals(OK, wsResponseFindAll.getStatus());
-        // Check headers
-        Assert.assertEquals(wsResponseFindAll.getHeader("Content-Type"), "application/json; charset=utf-8");
-        Assert.assertNotNull(wsResponseFindAll.getHeader(CustomHttpConstants.HEADER_TOTAL_COUNT));
-        Assert.assertNotNull(wsResponseFindAll.getHeader(HttpConstants.HTTP_HEADER_LINK));
-        // Check the elements retrieved
-        List<JsonNode> expected = resources;
-        List<JsonNode> actual = new ArrayList<>();
-        for (JsonNode r : wsResponseFindAll.asJson()) {
-          actual.add(r);
-        }
-        Assert.assertEquals(expected, actual);
       }
     });
+  }
+  private Object parametersForFindAllResourcesTest() {
+    List<Object> p1p2Values = Arrays.asList(
+        Arrays.asList(TEMPLATE_ROUTE, sampleTemplate),
+        Arrays.asList(ELEMENT_ROUTE, sampleElement),
+        Arrays.asList(FIELD_ROUTE, sampleField),
+        Arrays.asList(INSTANCE_ROUTE, sampleInstance));
+    List<Object> limitValues = Arrays.asList(Arrays.asList(""), Arrays.asList("2"), Arrays.asList("50"));
+    List<Object> offsetValues = Arrays.asList(Arrays.asList(""), Arrays.asList("0"));
+    List<Object> summaryValues = Arrays.asList(Arrays.asList(""), Arrays.asList("true"), Arrays.asList("false"));
+    // TODO: add fieldNames
+    return TestParameterUtils.getParameterPermutations(Arrays.asList(p1p2Values, limitValues, offsetValues,
+        summaryValues));
   }
 
 //  @Test
