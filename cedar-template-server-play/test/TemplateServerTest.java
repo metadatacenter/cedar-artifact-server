@@ -1,4 +1,5 @@
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
@@ -8,6 +9,8 @@ import org.junit.rules.TestRule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.junit.runner.RunWith;
+import org.metadatacenter.constant.CustomHttpConstants;
+import org.metadatacenter.constant.HttpConstants;
 import play.Logger;
 import play.libs.ws.WS;
 import play.libs.ws.WSResponse;
@@ -18,6 +21,8 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 import static play.test.Helpers.*;
 import static utils.TestConstants.*;
@@ -31,7 +36,8 @@ public class TemplateServerTest {
    * - Check that error is returned if Authorization header is provided but the user does not have enough permissions
    * . It requires creating a new user without permissions to perform certain operations (e.g. TEMPLATE_CREATE)
    * - Update non existing resource should create it (http://stackoverflow.com/questions/797834/should-a-restful-put-operation-return-something)
-   * - Find all resources
+   * - Find all resources: test pagination
+   *
    */
 
   // We could directly use JsonNode for the content sent to the server but then, if the Json is wrong, we would
@@ -335,6 +341,46 @@ public class TemplateServerTest {
         }
         // Check HTTP response
         Assert.assertEquals(UNAUTHORIZED, wsResponseFind.getStatus());
+      }
+    });
+  }
+
+  /**
+   * 'FIND ALL RESOURCES' TESTS
+   */
+
+  @Test
+  @TestCaseName(TEST_NAME_PATTERN)
+  @Parameters(method = "getCommonParams1")
+  public void findAllResourcesTest(String resourceUrlRoute, String sampleResource) {
+    running(testServer(TEST_SERVER_PORT), new Runnable() {
+      public void run() {
+        // Create several resources
+        List<JsonNode> resources = new ArrayList<>();
+        int num = 3;
+        for (int i = 0; i < num; i++) {
+          JsonNode created = WS.url(SERVER_URL + resourceUrlRoute)
+              .setHeader("Content-Type", CONTENT_TYPE_HEADER)
+              .setHeader("Authorization", AUTH_HEADER).post(sampleResource).get(TIMEOUT_MS).asJson();
+          resources.add(created);
+        }
+        // Find All
+        WSResponse wsResponseFindAll = WS.url(SERVER_URL + resourceUrlRoute)
+            .setHeader("Authorization", AUTH_HEADER)
+            .get().get(TIMEOUT_MS);
+        // Check response is OK
+        Assert.assertEquals(OK, wsResponseFindAll.getStatus());
+        // Check headers
+        Assert.assertEquals(wsResponseFindAll.getHeader("Content-Type"), "application/json; charset=utf-8");
+        Assert.assertNotNull(wsResponseFindAll.getHeader(CustomHttpConstants.HEADER_TOTAL_COUNT));
+        Assert.assertNotNull(wsResponseFindAll.getHeader(HttpConstants.HTTP_HEADER_LINK));
+        // Check the elements retrieved
+        List<JsonNode> expected = resources;
+        List<JsonNode> actual = new ArrayList<>();
+        for (JsonNode r : wsResponseFindAll.asJson()) {
+          actual.add(r);
+        }
+        Assert.assertEquals(expected, actual);
       }
     });
   }

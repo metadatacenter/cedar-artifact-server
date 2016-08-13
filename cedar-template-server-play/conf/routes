@@ -8,7 +8,7 @@ GET            /                              controllers.MainTemplateServerCont
 # Templates
 POST           /templates                     controllers.TemplateServerController.createTemplate(importMode: play.libs.F.Option[java.lang.Boolean])
 GET            /templates/:id                 controllers.TemplateServerController.findTemplate(id: String)
-GET            /templates                     controllers.TemplateServerController.findAllTemplates(limit: Integer ?= null, offset: Integer ?= 0, summary: Boolean ?= false, fieldNames: String ?= null)
+GET            /templates/?                     controllers.TemplateServerController.findAllTemplates(limit: Integer ?= null, offset: Integer ?= 0, summary: Boolean ?= false, fieldNames: String ?= null)
 PUT            /templates/:id                 controllers.TemplateServerController.updateTemplate(id: String)
 DELETE         /templates/:id                 controllers.TemplateServerController.deleteTemplate(id: String)
 
@@ -40,4 +40,4 @@ GET            /heartbeat                     controllers.DiagnosticsController.
 OPTIONS        /*all                          controllers.MainTemplateServerController.preflight(all)
 
 ## Map static resources from the /public folder to the /assets URL path
-GET         /assets/*file            controllers.Assets.at(path="/public", file)
+GET            /assets/*file                  controllers.Assets.at(path="/public", file)
