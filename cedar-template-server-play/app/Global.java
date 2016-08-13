@@ -22,8 +22,12 @@ public class Global extends GlobalSettings {
     // System.out.println("Execution mode: " + mode.name());
     // Modifies the configuration according to the execution mode (DEV, TEST, PROD)
     if (mode.name().compareTo("TEST") == 0) {
+      // Init test data services
+      DataServices.initForTest();
       return new Configuration(ConfigFactory.load("application." + mode.name().toLowerCase() + ".conf"));
     } else {
+      // Init data services
+      DataServices.init();
       return onLoadConfig(config, path, classloader); // default implementation
     }
   }
@@ -70,8 +74,6 @@ public class Global extends GlobalSettings {
 
   @Override
   public void onStart(Application application) {
-    // init data services
-    DataServices.getInstance();
     // init keycloak deployment
     KeycloakDeploymentProvider.getInstance();
     // init authorization resolver
