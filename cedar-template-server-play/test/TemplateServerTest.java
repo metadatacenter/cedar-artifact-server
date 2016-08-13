@@ -381,6 +381,7 @@ public class TemplateServerTest {
             b.addParameter("summary", summary);
           }
           String url = b.build().toString();
+          Logger.info("URL: " + url);
           WSResponse wsResponseFindAll = WS.url(url)
               .setHeader("Authorization", AUTH_HEADER)
               .get().get(TIMEOUT_MS);
