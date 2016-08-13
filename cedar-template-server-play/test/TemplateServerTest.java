@@ -1,12 +1,13 @@
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import junitparams.JUnitParamsRunner;
+import junitparams.Parameters;
+import junitparams.naming.TestCaseName;
 import org.junit.*;
 import org.junit.rules.TestRule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
 import play.Logger;
 import play.libs.ws.WS;
 import play.libs.ws.WSResponse;
@@ -17,14 +18,12 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Collection;
 
 import static play.test.Helpers.*;
 import static utils.TestConstants.*;
 
-@RunWith(Parameterized.class)
-public class TemplateResourcesServerHttpTest {
+@RunWith(JUnitParamsRunner.class)
+public class TemplateServerTest {
 
   /*
    * TODO:
@@ -35,34 +34,23 @@ public class TemplateResourcesServerHttpTest {
    * - Find all resources
    */
 
-  @Parameters(name="{0}")
-  public static Collection<Object[]> data() {
-    return Arrays.asList(new Object[][]{
-        {RESOURCE_TYPE_TEMPLATE, TEMPLATE_ROUTE, SAMPLE_TEMPLATE_PATH, NON_EXISTENT_TEMPLATE_ID},
-        {RESOURCE_TYPE_ELEMENT, ELEMENT_ROUTE, SAMPLE_ELEMENT_PATH, NON_EXISTENT_ELEMENT_ID},
-        {RESOURCE_TYPE_FIELD, FIELD_ROUTE, SAMPLE_FIELD_PATH, NON_EXISTENT_FIELD_ID},
-        {RESOURCE_TYPE_INSTANCE, INSTANCE_ROUTE, SAMPLE_INSTANCE_PATH, NON_EXISTENT_INSTANCE_ID}
-    });
-  }
-
-  private String resourceType;
-  private String resourceUrlRoute;
   // We could directly use JsonNode for the content sent to the server but then, if the Json is wrong, we would
   // receive an error before sending the json to the service. By using String, we force the service to do the json
   // conversion and we can test whether the server returns the appropriate HTTP status codes
-  private String sampleResource;
-  public String nonExistentResourceId;
+  private static String sampleTemplate;
+  private static String sampleElement;
+  private static String sampleField;
+  private static String sampleInstance;
 
-  public TemplateResourcesServerHttpTest(String resourceType, String resourceUrlRoute,
-                                         String sampleResourcePath, String nonExistentResourceId) {
-    this.resourceType = resourceType;
-    this.resourceUrlRoute = resourceUrlRoute;
+  static {
     try {
-      sampleResource = TestUtils.readFile(sampleResourcePath, StandardCharsets.UTF_8);
+      sampleTemplate = TestUtils.readFile(SAMPLE_TEMPLATE_PATH, StandardCharsets.UTF_8);
+      sampleElement = TestUtils.readFile(SAMPLE_ELEMENT_PATH, StandardCharsets.UTF_8);
+      sampleField = TestUtils.readFile(SAMPLE_FIELD_PATH, StandardCharsets.UTF_8);
+      sampleInstance = TestUtils.readFile(SAMPLE_INSTANCE_PATH, StandardCharsets.UTF_8);
     } catch (IOException e) {
       e.printStackTrace();
     }
-    this.nonExistentResourceId = nonExistentResourceId;
   }
 
   /**
@@ -115,7 +103,9 @@ public class TemplateResourcesServerHttpTest {
    */
 
   @Test
-  public void createResourceTest() {
+  @TestCaseName(TEST_NAME_PATTERN)
+  @Parameters(method = "getCommonParams1")
+  public void createResourceTest(String resourceUrlRoute, String sampleResource) {
     running(testServer(TEST_SERVER_PORT), new Runnable() {
       public void run() {
         // Service invocation - Create
@@ -150,7 +140,9 @@ public class TemplateResourcesServerHttpTest {
   }
 
   @Test
-  public void createResourceMalformedBodyTest() {
+  @TestCaseName(TEST_NAME_PATTERN)
+  @Parameters(method = "getCommonParams2")
+  public void createResourceMalformedBodyTest(String resourceUrlRoute) {
     running(testServer(TEST_SERVER_PORT), new Runnable() {
       public void run() {
         WSResponse wsResponse = null;
@@ -166,7 +158,9 @@ public class TemplateResourcesServerHttpTest {
   }
 
   @Test
-  public void createResourceMissingAuthorizationHeaderTest() {
+  @TestCaseName(TEST_NAME_PATTERN)
+  @Parameters(method = "getCommonParams1")
+  public void createResourceMissingAuthorizationHeaderTest(String resourceUrlRoute, String sampleResource) {
     running(testServer(TEST_SERVER_PORT), new Runnable() {
       public void run() {
         // Service invocation - Create
@@ -179,7 +173,9 @@ public class TemplateResourcesServerHttpTest {
   }
 
   @Test
-  public void createResourceUnauthorizedKeyTest() {
+  @TestCaseName(TEST_NAME_PATTERN)
+  @Parameters(method = "getCommonParams1")
+  public void createResourceUnauthorizedKeyTest(String resourceUrlRoute, String sampleResource) {
     running(testServer(TEST_SERVER_PORT), new Runnable() {
       public void run() {
         String authHeader = "apiKey " + NON_EXISTENT_API_KEY;
@@ -197,7 +193,9 @@ public class TemplateResourcesServerHttpTest {
    */
 
   @Test
-  public void findResourceTest() {
+  @TestCaseName(TEST_NAME_PATTERN)
+  @Parameters(method = "getCommonParams1")
+  public void findResourceTest(String resourceUrlRoute, String sampleResource) {
     running(testServer(TEST_SERVER_PORT), new Runnable() {
       public void run() {
         // Create a resource
@@ -229,7 +227,9 @@ public class TemplateResourcesServerHttpTest {
   }
 
   @Test
-  public void findNonExistentResourceTest() {
+  @TestCaseName(TEST_NAME_PATTERN)
+  @Parameters
+  public void findNonExistentResourceTest(String resourceUrlRoute, String nonExistentResourceId) {
     running(testServer(TEST_SERVER_PORT), new Runnable() {
       public void run() {
         // Service invocation - Find by Id
@@ -247,35 +247,44 @@ public class TemplateResourcesServerHttpTest {
       }
     });
   }
+  private Object parametersForFindNonExistentResourceTest() {
+    return new Object[]{
+        new Object[]{TEMPLATE_ROUTE, NON_EXISTENT_TEMPLATE_ID},
+        new Object[]{ELEMENT_ROUTE, NON_EXISTENT_ELEMENT_ID},
+        new Object[]{FIELD_ROUTE, NON_EXISTENT_FIELD_ID},
+        new Object[]{INSTANCE_ROUTE, NON_EXISTENT_INSTANCE_ID}
+    };
+  }
 
   @Test
-  // How to use multiple invalid ids? "bla", null, unencoded URL
-  public void findInvalidIdTest() {
+  @TestCaseName(TEST_NAME_PATTERN)
+  @Parameters
+  public void findInvalidIdTest(String resourceUrlRoute, String id) {
     running(testServer(TEST_SERVER_PORT), new Runnable() {
       public void run() {
-        String id1 = "bla";
-        String id2 = null;
         // Service invocation - Find by Id
-        WSResponse wsResponseFind1 = null;
-        WSResponse wsResponseFind2 = null;
-        try {
-          wsResponseFind = WS.url(SERVER_URL + resourceUrlRoute + "/" + id1)
-              .setHeader("Authorization", AUTH_HEADER)
-              .get().get(TIMEOUT_MS);
-          wsResponseFind2 = WS.url(SERVER_URL + resourceUrlRoute + "/" + id2)
-              .setHeader("Authorization", AUTH_HEADER)
-              .get().get(TIMEOUT_MS);
-        } catch (UnsupportedEncodingException e) {
-          e.printStackTrace();
-        }
+        WSResponse wsResponseFind = null;
+        wsResponseFind = WS.url(SERVER_URL + resourceUrlRoute + "/" + id)
+            .setHeader("Authorization", AUTH_HEADER)
+            .get().get(TIMEOUT_MS);
         // Check response
         Assert.assertEquals(NOT_FOUND, wsResponseFind.getStatus());
       }
     });
   }
+  private Object parametersForFindInvalidIdTest() {
+    return new Object[]{
+        new Object[]{TEMPLATE_ROUTE, INVALID_ID},
+        new Object[]{ELEMENT_ROUTE, INVALID_ID},
+        new Object[]{FIELD_ROUTE, INVALID_ID},
+        new Object[]{INSTANCE_ROUTE, INVALID_ID}
+    };
+  }
 
   @Test
-  public void findResourceMissingAuthorizationHeaderTest() {
+  @TestCaseName(TEST_NAME_PATTERN)
+  @Parameters(method = "getCommonParams1")
+  public void findResourceMissingAuthorizationHeaderTest(String resourceUrlRoute, String sampleResource) {
     running(testServer(TEST_SERVER_PORT), new Runnable() {
       public void run() {
         // Create a resource
@@ -301,7 +310,9 @@ public class TemplateResourcesServerHttpTest {
   }
 
   @Test
-  public void findResourceUnauthorizedKeyTest() {
+  @TestCaseName(TEST_NAME_PATTERN)
+  @Parameters(method = "getCommonParams1")
+  public void findResourceUnauthorizedKeyTest(String resourceUrlRoute, String sampleResource) {
     running(testServer(TEST_SERVER_PORT), new Runnable() {
       public void run() {
         // Create a resource
@@ -343,7 +354,9 @@ public class TemplateResourcesServerHttpTest {
 //  }
 
   @Test
-  public void updateResourceTest() {
+  @TestCaseName(TEST_NAME_PATTERN)
+  @Parameters(method = "getCommonParams1")
+  public void updateResourceTest(String resourceUrlRoute, String sampleResource) {
     running(testServer(TEST_SERVER_PORT), new Runnable() {
       public void run() {
         try {
@@ -386,7 +399,9 @@ public class TemplateResourcesServerHttpTest {
   }
 
   @Test
-  public void deleteResourceTest() {
+  @TestCaseName(TEST_NAME_PATTERN)
+  @Parameters(method = "getCommonParams1")
+  public void deleteResourceTest(String resourceUrlRoute, String sampleResource) {
     running(testServer(TEST_SERVER_PORT), new Runnable() {
       public void run() {
         try {
@@ -418,16 +433,6 @@ public class TemplateResourcesServerHttpTest {
     });
   }
 
-
-//  @Test
-//  public void findAllTemplatesTest() {}
-//  @Test
-//  public void findTemplateDetailsTest() {}
-//  @Test
-//  public void updateTemplateTest() {}
-//  @Test
-//  public void deleteTemplateTest() {}
-
   /***
    * Helper methods
    ***/
@@ -435,15 +440,10 @@ public class TemplateResourcesServerHttpTest {
   public void deleteAllResources() {
     running(testServer(TEST_SERVER_PORT), new Runnable() {
       public void run() {
-        if (resourceType.compareTo(RESOURCE_TYPE_TEMPLATE) == 0) {
-          DataServices.getInstance().getTemplateService().deleteAllTemplates();
-        } else if (resourceType.compareTo(RESOURCE_TYPE_ELEMENT) == 0) {
-          DataServices.getInstance().getTemplateElementService().deleteAllTemplateElements();
-        } else if (resourceType.compareTo(RESOURCE_TYPE_FIELD) == 0) {
-          DataServices.getInstance().getTemplateFieldService().deleteAllTemplateFields();
-        } else if (resourceType.compareTo(RESOURCE_TYPE_INSTANCE) == 0) {
-          DataServices.getInstance().getTemplateInstanceService().deleteAllTemplateInstances();
-        }
+        DataServices.getInstance().getTemplateService().deleteAllTemplates();
+        DataServices.getInstance().getTemplateElementService().deleteAllTemplateElements();
+        DataServices.getInstance().getTemplateFieldService().deleteAllTemplateFields();
+        DataServices.getInstance().getTemplateInstanceService().deleteAllTemplateInstances();
       }
     });
   }
@@ -454,6 +454,25 @@ public class TemplateResourcesServerHttpTest {
         Logger.info(message);
       }
     });
+  }
+
+  /***
+   * Common parameters
+   */
+
+  // String resourceUrlRoute, String sampleResource
+  private Object getCommonParams1() {
+    return new Object[]{
+        new Object[]{TEMPLATE_ROUTE, sampleTemplate},
+        new Object[]{ELEMENT_ROUTE, sampleElement},
+        new Object[]{FIELD_ROUTE, sampleField},
+        new Object[]{INSTANCE_ROUTE, sampleInstance}
+    };
+  }
+
+  // String sampleResource
+  private Object getCommonParams2() {
+    return new Object[]{TEMPLATE_ROUTE, ELEMENT_ROUTE, FIELD_ROUTE, INSTANCE_ROUTE};
   }
 
 }

@@ -27,6 +27,8 @@ public class TestConstants {
   public static final String SERVER_URL = CedarConfig.getInstance().getTestConfig().getBase() + ":" + TEST_SERVER_PORT;
   public static final int TIMEOUT_MS = CedarConfig.getInstance().getTestConfig().getTimeout();
   public static final String AUTH_HEADER = TestUtils.getTestAuthHeader();
+  public static final String INVALID_ID = "invalid-id";
+  public static final String TEST_NAME_PATTERN = "[{index}] {method}";
 
   /* Templates */
   public static final String RESOURCE_TYPE_TEMPLATE = CedarNodeType.TEMPLATE.name();
