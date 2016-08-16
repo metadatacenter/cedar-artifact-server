@@ -1,12 +1,11 @@
 {
   "@context": {
-    "_value": "https://schema.org/value",
     "pav": "http://purl.org/pav/",
     "cedar": "https://schema.metadatacenter.org/core/",
     "disease": "https://schema.staging.metadatacenter.net/properties/disease"
   },
   "disease": {
-    "_value": "Influenza"
+    "@value": "Influenza"
   },
   "_templateId": "https://repo.staging.metadatacenter.net/templates/0de7c6b9-79ea-48d7-808b-c87d4e4aaaa9",
   "_ui": {
