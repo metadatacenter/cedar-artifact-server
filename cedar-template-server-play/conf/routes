@@ -3,28 +3,41 @@
 # ~~~~
 
 # Home page
-GET            /                              controllers.Application.index()
+GET            /                              controllers.MainTemplateServerController.index()
+
 # Templates
-POST           /templates                     controllers.TemplateServerController.createTemplate()
-GET            /templates/:id                 controllers.TemplateServerController.findTemplate(id: String, expanded: Boolean ?= false, validation: Boolean ?= false)
-GET            /templates                     controllers.TemplateServerController.findAllTemplates()
+POST           /templates                     controllers.TemplateServerController.createTemplate(importMode: play.libs.F.Option[java.lang.Boolean])
+GET            /templates/:id                 controllers.TemplateServerController.findTemplate(id: String)
+GET            /templates                     controllers.TemplateServerController.findAllTemplates(limit: Integer ?= null, offset: Integer ?= 0, summary: Boolean ?= false, fieldNames: String ?= null)
 PUT            /templates/:id                 controllers.TemplateServerController.updateTemplate(id: String)
 DELETE         /templates/:id                 controllers.TemplateServerController.deleteTemplate(id: String)
+
 # Template Elements
-POST           /template_elements             controllers.TemplateServerController.createTemplateElement()
-GET            /template_elements/:id         controllers.TemplateServerController.findTemplateElement(id: String, expanded: Boolean ?= false, validation: Boolean ?= false)
-GET            /template_elements             controllers.TemplateServerController.findAllTemplateElements()
-PUT            /template_elements/:id         controllers.TemplateServerController.updateTemplateElement(id: String)
-DELETE         /template_elements/:id         controllers.TemplateServerController.deleteTemplateElement(id: String)
+POST           /template-elements             controllers.TemplateElementServerController.createTemplateElement(importMode: play.libs.F.Option[java.lang.Boolean])
+GET            /template-elements/:id         controllers.TemplateElementServerController.findTemplateElement(id: String)
+GET            /template-elements             controllers.TemplateElementServerController.findAllTemplateElements(limit: Integer ?= null, offset: Integer ?= 0, summary: Boolean ?= false, fieldNames: String ?= null)
+PUT            /template-elements/:id         controllers.TemplateElementServerController.updateTemplateElement(id: String)
+DELETE         /template-elements/:id         controllers.TemplateElementServerController.deleteTemplateElement(id: String)
+
+# Template Fields
+POST           /template-fields               controllers.TemplateFieldServerController.createTemplateField(importMode: play.libs.F.Option[java.lang.Boolean])
+GET            /template-fields/:id           controllers.TemplateFieldServerController.findTemplateField(id: String)
+GET            /template-fields               controllers.TemplateFieldServerController.findAllTemplateFields(limit: Integer ?= null, offset: Integer ?= 0, summary: Boolean ?= false, fieldNames: String ?= null)
+PUT            /template-fields/:id           controllers.TemplateFieldServerController.updateTemplateField(id: String)
+DELETE         /template-fields/:id           controllers.TemplateFieldServerController.deleteTemplateField(id: String)
+
 # Template Instances
-POST           /template_instances            controllers.TemplateServerController.createTemplateInstance()
-GET            /template_instances/:id        controllers.TemplateServerController.findTemplateInstance(id: String)
-GET            /template_instances            controllers.TemplateServerController.findAllTemplateInstances()
-PUT            /template_instances/:id        controllers.TemplateServerController.updateTemplateInstance(id: String)
-DELETE         /template_instances/:id        controllers.TemplateServerController.deleteTemplateInstance(id: String)
+POST           /template-instances            controllers.TemplateInstanceServerController.createTemplateInstance(importMode: play.libs.F.Option[java.lang.Boolean])
+GET            /template-instances/:id        controllers.TemplateInstanceServerController.findTemplateInstance(id: String)
+GET            /template-instances            controllers.TemplateInstanceServerController.findAllTemplateInstances(limit: Integer ?= null, offset: Integer ?= 0, summary: Boolean ?= false, fieldNames: String ?= null)
+PUT            /template-instances/:id        controllers.TemplateInstanceServerController.updateTemplateInstance(id: String)
+DELETE         /template-instances/:id        controllers.TemplateInstanceServerController.deleteTemplateInstance(id: String)
+
+# Heartbeat
+GET            /heartbeat                     controllers.DiagnosticsController.heartbeat()
 
 # For CORS - preflight request
-OPTIONS        /*all                          controllers.Application.preflight(all)
+OPTIONS        /*all                          controllers.MainTemplateServerController.preflight(all)
 
 ## Map static resources from the /public folder to the /assets URL path
-GET         /assets/*file            controllers.Assets.at(path="/public", file)
+GET            /assets/*file                  controllers.Assets.at(path="/public", file)

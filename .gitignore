@@ -13,3 +13,9 @@ dist
 /.project
 */RUNNING_PID
 /.settings
+keycloak.json
+
+pom.xml.releaseBackup
+release.properties
+pom.xml.versionsBackup
+
