@@ -15,7 +15,7 @@
   <packaging>play2</packaging>
 
    <properties>
-     <cedar.version>0.6.2-SNAPSHOT</cedar.version>
+     <cedar.version>0.7.0</cedar.version>
   </properties>
 
   <dependencies>
