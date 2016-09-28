@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.metadatacenter</groupId>
     <artifactId>cedar-template-server</artifactId>
-    <version>0.8.1</version>
+    <version>0.8.2</version>
   </parent>
 
   <groupId>org.metadatacenter</groupId>
@@ -15,7 +15,7 @@
   <packaging>play2</packaging>
 
    <properties>
-     <cedar.version>0.8.1</cedar.version>
+     <cedar.version>0.8.2</cedar.version>
   </properties>
 
   <dependencies>
