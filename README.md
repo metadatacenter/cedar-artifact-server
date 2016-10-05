@@ -1,5 +1,7 @@
 # cedar-template-server
 
+[![Build Status](https://travis-ci.org/metadatacenter/cedar-template-server.svg?branch=master)](https://travis-ci.org/metadatacenter/cedar-template-server)
+
 CEDAR server to manage templates, template elements, and template instances.
 
 This project is implemented in Java using [Play Framework](http://www.playframework.com/).
