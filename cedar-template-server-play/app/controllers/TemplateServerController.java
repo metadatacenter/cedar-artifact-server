@@ -9,7 +9,7 @@ import org.metadatacenter.server.security.Authorization;
 import org.metadatacenter.server.security.CedarAuthFromRequestFactory;
 import org.metadatacenter.server.security.exception.AuthorizationTypeNotFoundException;
 import org.metadatacenter.server.security.exception.CedarUserNotFoundException;
-import org.metadatacenter.server.security.model.IAuthRequest;
+import org.metadatacenter.server.security.model.AuthRequest;
 import org.metadatacenter.server.security.model.auth.CedarPermission;
 import org.metadatacenter.server.service.FieldNameInEx;
 import org.metadatacenter.server.service.TemplateFieldService;
@@ -51,7 +51,7 @@ public class TemplateServerController extends AbstractTemplateServerController {
 
   public static Result createTemplate(F.Option<Boolean> importMode) {
     try {
-      IAuthRequest authRequest = CedarAuthFromRequestFactory.fromRequest(request());
+      AuthRequest authRequest = CedarAuthFromRequestFactory.fromRequest(request());
       Authorization.getUserAndEnsurePermission(authRequest, CedarPermission
           .TEMPLATE_CREATE);
 
@@ -161,7 +161,7 @@ public class TemplateServerController extends AbstractTemplateServerController {
 
   public static Result updateTemplate(String templateId) {
     try {
-      IAuthRequest authRequest = CedarAuthFromRequestFactory.fromRequest(request());
+      AuthRequest authRequest = CedarAuthFromRequestFactory.fromRequest(request());
       Authorization.getUserAndEnsurePermission(authRequest, CedarPermission.TEMPLATE_UPDATE);
       JsonNode newTemplate = request().body().asJson();
       ProvenanceInfo pi = ProvenanceUtil.build(cedarConfig, authRequest);

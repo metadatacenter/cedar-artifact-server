@@ -10,7 +10,7 @@ import org.metadatacenter.server.security.CedarAuthFromRequestFactory;
 import org.metadatacenter.server.security.exception.AuthorizationTypeNotFoundException;
 import org.metadatacenter.server.security.exception.CedarAccessException;
 import org.metadatacenter.server.security.exception.CedarUserNotFoundException;
-import org.metadatacenter.server.security.model.IAuthRequest;
+import org.metadatacenter.server.security.model.AuthRequest;
 import org.metadatacenter.server.security.model.auth.CedarPermission;
 import org.metadatacenter.server.service.FieldNameInEx;
 import org.metadatacenter.server.service.TemplateInstanceService;
@@ -47,7 +47,7 @@ public class TemplateInstanceServerController extends AbstractTemplateServerCont
 
   public static Result createTemplateInstance(F.Option<Boolean> importMode) {
     try {
-      IAuthRequest authRequest = CedarAuthFromRequestFactory.fromRequest(request());
+      AuthRequest authRequest = CedarAuthFromRequestFactory.fromRequest(request());
       Authorization.getUserAndEnsurePermission(authRequest, CedarPermission.TEMPLATE_INSTANCE_CREATE);
 
       JsonNode templateInstance = request().body().asJson();
@@ -159,7 +159,7 @@ public class TemplateInstanceServerController extends AbstractTemplateServerCont
 
   public static Result updateTemplateInstance(String templateInstanceId) {
     try {
-      IAuthRequest authRequest = CedarAuthFromRequestFactory.fromRequest(request());
+      AuthRequest authRequest = CedarAuthFromRequestFactory.fromRequest(request());
       Authorization.getUserAndEnsurePermission(authRequest, CedarPermission.TEMPLATE_INSTANCE_UPDATE);
       JsonNode newInstance = request().body().asJson();
       ProvenanceInfo pi = ProvenanceUtil.build(cedarConfig, authRequest);

@@ -7,7 +7,7 @@ import com.google.common.collect.Lists;
 import org.junit.runner.Description;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.server.security.CedarApiKeyAuthRequest;
-import org.metadatacenter.server.security.model.IAuthRequest;
+import org.metadatacenter.server.security.model.AuthRequest;
 import org.metadatacenter.server.security.model.user.CedarUser;
 
 import java.io.IOException;
@@ -30,7 +30,7 @@ public class TestUtils {
     } catch (ProcessingException e) {
       e.printStackTrace();
     }
-    IAuthRequest authRequest = new CedarApiKeyAuthRequest(user.getFirstActiveApiKey());
+    AuthRequest authRequest = new CedarApiKeyAuthRequest(user.getFirstActiveApiKey());
     return authRequest.getAuthHeader();
   }
 
