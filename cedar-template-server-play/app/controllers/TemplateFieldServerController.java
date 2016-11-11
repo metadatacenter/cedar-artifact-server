@@ -10,7 +10,7 @@ import org.metadatacenter.server.security.CedarAuthFromRequestFactory;
 import org.metadatacenter.server.security.exception.AuthorizationTypeNotFoundException;
 import org.metadatacenter.server.security.exception.CedarAccessException;
 import org.metadatacenter.server.security.exception.CedarUserNotFoundException;
-import org.metadatacenter.server.security.model.IAuthRequest;
+import org.metadatacenter.server.security.model.AuthRequest;
 import org.metadatacenter.server.security.model.auth.CedarPermission;
 import org.metadatacenter.server.service.FieldNameInEx;
 import org.metadatacenter.server.service.TemplateFieldService;
@@ -47,7 +47,7 @@ public class TemplateFieldServerController extends AbstractTemplateServerControl
 
   public static Result createTemplateField(F.Option<Boolean> importMode) {
     try {
-      IAuthRequest authRequest = CedarAuthFromRequestFactory.fromRequest(request());
+      AuthRequest authRequest = CedarAuthFromRequestFactory.fromRequest(request());
       Authorization.getUserAndEnsurePermission(authRequest, CedarPermission.TEMPLATE_FIELD_CREATE);
 
       JsonNode templateField = request().body().asJson();
@@ -157,7 +157,7 @@ public class TemplateFieldServerController extends AbstractTemplateServerControl
 
   public static Result updateTemplateField(String templateFieldId) {
     try {
-      IAuthRequest authRequest = CedarAuthFromRequestFactory.fromRequest(request());
+      AuthRequest authRequest = CedarAuthFromRequestFactory.fromRequest(request());
       Authorization.getUserAndEnsurePermission(authRequest, CedarPermission.TEMPLATE_FIELD_UPDATE);
       JsonNode newField = request().body().asJson();
       ProvenanceInfo pi = ProvenanceUtil.build(cedarConfig, authRequest);

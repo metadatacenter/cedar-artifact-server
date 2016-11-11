@@ -10,7 +10,7 @@ import org.metadatacenter.server.security.CedarAuthFromRequestFactory;
 import org.metadatacenter.server.security.exception.AuthorizationTypeNotFoundException;
 import org.metadatacenter.server.security.exception.CedarAccessException;
 import org.metadatacenter.server.security.exception.CedarUserNotFoundException;
-import org.metadatacenter.server.security.model.IAuthRequest;
+import org.metadatacenter.server.security.model.AuthRequest;
 import org.metadatacenter.server.security.model.auth.CedarPermission;
 import org.metadatacenter.server.service.FieldNameInEx;
 import org.metadatacenter.server.service.TemplateElementService;
@@ -52,7 +52,7 @@ public class TemplateElementServerController extends AbstractTemplateServerContr
 
   public static Result createTemplateElement(F.Option<Boolean> importMode) {
     try {
-      IAuthRequest authRequest = CedarAuthFromRequestFactory.fromRequest(request());
+      AuthRequest authRequest = CedarAuthFromRequestFactory.fromRequest(request());
       Authorization.getUserAndEnsurePermission(authRequest, CedarPermission.TEMPLATE_ELEMENT_CREATE);
 
       JsonNode templateElement = request().body().asJson();
@@ -164,7 +164,7 @@ public class TemplateElementServerController extends AbstractTemplateServerContr
 
   public static Result updateTemplateElement(String templateElementId) {
     try {
-      IAuthRequest authRequest = CedarAuthFromRequestFactory.fromRequest(request());
+      AuthRequest authRequest = CedarAuthFromRequestFactory.fromRequest(request());
       Authorization.getUserAndEnsurePermission(authRequest, CedarPermission.TEMPLATE_ELEMENT_UPDATE);
       JsonNode newElement = request().body().asJson();
 
