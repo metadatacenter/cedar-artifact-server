@@ -87,7 +87,7 @@ public class TemplateServerApplication extends Application<TemplateServerConfigu
     final TemplateElementsResource elements = new TemplateElementsResource(cedarConfig, templateElementService);
     environment.jersey().register(elements);
 
-    final TemplatesResource templates = new TemplatesResource(cedarConfig, templateService);
+    final TemplatesResource templates = new TemplatesResource(cedarConfig, templateService, templateFieldService);
     environment.jersey().register(templates);
 
     final TemplateInstancesResource instances = new TemplateInstancesResource(cedarConfig, templateInstanceService);
