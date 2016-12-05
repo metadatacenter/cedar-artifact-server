@@ -4,7 +4,7 @@
 
   <parent>
     <groupId>org.metadatacenter</groupId>
-    <artifactId>cedar-parent</artifactId>
+    <artifactId>cedar-parent-dw</artifactId>
     <version>0.8.7-SNAPSHOT</version>
   </parent>
 
@@ -16,11 +16,6 @@
   <name>CEDAR Template Server</name>
   <description>CEDAR server to manage Metadata Templates, Template Elements, and Template Instances</description>
 
-  <properties>
-    <!-- Do Not Remove This! We need it in Pom.scala -->
-    <scala.version>2.11.5</scala.version>
-  </properties>
-
   <scm>
     <connection>scm:git:git@github.com:metadatacenter/cedar-template-server.git</connection>
     <developerConnection>scm:git:git@github.com:metadatacenter/cedar-template-server.git</developerConnection>
@@ -30,7 +25,7 @@
 
   <modules>
     <module>cedar-template-server-core</module>
-    <module>cedar-template-server-play</module>
+    <module>cedar-template-server-application</module>
   </modules>
 
 </project>
