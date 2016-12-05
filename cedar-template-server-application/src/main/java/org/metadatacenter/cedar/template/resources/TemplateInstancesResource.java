@@ -1,5 +1,9 @@
 package org.metadatacenter.cedar.template.resources;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import org.metadatacenter.config.CedarConfig;
+import org.metadatacenter.server.service.TemplateInstanceService;
+
 import javax.management.InstanceNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Path;
@@ -24,9 +28,15 @@ public class TemplateInstancesResource {
   @Context
   HttpServletRequest request;
 
-  public TemplateInstancesResource() {
-  }
+  private final CedarConfig cedarConfig;
 
+  private final TemplateInstanceService<String, JsonNode> templateInstanceService;
+
+  public TemplateInstancesResource(CedarConfig cedarConfig, TemplateInstanceService<String, JsonNode>
+      templateInstanceService) {
+    this.cedarConfig = cedarConfig;
+    this.templateInstanceService = templateInstanceService;
+  }
 
   public static Result createTemplateInstance(F.Option<Boolean> importMode) {
     try {

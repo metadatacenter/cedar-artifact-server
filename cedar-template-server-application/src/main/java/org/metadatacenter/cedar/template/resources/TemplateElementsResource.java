@@ -1,5 +1,9 @@
 package org.metadatacenter.cedar.template.resources;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import org.metadatacenter.config.CedarConfig;
+import org.metadatacenter.server.service.TemplateElementService;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -19,9 +23,15 @@ public class TemplateElementsResource {
   @Context
   HttpServletRequest request;
 
-  public TemplateElementsResource() {
-  }
+  private final CedarConfig cedarConfig;
 
+  private final TemplateElementService<String, JsonNode> templateElementService;
+
+  public TemplateElementsResource(CedarConfig cedarConfig, TemplateElementService<String, JsonNode>
+      templateElementService) {
+    this.cedarConfig = cedarConfig;
+    this.templateElementService = templateElementService;
+  }
 
   public static Result createTemplateElement(F.Option<Boolean> importMode) {
     try {

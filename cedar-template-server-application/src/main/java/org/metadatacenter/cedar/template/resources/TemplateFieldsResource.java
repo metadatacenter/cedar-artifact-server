@@ -1,5 +1,10 @@
 package org.metadatacenter.cedar.template.resources;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import org.metadatacenter.config.CedarConfig;
+import org.metadatacenter.server.service.TemplateFieldService;
+import org.metadatacenter.server.service.TemplateInstanceService;
+
 import javax.management.InstanceNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Path;
@@ -24,10 +29,14 @@ public class TemplateFieldsResource {
   @Context
   HttpServletRequest request;
 
-  public TemplateFieldsResource() {
+  private final CedarConfig cedarConfig;
+
+  private final TemplateFieldService<String, JsonNode> templateFieldService;
+
+  public TemplateFieldsResource(CedarConfig cedarConfig, TemplateFieldService<String, JsonNode> templateFieldService) {
+    this.cedarConfig = cedarConfig;
+    this.templateFieldService = templateFieldService;
   }
-
-
 
   public static Result createTemplateField(F.Option<Boolean> importMode) {
     try {

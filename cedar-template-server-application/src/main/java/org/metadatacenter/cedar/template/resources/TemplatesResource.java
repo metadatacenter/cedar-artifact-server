@@ -1,16 +1,37 @@
 package org.metadatacenter.cedar.template.resources;
 
+import com.codahale.metrics.annotation.Timed;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.metadatacenter.config.CedarConfig;
+import org.metadatacenter.constant.HttpConstants;
+import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.rest.context.CedarRequestContext;
+import org.metadatacenter.rest.context.CedarRequestContextFactory;
+import org.metadatacenter.rest.exception.CedarAssertionException;
+import org.metadatacenter.server.model.provenance.ProvenanceInfo;
+import org.metadatacenter.server.security.model.auth.CedarPermission;
+import org.metadatacenter.server.service.TemplateService;
+import org.metadatacenter.util.mongo.MongoUtils;
+import org.metadatacenter.util.provenance.ProvenanceUtil;
+
 import javax.management.InstanceNotFoundException;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.rmi.AccessException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
+import static org.metadatacenter.rest.assertion.GenericAssertions.LoggedIn;
+import static org.metadatacenter.rest.assertion.GenericAssertions.NonEmpty;
 
 @Path("/templates")
 @Produces(MediaType.APPLICATION_JSON)
@@ -24,53 +45,43 @@ public class TemplatesResource {
   @Context
   HttpServletRequest request;
 
-  public TemplatesResource() {
+  private final CedarConfig cedarConfig;
+
+  private final TemplateService<String, JsonNode> templateService;
+
+  public TemplatesResource(CedarConfig cedarConfig, TemplateService<String, JsonNode> templateService) {
+    this.cedarConfig = cedarConfig;
+    this.templateService = templateService;
   }
 
+  @POST
+  @Timed
+  public Response createTemplate(@QueryParam("importMode") Optional<Boolean> importMode) throws
+      CedarAssertionException {
+    CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
 
-  public static Result createTemplate(F.Option<Boolean> importMode) {
-    try {
-      AuthRequest authRequest = CedarAuthFromRequestFactory.fromRequest(request());
-      Authorization.getUserAndEnsurePermission(authRequest, CedarPermission
-          .TEMPLATE_CREATE);
+    c.must(c.user()).be(LoggedIn);
+    c.must(c.user()).have(CedarPermission.TEMPLATE_CREATE);
 
-      JsonNode template = request().body().asJson();
-      if (template == null) {
-        Logger.error("Expecting Json data");
-        return badRequest("Expecting Json data");
-      }
+    c.must(c.request().getRequestBody()).be(NonEmpty);
+    JsonNode template = c.request().getRequestBody().asJson();
 
-      ProvenanceInfo pi = ProvenanceUtil.build(cedarConfig, authRequest);
-      checkImportModeSetProvenanceAndId(CedarNodeType.TEMPLATE, template, pi, importMode);
 
-      templateFieldService.saveNewFieldsAndReplaceIds(template, pi,
-          cedarConfig.getLinkedDataPrefix(CedarNodeType.FIELD));
-      JsonNode createdTemplate = templateService.createTemplate(template);
-      MongoUtils.removeIdField(createdTemplate);
+    ProvenanceInfo pi = ProvenanceUtil.build(cedarConfig, authRequest);
+    checkImportModeSetProvenanceAndId(CedarNodeType.TEMPLATE, template, pi, importMode);
 
-      // Set Location header pointing to the newly created template
-      String id = createdTemplate.get("@id").asText();
-      String absoluteUrl = routes.TemplateServerController.findTemplate(id).absoluteURL(request());
+    templateFieldService.saveNewFieldsAndReplaceIds(template, pi,
+        cedarConfig.getLinkedDataPrefix(CedarNodeType.FIELD));
+    JsonNode createdTemplate = templateService.createTemplate(template);
+    MongoUtils.removeIdField(createdTemplate);
 
-      response().setHeader(HttpConstants.HTTP_HEADER_LOCATION, absoluteUrl);
-      // Return created response
-      return created(createdTemplate);
-    } catch (IllegalArgumentException e) {
-      Logger.error("Illegal Argument while creating the template", e);
-      return badRequestWithError(e);
-    } catch (CedarUserNotFoundException e) {
-      Logger.error("User not found", e);
-      return unauthorizedWithError(e);
-    } catch (AccessException e) {
-      Logger.error("Access Error while creating the template", e);
-      return forbiddenWithError(e);
-    } catch (AuthorizationTypeNotFoundException e) {
-      Logger.error("Authorization header not found", e);
-      return badRequestWithError(e);
-    } catch (Exception e) {
-      Logger.error("Error while creating the template", e);
-      return internalServerErrorWithError(e);
-    }
+    // Set Location header pointing to the newly created template
+    String id = createdTemplate.get("@id").asText();
+    String absoluteUrl = routes.TemplateServerController.findTemplate(id).absoluteURL(request());
+
+    response().setHeader(HttpConstants.HTTP_HEADER_LOCATION, absoluteUrl);
+    // Return created response
+    return created(createdTemplate);
   }
 
   public static Result findTemplate(String templateId) {
