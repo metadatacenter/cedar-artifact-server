@@ -84,7 +84,8 @@ public class TemplateServerApplication extends Application<TemplateServerConfigu
     final TemplateFieldsResource fields = new TemplateFieldsResource(cedarConfig, templateFieldService);
     environment.jersey().register(fields);
 
-    final TemplateElementsResource elements = new TemplateElementsResource(cedarConfig, templateElementService);
+    final TemplateElementsResource elements = new TemplateElementsResource(cedarConfig, templateElementService,
+        templateFieldService);
     environment.jersey().register(elements);
 
     final TemplatesResource templates = new TemplatesResource(cedarConfig, templateService, templateFieldService);
@@ -94,7 +95,7 @@ public class TemplateServerApplication extends Application<TemplateServerConfigu
     environment.jersey().register(instances);
 
     final TemplateServerHealthCheck healthCheck = new TemplateServerHealthCheck();
-    environment.healthChecks().register("message", healthCheck);
+    environment.healthChecks().register("errorMessage", healthCheck);
 
     environment.jersey().register(new CedarAssertionExceptionMapper());
 

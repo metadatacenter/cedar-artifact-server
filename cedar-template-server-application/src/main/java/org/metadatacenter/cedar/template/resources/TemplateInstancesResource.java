@@ -1,24 +1,42 @@
 package org.metadatacenter.cedar.template.resources;
 
+import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.metadatacenter.cedar.template.core.CedarErrorKey;
+import org.metadatacenter.cedar.template.core.CedarResponse;
+import org.metadatacenter.cedar.template.core.CedarUrlUtil;
 import org.metadatacenter.config.CedarConfig;
+import org.metadatacenter.constant.CustomHttpConstants;
+import org.metadatacenter.constant.HttpConstants;
+import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.rest.context.CedarRequestContext;
+import org.metadatacenter.rest.context.CedarRequestContextFactory;
+import org.metadatacenter.rest.exception.CedarAssertionException;
+import org.metadatacenter.server.model.provenance.ProvenanceInfo;
+import org.metadatacenter.server.security.model.auth.CedarPermission;
+import org.metadatacenter.server.service.FieldNameInEx;
 import org.metadatacenter.server.service.TemplateInstanceService;
+import org.metadatacenter.util.http.LinkHeaderUtil;
+import org.metadatacenter.util.mongo.MongoUtils;
+import org.metadatacenter.util.provenance.ProvenanceUtil;
 
 import javax.management.InstanceNotFoundException;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-import java.rmi.AccessException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.net.URI;
+import java.util.*;
+
+import static org.metadatacenter.rest.assertion.GenericAssertions.LoggedIn;
+import static org.metadatacenter.rest.assertion.GenericAssertions.NonEmpty;
 
 @Path("/template-instances")
 @Produces(MediaType.APPLICATION_JSON)
-public class TemplateInstancesResource {
+public class TemplateInstancesResource extends AbstractTemplateServerResource {
 
   private
   @Context
@@ -32,63 +50,101 @@ public class TemplateInstancesResource {
 
   private final TemplateInstanceService<String, JsonNode> templateInstanceService;
 
+  protected static List<String> FIELD_NAMES_SUMMARY_LIST;
+
   public TemplateInstancesResource(CedarConfig cedarConfig, TemplateInstanceService<String, JsonNode>
       templateInstanceService) {
+    super(cedarConfig);
     this.cedarConfig = cedarConfig;
     this.templateInstanceService = templateInstanceService;
+    FIELD_NAMES_SUMMARY_LIST = new ArrayList<>();
+    FIELD_NAMES_SUMMARY_LIST.addAll(cedarConfig.getTemplateRESTAPISummaries().getInstance().getFields());
   }
 
-  public static Result createTemplateInstance(F.Option<Boolean> importMode) {
+  @POST
+  @Timed
+  public Response createTemplateInstance(@QueryParam("importMode") Optional<Boolean> importMode) throws
+      CedarAssertionException {
+    CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
+    c.must(c.user()).be(LoggedIn);
+    c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_CREATE);
+
+    //TODO: test if it is not empty
+    //c.must(c.request().getRequestBody()).be(NonEmpty);
+    JsonNode templateInstance = c.request().getRequestBody().asJson();
+
+    ProvenanceInfo pi = ProvenanceUtil.build(cedarConfig, c.getCedarUser());
+    checkImportModeSetProvenanceAndId(CedarNodeType.INSTANCE, templateInstance, pi, importMode);
+
+    JsonNode createdTemplateInstance = null;
     try {
-      AuthRequest authRequest = CedarAuthFromRequestFactory.fromRequest(request());
-      Authorization.getUserAndEnsurePermission(authRequest, CedarPermission.TEMPLATE_INSTANCE_CREATE);
+      createdTemplateInstance = templateInstanceService.createTemplateInstance(templateInstance);
+    } catch (IOException e) {
+      return CedarResponse.internalServerError()
+          .errorKey(CedarErrorKey.TEMPLATE_INSTANCE_NOT_CREATED)
+          .errorMessage("The template instance can not be created")
+          .exception(e)
+          .build();
+    }
+    MongoUtils.removeIdField(createdTemplateInstance);
 
-      JsonNode templateInstance = request().body().asJson();
-      if (templateInstance == null) {
-        Logger.error("Expecting Json data");
-        return badRequest("Expecting Json data");
-      }
+    String id = createdTemplateInstance.get("@id").asText();
 
-      ProvenanceInfo pi = ProvenanceUtil.build(cedarConfig, authRequest);
-      checkImportModeSetProvenanceAndId(CedarNodeType.INSTANCE, templateInstance, pi, importMode);
+    URI uri = CedarUrlUtil.getIdURI(uriInfo, id);
+    return Response.created(uri).entity(createdTemplateInstance).build();
+  }
 
-      JsonNode createdTemplateInstance = templateInstanceService.createTemplateInstance(templateInstance);
-      MongoUtils.removeIdField(createdTemplateInstance);
-
-      // Set Location header pointing to the newly created instance
-      String id = createdTemplateInstance.get("@id").asText();
-      String absoluteUrl = routes.TemplateInstanceServerController.findTemplateInstance(id).absoluteURL(request());
-
-      response().setHeader(HttpConstants.HTTP_HEADER_LOCATION, absoluteUrl);
-      // Return created response
-      return created(createdTemplateInstance);
-    } catch (IllegalArgumentException e) {
-      Logger.error("Illegal Argument while creating the template instance", e);
-      return badRequestWithError(e);
-    } catch (CedarUserNotFoundException e) {
-      Logger.error("User not found", e);
-      return unauthorizedWithError(e);
-    } catch (AccessException e) {
-      Logger.error("Access Error while creating the template instance", e);
-      return forbiddenWithError(e);
-    } catch (AuthorizationTypeNotFoundException e) {
-      Logger.error("Authorization header not found", e);
-      return badRequestWithError(e);
-    } catch (Exception e) {
-      Logger.error("Error while creating the template instance", e);
-      return internalServerErrorWithError(e);
+  @GET
+  @Timed
+  @Path("/{id}")
+  public Response findTemplateInstance(@PathParam("id") String id) throws CedarAssertionException {
+    CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
+    c.must(c.user()).be(LoggedIn);
+    c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_READ);
+    JsonNode templateInstance = null;
+    try {
+      templateInstance = templateInstanceService.findTemplateInstance(id);
+    } catch (IOException e) {
+      return CedarResponse.internalServerError()
+          .id(id)
+          .errorKey(CedarErrorKey.TEMPLATE_INSTANCE_NOT_FOUND)
+          .errorMessage("The template instance can not be found by id:" + id)
+          .exception(e)
+          .build();
+    }
+    if (templateInstance == null) {
+      return CedarResponse.notFound()
+          .id(id)
+          .errorKey(CedarErrorKey.TEMPLATE_INSTANCE_NOT_FOUND)
+          .errorMessage("The template instance can not be found by id:" + id)
+          .build();
+    } else {
+      MongoUtils.removeIdField(templateInstance);
+      return Response.ok().entity(templateInstance).build();
     }
   }
 
-  public static Result findAllTemplateInstances(Integer limit, Integer offset, boolean summary, String fieldNames) {
+  @GET
+  @Timed
+  public Response findAllTemplateInstances(@QueryParam("limit") Optional<Integer> limitParam,
+                                           @QueryParam("offset") Optional<Integer> offsetParam,
+                                           @QueryParam("summary") Optional<Boolean> summaryParam,
+                                           @QueryParam("fieldNames") Optional<String> fieldNamesParam) throws
+      CedarAssertionException {
+
+    CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
+    c.must(c.user()).be(LoggedIn);
+    c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_READ);
+
+    Integer limit = ensureLimit(limitParam);
+    Integer offset = ensureOffset(offsetParam);
+    Boolean summary = ensureSummary(summaryParam);
+
+    checkPagingParameters(limit, offset);
+    List<String> fieldNameList = getAndCheckFieldNames(fieldNamesParam, summary);
+    Map<String, Object> r = new HashMap<>();
+    List<JsonNode> instances = null;
     try {
-      Authorization.getUserAndEnsurePermission(CedarAuthFromRequestFactory.fromRequest(request()), CedarPermission
-          .TEMPLATE_INSTANCE_READ);
-      limit = ensureLimit(limit);
-      checkPagingParameters(limit, offset);
-      List<String> fieldNameList = getAndCheckFieldNames(fieldNames, summary);
-      Map<String, Object> r = new HashMap<>();
-      List<JsonNode> instances = null;
       if (summary) {
         instances = templateInstanceService.findAllTemplateInstances(limit, offset, FIELD_NAMES_SUMMARY_LIST,
             FieldNameInEx.INCLUDE);
@@ -99,102 +155,84 @@ public class TemplateInstancesResource {
         instances = templateInstanceService.findAllTemplateInstances(limit, offset, FIELD_NAMES_EXCLUSION_LIST,
             FieldNameInEx.EXCLUDE);
       }
-      long total = templateInstanceService.count();
-      response().setHeader(CustomHttpConstants.HEADER_TOTAL_COUNT, String.valueOf(total));
-      checkPagingParametersAgainstTotal(offset, total);
-      String absoluteUrl = routes.TemplateInstanceServerController.findAllTemplateInstances(0, 0, false, null)
-          .absoluteURL
-              (request());
-      absoluteUrl = UrlUtil.trimUrlParameters(absoluteUrl);
-      String linkHeader = LinkHeaderUtil.getPagingLinkHeader(absoluteUrl, total, limit, offset);
-      if (!linkHeader.isEmpty()) {
-        response().setHeader(HttpConstants.HTTP_HEADER_LINK, linkHeader);
-      }
-      return ok(Json.toJson(instances));
-    } catch (CedarAccessException e) {
-      Logger.error("Access Error while reading the template instances", e);
-      return forbiddenWithError(e);
-    } catch (Exception e) {
-      Logger.error("Error while reading the template instances", e);
-      return internalServerErrorWithError(e);
+    } catch (IOException e) {
+      return CedarResponse.internalServerError()
+          .errorKey(CedarErrorKey.TEMPLATE_INSTANCES_NOT_LISTED)
+          .errorMessage("The template instances can not be listed")
+          .exception(e)
+          .build();
     }
+    long total = templateInstanceService.count();
+    checkPagingParametersAgainstTotal(offset, total);
+
+    String absoluteUrl = uriInfo.getAbsolutePathBuilder().build().toString();
+    String linkHeader = LinkHeaderUtil.getPagingLinkHeader(absoluteUrl, total, limit, offset);
+    Response.ResponseBuilder responseBuilder = Response.ok().entity(instances);
+    responseBuilder.header(CustomHttpConstants.HEADER_TOTAL_COUNT, String.valueOf(total));
+    if (!linkHeader.isEmpty()) {
+      responseBuilder.header(HttpConstants.HTTP_HEADER_LINK, linkHeader);
+    }
+    return responseBuilder.build();
   }
 
-  public static Result findTemplateInstance(String templateInstanceId) {
-    try {
-      Authorization.getUserAndEnsurePermission(CedarAuthFromRequestFactory.fromRequest(request()), CedarPermission
-          .TEMPLATE_INSTANCE_READ);
-      JsonNode templateInstance = templateInstanceService.findTemplateInstance(templateInstanceId);
-      if (templateInstance != null) {
-        // Remove autogenerated _id field to avoid exposing it
-        MongoUtils.removeIdField(templateInstance);
-        return ok(templateInstance);
-      }
-      Logger.error("Template instance not found:(" + templateInstanceId + ")");
-      return notFound();
-    } catch (IllegalArgumentException e) {
-      Logger.error("Illegal Argument while reading the template instance", e);
-      return badRequestWithError(e);
-    } catch (CedarUserNotFoundException e) {
-      Logger.error("User not found", e);
-      return unauthorizedWithError(e);
-    } catch (AccessException e) {
-      Logger.error("Access Error while reading the template instance", e);
-      return forbiddenWithError(e);
-    } catch (AuthorizationTypeNotFoundException e) {
-      Logger.error("Authorization header not found", e);
-      return badRequestWithError(e);
-    } catch (Exception e) {
-      Logger.error("Error while reading the template instance", e);
-      return internalServerErrorWithError(e);
-    }
-  }
+  @PUT
+  @Timed
+  @Path("/{id}")
+  public Response updateTemplateInstance(@PathParam("id") String id) throws CedarAssertionException {
+    CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
+    c.must(c.user()).be(LoggedIn);
+    c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_UPDATE);
 
-  public static Result updateTemplateInstance(String templateInstanceId) {
+    JsonNode newInstance = c.request().getRequestBody().asJson();
+    ProvenanceInfo pi = ProvenanceUtil.build(cedarConfig, c.getCedarUser());
+    ProvenanceUtil.patchProvenanceInfo(newInstance, pi);
+    JsonNode updatedTemplateInstance = null;
     try {
-      AuthRequest authRequest = CedarAuthFromRequestFactory.fromRequest(request());
-      Authorization.getUserAndEnsurePermission(authRequest, CedarPermission.TEMPLATE_INSTANCE_UPDATE);
-      JsonNode newInstance = request().body().asJson();
-      ProvenanceInfo pi = ProvenanceUtil.build(cedarConfig, authRequest);
-      ProvenanceUtil.patchProvenanceInfo(newInstance, pi);
-      JsonNode updatedTemplateInstance = templateInstanceService.updateTemplateInstance(templateInstanceId,
-          newInstance);
-      // Remove autogenerated _id field to avoid exposing it
-      MongoUtils.removeIdField(updatedTemplateInstance);
-      return ok(updatedTemplateInstance);
-    } catch (IllegalArgumentException e) {
-      Logger.error("Illegal Argument while reading the template instance", e);
-      return badRequestWithError(e);
+      updatedTemplateInstance = templateInstanceService.updateTemplateInstance(id, newInstance);
     } catch (InstanceNotFoundException e) {
-      Logger.error("Template instance not found for update:(" + templateInstanceId + ")");
-      return notFound();
-    } catch (CedarAccessException e) {
-      Logger.error("Access Error while reading the template instance", e);
-      return forbiddenWithError(e);
-    } catch (Exception e) {
-      Logger.error("Error while updating the template instance", e);
-      return internalServerErrorWithError(e);
+      return CedarResponse.notFound()
+          .id(id)
+          .errorKey(CedarErrorKey.TEMPLATE_INSTANCE_NOT_FOUND)
+          .errorMessage("The template instance can not be found by id:" + id)
+          .exception(e)
+          .build();
+    } catch (IOException e) {
+      return CedarResponse.internalServerError()
+          .id(id)
+          .errorKey(CedarErrorKey.TEMPLATE_INSTANCE_NOT_UPDATED)
+          .errorMessage("The template instance can not be updated by id:" + id)
+          .exception(e)
+          .build();
     }
+    MongoUtils.removeIdField(updatedTemplateInstance);
+    return Response.ok().entity(updatedTemplateInstance).build();
   }
 
-  public static Result deleteTemplateInstance(String templateInstanceId) {
+  @DELETE
+  @Timed
+  @Path("/{id}")
+  public Response deleteTemplateInstance(@PathParam("id") String id) throws CedarAssertionException {
+    CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
+    c.must(c.user()).be(LoggedIn);
+    c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_DELETE);
     try {
-      Authorization.getUserAndEnsurePermission(CedarAuthFromRequestFactory.fromRequest(request()), CedarPermission
-          .TEMPLATE_INSTANCE_DELETE);
-      templateInstanceService.deleteTemplateInstance(templateInstanceId);
-      return noContent();
-    } catch (IllegalArgumentException e) {
-      Logger.error("Illegal Argument while deleting the template instance", e);
-      return badRequestWithError(e);
+      templateInstanceService.deleteTemplateInstance(id);
     } catch (InstanceNotFoundException e) {
-      Logger.error("Template instance not found while deleting:(" + templateInstanceId + ")");
-      return notFound();
-    } catch (CedarAccessException e) {
-      Logger.error("Access Error while deleting the template instance", e);
-      return forbiddenWithError(e);
-    } catch (Exception e) {
-      Logger.error("Error while deleting the template instance", e);
-      return internalServerErrorWithError(e);
+      return CedarResponse.notFound()
+          .id(id)
+          .errorKey(CedarErrorKey.TEMPLATE_INSTANCE_NOT_FOUND)
+          .errorMessage("The template instance can not be found by id:" + id)
+          .exception(e)
+          .build();
+    } catch (IOException e) {
+      return CedarResponse.internalServerError()
+          .id(id)
+          .errorKey(CedarErrorKey.TEMPLATE_INSTANCE_NOT_DELETED)
+          .errorMessage("The template instance can not be deleted by id:" + id)
+          .exception(e)
+          .build();
     }
+    return CedarResponse.noContent().build();
   }
+
 }

@@ -1,25 +1,43 @@
 package org.metadatacenter.cedar.template.resources;
 
+import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.github.fge.jsonschema.core.exceptions.ProcessingException;
+import org.metadatacenter.cedar.template.core.CedarErrorKey;
+import org.metadatacenter.cedar.template.core.CedarResponse;
+import org.metadatacenter.cedar.template.core.CedarUrlUtil;
 import org.metadatacenter.config.CedarConfig;
+import org.metadatacenter.constant.CustomHttpConstants;
+import org.metadatacenter.constant.HttpConstants;
+import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.rest.context.CedarRequestContext;
+import org.metadatacenter.rest.context.CedarRequestContextFactory;
+import org.metadatacenter.rest.exception.CedarAssertionException;
+import org.metadatacenter.server.model.provenance.ProvenanceInfo;
+import org.metadatacenter.server.security.model.auth.CedarPermission;
+import org.metadatacenter.server.service.FieldNameInEx;
 import org.metadatacenter.server.service.TemplateFieldService;
-import org.metadatacenter.server.service.TemplateInstanceService;
+import org.metadatacenter.util.http.LinkHeaderUtil;
+import org.metadatacenter.util.mongo.MongoUtils;
+import org.metadatacenter.util.provenance.ProvenanceUtil;
 
 import javax.management.InstanceNotFoundException;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-import java.rmi.AccessException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.net.URI;
+import java.util.*;
+
+import static org.metadatacenter.rest.assertion.GenericAssertions.LoggedIn;
+import static org.metadatacenter.rest.assertion.GenericAssertions.NonEmpty;
 
 @Path("/template-fields")
 @Produces(MediaType.APPLICATION_JSON)
-public class TemplateFieldsResource {
+public class TemplateFieldsResource extends AbstractTemplateServerResource {
 
   private
   @Context
@@ -33,165 +51,190 @@ public class TemplateFieldsResource {
 
   private final TemplateFieldService<String, JsonNode> templateFieldService;
 
+  protected static List<String> FIELD_NAMES_SUMMARY_LIST;
+
+
   public TemplateFieldsResource(CedarConfig cedarConfig, TemplateFieldService<String, JsonNode> templateFieldService) {
+    super(cedarConfig);
     this.cedarConfig = cedarConfig;
     this.templateFieldService = templateFieldService;
+    FIELD_NAMES_SUMMARY_LIST = new ArrayList<>();
+    FIELD_NAMES_SUMMARY_LIST.addAll(cedarConfig.getTemplateRESTAPISummaries().getField().getFields());
   }
 
-  public static Result createTemplateField(F.Option<Boolean> importMode) {
+  @POST
+  @Timed
+  public Response createTemplateField(@QueryParam("importMode") Optional<Boolean> importMode) throws
+      CedarAssertionException {
+    CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
+    c.must(c.user()).be(LoggedIn);
+    c.must(c.user()).have(CedarPermission.TEMPLATE_FIELD_CREATE);
+
+    //TODO: test if it is not empty
+    //c.must(c.request().getRequestBody()).be(NonEmpty);
+    JsonNode templateField = c.request().getRequestBody().asJson();
+
+    ProvenanceInfo pi = ProvenanceUtil.build(cedarConfig, c.getCedarUser());
+    checkImportModeSetProvenanceAndId(CedarNodeType.FIELD, templateField, pi, importMode);
+
+    JsonNode createdTemplateField = null;
     try {
-      AuthRequest authRequest = CedarAuthFromRequestFactory.fromRequest(request());
-      Authorization.getUserAndEnsurePermission(authRequest, CedarPermission.TEMPLATE_FIELD_CREATE);
+      createdTemplateField = templateFieldService.createTemplateField(templateField);
+    } catch (IOException e) {
+      return CedarResponse.internalServerError()
+          .errorKey(CedarErrorKey.TEMPLATE_FIELD_NOT_CREATED)
+          .errorMessage("The template instance can not be created")
+          .exception(e)
+          .build();
+    }
+    MongoUtils.removeIdField(createdTemplateField);
 
-      JsonNode templateField = request().body().asJson();
-      if (templateField == null) {
-        Logger.error("Expecting Json data");
-        return badRequest("Expecting Json data");
-      }
+    String id = createdTemplateField.get("@id").asText();
 
-      ProvenanceInfo pi = ProvenanceUtil.build(cedarConfig, authRequest);
-      checkImportModeSetProvenanceAndId(CedarNodeType.FIELD, templateField, pi, importMode);
+    URI uri = CedarUrlUtil.getIdURI(uriInfo, id);
+    return Response.created(uri).entity(createdTemplateField).build();
+  }
 
-      JsonNode createdTemplateField = templateFieldService.createTemplateField(templateField);
-      MongoUtils.removeIdField(createdTemplateField);
+  @GET
+  @Timed
+  @Path("/{id}")
+  public Response findTemplateField(@PathParam("id") String id) throws CedarAssertionException {
+    CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
+    c.must(c.user()).be(LoggedIn);
+    c.must(c.user()).have(CedarPermission.TEMPLATE_FIELD_READ);
 
-      // Set Location header pointing to the newly created element
-      String id = createdTemplateField.get("@id").asText();
-      String absoluteUrl = routes.TemplateFieldServerController.findTemplateField(id).absoluteURL(request());
-
-      response().setHeader(HttpConstants.HTTP_HEADER_LOCATION, absoluteUrl);
-      // Return created response
-      return created(createdTemplateField);
-    } catch (IllegalArgumentException e) {
-      Logger.error("Illegal Argument while creating the template field", e);
-      return badRequestWithError(e);
-    } catch (CedarUserNotFoundException e) {
-      Logger.error("User not found", e);
-      return unauthorizedWithError(e);
-    } catch (AccessException e) {
-      Logger.error("Access Error while creating the template field", e);
-      return forbiddenWithError(e);
-    } catch (AuthorizationTypeNotFoundException e) {
-      Logger.error("Authorization header not found", e);
-      return badRequestWithError(e);
-    } catch (Exception e) {
-      Logger.error("Error while creating the template field", e);
-      return internalServerErrorWithError(e);
+    JsonNode templateField = null;
+    try {
+      templateField = templateFieldService.findTemplateField(id);
+    } catch (IOException | ProcessingException e) {
+      return CedarResponse.internalServerError()
+          .id(id)
+          .errorKey(CedarErrorKey.TEMPLATE_FIELD_NOT_FOUND)
+          .errorMessage("The template field can not be found by id:" + id)
+          .exception(e)
+          .build();
+    }
+    if (templateField == null) {
+      return CedarResponse.notFound()
+          .id(id)
+          .errorKey(CedarErrorKey.TEMPLATE_FIELD_NOT_FOUND)
+          .errorMessage("The template field can not be found by id:" + id)
+          .build();
+    } else {
+      MongoUtils.removeIdField(templateField);
+      return Response.ok().entity(templateField).build();
     }
   }
 
-  public static Result findAllTemplateFields(Integer limit, Integer offset, boolean summary, String fieldNames) {
+  @GET
+  @Timed
+  public Response findAllTemplateFields(@QueryParam("limit") Optional<Integer> limitParam,
+                                        @QueryParam("offset") Optional<Integer> offsetParam,
+                                        @QueryParam("summary") Optional<Boolean> summaryParam,
+                                        @QueryParam("fieldNames") Optional<String> fieldNamesParam) throws
+      CedarAssertionException {
+
+    CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
+    c.must(c.user()).be(LoggedIn);
+    c.must(c.user()).have(CedarPermission.TEMPLATE_FIELD_READ);
+
+    Integer limit = ensureLimit(limitParam);
+    Integer offset = ensureOffset(offsetParam);
+    Boolean summary = ensureSummary(summaryParam);
+
+    checkPagingParameters(limit, offset);
+    List<String> fieldNameList = getAndCheckFieldNames(fieldNamesParam, summary);
+    Map<String, Object> r = new HashMap<>();
+    List<JsonNode> fields = null;
     try {
-      Authorization.getUserAndEnsurePermission(CedarAuthFromRequestFactory.fromRequest(request()), CedarPermission
-          .TEMPLATE_FIELD_READ);
-      limit = ensureLimit(limit);
-      checkPagingParameters(limit, offset);
-      List<String> fieldNameList = getAndCheckFieldNames(fieldNames, summary);
-      Map<String, Object> r = new HashMap<>();
-      List<JsonNode> elements = null;
       if (summary) {
-        elements = templateFieldService.findAllTemplateFields(limit, offset, FIELD_NAMES_SUMMARY_LIST,
-            FieldNameInEx.INCLUDE);
+        fields = templateFieldService.findAllTemplateFields(limit, offset, FIELD_NAMES_SUMMARY_LIST, FieldNameInEx
+            .INCLUDE);
       } else if (fieldNameList != null) {
-        elements = templateFieldService.findAllTemplateFields(limit, offset, fieldNameList, FieldNameInEx.INCLUDE);
+        fields = templateFieldService.findAllTemplateFields(limit, offset, fieldNameList, FieldNameInEx.INCLUDE);
       } else {
-        elements = templateFieldService.findAllTemplateFields(limit, offset, FIELD_NAMES_EXCLUSION_LIST,
-            FieldNameInEx.EXCLUDE);
+        fields = templateFieldService.findAllTemplateFields(limit, offset, FIELD_NAMES_EXCLUSION_LIST, FieldNameInEx
+            .EXCLUDE);
       }
-      long total = templateFieldService.count();
-      response().setHeader(CustomHttpConstants.HEADER_TOTAL_COUNT, String.valueOf(total));
-      checkPagingParametersAgainstTotal(offset, total);
-      String absoluteUrl = routes.TemplateFieldServerController.findAllTemplateFields(0, 0, false, null).absoluteURL
-          (request());
-      absoluteUrl = UrlUtil.trimUrlParameters(absoluteUrl);
-      String linkHeader = LinkHeaderUtil.getPagingLinkHeader(absoluteUrl, total, limit, offset);
-      if (!linkHeader.isEmpty()) {
-        response().setHeader(HttpConstants.HTTP_HEADER_LINK, linkHeader);
-      }
-      return ok(Json.toJson(elements));
-    } catch (CedarAccessException e) {
-      Logger.error("Access Error while reading the template fields", e);
-      return forbiddenWithError(e);
-    } catch (Exception e) {
-      Logger.error("Error while reading the template fields", e);
-      return internalServerErrorWithError(e);
+    } catch (IOException e) {
+      return CedarResponse.internalServerError()
+          .errorKey(CedarErrorKey.TEMPLATE_FIELDS_NOT_LISTED)
+          .errorMessage("The template fields can not be listed")
+          .exception(e)
+          .build();
     }
+    long total = templateFieldService.count();
+    checkPagingParametersAgainstTotal(offset, total);
+
+    String absoluteUrl = uriInfo.getAbsolutePathBuilder().build().toString();
+    String linkHeader = LinkHeaderUtil.getPagingLinkHeader(absoluteUrl, total, limit, offset);
+    Response.ResponseBuilder responseBuilder = Response.ok().entity(fields);
+    responseBuilder.header(CustomHttpConstants.HEADER_TOTAL_COUNT, String.valueOf(total));
+    if (!linkHeader.isEmpty()) {
+      responseBuilder.header(HttpConstants.HTTP_HEADER_LINK, linkHeader);
+    }
+    return responseBuilder.build();
   }
 
-  public static Result findTemplateField(String templateFieldId) {
-    try {
-      Authorization.getUserAndEnsurePermission(CedarAuthFromRequestFactory.fromRequest(request()), CedarPermission
-          .TEMPLATE_FIELD_READ);
-      JsonNode templateField = templateFieldService.findTemplateField(templateFieldId);
-      if (templateField != null) {
-        // Remove autogenerated _id field to avoid exposing it
-        MongoUtils.removeIdField(templateField);
-        return ok(templateField);
-      }
-      Logger.error("Template field not found:(" + templateFieldId + ")");
-      return notFound();
-    } catch (IllegalArgumentException e) {
-      Logger.error("Illegal Argument while reading the template field", e);
-      return badRequestWithError(e);
-    } catch (CedarUserNotFoundException e) {
-      Logger.error("User not found", e);
-      return unauthorizedWithError(e);
-    } catch (AccessException e) {
-      Logger.error("Access Error while reading the template field", e);
-      return forbiddenWithError(e);
-    } catch (AuthorizationTypeNotFoundException e) {
-      Logger.error("Authorization header not found", e);
-      return badRequestWithError(e);
-    } catch (Exception e) {
-      Logger.error("Error while reading the template field", e);
-      return internalServerErrorWithError(e);
-    }
-  }
+  @PUT
+  @Timed
+  @Path("/{id}")
+  public Response updateTemplateField(@PathParam("id") String id) throws CedarAssertionException {
+    CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
+    c.must(c.user()).be(LoggedIn);
+    c.must(c.user()).have(CedarPermission.TEMPLATE_FIELD_UPDATE);
 
-  public static Result updateTemplateField(String templateFieldId) {
+    JsonNode newField = c.request().getRequestBody().asJson();
+    ProvenanceInfo pi = ProvenanceUtil.build(cedarConfig, c.getCedarUser());
+    ProvenanceUtil.patchProvenanceInfo(newField, pi);
+    JsonNode updatedTemplateField = null;
     try {
-      AuthRequest authRequest = CedarAuthFromRequestFactory.fromRequest(request());
-      Authorization.getUserAndEnsurePermission(authRequest, CedarPermission.TEMPLATE_FIELD_UPDATE);
-      JsonNode newField = request().body().asJson();
-      ProvenanceInfo pi = ProvenanceUtil.build(cedarConfig, authRequest);
-      ProvenanceUtil.patchProvenanceInfo(newField, pi);
-      JsonNode updatedTemplateElement = templateFieldService.updateTemplateField(templateFieldId, newField);
-      // Remove autogenerated _id field to avoid exposing it
-      MongoUtils.removeIdField(updatedTemplateElement);
-      return ok(updatedTemplateElement);
-    } catch (IllegalArgumentException e) {
-      Logger.error("Illegal Argument while reading the template field", e);
-      return badRequestWithError(e);
+      updatedTemplateField = templateFieldService.updateTemplateField(id, newField);
     } catch (InstanceNotFoundException e) {
-      Logger.error("Template field not found for update:(" + templateFieldId + ")");
-      return notFound();
-    } catch (CedarAccessException e) {
-      Logger.error("Access Error while reading the template field", e);
-      return forbiddenWithError(e);
-    } catch (Exception e) {
-      Logger.error("Error while updating the template field", e);
-      return internalServerErrorWithError(e);
+      return CedarResponse.notFound()
+          .id(id)
+          .errorKey(CedarErrorKey.TEMPLATE_FIELD_NOT_FOUND)
+          .errorMessage("The template field can not be found by id:" + id)
+          .exception(e)
+          .build();
+    } catch (IOException e) {
+      return CedarResponse.internalServerError()
+          .id(id)
+          .errorKey(CedarErrorKey.TEMPLATE_FIELD_NOT_UPDATED)
+          .errorMessage("The template field can not be updated by id:" + id)
+          .exception(e)
+          .build();
     }
+    MongoUtils.removeIdField(updatedTemplateField);
+    return Response.ok().entity(updatedTemplateField).build();
   }
 
-  public static Result deleteTemplateField(String templateFieldId) {
+  @DELETE
+  @Timed
+  @Path("/{id}")
+  public Response deleteTemplateField(@PathParam("id") String id) throws CedarAssertionException {
+    CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
+    c.must(c.user()).be(LoggedIn);
+    c.must(c.user()).have(CedarPermission.TEMPLATE_FIELD_DELETE);
+
     try {
-      Authorization.getUserAndEnsurePermission(CedarAuthFromRequestFactory.fromRequest(request()), CedarPermission
-          .TEMPLATE_FIELD_DELETE);
-      templateFieldService.deleteTemplateField(templateFieldId);
-      return noContent();
-    } catch (IllegalArgumentException e) {
-      Logger.error("Illegal Argument while deleting the template field", e);
-      return badRequestWithError(e);
+      templateFieldService.deleteTemplateField(id);
     } catch (InstanceNotFoundException e) {
-      Logger.error("Template field not found while deleting:(" + templateFieldId + ")");
-      return notFound();
-    } catch (CedarAccessException e) {
-      Logger.error("Access Error while deleting the template field", e);
-      return forbiddenWithError(e);
-    } catch (Exception e) {
-      Logger.error("Error while deleting the template field", e);
-      return internalServerErrorWithError(e);
+      return CedarResponse.notFound()
+          .id(id)
+          .errorKey(CedarErrorKey.TEMPLATE_FIELD_NOT_FOUND)
+          .errorMessage("The template field can not be found by id:" + id)
+          .exception(e)
+          .build();
+    } catch (IOException e) {
+      return CedarResponse.internalServerError()
+          .id(id)
+          .errorKey(CedarErrorKey.TEMPLATE_FIELD_NOT_DELETED)
+          .errorMessage("The template field can not be deleted by id:" + id)
+          .exception(e)
+          .build();
     }
+    return CedarResponse.noContent().build();
   }
+
 }

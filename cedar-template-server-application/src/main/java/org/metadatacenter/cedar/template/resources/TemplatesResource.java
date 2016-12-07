@@ -3,10 +3,14 @@ package org.metadatacenter.cedar.template.resources;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
+import org.metadatacenter.cedar.template.core.CedarErrorKey;
+import org.metadatacenter.cedar.template.core.CedarResponse;
+import org.metadatacenter.cedar.template.core.CedarUrlUtil;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.constant.CustomHttpConstants;
 import org.metadatacenter.constant.HttpConstants;
 import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.rest.assertion.noun.CedarRequestBody;
 import org.metadatacenter.rest.context.CedarRequestContext;
 import org.metadatacenter.rest.context.CedarRequestContextFactory;
 import org.metadatacenter.rest.exception.CedarAssertionException;
@@ -16,17 +20,18 @@ import org.metadatacenter.server.service.FieldNameInEx;
 import org.metadatacenter.server.service.TemplateFieldService;
 import org.metadatacenter.server.service.TemplateService;
 import org.metadatacenter.util.http.LinkHeaderUtil;
-import org.metadatacenter.util.http.UrlUtil;
 import org.metadatacenter.util.mongo.MongoUtils;
 import org.metadatacenter.util.provenance.ProvenanceUtil;
 
 import javax.management.InstanceNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
-import javax.ws.rs.core.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URLEncoder;
 import java.util.*;
 
 import static org.metadatacenter.rest.assertion.GenericAssertions.LoggedIn;
@@ -66,9 +71,9 @@ public class TemplatesResource extends AbstractTemplateServerResource {
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_CREATE);
 
-    c.must(c.request().getRequestBody()).be(NonEmpty);
+    //TODO: test if it is not empty
+    //c.must(c.request().getRequestBody()).be(NonEmpty);
     JsonNode template = c.request().getRequestBody().asJson();
-
 
     ProvenanceInfo pi = ProvenanceUtil.build(cedarConfig, c.getCedarUser());
     checkImportModeSetProvenanceAndId(CedarNodeType.TEMPLATE, template, pi, importMode);
@@ -79,23 +84,17 @@ public class TemplatesResource extends AbstractTemplateServerResource {
           cedarConfig.getLinkedDataPrefix(CedarNodeType.FIELD));
       createdTemplate = templateService.createTemplate(template);
     } catch (IOException e) {
-      Map<String, Object> errorParams = new HashMap<>();
-      errorParams.put("errorId", "templateNotUpdated");
-      errorParams.put("errorMessage", "The template can not be created");
-      errorParams.put("exception", e);
-      return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(errorParams).build();
+      return CedarResponse.internalServerError()
+          .errorKey(CedarErrorKey.TEMPLATE_NOT_CREATED)
+          .errorMessage("The template can not be created")
+          .exception(e)
+          .build();
     }
     MongoUtils.removeIdField(createdTemplate);
 
     String id = createdTemplate.get("@id").asText();
-    // TODO: this is way too much for a URL ENCODE
-    UriBuilder builder = uriInfo.getAbsolutePathBuilder();
-    URI uri = null;
-    try {
-      uri = builder.path(URLEncoder.encode(id, "UTF-8")).build();
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
+
+    URI uri = CedarUrlUtil.getIdURI(uriInfo, id);
     return Response.created(uri).entity(createdTemplate).build();
   }
 
@@ -111,21 +110,20 @@ public class TemplatesResource extends AbstractTemplateServerResource {
     try {
       template = templateService.findTemplate(id);
     } catch (IOException | ProcessingException e) {
-      Map<String, Object> errorParams = new HashMap<>();
-      errorParams.put("id", id);
-      errorParams.put("errorId", "templateNotUpdated");
-      errorParams.put("errorMessage", "The template can not be found by id:" + id);
-      errorParams.put("exception", e);
-      return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(errorParams).build();
+      return CedarResponse.internalServerError()
+          .id(id)
+          .errorKey(CedarErrorKey.TEMPLATE_NOT_FOUND)
+          .errorMessage("The template can not be found by id:" + id)
+          .exception(e)
+          .build();
     }
     if (template == null) {
-      Map<String, Object> errorParams = new HashMap<>();
-      errorParams.put("id", id);
-      errorParams.put("errorId", "templateNotFound");
-      errorParams.put("errorMessage", "The template can not be found by id:" + id);
-      return Response.status(Response.Status.NOT_FOUND).entity(errorParams).build();
+      return CedarResponse.notFound()
+          .id(id)
+          .errorKey(CedarErrorKey.TEMPLATE_NOT_FOUND)
+          .errorMessage("The template can not be found by id:" + id)
+          .build();
     } else {
-      // Remove autogenerated _id field to avoid exposing it
       MongoUtils.removeIdField(template);
       return Response.ok().entity(template).build();
     }
@@ -160,17 +158,16 @@ public class TemplatesResource extends AbstractTemplateServerResource {
         templates = templateService.findAllTemplates(limit, offset, FIELD_NAMES_EXCLUSION_LIST, FieldNameInEx.EXCLUDE);
       }
     } catch (IOException e) {
-      Map<String, Object> errorParams = new HashMap<>();
-      errorParams.put("errorMessage", "The templates can not be listed");
-      errorParams.put("exception", e);
-      return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(errorParams).build();
+      return CedarResponse.internalServerError()
+          .errorKey(CedarErrorKey.TEMPLATES_NOT_LISTED)
+          .errorMessage("The templates can not be listed")
+          .exception(e)
+          .build();
     }
     long total = templateService.count();
     checkPagingParametersAgainstTotal(offset, total);
 
-    UriBuilder builder = uriInfo.getAbsolutePathBuilder();
-    URI absoluteURI = builder.queryParam("summary", false).build();
-    String absoluteUrl = UrlUtil.trimUrlParameters(absoluteURI.toString());
+    String absoluteUrl = uriInfo.getAbsolutePathBuilder().build().toString();
     String linkHeader = LinkHeaderUtil.getPagingLinkHeader(absoluteUrl, total, limit, offset);
     Response.ResponseBuilder responseBuilder = Response.ok().entity(templates);
     responseBuilder.header(CustomHttpConstants.HEADER_TOTAL_COUNT, String.valueOf(total));
@@ -196,22 +193,21 @@ public class TemplatesResource extends AbstractTemplateServerResource {
       templateFieldService.saveNewFieldsAndReplaceIds(newTemplate, pi,
           cedarConfig.getLinkedDataPrefix(CedarNodeType.FIELD));
       updatedTemplate = templateService.updateTemplate(id, newTemplate);
-    } catch (IOException e) {
-      Map<String, Object> errorParams = new HashMap<>();
-      errorParams.put("id", id);
-      errorParams.put("errorId", "templateNotUpdated");
-      errorParams.put("errorMessage", "The template can not be updated by id:" + id);
-      errorParams.put("exception", e);
-      return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(errorParams).build();
     } catch (InstanceNotFoundException e) {
-      Map<String, Object> errorParams = new HashMap<>();
-      errorParams.put("id", id);
-      errorParams.put("errorId", "templateNotFound");
-      errorParams.put("errorMessage", "The template can not be found by id:" + id);
-      errorParams.put("exception", e);
-      return Response.status(Response.Status.NOT_FOUND).entity(errorParams).build();
+      return CedarResponse.notFound()
+          .id(id)
+          .errorKey(CedarErrorKey.TEMPLATE_NOT_FOUND)
+          .errorMessage("The template can not be found by id:" + id)
+          .exception(e)
+          .build();
+    } catch (IOException e) {
+      return CedarResponse.internalServerError()
+          .id(id)
+          .errorKey(CedarErrorKey.TEMPLATE_NOT_UPDATED)
+          .errorMessage("The template can not be updated by id:" + id)
+          .exception(e)
+          .build();
     }
-    // Remove autogenerated _id field to avoid exposing it
     MongoUtils.removeIdField(updatedTemplate);
     return Response.ok().entity(updatedTemplate).build();
   }
@@ -227,21 +223,21 @@ public class TemplatesResource extends AbstractTemplateServerResource {
     try {
       templateService.deleteTemplate(id);
     } catch (InstanceNotFoundException e) {
-      Map<String, Object> errorParams = new HashMap<>();
-      errorParams.put("id", id);
-      errorParams.put("errorId", "templateNotFound");
-      errorParams.put("errorMessage", "The template can not be found by id:" + id);
-      errorParams.put("exception", e);
-      return Response.status(Response.Status.NOT_FOUND).entity(errorParams).build();
+      return CedarResponse.notFound()
+          .id(id)
+          .errorKey(CedarErrorKey.TEMPLATE_NOT_FOUND)
+          .errorMessage("The template can not be found by id:" + id)
+          .exception(e)
+          .build();
     } catch (IOException e) {
-      Map<String, Object> errorParams = new HashMap<>();
-      errorParams.put("id", id);
-      errorParams.put("errorId", "templateNotDeleted");
-      errorParams.put("errorMessage", "The template can not be delete by id:" + id);
-      errorParams.put("exception", e);
-      return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(errorParams).build();
+      return CedarResponse.internalServerError()
+          .id(id)
+          .errorKey(CedarErrorKey.TEMPLATE_NOT_DELETED)
+          .errorMessage("The template can not be deleted by id:" + id)
+          .exception(e)
+          .build();
     }
-    return Response.status(Response.Status.NO_CONTENT).build();
+    return CedarResponse.noContent().build();
   }
 
 }
