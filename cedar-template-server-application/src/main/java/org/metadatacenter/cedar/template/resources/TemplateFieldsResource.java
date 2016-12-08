@@ -3,12 +3,11 @@ package org.metadatacenter.cedar.template.resources;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
-import org.metadatacenter.cedar.template.core.CedarErrorKey;
-import org.metadatacenter.cedar.template.core.CedarResponse;
 import org.metadatacenter.cedar.template.core.CedarUrlUtil;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.constant.CustomHttpConstants;
 import org.metadatacenter.constant.HttpConstants;
+import org.metadatacenter.error.CedarErrorKey;
 import org.metadatacenter.model.CedarNodeType;
 import org.metadatacenter.rest.context.CedarRequestContext;
 import org.metadatacenter.rest.context.CedarRequestContextFactory;
@@ -17,37 +16,24 @@ import org.metadatacenter.server.model.provenance.ProvenanceInfo;
 import org.metadatacenter.server.security.model.auth.CedarPermission;
 import org.metadatacenter.server.service.FieldNameInEx;
 import org.metadatacenter.server.service.TemplateFieldService;
+import org.metadatacenter.util.http.CedarResponse;
 import org.metadatacenter.util.http.LinkHeaderUtil;
 import org.metadatacenter.util.mongo.MongoUtils;
 import org.metadatacenter.util.provenance.ProvenanceUtil;
 
 import javax.management.InstanceNotFoundException;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 import java.io.IOException;
 import java.net.URI;
 import java.util.*;
 
 import static org.metadatacenter.rest.assertion.GenericAssertions.LoggedIn;
-import static org.metadatacenter.rest.assertion.GenericAssertions.NonEmpty;
 
 @Path("/template-fields")
 @Produces(MediaType.APPLICATION_JSON)
 public class TemplateFieldsResource extends AbstractTemplateServerResource {
-
-  private
-  @Context
-  UriInfo uriInfo;
-
-  private
-  @Context
-  HttpServletRequest request;
-
-  private final CedarConfig cedarConfig;
 
   private final TemplateFieldService<String, JsonNode> templateFieldService;
 
@@ -56,7 +42,6 @@ public class TemplateFieldsResource extends AbstractTemplateServerResource {
 
   public TemplateFieldsResource(CedarConfig cedarConfig, TemplateFieldService<String, JsonNode> templateFieldService) {
     super(cedarConfig);
-    this.cedarConfig = cedarConfig;
     this.templateFieldService = templateFieldService;
     FIELD_NAMES_SUMMARY_LIST = new ArrayList<>();
     FIELD_NAMES_SUMMARY_LIST.addAll(cedarConfig.getTemplateRESTAPISummaries().getField().getFields());

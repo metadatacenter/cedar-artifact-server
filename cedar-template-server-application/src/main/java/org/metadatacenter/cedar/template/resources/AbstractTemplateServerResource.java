@@ -7,11 +7,22 @@ import org.metadatacenter.model.CedarNodeType;
 import org.metadatacenter.server.model.provenance.ProvenanceInfo;
 import org.metadatacenter.util.provenance.ProvenanceUtil;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.UriInfo;
 import java.util.*;
 
 import static com.fasterxml.jackson.databind.node.JsonNodeType.NULL;
 
 public class AbstractTemplateServerResource {
+
+  protected
+  @Context
+  UriInfo uriInfo;
+
+  protected
+  @Context
+  HttpServletRequest request;
 
   protected final CedarConfig cedarConfig;
 
