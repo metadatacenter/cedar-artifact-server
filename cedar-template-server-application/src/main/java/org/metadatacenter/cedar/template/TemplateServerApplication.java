@@ -8,7 +8,7 @@ import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.metadatacenter.bridge.CedarDataServices;
 import org.metadatacenter.cedar.template.health.TemplateServerHealthCheck;
 import org.metadatacenter.cedar.template.resources.*;
-import org.metadatacenter.cedar.util.dw.CedarAssertionExceptionMapper;
+import org.metadatacenter.cedar.util.dw.CedarExceptionMapper;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.model.CedarNodeType;
 import org.metadatacenter.server.security.Authorization;
@@ -97,7 +97,7 @@ public class TemplateServerApplication extends Application<TemplateServerConfigu
     final TemplateServerHealthCheck healthCheck = new TemplateServerHealthCheck();
     environment.healthChecks().register("errorMessage", healthCheck);
 
-    environment.jersey().register(new CedarAssertionExceptionMapper());
+    environment.jersey().register(new CedarExceptionMapper());
 
     // Enable CORS headers
     final FilterRegistration.Dynamic cors = environment.servlets().addFilter("CORS", CrossOriginFilter.class);

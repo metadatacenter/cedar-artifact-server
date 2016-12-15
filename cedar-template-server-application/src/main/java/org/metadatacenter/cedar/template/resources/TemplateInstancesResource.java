@@ -2,7 +2,6 @@ package org.metadatacenter.cedar.template.resources;
 
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.databind.JsonNode;
-import org.metadatacenter.cedar.template.core.CedarUrlUtil;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.constant.CustomHttpConstants;
 import org.metadatacenter.constant.HttpConstants;
@@ -16,6 +15,7 @@ import org.metadatacenter.server.security.model.auth.CedarPermission;
 import org.metadatacenter.server.service.FieldNameInEx;
 import org.metadatacenter.server.service.TemplateInstanceService;
 import org.metadatacenter.util.http.CedarResponse;
+import org.metadatacenter.util.http.CedarUrlUtil;
 import org.metadatacenter.util.http.LinkHeaderUtil;
 import org.metadatacenter.util.mongo.MongoUtils;
 import org.metadatacenter.util.provenance.ProvenanceUtil;
