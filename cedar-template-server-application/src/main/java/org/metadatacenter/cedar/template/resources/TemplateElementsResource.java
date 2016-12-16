@@ -7,6 +7,7 @@ import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.constant.CustomHttpConstants;
 import org.metadatacenter.constant.HttpConstants;
 import org.metadatacenter.error.CedarErrorKey;
+import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.model.CedarNodeType;
 import org.metadatacenter.rest.context.CedarRequestContext;
 import org.metadatacenter.rest.context.CedarRequestContextFactory;
@@ -53,7 +54,7 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
   @POST
   @Timed
   public Response createTemplateElement(@QueryParam("importMode") Optional<Boolean> importMode) throws
-      CedarAssertionException {
+      CedarException {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_ELEMENT_CREATE);
@@ -169,7 +170,7 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
   @PUT
   @Timed
   @Path("/{id}")
-  public Response updateTemplateElement(@PathParam("id") String id) throws CedarAssertionException {
+  public Response updateTemplateElement(@PathParam("id") String id) throws CedarException {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_ELEMENT_UPDATE);
