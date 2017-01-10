@@ -10,7 +10,6 @@ import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.model.CedarNodeType;
 import org.metadatacenter.rest.context.CedarRequestContext;
 import org.metadatacenter.rest.context.CedarRequestContextFactory;
-import org.metadatacenter.rest.exception.CedarAssertionException;
 import org.metadatacenter.server.model.provenance.ProvenanceInfo;
 import org.metadatacenter.server.security.model.auth.CedarPermission;
 import org.metadatacenter.server.service.FieldNameInEx;
@@ -83,7 +82,7 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
   @GET
   @Timed
   @Path("/{id}")
-  public Response findTemplateInstance(@PathParam("id") String id) throws CedarAssertionException {
+  public Response findTemplateInstance(@PathParam("id") String id) throws CedarException {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_READ);
@@ -116,7 +115,7 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
                                            @QueryParam("offset") Optional<Integer> offsetParam,
                                            @QueryParam("summary") Optional<Boolean> summaryParam,
                                            @QueryParam("fieldNames") Optional<String> fieldNamesParam) throws
-      CedarAssertionException {
+      CedarException {
 
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
@@ -197,7 +196,7 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
   @DELETE
   @Timed
   @Path("/{id}")
-  public Response deleteTemplateInstance(@PathParam("id") String id) throws CedarAssertionException {
+  public Response deleteTemplateInstance(@PathParam("id") String id) throws CedarException {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_DELETE);
