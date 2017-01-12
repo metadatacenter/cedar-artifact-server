@@ -9,6 +9,7 @@ import org.metadatacenter.bridge.CedarDataServices;
 import org.metadatacenter.cedar.template.health.TemplateServerHealthCheck;
 import org.metadatacenter.cedar.template.resources.*;
 import org.metadatacenter.cedar.util.dw.CedarCedarExceptionMapper;
+import org.metadatacenter.cedar.util.dw.CedarDropwizardApplicationUtil;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.model.CedarNodeType;
 import org.metadatacenter.server.security.Authorization;
@@ -49,12 +50,7 @@ public class TemplateServerApplication extends Application<TemplateServerConfigu
 
   @Override
   public void initialize(Bootstrap<TemplateServerConfiguration> bootstrap) {
-    // Init Keycloak
-    KeycloakDeploymentProvider.getInstance();
-    // Init Authorization Resolver
-    IAuthorizationResolver authResolver = new AuthorizationKeycloakAndApiKeyResolver();
-    Authorization.setAuthorizationResolver(authResolver);
-    Authorization.setUserService(CedarDataServices.getUserService());
+    CedarDropwizardApplicationUtil.setupKeycloak();
 
     cedarConfig = CedarConfig.getInstance();
 
@@ -95,21 +91,9 @@ public class TemplateServerApplication extends Application<TemplateServerConfigu
     environment.jersey().register(instances);
 
     final TemplateServerHealthCheck healthCheck = new TemplateServerHealthCheck();
-    environment.healthChecks().register("errorMessage", healthCheck);
+    environment.healthChecks().register("message", healthCheck);
 
-    environment.jersey().register(new CedarCedarExceptionMapper());
-
-    // Enable CORS headers
-    final FilterRegistration.Dynamic cors = environment.servlets().addFilter("CORS", CrossOriginFilter.class);
-
-    // Configure CORS parameters
-    cors.setInitParameter(ALLOWED_ORIGINS_PARAM, "*");
-    cors.setInitParameter(ALLOWED_HEADERS_PARAM,
-        "X-Requested-With,Content-Type,Accept,Origin,Referer,User-Agent,Authorization");
-    cors.setInitParameter(ALLOWED_METHODS_PARAM, "OPTIONS,GET,PUT,POST,DELETE,HEAD,PATCH");
-
-    // Add URL mapping
-    cors.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/*");
+    CedarDropwizardApplicationUtil.setupEnvironment(environment);
 
   }
 }
