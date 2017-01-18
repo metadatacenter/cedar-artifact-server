@@ -96,7 +96,7 @@ public class AbstractTemplateServerResource {
     if (fieldNames != null && fieldNames.isPresent()) {
       if (summary == true) {
         throw new IllegalArgumentException(
-            "It is no allowed to specify parameter 'fieldNames' and also set 'summary' to true!");
+            "It is no allowed to specify parameter 'field_names' and also set 'summary' to true!");
       } else if (fieldNames.get().length() > 0) {
         return Arrays.asList(fieldNames.get().split(","));
       }

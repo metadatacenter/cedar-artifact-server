@@ -30,6 +30,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.*;
 
+import static org.metadatacenter.constant.CedarPathParameters.PP_ID;
+import static org.metadatacenter.constant.CedarQueryParameters.*;
 import static org.metadatacenter.rest.assertion.GenericAssertions.LoggedIn;
 
 @Path("/template-elements")
@@ -52,7 +54,7 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
 
   @POST
   @Timed
-  public Response createTemplateElement(@QueryParam("importMode") Optional<Boolean> importMode) throws
+  public Response createTemplateElement(@QueryParam(QP_IMPORT_MODE) Optional<Boolean> importMode) throws
       CedarException {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
@@ -88,7 +90,7 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
   @GET
   @Timed
   @Path("/{id}")
-  public Response findTemplateElement(@PathParam("id") String id) throws CedarException {
+  public Response findTemplateElement(@PathParam(PP_ID) String id) throws CedarException {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_ELEMENT_READ);
@@ -118,10 +120,10 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
 
   @GET
   @Timed
-  public Response findAllTemplateElements(@QueryParam("limit") Optional<Integer> limitParam,
-                                          @QueryParam("offset") Optional<Integer> offsetParam,
-                                          @QueryParam("summary") Optional<Boolean> summaryParam,
-                                          @QueryParam("fieldNames") Optional<String> fieldNamesParam) throws
+  public Response findAllTemplateElements(@QueryParam(QP_LIMIT) Optional<Integer> limitParam,
+                                          @QueryParam(QP_OFFSET) Optional<Integer> offsetParam,
+                                          @QueryParam(QP_SUMMARY) Optional<Boolean> summaryParam,
+                                          @QueryParam(QP_FIELD_NAMES) Optional<String> fieldNamesParam) throws
       CedarException {
 
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
@@ -169,7 +171,7 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
   @PUT
   @Timed
   @Path("/{id}")
-  public Response updateTemplateElement(@PathParam("id") String id) throws CedarException {
+  public Response updateTemplateElement(@PathParam(PP_ID) String id) throws CedarException {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_ELEMENT_UPDATE);
@@ -204,7 +206,7 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
   @DELETE
   @Timed
   @Path("/{id}")
-  public Response deleteTemplateElement(@PathParam("id") String id) throws CedarException {
+  public Response deleteTemplateElement(@PathParam(PP_ID) String id) throws CedarException {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_ELEMENT_DELETE);
