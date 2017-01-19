@@ -4,18 +4,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
-import org.eclipse.jetty.servlets.CrossOriginFilter;
-import org.metadatacenter.bridge.CedarDataServices;
 import org.metadatacenter.cedar.template.health.TemplateServerHealthCheck;
 import org.metadatacenter.cedar.template.resources.*;
-import org.metadatacenter.cedar.util.dw.CedarCedarExceptionMapper;
 import org.metadatacenter.cedar.util.dw.CedarDropwizardApplicationUtil;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.model.CedarNodeType;
-import org.metadatacenter.server.security.Authorization;
-import org.metadatacenter.server.security.AuthorizationKeycloakAndApiKeyResolver;
-import org.metadatacenter.server.security.IAuthorizationResolver;
-import org.metadatacenter.server.security.KeycloakDeploymentProvider;
 import org.metadatacenter.server.service.TemplateElementService;
 import org.metadatacenter.server.service.TemplateFieldService;
 import org.metadatacenter.server.service.TemplateInstanceService;
@@ -24,12 +17,6 @@ import org.metadatacenter.server.service.mongodb.TemplateElementServiceMongoDB;
 import org.metadatacenter.server.service.mongodb.TemplateFieldServiceMongoDB;
 import org.metadatacenter.server.service.mongodb.TemplateInstanceServiceMongoDB;
 import org.metadatacenter.server.service.mongodb.TemplateServiceMongoDB;
-
-import javax.servlet.DispatcherType;
-import javax.servlet.FilterRegistration;
-import java.util.EnumSet;
-
-import static org.eclipse.jetty.servlets.CrossOriginFilter.*;
 
 public class TemplateServerApplication extends Application<TemplateServerConfiguration> {
 
