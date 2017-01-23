@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+import org.metadatacenter.bridge.CedarDataServices;
 import org.metadatacenter.cedar.template.health.TemplateServerHealthCheck;
 import org.metadatacenter.cedar.template.resources.*;
 import org.metadatacenter.cedar.util.dw.CedarDropwizardApplicationUtil;
@@ -37,9 +38,10 @@ public class TemplateServerApplication extends Application<TemplateServerConfigu
 
   @Override
   public void initialize(Bootstrap<TemplateServerConfiguration> bootstrap) {
-    CedarDropwizardApplicationUtil.setupKeycloak();
-
     cedarConfig = CedarConfig.getInstance();
+    CedarDataServices.getInstance(cedarConfig);
+
+    CedarDropwizardApplicationUtil.setupKeycloak();
 
     templateFieldService = new TemplateFieldServiceMongoDB(
         cedarConfig.getMongoConfig().getDatabaseName(),
