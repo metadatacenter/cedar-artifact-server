@@ -18,4 +18,4 @@ keycloak.json
 pom.xml.releaseBackup
 release.properties
 pom.xml.versionsBackup
-
+cedar-template-server-application/dependency-reduced-pom.xml

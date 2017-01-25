@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.metadatacenter</groupId>
     <artifactId>cedar-template-server</artifactId>
-    <version>0.8.6</version>
+    <version>0.9.1</version>
   </parent>
 
   <groupId>org.metadatacenter</groupId>
@@ -24,10 +24,6 @@
         <artifactId>maven-compiler-plugin</artifactId>
       </plugin>
 
-      <plugin>
-        <groupId>net.alchim31.maven</groupId>
-        <artifactId>scala-maven-plugin</artifactId>
-      </plugin>
     </plugins>
   </build>
 </project>
