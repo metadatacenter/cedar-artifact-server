@@ -61,7 +61,7 @@ public class TemplateFieldsResource extends AbstractTemplateServerResource {
     //c.must(c.request().getRequestBody()).be(NonEmpty);
     JsonNode templateField = c.request().getRequestBody().asJson();
 
-    ProvenanceInfo pi = ProvenanceUtil.build(cedarConfig, c.getCedarUser());
+    ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     checkImportModeSetProvenanceAndId(CedarNodeType.FIELD, templateField, pi, importMode);
 
     JsonNode createdTemplateField = null;
@@ -172,8 +172,8 @@ public class TemplateFieldsResource extends AbstractTemplateServerResource {
     c.must(c.user()).have(CedarPermission.TEMPLATE_FIELD_UPDATE);
 
     JsonNode newField = c.request().getRequestBody().asJson();
-    ProvenanceInfo pi = ProvenanceUtil.build(cedarConfig, c.getCedarUser());
-    ProvenanceUtil.patchProvenanceInfo(newField, pi);
+    ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
+    provenanceUtil.patchProvenanceInfo(newField, pi);
     JsonNode updatedTemplateField = null;
     try {
       updatedTemplateField = templateFieldService.updateTemplateField(id, newField);

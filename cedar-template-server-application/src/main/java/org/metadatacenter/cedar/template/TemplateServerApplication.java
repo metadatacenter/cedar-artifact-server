@@ -66,8 +66,9 @@ public class TemplateServerApplication extends Application<TemplateServerConfigu
     final IndexResource index = new IndexResource();
     environment.jersey().register(index);
 
-    final TemplateFieldsResource fields = new TemplateFieldsResource(cedarConfig, templateFieldService);
-    environment.jersey().register(fields);
+    // TODO: we do not handle field now
+    /*final TemplateFieldsResource fields = new TemplateFieldsResource(cedarConfig, templateFieldService);
+    environment.jersey().register(fields);*/
 
     final TemplateElementsResource elements = new TemplateElementsResource(cedarConfig, templateElementService,
         templateFieldService);
