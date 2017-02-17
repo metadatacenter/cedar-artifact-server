@@ -1,14 +1,14 @@
 package org.metadatacenter.cedar.template;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import io.dropwizard.Application;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
-import org.metadatacenter.bridge.CedarDataServices;
 import org.metadatacenter.cedar.template.health.TemplateServerHealthCheck;
-import org.metadatacenter.cedar.template.resources.*;
-import org.metadatacenter.cedar.util.dw.CedarDropwizardApplicationUtil;
-import org.metadatacenter.config.CedarConfig;
+import org.metadatacenter.cedar.template.resources.IndexResource;
+import org.metadatacenter.cedar.template.resources.TemplateElementsResource;
+import org.metadatacenter.cedar.template.resources.TemplateInstancesResource;
+import org.metadatacenter.cedar.template.resources.TemplatesResource;
+import org.metadatacenter.cedar.util.dw.CedarMicroserviceApplication;
 import org.metadatacenter.model.CedarNodeType;
 import org.metadatacenter.server.service.TemplateElementService;
 import org.metadatacenter.server.service.TemplateFieldService;
@@ -19,9 +19,8 @@ import org.metadatacenter.server.service.mongodb.TemplateFieldServiceMongoDB;
 import org.metadatacenter.server.service.mongodb.TemplateInstanceServiceMongoDB;
 import org.metadatacenter.server.service.mongodb.TemplateServiceMongoDB;
 
-public class TemplateServerApplication extends Application<TemplateServerConfiguration> {
+public class TemplateServerApplication extends CedarMicroserviceApplication<TemplateServerConfiguration> {
 
-  protected static CedarConfig cedarConfig;
   protected static TemplateFieldService<String, JsonNode> templateFieldService;
   protected static TemplateElementService<String, JsonNode> templateElementService;
   protected static TemplateService<String, JsonNode> templateService;
@@ -33,16 +32,11 @@ public class TemplateServerApplication extends Application<TemplateServerConfigu
 
   @Override
   public String getName() {
-    return "template-server";
+    return "cedar-template-server";
   }
 
   @Override
-  public void initialize(Bootstrap<TemplateServerConfiguration> bootstrap) {
-    cedarConfig = CedarConfig.getInstance();
-    CedarDataServices.getInstance(cedarConfig);
-
-    CedarDropwizardApplicationUtil.setupKeycloak();
-
+  public void initializeApp(Bootstrap<TemplateServerConfiguration> bootstrap) {
     templateFieldService = new TemplateFieldServiceMongoDB(
         cedarConfig.getMongoConfig().getDatabaseName(),
         cedarConfig.getMongoCollectionName(CedarNodeType.FIELD));
@@ -62,12 +56,13 @@ public class TemplateServerApplication extends Application<TemplateServerConfigu
   }
 
   @Override
-  public void run(TemplateServerConfiguration configuration, Environment environment) {
+  public void runApp(TemplateServerConfiguration configuration, Environment environment) {
     final IndexResource index = new IndexResource();
     environment.jersey().register(index);
 
-    final TemplateFieldsResource fields = new TemplateFieldsResource(cedarConfig, templateFieldService);
-    environment.jersey().register(fields);
+    // TODO: we do not handle field now
+    /*final TemplateFieldsResource fields = new TemplateFieldsResource(cedarConfig, templateFieldService);
+    environment.jersey().register(fields);*/
 
     final TemplateElementsResource elements = new TemplateElementsResource(cedarConfig, templateElementService,
         templateFieldService);
@@ -81,8 +76,5 @@ public class TemplateServerApplication extends Application<TemplateServerConfigu
 
     final TemplateServerHealthCheck healthCheck = new TemplateServerHealthCheck();
     environment.healthChecks().register("message", healthCheck);
-
-    CedarDropwizardApplicationUtil.setupEnvironment(environment);
-
   }
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.server.jsonld.LinkedDataUtil;
 import org.metadatacenter.server.model.provenance.ProvenanceInfo;
 import org.metadatacenter.util.provenance.ProvenanceUtil;
 
@@ -26,11 +27,17 @@ public class AbstractTemplateServerResource {
 
   protected final CedarConfig cedarConfig;
 
+  protected final LinkedDataUtil linkedDataUtil;
+
+  protected final ProvenanceUtil provenanceUtil;
+
   protected static List<String> FIELD_NAMES_EXCLUSION_LIST;
 
 
   protected AbstractTemplateServerResource(CedarConfig cedarConfig) {
     this.cedarConfig = cedarConfig;
+    this.linkedDataUtil = cedarConfig.buildLinkedDataUtil();
+    this.provenanceUtil = new ProvenanceUtil(linkedDataUtil);
     FIELD_NAMES_EXCLUSION_LIST = new ArrayList<>();
     FIELD_NAMES_EXCLUSION_LIST.addAll(cedarConfig.getTemplateRESTAPI().getExcludedFields());
   }
@@ -47,8 +54,8 @@ public class AbstractTemplateServerResource {
       if ((element.get("@id") != null) && (!NULL.equals(element.get("@id").getNodeType()))) {
         throw new IllegalArgumentException("Specifying @id for new objects is not allowed");
       }
-      ProvenanceUtil.addProvenanceInfo(element, pi);
-      String id = cedarConfig.getLinkedDataPrefix(cedarNodeType) + UUID.randomUUID().toString();
+      provenanceUtil.addProvenanceInfo(element, pi);
+      String id = linkedDataUtil.buildNewLinkedDataId(cedarNodeType);
       ((ObjectNode) element).put("@id", id);
     }
   }

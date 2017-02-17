@@ -64,13 +64,12 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
     //c.must(c.request().getRequestBody()).be(NonEmpty);
     JsonNode templateElement = c.request().getRequestBody().asJson();
 
-    ProvenanceInfo pi = ProvenanceUtil.build(cedarConfig, c.getCedarUser());
+    ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     checkImportModeSetProvenanceAndId(CedarNodeType.ELEMENT, templateElement, pi, importMode);
 
     JsonNode createdTemplateElement = null;
     try {
-      templateFieldService.saveNewFieldsAndReplaceIds(templateElement, pi,
-          cedarConfig.getLinkedDataPrefix(CedarNodeType.FIELD));
+      templateFieldService.saveNewFieldsAndReplaceIds(templateElement, pi, provenanceUtil, linkedDataUtil);
       createdTemplateElement = templateElementService.createTemplateElement(templateElement);
     } catch (IOException e) {
       return CedarResponse.internalServerError()
@@ -177,12 +176,11 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
     c.must(c.user()).have(CedarPermission.TEMPLATE_ELEMENT_UPDATE);
 
     JsonNode newElement = c.request().getRequestBody().asJson();
-    ProvenanceInfo pi = ProvenanceUtil.build(cedarConfig, c.getCedarUser());
-    ProvenanceUtil.patchProvenanceInfo(newElement, pi);
+    ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
+    provenanceUtil.patchProvenanceInfo(newElement, pi);
     JsonNode updatedTemplateElement = null;
     try {
-      templateFieldService.saveNewFieldsAndReplaceIds(newElement, pi,
-          cedarConfig.getLinkedDataPrefix(CedarNodeType.FIELD));
+      templateFieldService.saveNewFieldsAndReplaceIds(newElement, pi, provenanceUtil, linkedDataUtil);
       updatedTemplateElement = templateElementService.updateTemplateElement(id, newElement);
     } catch (InstanceNotFoundException e) {
       return CedarResponse.notFound()
