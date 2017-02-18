@@ -45,7 +45,6 @@ public class AbstractTemplateServerResource {
   protected void checkImportModeSetProvenanceAndId(CedarNodeType cedarNodeType, JsonNode element,
                                                    ProvenanceInfo pi, Optional<Boolean> importMode) {
     boolean im = (importMode != null && importMode.isPresent() && importMode.get());
-    System.out.println("***TEMPLATE: CheckImport:" + importMode + ":" + im);
     if (im) {
       if ((element.get("@id") == null) || (NULL.equals(element.get("@id").getNodeType()))) {
         throw new IllegalArgumentException("You must specify @id when importing data");
