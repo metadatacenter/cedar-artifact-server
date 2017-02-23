@@ -1,6 +1,6 @@
 package org.metadatacenter.cedar.template;
 
-import io.dropwizard.Configuration;
+import org.metadatacenter.cedar.util.dw.CedarMicroserviceConfiguration;
 
-public class TemplateServerConfiguration extends Configuration {
+public class TemplateServerConfiguration extends CedarMicroserviceConfiguration {
 }
