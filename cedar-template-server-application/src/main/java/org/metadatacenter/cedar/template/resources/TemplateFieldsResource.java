@@ -18,8 +18,8 @@ import org.metadatacenter.server.service.TemplateFieldService;
 import org.metadatacenter.util.http.CedarResponse;
 import org.metadatacenter.util.http.CedarUrlUtil;
 import org.metadatacenter.util.http.LinkHeaderUtil;
+import org.metadatacenter.util.http.PagedQuery;
 import org.metadatacenter.util.mongo.MongoUtils;
-import org.metadatacenter.util.provenance.ProvenanceUtil;
 
 import javax.management.InstanceNotFoundException;
 import javax.ws.rs.*;
@@ -46,7 +46,7 @@ public class TemplateFieldsResource extends AbstractTemplateServerResource {
     super(cedarConfig);
     this.templateFieldService = templateFieldService;
     FIELD_NAMES_SUMMARY_LIST = new ArrayList<>();
-    FIELD_NAMES_SUMMARY_LIST.addAll(cedarConfig.getTemplateRESTAPISummaries().getField().getFields());
+    FIELD_NAMES_SUMMARY_LIST.addAll(cedarConfig.getTemplateRESTAPI().getSummaries().getField().getFields());
   }
 
   @POST
@@ -125,11 +125,15 @@ public class TemplateFieldsResource extends AbstractTemplateServerResource {
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_FIELD_READ);
 
-    Integer limit = ensureLimit(limitParam);
-    Integer offset = ensureOffset(offsetParam);
+    PagedQuery pagedQuery = new PagedQuery(cedarConfig.getTemplateRESTAPI().getPagination())
+        .limit(limitParam)
+        .offset(offsetParam);
+    pagedQuery.validate();
+
+    Integer limit = pagedQuery.getLimit();
+    Integer offset = pagedQuery.getOffset();
     Boolean summary = ensureSummary(summaryParam);
 
-    checkPagingParameters(limit, offset);
     List<String> fieldNameList = getAndCheckFieldNames(fieldNamesParam, summary);
     Map<String, Object> r = new HashMap<>();
     List<JsonNode> fields = null;
