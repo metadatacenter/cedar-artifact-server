@@ -7,6 +7,7 @@ import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.constant.CustomHttpConstants;
 import org.metadatacenter.constant.HttpConstants;
 import org.metadatacenter.error.CedarErrorKey;
+import org.metadatacenter.error.CedarErrorReasonKey;
 import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.model.CedarNodeType;
 import org.metadatacenter.rest.context.CedarRequestContext;
@@ -15,6 +16,7 @@ import org.metadatacenter.server.model.provenance.ProvenanceInfo;
 import org.metadatacenter.server.security.model.auth.CedarPermission;
 import org.metadatacenter.server.service.FieldNameInEx;
 import org.metadatacenter.server.service.TemplateFieldService;
+import org.metadatacenter.server.service.TemplateInstanceService;
 import org.metadatacenter.server.service.TemplateService;
 import org.metadatacenter.util.http.CedarResponse;
 import org.metadatacenter.util.http.CedarUrlUtil;
@@ -40,14 +42,17 @@ public class TemplatesResource extends AbstractTemplateServerResource {
 
   private final TemplateService<String, JsonNode> templateService;
   private final TemplateFieldService<String, JsonNode> templateFieldService;
+  private final TemplateInstanceService<String, JsonNode> templateInstanceService;
 
   protected static List<String> FIELD_NAMES_SUMMARY_LIST;
 
   public TemplatesResource(CedarConfig cedarConfig, TemplateService<String, JsonNode> templateService,
-                           TemplateFieldService<String, JsonNode> templateFieldService) {
+                           TemplateFieldService<String, JsonNode> templateFieldService,
+                           TemplateInstanceService<String, JsonNode> templateInstanceService) {
     super(cedarConfig);
     this.templateService = templateService;
     this.templateFieldService = templateFieldService;
+    this.templateInstanceService = templateInstanceService;
     FIELD_NAMES_SUMMARY_LIST = new ArrayList<>();
     FIELD_NAMES_SUMMARY_LIST.addAll(cedarConfig.getTemplateRESTAPI().getSummaries().getTemplate().getFields());
   }
@@ -210,6 +215,18 @@ public class TemplatesResource extends AbstractTemplateServerResource {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_DELETE);
+
+    long referenceCount = templateInstanceService.countReferencingTemplate(id);
+
+    if (referenceCount != 0) {
+      return CedarResponse.badRequest()
+          .id(id)
+          .errorKey(CedarErrorKey.TEMPLATE_NOT_DELETED)
+          .errorReasonKey(CedarErrorReasonKey.TEMPLATE_REFERENCED_IN_INSTANCES)
+          .errorMessage("The template can not be deleted since there are instances using it")
+          .parameter("referenceCount", referenceCount)
+          .build();
+    }
 
     try {
       templateService.deleteTemplate(id);
