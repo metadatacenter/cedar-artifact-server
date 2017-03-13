@@ -2,12 +2,19 @@ package org.metadatacenter.cedar.template.resources;
 
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.github.jsonldjava.core.JsonLdError;
+import com.sun.org.apache.xml.internal.serialize.OutputFormat;
+import com.sun.org.apache.xml.internal.serializer.OutputPropertyUtils;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.constant.CustomHttpConstants;
 import org.metadatacenter.constant.HttpConstants;
 import org.metadatacenter.error.CedarErrorKey;
 import org.metadatacenter.exception.CedarException;
+import org.metadatacenter.exception.CedarProcessingException;
 import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.model.request.OutputFormatType;
+import org.metadatacenter.model.request.OutputFormatTypeDetector;
+import org.metadatacenter.model.validation.JsonLdDocument;
 import org.metadatacenter.rest.context.CedarRequestContext;
 import org.metadatacenter.rest.context.CedarRequestContextFactory;
 import org.metadatacenter.server.model.provenance.ProvenanceInfo;
@@ -84,10 +91,21 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
   @GET
   @Timed
   @Path("/{id}")
-  public Response findTemplateInstance(@PathParam(PP_ID) String id) throws CedarException {
+  public Response findTemplateInstance(@PathParam(PP_ID) String id, @QueryParam(QP_FORMAT) Optional<String> format)
+      throws CedarException {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_READ);
+
+    OutputFormatType formatType = OutputFormatTypeDetector.detectFormat(format);
+    if (formatType == OutputFormatType.UNKNOWN) {
+      return CedarResponse.badRequest()
+          .errorKey(CedarErrorKey.UNKNOWN_INSTANCE_OUTPUT_FORMAT)
+          .errorMessage("Unknown requested output format: " + format.get())
+          .parameter("requestedFormat", format.get())
+          .parameter("expectedFormats", OutputFormatType.values())
+          .build();
+    }
     JsonNode templateInstance = null;
     try {
       templateInstance = templateInstanceService.findTemplateInstance(id);
@@ -107,7 +125,23 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
           .build();
     } else {
       MongoUtils.removeIdField(templateInstance);
-      return Response.ok().entity(templateInstance).build();
+      Object responseObject = null;
+      String mediaType = null;
+      if (formatType == OutputFormatType.JSONLD) {
+        responseObject = templateInstance;
+        mediaType = MediaType.APPLICATION_JSON;
+      } else if (formatType == OutputFormatType.JSON) {
+        responseObject = new JsonLdDocument(templateInstance).asJson();
+        mediaType = MediaType.APPLICATION_JSON;
+      } else if (formatType == OutputFormatType.RDF_NQUAD) {
+        try {
+          responseObject = new JsonLdDocument(templateInstance).asRdf();
+          mediaType = "application/n-quads"; // XXX: Create a constant
+        } catch (JsonLdError e) {
+          throw new CedarProcessingException("Error while converting the instance to RDF", e);
+        }
+      }
+      return Response.ok(responseObject, mediaType).build();
     }
   }
 
