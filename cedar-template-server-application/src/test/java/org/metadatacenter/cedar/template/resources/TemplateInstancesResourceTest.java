@@ -1,37 +1,107 @@
 package org.metadatacenter.cedar.template.resources;
 
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.metadatacenter.model.request.OutputFormatType;
+
+import javax.annotation.Nonnull;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.net.URI;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static javax.ws.rs.core.Response.Status.Family;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-import io.dropwizard.testing.junit.ResourceTestRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-
-import javax.ws.rs.client.Client;
-import javax.ws.rs.core.Response;
-
-import static org.metadatacenter.constant.HttpConstants.HTTP_HEADER_AUTHORIZATION;
-
-@RunWith(MockitoJUnitRunner.class)
 public class TemplateInstancesResourceTest extends BaseTemplateResourceTest {
 
-  @Mock
-  TemplateInstancesResource instance;
+  private String testInstanceId;
 
-  @Rule
-  public final ResourceTestRule resources = ResourceTestRule.builder()
-      .addResource(instance)
-      .build();
+  @Before
+  public void addTestInstances() {
+    Response response = sendPostRequest(
+        RequestUrl.forCreatingInstances(getPortNumber(), "false"),
+        Payloads.useExampleInstance001());
+    checkStatusOk(response);
+    extractAndBroadcastTestInstanceId(response);
+  }
+
+  @After
+  public void deleteTestInstances() {
+    Response response = sendDeleteRequest(
+        RequestUrl.forDeletingInstance(getPortNumber(), testInstanceId));
+    checkStatusOk(response);
+  }
 
   @Test
-  public void shouldFindTemplateInstance() {
-    Response response = resources.client().target("https://resource.metadatacenter.orgx/template-instances/123")
-        .request()
-        .header(HTTP_HEADER_AUTHORIZATION, "apiKey f843a2b9-a8c1-49a7-b35a-1905ec0817d6")
-        .get();
-    assertThat(response.getStatus(), is(202));
+  public void shouldGetTemplateInstanceInJsonLd() {
+    Response response = sendGetRequest(
+        RequestUrl.forFindingInstance(getPortNumber(),
+            testInstanceId,
+            OutputFormatType.JSONLD.getValue()));
+    checkStatusOk(response);
+    // Asserts
+    System.out.println(response.getHeaders());
+    assertThat(response.getHeaderString(HttpHeaders.CONTENT_TYPE), is(MediaType.APPLICATION_JSON));
+    assertThat(response.readEntity(String.class), is(notNullValue()));
+  }
+
+  @Test
+  public void shouldGetTemplateInstanceInJson() {
+    Response response = sendGetRequest(
+        RequestUrl.forFindingInstance(getPortNumber(),
+            testInstanceId,
+            OutputFormatType.JSON.getValue()));
+    checkStatusOk(response);
+    // Asserts
+    assertThat(response.getHeaderString(HttpHeaders.CONTENT_TYPE), is(MediaType.APPLICATION_JSON));
+    assertThat(response.readEntity(String.class), is(notNullValue()));
+  }
+
+  @Test
+  public void shouldGetTemplateInstanceInRdf() {
+    Response response = sendGetRequest(
+        RequestUrl.forFindingInstance(getPortNumber(),
+            testInstanceId,
+            OutputFormatType.RDF_NQUAD.getValue()));
+    checkStatusOk(response);
+    // Asserts
+    assertThat(response.getHeaderString(HttpHeaders.CONTENT_TYPE), is("application/n-quads"));
+    assertThat(response.readEntity(String.class), is(notNullValue()));
+  }
+
+  @Test
+  public void shouldThrowUnknownFormatError() {
+    Response response = sendGetRequest(
+        RequestUrl.forFindingInstance(getPortNumber(),
+            testInstanceId,
+            "xml"));
+    // Asserts
+    assertThat(response.getStatus(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
+  }
+
+  private void extractAndBroadcastTestInstanceId(final Response response) {
+    URI resourceLocation = response.getLocation();
+    String testInstanceId = extractId(resourceLocation);
+    this.testInstanceId = testInstanceId;
+  }
+
+  private static String extractId(URI resourceLocation) {
+    String asciiEncoded = resourceLocation.toASCIIString();
+    return asciiEncoded.substring(asciiEncoded.lastIndexOf("/") + 1);
+  }
+
+  private static void checkStatusOk(@Nonnull Response response) {
+    checkNotNull(response);
+    int responseCode = response.getStatus();
+    if (Family.familyOf(responseCode) == Family.CLIENT_ERROR) {
+      throw new RuntimeException("Request contains bad syntax or cannot be fulfilled:\n" + response.toString());
+    } else if (Family.familyOf(responseCode) == Family.SERVER_ERROR) {
+      throw new RuntimeException("Server failed to fulfill the request:\n" + response.toString());
+    }
   }
 }

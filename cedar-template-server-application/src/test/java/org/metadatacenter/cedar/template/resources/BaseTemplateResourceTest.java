@@ -1,16 +1,76 @@
 package org.metadatacenter.cedar.template.resources;
 
-import javax.servlet.http.HttpServletRequest;
+import io.dropwizard.client.JerseyClientBuilder;
+import io.dropwizard.testing.ResourceHelpers;
+import io.dropwizard.testing.junit.DropwizardAppRule;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.metadatacenter.cedar.template.TemplateServerApplication;
+import org.metadatacenter.cedar.template.TemplateServerConfiguration;
+import org.metadatacenter.config.CedarConfig;
+import org.metadatacenter.util.test.TestUtil;
+
+import javax.annotation.Nonnull;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.Response;
 
 import static org.metadatacenter.constant.HttpConstants.HTTP_HEADER_AUTHORIZATION;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class BaseTemplateResourceTest {
 
-  public HttpServletRequest getMockRequest() {
-    HttpServletRequest request = mock(HttpServletRequest.class);
-    when(request.getHeader(HTTP_HEADER_AUTHORIZATION)).thenReturn("apiKey f843a2b9-a8c1-49a7-b35a-1905ec0817d6");
-    return request;
+  private static String authHeaderValue;
+
+  private static Client testClient;
+
+  @ClassRule
+  public static final DropwizardAppRule<TemplateServerConfiguration> SERVER_APPLICATION =
+      new DropwizardAppRule<>(TemplateServerApplication.class,
+          ResourceHelpers.resourceFilePath("test-config.yml"));
+
+  @BeforeClass
+  public static void fetchAuthHeader() {
+    authHeaderValue = TestUtil.getTestUser1AuthHeader(CedarConfig.getInstance());
+  }
+
+  @BeforeClass
+  public static void createTestClient() {
+    testClient = new JerseyClientBuilder(SERVER_APPLICATION.getEnvironment()).build("TestClient");
+  }
+
+  @AfterClass
+  public static void cleanUp() {
+    if (testClient != null) {
+      testClient.close();
+    }
+  }
+
+  protected int getPortNumber() {
+    return SERVER_APPLICATION.getLocalPort();
+  }
+
+  protected Response sendGetRequest(@Nonnull String requestUrl) {
+    Response response = testClient.target(requestUrl)
+        .request()
+        .header(HTTP_HEADER_AUTHORIZATION, authHeaderValue)
+        .get();
+    return response;
+  }
+
+  protected Response sendPostRequest(@Nonnull String requestUrl, @Nonnull Object payload) {
+    Response response = testClient.target(requestUrl)
+        .request()
+        .header(HTTP_HEADER_AUTHORIZATION, authHeaderValue)
+        .post(Entity.json(payload));
+    return response;
+  }
+
+  protected Response sendDeleteRequest(@Nonnull String requestUrl) {
+    Response response = testClient.target(requestUrl)
+        .request()
+        .header(HTTP_HEADER_AUTHORIZATION, authHeaderValue)
+        .delete();
+    return response;
   }
 }
