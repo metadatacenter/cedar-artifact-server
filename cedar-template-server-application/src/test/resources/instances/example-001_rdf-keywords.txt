@@ -1,0 +1,27 @@
+http://open-services.net/ns/core#modifiedBy
+http://purl.org/pav/createdBy
+http://purl.org/pav/createdOn
+http://purl.org/pav/lastUpdatedOn
+https://schema.metadatacenter.net/properties/textField
+https://schema.metadatacenter.net/properties/paragraphField
+https://schema.metadatacenter.net/properties/dateField
+https://schema.metadatacenter.net/properties/numericField
+https://schema.metadatacenter.net/properties/multipleChoiceField
+https://schema.metadatacenter.net/properties/checkboxField
+https://schema.metadatacenter.net/properties/emailField
+https://schema.metadatacenter.net/properties/listField
+https://schema.metadatacenter.net/properties/phoneField
+https://schema.metadatacenter.net/properties/exampleElement
+https://schema.metadatacenter.net/properties/textFieldInElement
+https://schema.metadatacenter.net/properties/numericFieldInElement
+https://schema.metadatacenter.net/properties/listFieldInElement
+Lorem ipsum dolor sit amet
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+01/20/2017
+123
+Choice 1
+123456789
+example@testing.com
+The quick brown fox jumps over the lazy dog
+113
+Choice 2
