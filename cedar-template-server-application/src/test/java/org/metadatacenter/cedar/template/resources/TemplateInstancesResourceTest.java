@@ -2,6 +2,7 @@ package org.metadatacenter.cedar.template.resources;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.metadatacenter.model.request.OutputFormatType;
 
@@ -13,19 +14,26 @@ import java.net.URI;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static javax.ws.rs.core.Response.Status.Family;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TemplateInstancesResourceTest extends BaseTemplateResourceTest {
 
   private String testInstanceId;
 
+  private static TemplateInstance testInstance;
+
+  @BeforeClass
+  public static void loadTestPayload() {
+    testInstance = TestResourcesUtils.useExampleInstance001();
+  }
+
   @Before
   public void addTestInstances() {
+    String payload = testInstance.getContent();
     Response response = sendPostRequest(
         RequestUrl.forCreatingInstances(getPortNumber(), "false"),
-        Payloads.useExampleInstance001());
+        payload);
     checkStatusOk(response);
     extractAndBroadcastTestInstanceId(response);
   }
@@ -44,10 +52,14 @@ public class TemplateInstancesResourceTest extends BaseTemplateResourceTest {
             testInstanceId,
             OutputFormatType.JSONLD.getValue()));
     checkStatusOk(response);
-    // Asserts
-    System.out.println(response.getHeaders());
+    // Assert header
     assertThat(response.getHeaderString(HttpHeaders.CONTENT_TYPE), is(MediaType.APPLICATION_JSON));
-    assertThat(response.readEntity(String.class), is(notNullValue()));
+    // Assert content
+    String responseContent = response.readEntity(String.class);
+    assertThat(responseContent, is(notNullValue()));
+    for (String keyword : testInstance.getKeywords("json")) {
+      assertThat(responseContent, containsString(keyword));
+    }
   }
 
   @Test
@@ -57,9 +69,14 @@ public class TemplateInstancesResourceTest extends BaseTemplateResourceTest {
             testInstanceId,
             OutputFormatType.JSON.getValue()));
     checkStatusOk(response);
-    // Asserts
+    // Assert header
     assertThat(response.getHeaderString(HttpHeaders.CONTENT_TYPE), is(MediaType.APPLICATION_JSON));
-    assertThat(response.readEntity(String.class), is(notNullValue()));
+    // Assert content
+    String responseContent = response.readEntity(String.class);
+    assertThat(responseContent, is(notNullValue()));
+    for (String keyword : testInstance.getKeywords("json")) {
+      assertThat(responseContent, containsString(keyword));
+    }
   }
 
   @Test
@@ -69,9 +86,14 @@ public class TemplateInstancesResourceTest extends BaseTemplateResourceTest {
             testInstanceId,
             OutputFormatType.RDF_NQUAD.getValue()));
     checkStatusOk(response);
-    // Asserts
+    // Assert header
     assertThat(response.getHeaderString(HttpHeaders.CONTENT_TYPE), is("application/n-quads"));
-    assertThat(response.readEntity(String.class), is(notNullValue()));
+    // Assert content
+    String responseContent = response.readEntity(String.class);
+    assertThat(responseContent, is(notNullValue()));
+    for (String keyword : testInstance.getKeywords("rdf")) {
+      assertThat(responseContent, containsString(keyword));
+    }
   }
 
   @Test
