@@ -27,8 +27,8 @@ public class AbstractTemplateServerResource extends CedarMicroserviceResource {
 
   protected AbstractTemplateServerResource(CedarConfig cedarConfig) {
     super(cedarConfig);
-    this.linkedDataUtil = cedarConfig.buildLinkedDataUtil();
-    this.provenanceUtil = new ProvenanceUtil(linkedDataUtil);
+    this.linkedDataUtil = cedarConfig.getLinkedDataUtil();
+    this.provenanceUtil = new ProvenanceUtil();
     FIELD_NAMES_EXCLUSION_LIST = new ArrayList<>();
     FIELD_NAMES_EXCLUSION_LIST.addAll(cedarConfig.getTemplateRESTAPI().getExcludedFields());
   }
