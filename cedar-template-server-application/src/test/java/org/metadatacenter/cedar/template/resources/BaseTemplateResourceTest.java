@@ -19,7 +19,7 @@ import javax.ws.rs.core.Response;
 
 import static org.metadatacenter.constant.HttpConstants.HTTP_HEADER_AUTHORIZATION;
 
-public class BaseTemplateResourceTest {
+public abstract class BaseTemplateResourceTest {
 
   private static String authHeaderValue;
 
