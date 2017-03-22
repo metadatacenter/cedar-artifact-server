@@ -9,6 +9,7 @@ import org.junit.ClassRule;
 import org.metadatacenter.cedar.template.TemplateServerApplication;
 import org.metadatacenter.cedar.template.TemplateServerConfiguration;
 import org.metadatacenter.config.CedarConfig;
+import org.metadatacenter.util.test.TestUserUtil;
 import org.metadatacenter.util.test.TestUtil;
 
 import javax.annotation.Nonnull;
@@ -31,7 +32,7 @@ public class BaseTemplateResourceTest {
 
   @BeforeClass
   public static void fetchAuthHeader() {
-    authHeaderValue = TestUtil.getTestUser1AuthHeader(CedarConfig.getInstance());
+    authHeaderValue = TestUserUtil.getTestUser1AuthHeader(CedarConfig.getInstance());
   }
 
   @BeforeClass
