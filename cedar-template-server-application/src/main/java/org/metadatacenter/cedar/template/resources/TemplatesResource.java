@@ -3,6 +3,9 @@ package org.metadatacenter.cedar.template.resources;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
+import com.github.fge.jsonschema.core.report.LogLevel;
+import com.github.fge.jsonschema.core.report.ProcessingMessage;
+import com.github.fge.jsonschema.core.report.ProcessingReport;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.constant.CustomHttpConstants;
 import org.metadatacenter.constant.HttpConstants;
@@ -10,6 +13,7 @@ import org.metadatacenter.error.CedarErrorKey;
 import org.metadatacenter.error.CedarErrorReasonKey;
 import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.model.validation.CEDARModelValidator;
 import org.metadatacenter.rest.context.CedarRequestContext;
 import org.metadatacenter.rest.context.CedarRequestContextFactory;
 import org.metadatacenter.server.model.provenance.ProvenanceInfo;
@@ -248,4 +252,24 @@ public class TemplatesResource extends AbstractTemplateServerResource {
     return CedarResponse.noContent().build();
   }
 
+  @POST
+  @Timed
+  @Path("/commands/validate")
+  public Response validateTemplate() throws CedarException {
+    CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
+    c.must(c.user()).be(LoggedIn);
+//    c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_CREATE); // XXX Permission for validation?
+
+    JsonNode template = c.request().getRequestBody().asJson();
+
+    CEDARModelValidator validator = new CEDARModelValidator();
+    Optional<ProcessingReport> processingReport = Optional.empty(); //validator.validateTemplateNode(template);
+    if (processingReport.isPresent()) {
+      for (ProcessingMessage processingMessage : processingReport.get()) {
+        processingMessage.setLogLevel(LogLevel.DEBUG);
+        System.out.println("Message: " + processingMessage.getMessage());
+      }
+    }
+    return Response.ok().build();
+  }
 }

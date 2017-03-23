@@ -25,4 +25,8 @@ public class RequestUrl {
     checkNotNull(formatType);
     return String.format("%s:%d/template-instances/%s?format=%s", SERVICE_BASE_URL, portNumber, instanceId, formatType);
   }
+
+  public static String forValidatingTemplate(int portNumber) {
+    return String.format("%s:%d/templates/commands/validate", SERVICE_BASE_URL, portNumber);
+  }
 }
