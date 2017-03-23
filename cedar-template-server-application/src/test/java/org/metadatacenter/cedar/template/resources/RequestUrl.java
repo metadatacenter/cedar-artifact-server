@@ -8,7 +8,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public class RequestUrl {
 
-  public static final String SERVICE_BASE_URL = "http://template.metadatacenter.orgx";
+  public static final String SERVICE_BASE_URL = "http://localhost";
 
   public static String forCreatingInstances(int portNumber, @Nonnull String importMode) {
     checkNotNull(importMode);
