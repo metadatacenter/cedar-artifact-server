@@ -3,24 +3,26 @@ dist: trusty
 language: java
 jdk:
 - oraclejdk8
-services: 
-  - mongodb
+services:
+- mongodb
 branches:
   only:
   - develop
   - master
 notifications:
-  email:
-    recipients:
-    - cedar-core-developers@lists.stanford.edu
-    on_success: never
+  slack:
+    on_success: change
     on_failure: always
+    secure: PuqR1h3z1dLLBn+0QUauJqN2J13EWzrK2qDzRVcGaOTEcuVJZNQy2KJTyVQpAoSPVL+CmCuOd8jlZjQBn51grI/+W1pNry3wtq+MYAgk91eZg3yS8LWwo3253ceZbWO4xc+8aNTZjNDEFBtLFK7hT9IKjsAchbi1sKCyAmzXkGIIWvyUV9+wKNi0GGmFnQGtw/XnTD/ruqXEGZllyhO+F6A/bv8jC2zmzC+DdHCO2jIpkgqnC032dPKcjLrprUdJIrpDj+pgqvBloPOkH+uDkVSrPp6JR6Mn8X6QlYIIZnhserVWwXQ7DVMnUqjNynkIKL3QIDgDVSc4shL7mV/UQdZbkep9y755ywzZcTlB0peizBsrIWbiExNZw5ZUhbCa+thTVPUVk6oVAMsKFUc91Mmnv4zmmfNodUJ/WikJ5VIa9xqGn95r5DRdayvO00kbvpconnyl2dFvVxOIF85Swx2Uo5CN2Tq69k685bAatEUN/6/yI406Bva4fK4ALz9h2Do9fbVw+qUe6qLhYI8UFHsq1+NARL0W+/ZvKOQ/+CeA8VZviT2zSxPWy/9t8wrcL9tbCBMpJ/gtIiC+9+svWcTvninXeWGSoBJiWKnaqDcokoydDwCb0WmnBttHftP2sBSgqQ3UWih2FKkbJPTCMPc2ysA+VQNQqzdUE88JvG0=
 before_install:
-  - sleep 15
-  - mongoimport --db cedar --collection users --file cedar-template-server-application/src/test/resources/test-user.json
-  - mongo cedar --eval "db.createUser( { user:'${CEDAR_MONGO_USER_NAME}', pwd:'${CEDAR_MONGO_USER_PASSWORD}', roles:['readWrite'] } )"
-install: '[ ${TRAVIS_PULL_REQUEST} = ''false'' ] && mvn -DskipTests=false clean deploy --settings .m2/travis-settings.xml'
-script: '[ ${TRAVIS_PULL_REQUEST} = ''false'' ] && mvn -DskipTests=true clean --settings .m2/travis-settings.xml'
+- sleep 15
+- mongoimport --db cedar --collection users --file cedar-template-server-application/src/test/resources/test-user.json
+- mongo cedar --eval "db.createUser( { user:'${CEDAR_MONGO_USER_NAME}', pwd:'${CEDAR_MONGO_USER_PASSWORD}',
+  roles:['readWrite'] } )"
+install: '[ ${TRAVIS_PULL_REQUEST} = ''false'' ] && mvn -DskipTests=false clean deploy
+  --settings .m2/travis-settings.xml'
+script: '[ ${TRAVIS_PULL_REQUEST} = ''false'' ] && mvn -DskipTests=true clean --settings
+  .m2/travis-settings.xml'
 env:
   global:
   - CEDAR_HOME=${HOME}/
