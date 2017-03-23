@@ -3,6 +3,7 @@ package org.metadatacenter.cedar.template.resources;
 import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.testing.ResourceHelpers;
 import io.dropwizard.testing.junit.DropwizardAppRule;
+import org.glassfish.jersey.client.ClientProperties;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -10,7 +11,6 @@ import org.metadatacenter.cedar.template.TemplateServerApplication;
 import org.metadatacenter.cedar.template.TemplateServerConfiguration;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.util.test.TestUserUtil;
-import org.metadatacenter.util.test.TestUtil;
 
 import javax.annotation.Nonnull;
 import javax.ws.rs.client.Client;
@@ -38,6 +38,8 @@ public abstract class BaseTemplateResourceTest {
   @BeforeClass
   public static void createTestClient() {
     testClient = new JerseyClientBuilder(SERVER_APPLICATION.getEnvironment()).build("TestClient");
+    testClient.property(ClientProperties.READ_TIMEOUT, 3000); // 3s
+    testClient.property(ClientProperties.CONNECT_TIMEOUT, 3000); // 3s
   }
 
   @AfterClass
