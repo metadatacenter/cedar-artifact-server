@@ -249,12 +249,12 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
 
   private ValidationReport performValidation(JsonNode templateElement) {
     CEDARModelValidator validator = new CEDARModelValidator();
-    ProcessingReport report = validateTemplateNode(templateElement, validator);
+    ProcessingReport report = validateTemplateElementNode(templateElement, validator);
     ValidationReport validationReport = new ProcessingReportWrapper(report);
     return validationReport;
   }
 
-  private static ProcessingReport validateTemplateNode(JsonNode templateElement, CEDARModelValidator validator) {
+  private static ProcessingReport validateTemplateElementNode(JsonNode templateElement, CEDARModelValidator validator) {
     Optional<ProcessingReport> processingReport = validator.validateTemplateElementNode(templateElement);
     return processingReport.orElse(new DevNullProcessingReport());
   }
