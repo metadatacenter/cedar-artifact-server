@@ -1,0 +1,1 @@
+{"validates":"false","warnings":[],"errors":["object has missing required properties ([\"_ui\"])","Error validating artifact at path / against CEDAR sub-schema templateUIField.json"]}

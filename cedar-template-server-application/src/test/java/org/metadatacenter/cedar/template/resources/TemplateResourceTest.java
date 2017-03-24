@@ -6,43 +6,125 @@ import javax.annotation.Nonnull;
 import javax.ws.rs.core.Response;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TemplateResourceTest extends BaseTemplateResourceTest {
 
   @Test
-  public void shouldValidateEmptyTemplate() {
-    String payload = TestResourcesUtils.getStringContent("templates/empty-template.json");
-    Response response = sendPostRequest(
-        RequestUrl.forValidatingTemplate(getPortNumber()),
-        payload);
-    checkStatusOk(response);
+  public void shouldPassEmptyTemplate() {
+    runTestAndAssert(
+        TestResourcesUtils.useTemplateResource("templates/empty-template.json")
+    );
   }
 
   @Test
-  public void shouldValidateSingleFieldTemplate() {
-    String payload = TestResourcesUtils.getStringContent("templates/single-field-template.json");
-    Response response = sendPostRequest(
-        RequestUrl.forValidatingTemplate(getPortNumber()),
-        payload);
-    checkStatusOk(response);
+  public void shouldPassSingleFieldTemplate() {
+    runTestAndAssert(
+        TestResourcesUtils.useTemplateResource("templates/single-field-template.json")
+    );
   }
 
   @Test
-  public void shouldValidateMultiFieldTemplate() {
-    String payload = TestResourcesUtils.getStringContent("templates/multi-field-template.json");
-    Response response = sendPostRequest(
-        RequestUrl.forValidatingTemplate(getPortNumber()),
-        payload);
-    checkStatusOk(response);
+  public void shouldPassMultiFieldTemplate() {
+    runTestAndAssert(
+        TestResourcesUtils.useTemplateResource("templates/multi-field-template.json")
+    );
   }
 
   @Test
-  public void shouldValidateNestedElementTemplate() {
-    String payload = TestResourcesUtils.getStringContent("templates/nested-element-template.json");
+  public void shouldPassNestedElementTemplate() {
+    runTestAndAssert(
+        TestResourcesUtils.useTemplateResource("templates/nested-element-template.json")
+    );
+  }
+
+  @Test
+  public void shouldReportMissingTemplateContext() {
+    runTestAndAssert(
+        TestResourcesUtils.useTemplateResource("templates/missing-template-context.json")
+    );
+  }
+
+  @Test
+  public void shouldReportMissingTemplateId() {
+    runTestAndAssert(
+        TestResourcesUtils.useTemplateResource("templates/missing-template-id.json")
+    );
+  }
+
+  @Test
+  public void shouldReportMissingTemplateType() {
+    runTestAndAssert(
+        TestResourcesUtils.useTemplateResource("templates/missing-template-type.json")
+    );
+  }
+
+  @Test
+  public void shouldReportMissingTemplateJsonType() {
+    runTestAndAssert(
+        TestResourcesUtils.useTemplateResource("templates/missing-template-json-type.json")
+    );
+  }
+
+  @Test
+  public void shouldReportMissingTemplateTitle() {
+    runTestAndAssert(
+        TestResourcesUtils.useTemplateResource("templates/missing-template-title.json")
+    );
+  }
+
+  @Test
+  public void shouldReportMissingTemplateDescription() {
+    runTestAndAssert(
+        TestResourcesUtils.useTemplateResource("templates/missing-template-description.json")
+    );
+  }
+
+  @Test
+  public void shouldReportMissingTemplateUi() {
+    runTestAndAssert(
+        TestResourcesUtils.useTemplateResource("templates/missing-template-ui.json")
+    );
+  }
+
+  @Test
+  public void shouldReportMissingTemplateProperties() {
+    runTestAndAssert(
+        TestResourcesUtils.useTemplateResource("templates/missing-template-properties.json")
+    );
+  }
+
+  @Test
+  public void shouldReportMissingTemplateRequired() {
+    runTestAndAssert(
+        TestResourcesUtils.useTemplateResource("templates/missing-template-required.json")
+    );
+  }
+
+  @Test
+  public void shouldReportMissingTemplateProvenance() {
+    runTestAndAssert(
+        TestResourcesUtils.useTemplateResource("templates/missing-template-provenance.json")
+    );
+  }
+
+  @Test
+  public void shouldReportMissingTemplateSchema() {
+    runTestAndAssert(
+        TestResourcesUtils.useTemplateResource("templates/missing-template-schema.json")
+    );
+  }
+
+  private void runTestAndAssert(TemplateResource testResource) {
+    String payload = testResource.getContent();
     Response response = sendPostRequest(
         RequestUrl.forValidatingTemplate(getPortNumber()),
         payload);
     checkStatusOk(response);
+    // Assert
+    String responseMessage = response.readEntity(String.class);
+    assertThat(responseMessage, is(testResource.getExpected()));
   }
 
   private static void checkStatusOk(@Nonnull Response response) {
