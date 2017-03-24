@@ -34,33 +34,28 @@ public class TestResourcesUtils {
     }
   }
 
-  public static TemplateInstance useExampleInstance001() {
-    String content = getStringContent("instances/example-001.jsonld");
-    TemplateInstance templateInstance = new TemplateInstance(content);
-    templateInstance.addKeywords("json",
-        getLineByLineContent("instances/example-001_json-keywords.txt"));
-    templateInstance.addKeywords("rdf",
-        getLineByLineContent("instances/example-001_rdf-keywords.txt"));
-    return templateInstance;
-  }
-
-  public static TestResource useResource(@Nonnull String path) {
+  public static TestResource useResource(@Nonnull String path, @Nonnull String pathToExpectedOutput) {
     checkNotNull(path);
+    checkNotNull(pathToExpectedOutput);
     String content = getStringContent(path);
-    String expected = getStringExpected(path);
+    String expected = getStringContent(pathToExpectedOutput);
     return TestResource.create(content, expected);
   }
 
-  private static String getStringExpected(String path) {
+  public static TestResource useResource(@Nonnull String path) {
+    String pathToExpectedResult = findDefaultPathToExpectedOutput(path);
+    return useResource(path, pathToExpectedResult);
+  }
+
+  private static String getStringExpected(String pathToExpectedResult) {
     String value = "true";
-    String pathToExpectedResult = findDefaultExpectedResult(path);
     if (exists(pathToExpectedResult)) {
       value = getStringContent(pathToExpectedResult);
     }
     return value;
   }
 
-  private static String findDefaultExpectedResult(@Nonnull String path) {
+  private static String findDefaultPathToExpectedOutput(@Nonnull String path) {
     int extensionPeriodPosition = path.lastIndexOf(".");
     return new StringBuilder(path)
         .replace(extensionPeriodPosition, path.length(), ".out")

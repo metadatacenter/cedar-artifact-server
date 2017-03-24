@@ -17,20 +17,22 @@ import static javax.ws.rs.core.Response.Status.Family;
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-public class TemplateInstanceOutputFormatTest extends BaseTemplateResourceTest {
+public class TemplateInstanceToJsonTest extends BaseTemplateResourceTest {
 
   private String testInstanceId;
 
-  private static TemplateInstance testInstance;
+  private static TestResource testResource;
 
   @BeforeClass
   public static void loadTestPayload() {
-    testInstance = TestResourcesUtils.useExampleInstance001();
+    testResource = TestResourcesUtils.useResource(
+        "instances/example-001.jsonld",
+        "instances/example-001-json.out");
   }
 
   @Before
   public void addTestInstances() {
-    String payload = testInstance.getContent();
+    String payload = testResource.getContent();
     Response response = sendPostRequest(
         RequestUrls.forCreatingInstances(getPortNumber(), "false"),
         payload);
@@ -46,24 +48,7 @@ public class TemplateInstanceOutputFormatTest extends BaseTemplateResourceTest {
   }
 
   @Test
-  public void shouldGetTemplateInstanceInJsonLd() {
-    Response response = sendGetRequest(
-        RequestUrls.forFindingInstance(getPortNumber(),
-            testInstanceId,
-            OutputFormatType.JSONLD.getValue()));
-    checkStatusOk(response);
-    // Assert header
-    assertThat(response.getHeaderString(HttpHeaders.CONTENT_TYPE), is(MediaType.APPLICATION_JSON));
-    // Assert content
-    String responseContent = response.readEntity(String.class);
-    assertThat(responseContent, is(notNullValue()));
-    for (String keyword : testInstance.getKeywords("json")) {
-      assertThat(responseContent, containsString(keyword));
-    }
-  }
-
-  @Test
-  public void shouldGetTemplateInstanceInJson() {
+  public void shouldGetJsonOutput() {
     Response response = sendGetRequest(
         RequestUrls.forFindingInstance(getPortNumber(),
             testInstanceId,
@@ -74,36 +59,9 @@ public class TemplateInstanceOutputFormatTest extends BaseTemplateResourceTest {
     // Assert content
     String responseContent = response.readEntity(String.class);
     assertThat(responseContent, is(notNullValue()));
-    for (String keyword : testInstance.getKeywords("json")) {
+    for (String keyword : testResource.getExpected().split("\n")) {
       assertThat(responseContent, containsString(keyword));
     }
-  }
-
-  @Test
-  public void shouldGetTemplateInstanceInRdf() {
-    Response response = sendGetRequest(
-        RequestUrls.forFindingInstance(getPortNumber(),
-            testInstanceId,
-            OutputFormatType.RDF_NQUAD.getValue()));
-    checkStatusOk(response);
-    // Assert header
-    assertThat(response.getHeaderString(HttpHeaders.CONTENT_TYPE), is("application/n-quads"));
-    // Assert content
-    String responseContent = response.readEntity(String.class);
-    assertThat(responseContent, is(notNullValue()));
-    for (String keyword : testInstance.getKeywords("rdf")) {
-      assertThat(responseContent, containsString(keyword));
-    }
-  }
-
-  @Test
-  public void shouldThrowUnknownFormatError() {
-    Response response = sendGetRequest(
-        RequestUrls.forFindingInstance(getPortNumber(),
-            testInstanceId,
-            "xml"));
-    // Asserts
-    assertThat(response.getStatus(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
   }
 
   private void extractAndBroadcastTestInstanceId(final Response response) {
