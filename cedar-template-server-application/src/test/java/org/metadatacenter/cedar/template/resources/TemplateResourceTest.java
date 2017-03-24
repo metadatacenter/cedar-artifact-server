@@ -14,116 +14,116 @@ public class TemplateResourceTest extends BaseTemplateResourceTest {
   @Test
   public void shouldPassEmptyTemplate() {
     runTestAndAssert(
-        TestResourcesUtils.useTemplateResource("templates/empty-template.json")
+        TestResourcesUtils.useResource("templates/empty-template.json")
     );
   }
 
   @Test
   public void shouldPassSingleFieldTemplate() {
     runTestAndAssert(
-        TestResourcesUtils.useTemplateResource("templates/single-field-template.json")
+        TestResourcesUtils.useResource("templates/single-field-template.json")
     );
   }
 
   @Test
   public void shouldPassMultiFieldTemplate() {
     runTestAndAssert(
-        TestResourcesUtils.useTemplateResource("templates/multi-field-template.json")
+        TestResourcesUtils.useResource("templates/multi-field-template.json")
     );
   }
 
   @Test
   public void shouldPassNestedElementTemplate() {
     runTestAndAssert(
-        TestResourcesUtils.useTemplateResource("templates/nested-element-template.json")
+        TestResourcesUtils.useResource("templates/nested-element-template.json")
     );
   }
 
   @Test
   public void shouldReportMissingContext() {
     runTestAndAssert(
-        TestResourcesUtils.useTemplateResource("templates/missing-template-context.json")
+        TestResourcesUtils.useResource("templates/missing-template-context.json")
     );
   }
 
   @Test
   public void shouldReportMissingId() {
     runTestAndAssert(
-        TestResourcesUtils.useTemplateResource("templates/missing-template-id.json")
+        TestResourcesUtils.useResource("templates/missing-template-id.json")
     );
   }
 
   @Test
   public void shouldReportMissingType() {
     runTestAndAssert(
-        TestResourcesUtils.useTemplateResource("templates/missing-template-type.json")
+        TestResourcesUtils.useResource("templates/missing-template-type.json")
     );
   }
 
   @Test
   public void shouldReportMissingJsonType() {
     runTestAndAssert(
-        TestResourcesUtils.useTemplateResource("templates/missing-template-json-type.json")
+        TestResourcesUtils.useResource("templates/missing-template-json-type.json")
     );
   }
 
   @Test
   public void shouldReportMissingTitle() {
     runTestAndAssert(
-        TestResourcesUtils.useTemplateResource("templates/missing-template-title.json")
+        TestResourcesUtils.useResource("templates/missing-template-title.json")
     );
   }
 
   @Test
   public void shouldReportMissingDescription() {
     runTestAndAssert(
-        TestResourcesUtils.useTemplateResource("templates/missing-template-description.json")
+        TestResourcesUtils.useResource("templates/missing-template-description.json")
     );
   }
 
   @Test
   public void shouldReportMissingUi() {
     runTestAndAssert(
-        TestResourcesUtils.useTemplateResource("templates/missing-template-ui.json")
+        TestResourcesUtils.useResource("templates/missing-template-ui.json")
     );
   }
 
   @Test
   public void shouldReportMissingProperties() {
     runTestAndAssert(
-        TestResourcesUtils.useTemplateResource("templates/missing-template-properties.json")
+        TestResourcesUtils.useResource("templates/missing-template-properties.json")
     );
   }
 
   @Test
   public void shouldReportMissingRequired() {
     runTestAndAssert(
-        TestResourcesUtils.useTemplateResource("templates/missing-template-required.json")
+        TestResourcesUtils.useResource("templates/missing-template-required.json")
     );
   }
 
   @Test
   public void shouldReportMissingProvenance() {
     runTestAndAssert(
-        TestResourcesUtils.useTemplateResource("templates/missing-template-provenance.json")
+        TestResourcesUtils.useResource("templates/missing-template-provenance.json")
     );
   }
 
   @Test
   public void shouldReportMissingAdditionalProperties() {
     runTestAndAssert(
-        TestResourcesUtils.useTemplateResource("templates/missing-template-additional-properties.json")
+        TestResourcesUtils.useResource("templates/missing-template-additional-properties.json")
     );
   }
 
   @Test
   public void shouldReportMissingSchema() {
     runTestAndAssert(
-        TestResourcesUtils.useTemplateResource("templates/missing-template-schema.json")
+        TestResourcesUtils.useResource("templates/missing-template-schema.json")
     );
   }
 
-  private void runTestAndAssert(TemplateResource testResource) {
+  private void runTestAndAssert(TestResource testResource) {
     String payload = testResource.getContent();
     Response response = sendPostRequest(
         RequestUrls.forValidatingTemplate(getPortNumber()),

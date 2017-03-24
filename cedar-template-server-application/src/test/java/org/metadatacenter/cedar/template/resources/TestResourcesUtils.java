@@ -44,11 +44,11 @@ public class TestResourcesUtils {
     return templateInstance;
   }
 
-  public static TemplateResource useTemplateResource(@Nonnull String path) {
+  public static TestResource useResource(@Nonnull String path) {
     checkNotNull(path);
     String content = getStringContent(path);
     String expected = getStringExpected(path);
-    return TemplateResource.create(content, expected);
+    return TestResource.create(content, expected);
   }
 
   private static String getStringExpected(String path) {
