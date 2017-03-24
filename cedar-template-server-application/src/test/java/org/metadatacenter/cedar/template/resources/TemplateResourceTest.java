@@ -119,7 +119,7 @@ public class TemplateResourceTest extends BaseTemplateResourceTest {
   private void runTestAndAssert(TemplateResource testResource) {
     String payload = testResource.getContent();
     Response response = sendPostRequest(
-        RequestUrl.forValidatingTemplate(getPortNumber()),
+        RequestUrls.forValidatingTemplate(getPortNumber()),
         payload);
     checkStatusOk(response);
     // Assert

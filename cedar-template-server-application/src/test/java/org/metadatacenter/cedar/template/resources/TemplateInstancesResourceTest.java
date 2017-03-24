@@ -32,7 +32,7 @@ public class TemplateInstancesResourceTest extends BaseTemplateResourceTest {
   public void addTestInstances() {
     String payload = testInstance.getContent();
     Response response = sendPostRequest(
-        RequestUrl.forCreatingInstances(getPortNumber(), "false"),
+        RequestUrls.forCreatingInstances(getPortNumber(), "false"),
         payload);
     checkStatusOk(response);
     extractAndBroadcastTestInstanceId(response);
@@ -41,14 +41,14 @@ public class TemplateInstancesResourceTest extends BaseTemplateResourceTest {
   @After
   public void deleteTestInstances() {
     Response response = sendDeleteRequest(
-        RequestUrl.forDeletingInstance(getPortNumber(), testInstanceId));
+        RequestUrls.forDeletingInstance(getPortNumber(), testInstanceId));
     checkStatusOk(response);
   }
 
   @Test
   public void shouldGetTemplateInstanceInJsonLd() {
     Response response = sendGetRequest(
-        RequestUrl.forFindingInstance(getPortNumber(),
+        RequestUrls.forFindingInstance(getPortNumber(),
             testInstanceId,
             OutputFormatType.JSONLD.getValue()));
     checkStatusOk(response);
@@ -65,7 +65,7 @@ public class TemplateInstancesResourceTest extends BaseTemplateResourceTest {
   @Test
   public void shouldGetTemplateInstanceInJson() {
     Response response = sendGetRequest(
-        RequestUrl.forFindingInstance(getPortNumber(),
+        RequestUrls.forFindingInstance(getPortNumber(),
             testInstanceId,
             OutputFormatType.JSON.getValue()));
     checkStatusOk(response);
@@ -82,7 +82,7 @@ public class TemplateInstancesResourceTest extends BaseTemplateResourceTest {
   @Test
   public void shouldGetTemplateInstanceInRdf() {
     Response response = sendGetRequest(
-        RequestUrl.forFindingInstance(getPortNumber(),
+        RequestUrls.forFindingInstance(getPortNumber(),
             testInstanceId,
             OutputFormatType.RDF_NQUAD.getValue()));
     checkStatusOk(response);
@@ -99,7 +99,7 @@ public class TemplateInstancesResourceTest extends BaseTemplateResourceTest {
   @Test
   public void shouldThrowUnknownFormatError() {
     Response response = sendGetRequest(
-        RequestUrl.forFindingInstance(getPortNumber(),
+        RequestUrls.forFindingInstance(getPortNumber(),
             testInstanceId,
             "xml"));
     // Asserts

@@ -6,7 +6,7 @@ import java.net.URI;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class RequestUrl {
+public class RequestUrls {
 
   public static final String SERVICE_BASE_URL = "http://localhost";
 
