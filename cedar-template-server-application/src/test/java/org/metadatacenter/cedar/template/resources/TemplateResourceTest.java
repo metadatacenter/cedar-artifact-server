@@ -110,6 +110,13 @@ public class TemplateResourceTest extends BaseTemplateResourceTest {
   }
 
   @Test
+  public void shouldReportMissingAdditionalProperties() {
+    runTestAndAssert(
+        TestResourcesUtils.useTemplateResource("templates/missing-template-additional-properties.json")
+    );
+  }
+
+  @Test
   public void shouldReportMissingSchema() {
     runTestAndAssert(
         TestResourcesUtils.useTemplateResource("templates/missing-template-schema.json")
