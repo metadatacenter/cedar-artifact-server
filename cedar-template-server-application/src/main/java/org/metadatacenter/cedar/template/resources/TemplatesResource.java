@@ -3,8 +3,7 @@ package org.metadatacenter.cedar.template.resources;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
-import com.github.fge.jsonschema.core.report.LogLevel;
-import com.github.fge.jsonschema.core.report.ProcessingMessage;
+import com.github.fge.jsonschema.core.report.DevNullProcessingReport;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.constant.CustomHttpConstants;
@@ -262,14 +261,19 @@ public class TemplatesResource extends AbstractTemplateServerResource {
 
     JsonNode template = c.request().getRequestBody().asJson();
 
+    ValidationReport validationReport = performValidation(template);
+    return Response.ok().entity(validationReport).build();
+  }
+
+  private ValidationReport performValidation(JsonNode template) {
     CEDARModelValidator validator = new CEDARModelValidator();
-    Optional<ProcessingReport> processingReport = Optional.empty(); //validator.validateTemplateNode(template);
-    if (processingReport.isPresent()) {
-      for (ProcessingMessage processingMessage : processingReport.get()) {
-        processingMessage.setLogLevel(LogLevel.DEBUG);
-        System.out.println("Message: " + processingMessage.getMessage());
-      }
-    }
-    return Response.ok().build();
+    ProcessingReport report = validateTemplateNode(template, validator);
+    ValidationReport validationReport = new ProcessingReportWrapper(report);
+    return validationReport;
+  }
+
+  private static ProcessingReport validateTemplateNode(JsonNode template, CEDARModelValidator validator) {
+    Optional<ProcessingReport> processingReport = validator.validateTemplateNode(template);
+    return processingReport.orElse(new DevNullProcessingReport());
   }
 }
