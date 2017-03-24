@@ -17,7 +17,7 @@ import static javax.ws.rs.core.Response.Status.Family;
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-public class TemplateInstancesResourceTest extends BaseTemplateResourceTest {
+public class TemplateInstanceOutputFormatTest extends BaseTemplateResourceTest {
 
   private String testInstanceId;
 
