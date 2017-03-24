@@ -40,77 +40,77 @@ public class TemplateResourceTest extends BaseTemplateResourceTest {
   }
 
   @Test
-  public void shouldReportMissingTemplateContext() {
+  public void shouldReportMissingContext() {
     runTestAndAssert(
         TestResourcesUtils.useTemplateResource("templates/missing-template-context.json")
     );
   }
 
   @Test
-  public void shouldReportMissingTemplateId() {
+  public void shouldReportMissingId() {
     runTestAndAssert(
         TestResourcesUtils.useTemplateResource("templates/missing-template-id.json")
     );
   }
 
   @Test
-  public void shouldReportMissingTemplateType() {
+  public void shouldReportMissingType() {
     runTestAndAssert(
         TestResourcesUtils.useTemplateResource("templates/missing-template-type.json")
     );
   }
 
   @Test
-  public void shouldReportMissingTemplateJsonType() {
+  public void shouldReportMissingJsonType() {
     runTestAndAssert(
         TestResourcesUtils.useTemplateResource("templates/missing-template-json-type.json")
     );
   }
 
   @Test
-  public void shouldReportMissingTemplateTitle() {
+  public void shouldReportMissingTitle() {
     runTestAndAssert(
         TestResourcesUtils.useTemplateResource("templates/missing-template-title.json")
     );
   }
 
   @Test
-  public void shouldReportMissingTemplateDescription() {
+  public void shouldReportMissingDescription() {
     runTestAndAssert(
         TestResourcesUtils.useTemplateResource("templates/missing-template-description.json")
     );
   }
 
   @Test
-  public void shouldReportMissingTemplateUi() {
+  public void shouldReportMissingUi() {
     runTestAndAssert(
         TestResourcesUtils.useTemplateResource("templates/missing-template-ui.json")
     );
   }
 
   @Test
-  public void shouldReportMissingTemplateProperties() {
+  public void shouldReportMissingProperties() {
     runTestAndAssert(
         TestResourcesUtils.useTemplateResource("templates/missing-template-properties.json")
     );
   }
 
   @Test
-  public void shouldReportMissingTemplateRequired() {
+  public void shouldReportMissingRequired() {
     runTestAndAssert(
         TestResourcesUtils.useTemplateResource("templates/missing-template-required.json")
     );
   }
 
   @Test
-  public void shouldReportMissingTemplateProvenance() {
+  public void shouldReportMissingProvenance() {
     runTestAndAssert(
         TestResourcesUtils.useTemplateResource("templates/missing-template-provenance.json")
     );
   }
 
   @Test
-  public void shouldReportMissingTemplateSchema() {
+  public void shouldReportMissingSchema() {
     runTestAndAssert(
         TestResourcesUtils.useTemplateResource("templates/missing-template-schema.json")
     );
