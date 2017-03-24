@@ -9,7 +9,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-public class TemplateElementTest extends BaseTemplateResourceTest {
+public class TemplateElementResourceTest extends BaseTemplateResourceTest {
 
   @Test
   public void shouldPassEmptyTemplate() {
