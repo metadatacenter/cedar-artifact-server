@@ -1,8 +1,10 @@
 package org.metadatacenter.cedar.template;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.mongodb.MongoClient;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+import org.metadatacenter.bridge.CedarDataServices;
 import org.metadatacenter.cedar.template.health.TemplateServerHealthCheck;
 import org.metadatacenter.cedar.template.resources.IndexResource;
 import org.metadatacenter.cedar.template.resources.TemplateElementsResource;
@@ -37,21 +39,27 @@ public class TemplateServerApplication extends CedarMicroserviceApplication<Temp
 
   @Override
   public void initializeApp(Bootstrap<TemplateServerConfiguration> bootstrap) {
+    CedarDataServices.initializeMongoClientFactoryForDocuments(
+        cedarConfig.getTemplateServerConfig().getMongoConnection());
+    MongoClient mongoClientForDocuments = CedarDataServices.getMongoClientFactoryForDocuments().getClient();
     templateFieldService = new TemplateFieldServiceMongoDB(
-        cedarConfig.getMongoConfig().getDatabaseName(),
+        mongoClientForDocuments,
+        cedarConfig.getTemplateServerConfig().getDatabaseName(),
         cedarConfig.getMongoCollectionName(CedarNodeType.FIELD));
 
     templateElementService = new TemplateElementServiceMongoDB(
-        cedarConfig.getMongoConfig().getDatabaseName(),
+        mongoClientForDocuments,
+        cedarConfig.getTemplateServerConfig().getDatabaseName(),
         cedarConfig.getMongoCollectionName(CedarNodeType.ELEMENT));
 
     templateService = new TemplateServiceMongoDB(
-        cedarConfig.getMongoConfig().getDatabaseName(),
-        cedarConfig.getMongoCollectionName(CedarNodeType.TEMPLATE),
-        templateElementService);
+        mongoClientForDocuments,
+        cedarConfig.getTemplateServerConfig().getDatabaseName(),
+        cedarConfig.getMongoCollectionName(CedarNodeType.TEMPLATE));
 
     templateInstanceService = new TemplateInstanceServiceMongoDB(
-        cedarConfig.getMongoConfig().getDatabaseName(),
+        mongoClientForDocuments,
+        cedarConfig.getTemplateServerConfig().getDatabaseName(),
         cedarConfig.getMongoCollectionName(CedarNodeType.INSTANCE));
   }
 

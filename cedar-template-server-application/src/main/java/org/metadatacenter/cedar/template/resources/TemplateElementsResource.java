@@ -35,7 +35,7 @@ import static org.metadatacenter.rest.assertion.GenericAssertions.LoggedIn;
 @Produces(MediaType.APPLICATION_JSON)
 public class TemplateElementsResource extends AbstractTemplateServerResource {
 
-  private final TemplateElementService<String, JsonNode> templateElementService;
+  private static TemplateElementService<String, JsonNode> templateElementService;
   private static TemplateFieldService<String, JsonNode> templateFieldService;
 
   protected static List<String> FIELD_NAMES_SUMMARY_LIST;
@@ -43,8 +43,8 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
   public TemplateElementsResource(CedarConfig cedarConfig, TemplateElementService<String, JsonNode>
       templateElementService, TemplateFieldService<String, JsonNode> templateFieldService) {
     super(cedarConfig);
-    this.templateElementService = templateElementService;
-    this.templateFieldService = templateFieldService;
+    TemplateElementsResource.templateElementService = templateElementService;
+    TemplateElementsResource.templateFieldService = templateFieldService;
     FIELD_NAMES_SUMMARY_LIST = new ArrayList<>();
     FIELD_NAMES_SUMMARY_LIST.addAll(cedarConfig.getTemplateRESTAPI().getSummaries().getElement().getFields());
   }

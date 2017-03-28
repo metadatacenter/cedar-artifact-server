@@ -2,12 +2,18 @@ package org.metadatacenter.cedar.template.resources;
 
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.github.jsonldjava.core.JsonLdError;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.constant.CustomHttpConstants;
 import org.metadatacenter.constant.HttpConstants;
 import org.metadatacenter.error.CedarErrorKey;
+import org.metadatacenter.error.CedarErrorPack;
 import org.metadatacenter.exception.CedarException;
+import org.metadatacenter.exception.CedarProcessingException;
 import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.model.request.OutputFormatType;
+import org.metadatacenter.model.request.OutputFormatTypeDetector;
+import org.metadatacenter.model.validation.JsonLdDocument;
 import org.metadatacenter.rest.context.CedarRequestContext;
 import org.metadatacenter.rest.context.CedarRequestContextFactory;
 import org.metadatacenter.server.model.provenance.ProvenanceInfo;
@@ -84,31 +90,25 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
   @GET
   @Timed
   @Path("/{id}")
-  public Response findTemplateInstance(@PathParam(PP_ID) String id) throws CedarException {
+  public Response findTemplateInstance(@PathParam(PP_ID) String id, @QueryParam(QP_FORMAT) Optional<String> format)
+      throws CedarException {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_READ);
-    JsonNode templateInstance = null;
-    try {
-      templateInstance = templateInstanceService.findTemplateInstance(id);
-    } catch (IOException e) {
-      return CedarResponse.internalServerError()
-          .id(id)
-          .errorKey(CedarErrorKey.TEMPLATE_INSTANCE_NOT_FOUND)
-          .errorMessage("The template instance can not be found by id:" + id)
-          .exception(e)
-          .build();
-    }
-    if (templateInstance == null) {
-      return CedarResponse.notFound()
-          .id(id)
-          .errorKey(CedarErrorKey.TEMPLATE_INSTANCE_NOT_FOUND)
-          .errorMessage("The template instance can not be found by id:" + id)
-          .build();
+
+    OutputFormatType formatType = OutputFormatTypeDetector.detectFormat(format);
+    Optional<JsonNode> templateInstance = getTemplateInstance(id);
+
+    Response response = null;
+    if (templateInstance.isPresent()) {
+      JsonNode templateInstanceObject = templateInstance.get();
+      MongoUtils.removeIdField(templateInstanceObject);
+      response = sendFormattedTemplateInstance(templateInstanceObject, formatType);
     } else {
-      MongoUtils.removeIdField(templateInstance);
-      return Response.ok().entity(templateInstance).build();
+      String message = String.format("The template instance can not be found by id: %s", id);
+      response = templateInstanceNotFoundResponse(message);
     }
+    return response;
   }
 
   @GET
@@ -226,4 +226,55 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
     return CedarResponse.noContent().build();
   }
 
+  private Optional<JsonNode> getTemplateInstance(String id) throws CedarException {
+    try {
+      return Optional.of(templateInstanceService.findTemplateInstance(id));
+    } catch (IOException e) {
+      CedarErrorPack errorPack = new CedarErrorPack()
+          .errorKey(CedarErrorKey.TEMPLATE_INSTANCE_NOT_FOUND)
+          .message("The template instance can not be found by id:" + id)
+          .sourceException(e);
+      throw new CedarException(errorPack) {
+      };
+    }
+  }
+
+  private Response templateInstanceNotFoundResponse(String message) {
+    CedarResponse.CedarResponseBuilder builder = CedarResponse.notFound();
+    return builder.errorKey(CedarErrorKey.TEMPLATE_INSTANCE_NOT_FOUND)
+        .errorMessage(message)
+        .build();
+  }
+
+  private Response sendFormattedTemplateInstance(JsonNode templateInstance, OutputFormatType formatType) throws CedarException {
+    Object responseObject = null;
+    String mediaType = null;
+    if (formatType == OutputFormatType.JSONLD) { // The assumption is the formatType is already a valid-and-supported
+      // type
+      responseObject = templateInstance;
+      mediaType = MediaType.APPLICATION_JSON;
+    } else if (formatType == OutputFormatType.JSON) {
+      responseObject = getJsonString(templateInstance);
+      mediaType = MediaType.APPLICATION_JSON;
+    } else if (formatType == OutputFormatType.RDF_NQUAD) {
+      responseObject = getRdfString(templateInstance);
+      mediaType = "application/n-quads";
+    } else {
+      throw new CedarException("Programming error: no handler is programmed for format type: " + formatType) {
+      };
+    }
+    return Response.ok(responseObject, mediaType).build();
+  }
+
+  private JsonNode getJsonString(JsonNode templateInstance) {
+    return new JsonLdDocument(templateInstance).asJson();
+  }
+
+  private String getRdfString(JsonNode templateInstance) throws CedarException {
+    try {
+      return new JsonLdDocument(templateInstance).asRdf();
+    } catch (JsonLdError e) {
+      throw new CedarProcessingException("Error while converting the instance to RDF", e);
+    }
+  }
 }

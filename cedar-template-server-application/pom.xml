@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.metadatacenter</groupId>
     <artifactId>cedar-template-server</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.3</version>
   </parent>
 
   <groupId>org.metadatacenter</groupId>
@@ -57,8 +57,37 @@
     </dependency>
 
     <dependency>
+      <groupId>org.metadatacenter</groupId>
+      <artifactId>cedar-model-validation-library</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>io.dropwizard</groupId>
       <artifactId>dropwizard-core</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>io.dropwizard</groupId>
+      <artifactId>dropwizard-client</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>io.dropwizard</groupId>
+      <artifactId>dropwizard-testing</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-all</artifactId>
+      <scope>test</scope>
     </dependency>
 
   </dependencies>
