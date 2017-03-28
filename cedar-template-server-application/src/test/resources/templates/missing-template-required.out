@@ -1,1 +1,0 @@
-{"validates":"false","warnings":[],"errors":["instance failed to match all required schemas (matched only 1 out of 2)","Error validating artifact at path / against CEDAR sub-schema coreJSONSchemaTemplateFields.json"]}
