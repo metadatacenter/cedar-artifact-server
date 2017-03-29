@@ -1,1 +1,1 @@
-{"validates":"false","warnings":[],"errors":["object has missing required properties ([\"@id\"])","Error validating artifact at path / against CEDAR sub-schema jsonLDIDField.json"]}
+{"validates":"false","warnings":[],"errors":["object has missing required properties ([\"@id\"])","Error validating artifact at path / against CEDAR sub-schema templateFieldSingleValueContent.json"]}

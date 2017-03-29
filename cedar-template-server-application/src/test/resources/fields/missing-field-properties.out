@@ -1,1 +1,1 @@
-{"validates":"false","warnings":[],"errors":["No JSON Schema properties field in artifact at path /"]}
+{"validates":"false","warnings":[],"errors":["object has missing required properties ([\"properties\"])","Error validating artifact at path / against CEDAR sub-schema templateFieldSingleValueContent.json"]}
