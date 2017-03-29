@@ -250,30 +250,4 @@ public class TemplatesResource extends AbstractTemplateServerResource {
     }
     return CedarResponse.noContent().build();
   }
-
-  @POST
-  @Timed
-  @Path("/commands/validate")
-  public Response validateTemplate() throws CedarException {
-    CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
-    c.must(c.user()).be(LoggedIn);
-//    c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_CREATE); // XXX Permission for validation?
-
-    JsonNode template = c.request().getRequestBody().asJson();
-
-    ValidationReport validationReport = performValidation(template);
-    return Response.ok().entity(validationReport).build();
-  }
-
-  private ValidationReport performValidation(JsonNode template) {
-    CEDARModelValidator validator = new CEDARModelValidator();
-    ProcessingReport report = validateTemplateNode(template, validator);
-    ValidationReport validationReport = new ProcessingReportWrapper(report);
-    return validationReport;
-  }
-
-  private static ProcessingReport validateTemplateNode(JsonNode template, CEDARModelValidator validator) {
-    Optional<ProcessingReport> processingReport = validator.validateTemplateNode(template);
-    return processingReport.orElse(new DevNullProcessingReport());
-  }
 }

@@ -6,10 +6,7 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import org.metadatacenter.bridge.CedarDataServices;
 import org.metadatacenter.cedar.template.health.TemplateServerHealthCheck;
-import org.metadatacenter.cedar.template.resources.IndexResource;
-import org.metadatacenter.cedar.template.resources.TemplateElementsResource;
-import org.metadatacenter.cedar.template.resources.TemplateInstancesResource;
-import org.metadatacenter.cedar.template.resources.TemplatesResource;
+import org.metadatacenter.cedar.template.resources.*;
 import org.metadatacenter.cedar.util.dw.CedarMicroserviceApplication;
 import org.metadatacenter.model.CedarNodeType;
 import org.metadatacenter.server.service.TemplateElementService;
@@ -82,6 +79,9 @@ public class TemplateServerApplication extends CedarMicroserviceApplication<Temp
 
     final TemplateInstancesResource instances = new TemplateInstancesResource(cedarConfig, templateInstanceService);
     environment.jersey().register(instances);
+
+    final CommandResource commands = new CommandResource(cedarConfig);
+    environment.jersey().register(commands);
 
     final TemplateServerHealthCheck healthCheck = new TemplateServerHealthCheck();
     environment.healthChecks().register("message", healthCheck);

@@ -231,41 +231,4 @@ public class TemplateFieldsResource extends AbstractTemplateServerResource {
     }
     return CedarResponse.noContent().build();
   }
-
-  @POST
-  @Timed
-  @Path("/commands/validate")
-  public Response validateTemplate() throws CedarException {
-    CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
-    c.must(c.user()).be(LoggedIn);
-//    c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_CREATE); // XXX Permission for validation?
-
-    JsonNode templateField = c.request().getRequestBody().asJson();
-
-    ValidationReport validationReport = null;
-    try {
-      validationReport = performValidation(templateField);
-      return Response.ok().entity(validationReport).build();
-    } catch (Exception e) {
-      return CedarResponse.internalServerError()
-          .errorKey(CedarErrorKey.TEMPLATE_FIELDS_NOT_VALIDATED)
-          .errorMessage("The template field can not be validated:\n" + templateField)
-          .exception(e)
-          .build();
-    }
-  }
-
-  private ValidationReport performValidation(JsonNode templateField) throws ProcessingException, IOException,
-      URISyntaxException {
-    CEDARModelValidator validator = new CEDARModelValidator();
-    ProcessingReport report = validateTemplateFieldNode(templateField, validator);
-    ValidationReport validationReport = new ProcessingReportWrapper(report);
-    return validationReport;
-  }
-
-  private static ProcessingReport validateTemplateFieldNode(JsonNode templateField, CEDARModelValidator validator)
-      throws URISyntaxException, IOException, ProcessingException {
-    Optional<ProcessingReport> processingReport = validator.validateTemplateFieldNode(templateField);
-    return processingReport.orElse(new DevNullProcessingReport());
-  }
 }

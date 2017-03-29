@@ -232,30 +232,4 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
     }
     return CedarResponse.noContent().build();
   }
-
-  @POST
-  @Timed
-  @Path("/commands/validate")
-  public Response validateTemplateElement() throws CedarException {
-    CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
-    c.must(c.user()).be(LoggedIn);
-//    c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_CREATE); // XXX Permission for validation?
-
-    JsonNode templateElement = c.request().getRequestBody().asJson();
-
-    ValidationReport validationReport = performValidation(templateElement);
-    return Response.ok().entity(validationReport).build();
-  }
-
-  private ValidationReport performValidation(JsonNode templateElement) {
-    CEDARModelValidator validator = new CEDARModelValidator();
-    ProcessingReport report = validateTemplateElementNode(templateElement, validator);
-    ValidationReport validationReport = new ProcessingReportWrapper(report);
-    return validationReport;
-  }
-
-  private static ProcessingReport validateTemplateElementNode(JsonNode templateElement, CEDARModelValidator validator) {
-    Optional<ProcessingReport> processingReport = validator.validateTemplateElementNode(templateElement);
-    return processingReport.orElse(new DevNullProcessingReport());
-  }
 }
