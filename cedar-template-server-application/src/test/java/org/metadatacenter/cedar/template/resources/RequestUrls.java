@@ -27,6 +27,14 @@ public class RequestUrls {
   }
 
   public static String forValidatingTemplate(int portNumber) {
-    return String.format("%s:%d/templates/commands/validate", SERVICE_BASE_URL, portNumber);
+    return String.format("%s:%d/command/validate?resource_types=template", SERVICE_BASE_URL, portNumber);
+  }
+
+  public static String forValidatingElement(int portNumber) {
+    return String.format("%s:%d/command/validate?resource_types=element", SERVICE_BASE_URL, portNumber);
+  }
+
+  public static String forValidatingField(int portNumber) {
+    return String.format("%s:%d/command/validate?resource_types=field", SERVICE_BASE_URL, portNumber);
   }
 }

@@ -119,7 +119,7 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
   private void runTestAndAssert(TestResource testResource) {
     String payload = testResource.getContent();
     Response response = sendPostRequest(
-        RequestUrls.forValidatingTemplate(getPortNumber()),
+        RequestUrls.forValidatingField(getPortNumber()),
         payload);
     checkStatusOk(response);
     // Assert

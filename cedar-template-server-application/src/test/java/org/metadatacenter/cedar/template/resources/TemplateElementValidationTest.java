@@ -112,7 +112,7 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   private void runTestAndAssert(TestResource testResource) {
     String payload = testResource.getContent();
     Response response = sendPostRequest(
-        RequestUrls.forValidatingTemplate(getPortNumber()),
+        RequestUrls.forValidatingElement(getPortNumber()),
         payload);
     checkStatusOk(response);
     // Assert
