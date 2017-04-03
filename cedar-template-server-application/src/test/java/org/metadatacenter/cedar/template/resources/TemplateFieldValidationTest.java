@@ -33,7 +33,7 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
   }
 
   @Test
-  public void shouldReportMissingId() {
+  public void shouldPassMissingId() {
     runTestAndAssert(
         TestResourcesUtils.useResource("fields/missing-field-id.json")
     );
