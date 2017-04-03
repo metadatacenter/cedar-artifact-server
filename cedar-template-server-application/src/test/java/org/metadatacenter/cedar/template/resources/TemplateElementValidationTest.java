@@ -12,14 +12,14 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class TemplateElementValidationTest extends BaseTemplateResourceTest {
 
   @Test
-  public void shouldPassEmptyTemplate() {
+  public void shouldPassEmptyElement() {
     runTestAndAssert(
         TestResourcesUtils.useResource("elements/empty-element.json")
     );
   }
 
   @Test
-  public void shouldPassSingleFieldTemplate() {
+  public void shouldPassMultiFieldElement() {
     runTestAndAssert(
         TestResourcesUtils.useResource("elements/multi-field-element.json")
     );
