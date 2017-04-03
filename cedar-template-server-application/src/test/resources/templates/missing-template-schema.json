@@ -277,11 +277,6 @@
                 "format": "uri"
               },
               "uniqueItems": true
-            },
-            {
-              "enum": [
-                "@id"
-              ]
             }
           ]
         },
