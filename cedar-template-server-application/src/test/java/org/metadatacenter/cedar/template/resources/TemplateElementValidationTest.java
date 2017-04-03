@@ -103,6 +103,13 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   }
 
   @Test
+  public void shouldReportInvalidValueAdditionalProperties() {
+    runTestAndAssert(
+        TestResourcesUtils.useResource("elements/invalid-value-additional-properties.json")
+    );
+  }
+
+  @Test
   public void shouldReportMissingSchema() {
     runTestAndAssert(
         TestResourcesUtils.useResource("elements/missing-element-schema.json")
