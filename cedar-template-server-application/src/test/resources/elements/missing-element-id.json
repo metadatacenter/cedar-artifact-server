@@ -182,11 +182,6 @@
                 "format": "uri"
               },
               "uniqueItems": true
-            },
-            {
-              "enum": [
-                "@id"
-              ]
             }
           ]
         },
@@ -288,11 +283,6 @@
                 "format": "uri"
               },
               "uniqueItems": true
-            },
-            {
-              "enum": [
-                "@id"
-              ]
             }
           ]
         },
@@ -394,11 +384,6 @@
                 "format": "uri"
               },
               "uniqueItems": true
-            },
-            {
-              "enum": [
-                "@id"
-              ]
             }
           ]
         },
@@ -500,11 +485,6 @@
                 "format": "uri"
               },
               "uniqueItems": true
-            },
-            {
-              "enum": [
-                "@id"
-              ]
             }
           ]
         },
