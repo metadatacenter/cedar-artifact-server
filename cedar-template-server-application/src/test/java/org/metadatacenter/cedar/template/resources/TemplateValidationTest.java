@@ -110,7 +110,7 @@ public class TemplateValidationTest extends BaseTemplateResourceTest {
   }
 
   @Test
-  public void shouldReportMissingAdditionalProperties() {
+  public void shouldPassMissingAdditionalProperties() {
     runTestAndAssert(
         TestResourcesUtils.useResource("templates/missing-template-additional-properties.json")
     );
