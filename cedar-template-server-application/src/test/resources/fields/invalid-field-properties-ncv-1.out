@@ -1,0 +1,1 @@
+{"validates":"false","warnings":[],"errors":["A template field without value constraints must have a '@value' and not an '@id' field at path /properties/"]}

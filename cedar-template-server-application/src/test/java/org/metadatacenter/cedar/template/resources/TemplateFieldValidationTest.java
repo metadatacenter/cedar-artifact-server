@@ -116,6 +116,48 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
     );
   }
 
+  @Test
+  public void shouldReportMissingPropertiesValueFieldForNonConstrainedValue() {
+    runTestAndAssert(
+        TestResourcesUtils.useResource("fields/missing-field-properties-value-ncv.json")
+    );
+  }
+
+  @Test
+  public void shouldReportMissingPropertiesIdForConstrainedValue() {
+    runTestAndAssert(
+        TestResourcesUtils.useResource("fields/missing-field-properties-id-cv.json")
+    );
+  }
+
+  @Test
+  public void shouldReportInvalidFieldForNonConstrainedValue_UseId() {
+    runTestAndAssert(
+        TestResourcesUtils.useResource("fields/invalid-field-properties-ncv-1.json")
+    );
+  }
+
+  @Test
+  public void shouldReportInvalidFieldForConstrainedValue_UseValue() {
+    runTestAndAssert(
+        TestResourcesUtils.useResource("fields/invalid-field-properties-cv-1.json")
+    );
+  }
+
+  @Test
+  public void shouldReportInvalidFieldForNonConstrainedValue_UseIdAndValue() {
+    runTestAndAssert(
+        TestResourcesUtils.useResource("fields/invalid-field-properties-ncv-2.json")
+    );
+  }
+
+  @Test
+  public void shouldReportInvalidFieldForConstrainedValue_UseIdAndValue() {
+    runTestAndAssert(
+        TestResourcesUtils.useResource("fields/invalid-field-properties-cv-2.json")
+    );
+  }
+
   private void runTestAndAssert(TestResource testResource) {
     String payload = testResource.getContent();
     Response response = sendPostRequest(
