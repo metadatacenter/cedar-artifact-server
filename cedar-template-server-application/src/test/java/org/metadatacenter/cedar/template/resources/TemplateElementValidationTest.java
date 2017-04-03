@@ -82,7 +82,7 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   }
 
   @Test
-  public void shouldReportMissingRequired() {
+  public void shouldPassMissingRequired() {
     runTestAndAssert(
         TestResourcesUtils.useResource("elements/missing-element-required.json")
     );
@@ -96,7 +96,7 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   }
 
   @Test
-  public void shouldReportMissingAdditionalProperties() {
+  public void shouldPassMissingAdditionalProperties() {
     runTestAndAssert(
         TestResourcesUtils.useResource("elements/missing-element-additional-properties.json")
     );
