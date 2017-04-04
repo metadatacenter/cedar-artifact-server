@@ -2,15 +2,20 @@ package org.metadatacenter.cedar.template.resources;
 
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.fge.jsonschema.core.report.DevNullProcessingReport;
-import com.github.fge.jsonschema.core.report.ProcessingReport;
+import com.github.fge.jsonschema.core.exceptions.ProcessingException;
+import com.github.fge.jsonschema.core.report.*;
 import org.metadatacenter.config.CedarConfig;
+import org.metadatacenter.error.CedarErrorKey;
 import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.model.request.ResourceType;
 import org.metadatacenter.model.request.ResourceTypeDetector;
 import org.metadatacenter.model.validation.CEDARModelValidator;
 import org.metadatacenter.rest.context.CedarRequestContext;
 import org.metadatacenter.rest.context.CedarRequestContextFactory;
+import org.metadatacenter.server.security.model.auth.CedarPermission;
+import org.metadatacenter.server.service.TemplateService;
+import org.metadatacenter.util.http.CedarResponse;
+import org.metadatacenter.util.mongo.MongoUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,8 +26,10 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
 import java.util.Optional;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.metadatacenter.constant.CedarQueryParameters.QP_RESOURCE_TYPES;
 import static org.metadatacenter.rest.assertion.GenericAssertions.LoggedIn;
 
@@ -32,8 +39,11 @@ public class CommandResource extends AbstractTemplateServerResource {
 
   private static final Logger log = LoggerFactory.getLogger(CommandResource.class);
 
-  public CommandResource(@Nonnull CedarConfig cedarConfig) {
+  private final TemplateService<String, JsonNode> templateService;
+
+  public CommandResource(@Nonnull CedarConfig cedarConfig, @Nonnull TemplateService<String, JsonNode> templateService) {
     super(cedarConfig);
+    this.templateService = checkNotNull(templateService);
   }
 
   @POST
@@ -56,7 +66,7 @@ public class CommandResource extends AbstractTemplateServerResource {
     } else if (type == ResourceType.FIELD) {
       report = validateTemplateFieldNode(payload);
     } else if (type == ResourceType.INSTANCE) {
-      // NO-OP: Not implemented yet
+      report = validateTemplateInstanceNode(payload);
     }
     ValidationReport validationReport = new ProcessingReportWrapper(report);
     return Response.ok().entity(validationReport).build();
@@ -84,4 +94,34 @@ public class CommandResource extends AbstractTemplateServerResource {
       return new DevNullProcessingReport();
     }
   }
+
+  private ProcessingReport validateTemplateInstanceNode(JsonNode templateInstance) {
+    try {
+      JsonNode instanceSchema = getSchemaSource(templateInstance);
+      CEDARModelValidator validator = new CEDARModelValidator();
+      Optional<ProcessingReport> processingReport = validator.validateTemplateInstanceNode(templateInstance, instanceSchema);
+      return processingReport.orElse(new DevNullProcessingReport());
+    } catch (Exception e) {
+      log.error(e.getMessage(), e);
+      return generateErrorProcessingReport(e.getMessage());
+    }
+  }
+
+  private JsonNode getSchemaSource(JsonNode templateInstance) throws IOException, ProcessingException {
+    String templateRefId = templateInstance.get("schema:isBasedOn").asText();
+    JsonNode template = templateService.findTemplate(templateRefId);
+    MongoUtils.removeIdField(template);
+    return template;
+  }
+
+  private static ProcessingReport generateErrorProcessingReport(String message)
+  {
+    ListProcessingReport report = new ListProcessingReport();
+    ProcessingMessage processingMessage = new ProcessingMessage()
+        .setLogLevel(LogLevel.ERROR)
+        .setMessage(message);
+    report.log(LogLevel.ERROR, processingMessage);
+    return report;
+  }
+
 }
