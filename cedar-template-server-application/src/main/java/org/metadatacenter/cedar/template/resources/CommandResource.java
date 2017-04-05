@@ -72,19 +72,19 @@ public class CommandResource extends AbstractTemplateServerResource {
     return Response.ok().entity(validationReport).build();
   }
 
-  private static ProcessingReport validateTemplateNode(JsonNode template) {
+  private ProcessingReport validateTemplateNode(JsonNode template) {
     CEDARModelValidator validator = new CEDARModelValidator();
     Optional<ProcessingReport> processingReport = validator.validateTemplateNode(template);
     return processingReport.orElse(new DevNullProcessingReport());
   }
 
-  private static ProcessingReport validateTemplateElementNode(JsonNode templateElement) {
+  private ProcessingReport validateTemplateElementNode(JsonNode templateElement) {
     CEDARModelValidator validator = new CEDARModelValidator();
     Optional<ProcessingReport> processingReport = validator.validateTemplateElementNode(templateElement);
     return processingReport.orElse(new DevNullProcessingReport());
   }
 
-  private static ProcessingReport validateTemplateFieldNode(JsonNode templateField) {
+  private ProcessingReport validateTemplateFieldNode(JsonNode templateField) {
     try {
       CEDARModelValidator validator = new CEDARModelValidator();
       Optional<ProcessingReport> processingReport = validator.validateTemplateFieldNode(templateField);
