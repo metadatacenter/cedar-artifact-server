@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "@id": null,
+    "@id": "https://repo.metadatacenter.orgx/templates/8d8eeeae-ca63-42e6-8090-0dfd1203f8c8",
     "@type": "https://schema.metadatacenter.org/core/Template",
     "@context": {
         "xsd": "http://www.w3.org/2001/XMLSchema#",

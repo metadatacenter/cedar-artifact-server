@@ -1,5 +1,5 @@
 {
-    "@id": "https://repo.staging.metadatacenter.net/templates/89c3b65a-29c6-409c-be1a-ba7fbd34cfe7",
+    "@id": "https://repo.metadatacenter.orgx/templates/10f1a87f-bcfa-4b2e-9dfc-15457f30a161",
     "@type": "https://schema.metadatacenter.org/core/Template",
     "@context": {
         "xsd": "http://www.w3.org/2001/XMLSchema#",
