@@ -5,6 +5,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.MessageFormat;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -45,6 +46,20 @@ public class TestResourcesUtils {
   public static TestResource useResource(@Nonnull String path) {
     String pathToExpectedResult = findDefaultPathToExpectedOutput(path);
     return useResource(path, pathToExpectedResult);
+  }
+
+  public static TestResource useFormattedResource(@Nonnull String path, @Nonnull String[] args, @Nonnull String pathToExpectedOutput) {
+    checkNotNull(path);
+    checkNotNull(args);
+    checkNotNull(pathToExpectedOutput);
+    String content = TextFormatter.format(getStringContent(path), args);
+    String expected = getStringContent(pathToExpectedOutput);
+    return TestResource.create(content, expected);
+  }
+
+  public static TestResource useFormattedResource(@Nonnull String path, @Nonnull String[] args) {
+    String pathToExpectedResult = findDefaultPathToExpectedOutput(path);
+    return useFormattedResource(path, args, pathToExpectedResult);
   }
 
   private static String getStringExpected(String pathToExpectedResult) {
