@@ -84,18 +84,18 @@ public class CommandResource extends AbstractTemplateServerResource {
     return processingReport.orElse(new DevNullProcessingReport());
   }
 
-  private ProcessingReport validateTemplateFieldNode(JsonNode templateField) {
+  private ProcessingReport validateTemplateFieldNode(JsonNode templateField) throws CedarException {
     try {
       CEDARModelValidator validator = new CEDARModelValidator();
       Optional<ProcessingReport> processingReport = validator.validateTemplateFieldNode(templateField);
       return processingReport.orElse(new DevNullProcessingReport());
     } catch (Exception e) {
       log.error(e.getMessage(), e);
-      return new DevNullProcessingReport();
+      throw newCedarException(e.getMessage());
     }
   }
 
-  private ProcessingReport validateTemplateInstanceNode(JsonNode templateInstance) {
+  private ProcessingReport validateTemplateInstanceNode(JsonNode templateInstance) throws CedarException {
     try {
       JsonNode instanceSchema = getSchemaSource(templateInstance);
       CEDARModelValidator validator = new CEDARModelValidator();
@@ -103,7 +103,7 @@ public class CommandResource extends AbstractTemplateServerResource {
       return processingReport.orElse(new DevNullProcessingReport());
     } catch (Exception e) {
       log.error(e.getMessage(), e);
-      return generateErrorProcessingReport(e.getMessage());
+      throw newCedarException(e.getMessage());
     }
   }
 
@@ -114,14 +114,8 @@ public class CommandResource extends AbstractTemplateServerResource {
     return template;
   }
 
-  private static ProcessingReport generateErrorProcessingReport(String message)
-  {
-    ListProcessingReport report = new ListProcessingReport();
-    ProcessingMessage processingMessage = new ProcessingMessage()
-        .setLogLevel(LogLevel.ERROR)
-        .setMessage(message);
-    report.log(LogLevel.ERROR, processingMessage);
-    return report;
+  private static CedarException newCedarException(String message) {
+    return new CedarException(message) {};
   }
 
 }
