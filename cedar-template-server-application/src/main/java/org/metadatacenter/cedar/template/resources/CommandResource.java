@@ -74,21 +74,21 @@ public class CommandResource extends AbstractTemplateServerResource {
 
   private ProcessingReport validateTemplateNode(JsonNode template) {
     CEDARModelValidator validator = new CEDARModelValidator();
-    Optional<ProcessingReport> processingReport = validator.validateTemplateNode(template);
-    return processingReport.orElse(new DevNullProcessingReport());
+    ProcessingReport processingReport = validator.validateTemplateNode(template);
+    return processingReport;
   }
 
   private ProcessingReport validateTemplateElementNode(JsonNode templateElement) {
     CEDARModelValidator validator = new CEDARModelValidator();
-    Optional<ProcessingReport> processingReport = validator.validateTemplateElementNode(templateElement);
-    return processingReport.orElse(new DevNullProcessingReport());
+    ProcessingReport processingReport = validator.validateTemplateElementNode(templateElement);
+    return processingReport;
   }
 
   private ProcessingReport validateTemplateFieldNode(JsonNode templateField) throws CedarException {
     try {
       CEDARModelValidator validator = new CEDARModelValidator();
-      Optional<ProcessingReport> processingReport = validator.validateTemplateFieldNode(templateField);
-      return processingReport.orElse(new DevNullProcessingReport());
+      ProcessingReport processingReport = validator.validateTemplateFieldNode(templateField);
+      return processingReport;
     } catch (Exception e) {
       log.error(e.getMessage(), e);
       throw newCedarException(e.getMessage());
@@ -99,8 +99,8 @@ public class CommandResource extends AbstractTemplateServerResource {
     try {
       JsonNode instanceSchema = getSchemaSource(templateInstance);
       CEDARModelValidator validator = new CEDARModelValidator();
-      Optional<ProcessingReport> processingReport = validator.validateTemplateInstanceNode(templateInstance, instanceSchema);
-      return processingReport.orElse(new DevNullProcessingReport());
+      ProcessingReport processingReport = validator.validateTemplateInstanceNode(templateInstance, instanceSchema);
+      return processingReport;
     } catch (Exception e) {
       log.error(e.getMessage(), e);
       throw newCedarException(e.getMessage());
