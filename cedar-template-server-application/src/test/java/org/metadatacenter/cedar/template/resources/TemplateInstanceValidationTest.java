@@ -1,6 +1,5 @@
 package org.metadatacenter.cedar.template.resources;
 
-import com.google.common.base.Charsets;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -8,9 +7,7 @@ import org.junit.Test;
 
 import javax.annotation.Nonnull;
 import javax.ws.rs.core.Response;
-
 import java.io.UnsupportedEncodingException;
-import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 
@@ -67,6 +64,41 @@ public class TemplateInstanceValidationTest extends BaseTemplateResourceTest {
   public void shouldPassNestedElementInstance() {
     runTestAndAssert(
         TestResourcesUtils.useResource("instances/nested-element-instance.jsonld")
+    );
+  }
+
+  @Test
+  public void shouldFailMissingContext() {
+    runTestAndAssert(
+        TestResourcesUtils.useResource("instances/missing-instance-context.jsonld")
+    );
+  }
+
+  @Test
+  public void shouldFailMissingId() {
+    runTestAndAssert(
+        TestResourcesUtils.useResource("instances/missing-instance-id.jsonld")
+    );
+  }
+
+  @Test
+  public void shouldFailMissingProvenance() {
+    runTestAndAssert(
+        TestResourcesUtils.useResource("instances/missing-instance-provenance.jsonld")
+    );
+  }
+
+  @Test
+  public void shouldFailMissingFields() {
+    runTestAndAssert(
+        TestResourcesUtils.useResource("instances/missing-instance-fields.jsonld")
+    );
+  }
+
+  @Test
+  public void shouldFailMissingValueInRequiredProperty() {
+    runTestAndAssert(
+        TestResourcesUtils.useResource("instances/missing-value-in-required-property.jsonld")
     );
   }
 
