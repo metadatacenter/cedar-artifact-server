@@ -158,6 +158,13 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
     );
   }
 
+  @Test
+  public void shouldFailMisplacedIdProperty_InRadioField() {
+    runTestAndAssert(
+        TestResourcesUtils.useResource("fields/misplace-id-property-in-radio-field.json")
+    );
+  }
+
   private void runTestAndAssert(TestResource testResource) {
     String payload = testResource.getContent();
     Response response = sendPostRequest(
