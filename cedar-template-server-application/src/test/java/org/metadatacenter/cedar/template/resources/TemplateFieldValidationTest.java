@@ -131,30 +131,30 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
   }
 
   @Test
-  public void shouldFailInvalidFieldForNonConstrainedValue_UseId() {
+  public void shouldFailMisplacedIdProperty_InTextField() {
     runTestAndAssert(
-        TestResourcesUtils.useResource("fields/invalid-field-properties-ncv-1.json")
+        TestResourcesUtils.useResource("fields/misplace-id-property-in-text-field.json")
     );
   }
 
   @Test
-  public void shouldFailInvalidFieldForConstrainedValue_UseValue() {
+  public void shouldFailMisplacedValueProperty_InConstrainedTextField() {
     runTestAndAssert(
-        TestResourcesUtils.useResource("fields/invalid-field-properties-cv-1.json")
+        TestResourcesUtils.useResource("fields/misplace-value-property-in-constrained-text-field.json")
     );
   }
 
   @Test
-  public void shouldFailInvalidFieldForNonConstrainedValue_UseIdAndValue() {
+  public void shouldFailMisplaceValueIdProperty_InTextField() {
     runTestAndAssert(
-        TestResourcesUtils.useResource("fields/invalid-field-properties-ncv-2.json")
+        TestResourcesUtils.useResource("fields/misplace-value+id-property-in-text-field.json")
     );
   }
 
   @Test
-  public void shouldFailInvalidFieldForConstrainedValue_UseIdAndValue() {
+  public void shouldFailMisplaceValueIdProperty_InConstrainedTextField() {
     runTestAndAssert(
-        TestResourcesUtils.useResource("fields/invalid-field-properties-cv-2.json")
+        TestResourcesUtils.useResource("fields/misplace-value+id-property-in-constrainted-text-field.json")
     );
   }
 
