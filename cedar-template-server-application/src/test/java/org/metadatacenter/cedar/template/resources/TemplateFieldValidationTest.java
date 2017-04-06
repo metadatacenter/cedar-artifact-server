@@ -26,7 +26,7 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
   }
 
   @Test
-  public void shouldReportMissingContext() {
+  public void shouldFailMissingContext() {
     runTestAndAssert(
         TestResourcesUtils.useResource("fields/missing-field-context.json")
     );
@@ -40,119 +40,119 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
   }
 
   @Test
-  public void shouldReportMissingType() {
+  public void shouldFailMissingType() {
     runTestAndAssert(
         TestResourcesUtils.useResource("fields/missing-field-type.json")
     );
   }
 
   @Test
-  public void shouldReportMissingJsonType() {
+  public void shouldFailMissingJsonType() {
     runTestAndAssert(
         TestResourcesUtils.useResource("fields/missing-field-json-type.json")
     );
   }
 
   @Test
-  public void shouldReportMissingTitle() {
+  public void shouldFailMissingTitle() {
     runTestAndAssert(
         TestResourcesUtils.useResource("fields/missing-field-title.json")
     );
   }
 
   @Test
-  public void shouldReportMissingDescription() {
+  public void shouldFailMissingDescription() {
     runTestAndAssert(
         TestResourcesUtils.useResource("fields/missing-field-description.json")
     );
   }
 
   @Test
-  public void shouldReportMissingUi() {
+  public void shouldFailMissingUi() {
     runTestAndAssert(
         TestResourcesUtils.useResource("fields/missing-field-ui.json")
     );
   }
 
   @Test
-  public void shouldReportMissingProperties() {
+  public void shouldFailMissingProperties() {
     runTestAndAssert(
         TestResourcesUtils.useResource("fields/missing-field-properties.json")
     );
   }
 
   @Test
-  public void shouldReportMissingRequired() {
+  public void shouldFailMissingRequired() {
     runTestAndAssert(
         TestResourcesUtils.useResource("fields/missing-field-required.json")
     );
   }
 
   @Test
-  public void shouldReportMissingValueConstraints() {
+  public void shouldFailMissingValueConstraints() {
     runTestAndAssert(
         TestResourcesUtils.useResource("fields/missing-field-value-constraints.json")
     );
   }
 
   @Test
-  public void shouldReportMissingProvenance() {
+  public void shouldFailMissingProvenance() {
     runTestAndAssert(
         TestResourcesUtils.useResource("fields/missing-field-provenance.json")
     );
   }
 
   @Test
-  public void shouldReportMissingAdditionalProperties() {
+  public void shouldFailMissingAdditionalProperties() {
     runTestAndAssert(
         TestResourcesUtils.useResource("fields/missing-field-additional-properties.json")
     );
   }
 
   @Test
-  public void shouldReportMissingSchema() {
+  public void shouldFailMissingSchema() {
     runTestAndAssert(
         TestResourcesUtils.useResource("fields/missing-field-schema.json")
     );
   }
 
   @Test
-  public void shouldReportMissingPropertiesValueFieldForNonConstrainedValue() {
+  public void shouldFailMissingPropertiesValueFieldForNonConstrainedValue() {
     runTestAndAssert(
         TestResourcesUtils.useResource("fields/missing-field-properties-value-ncv.json")
     );
   }
 
   @Test
-  public void shouldReportMissingPropertiesIdForConstrainedValue() {
+  public void shouldFailMissingPropertiesIdForConstrainedValue() {
     runTestAndAssert(
         TestResourcesUtils.useResource("fields/missing-field-properties-id-cv.json")
     );
   }
 
   @Test
-  public void shouldReportInvalidFieldForNonConstrainedValue_UseId() {
+  public void shouldFailInvalidFieldForNonConstrainedValue_UseId() {
     runTestAndAssert(
         TestResourcesUtils.useResource("fields/invalid-field-properties-ncv-1.json")
     );
   }
 
   @Test
-  public void shouldReportInvalidFieldForConstrainedValue_UseValue() {
+  public void shouldFailInvalidFieldForConstrainedValue_UseValue() {
     runTestAndAssert(
         TestResourcesUtils.useResource("fields/invalid-field-properties-cv-1.json")
     );
   }
 
   @Test
-  public void shouldReportInvalidFieldForNonConstrainedValue_UseIdAndValue() {
+  public void shouldFailInvalidFieldForNonConstrainedValue_UseIdAndValue() {
     runTestAndAssert(
         TestResourcesUtils.useResource("fields/invalid-field-properties-ncv-2.json")
     );
   }
 
   @Test
-  public void shouldReportInvalidFieldForConstrainedValue_UseIdAndValue() {
+  public void shouldFailInvalidFieldForConstrainedValue_UseIdAndValue() {
     runTestAndAssert(
         TestResourcesUtils.useResource("fields/invalid-field-properties-cv-2.json")
     );

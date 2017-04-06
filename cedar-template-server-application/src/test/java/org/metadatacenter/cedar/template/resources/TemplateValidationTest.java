@@ -40,70 +40,70 @@ public class TemplateValidationTest extends BaseTemplateResourceTest {
   }
 
   @Test
-  public void shouldReportMissingContext() {
+  public void shouldFailMissingContext() {
     runTestAndAssert(
         TestResourcesUtils.useResource("templates/missing-template-context.json")
     );
   }
 
   @Test
-  public void shouldReportMissingId() {
+  public void shouldFailMissingId() {
     runTestAndAssert(
         TestResourcesUtils.useResource("templates/missing-template-id.json")
     );
   }
 
   @Test
-  public void shouldReportMissingType() {
+  public void shouldFailMissingType() {
     runTestAndAssert(
         TestResourcesUtils.useResource("templates/missing-template-type.json")
     );
   }
 
   @Test
-  public void shouldReportMissingJsonType() {
+  public void shouldFailMissingJsonType() {
     runTestAndAssert(
         TestResourcesUtils.useResource("templates/missing-template-json-type.json")
     );
   }
 
   @Test
-  public void shouldReportMissingTitle() {
+  public void shouldFailMissingTitle() {
     runTestAndAssert(
         TestResourcesUtils.useResource("templates/missing-template-title.json")
     );
   }
 
   @Test
-  public void shouldReportMissingDescription() {
+  public void shouldFailMissingDescription() {
     runTestAndAssert(
         TestResourcesUtils.useResource("templates/missing-template-description.json")
     );
   }
 
   @Test
-  public void shouldReportMissingUi() {
+  public void shouldFailMissingUi() {
     runTestAndAssert(
         TestResourcesUtils.useResource("templates/missing-template-ui.json")
     );
   }
 
   @Test
-  public void shouldReportMissingProperties() {
+  public void shouldFailMissingProperties() {
     runTestAndAssert(
         TestResourcesUtils.useResource("templates/missing-template-properties.json")
     );
   }
 
   @Test
-  public void shouldReportMissingRequired() {
+  public void shouldFailMissingRequired() {
     runTestAndAssert(
         TestResourcesUtils.useResource("templates/missing-template-required.json")
     );
   }
 
   @Test
-  public void shouldReportMissingProvenance() {
+  public void shouldFailMissingProvenance() {
     runTestAndAssert(
         TestResourcesUtils.useResource("templates/missing-template-provenance.json")
     );
@@ -117,14 +117,14 @@ public class TemplateValidationTest extends BaseTemplateResourceTest {
   }
 
   @Test
-  public void shouldReportInvalidValueAdditionalProperties() {
+  public void shouldFailInvalidValueAdditionalProperties() {
     runTestAndAssert(
         TestResourcesUtils.useResource("templates/invalid-value-additional-properties.json")
     );
   }
 
   @Test
-  public void shouldReportMissingSchema() {
+  public void shouldFailMissingSchema() {
     runTestAndAssert(
         TestResourcesUtils.useResource("templates/missing-template-schema.json")
     );
