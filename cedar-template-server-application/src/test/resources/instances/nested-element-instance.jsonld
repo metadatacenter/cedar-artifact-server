@@ -31,7 +31,7 @@
     "organism": "https://schema.staging.metadatacenter.net/properties/organism",
     "isolate": "https://schema.staging.metadatacenter.net/properties/isolate",
     "age": "https://schema.staging.metadatacenter.net/properties/age",
-    "2a1cfe2d-b1b1-45ad-bc7b-39735b76cb01": "https://schema.staging.metadatacenter.net/properties/2a1cfe2d-b1b1-45ad-bc7b-39735b76cb01",
+    "biomaterialProvider": "https://schema.staging.metadatacenter.net/properties/biomaterialProvider",
     "optionalAttribute": "https://schema.staging.metadatacenter.net/properties/optionalAttribute"
   },
   "sampleName": {

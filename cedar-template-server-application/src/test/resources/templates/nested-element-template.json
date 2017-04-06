@@ -179,9 +179,9 @@
             "https://schema.staging.metadatacenter.net/properties/age"
           ]
         },
-        "2a1cfe2d-b1b1-45ad-bc7b-39735b76cb01": {
+        "biomaterialProvider": {
           "enum": [
-            "https://schema.staging.metadatacenter.net/properties/2a1cfe2d-b1b1-45ad-bc7b-39735b76cb01"
+            "https://schema.staging.metadatacenter.net/properties/biomaterialProvider"
           ]
         },
         "optionalAttribute": {
@@ -214,7 +214,7 @@
         "organism",
         "isolate",
         "age",
-        "2a1cfe2d-b1b1-45ad-bc7b-39735b76cb01",
+        "biomaterialProvider",
         "optionalAttribute"
       ],
       "additionalProperties": false
