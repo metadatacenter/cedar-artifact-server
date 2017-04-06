@@ -19,6 +19,83 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
   }
 
   @Test
+  public void shouldPassCheckboxField() {
+    runTestAndAssert(
+        TestResourcesUtils.useResource("fields/checkbox-field.json")
+    );
+  }
+
+  @Test
+  public void shouldPassDateField() {
+    runTestAndAssert(
+        TestResourcesUtils.useResource("fields/date-field.json")
+    );
+  }
+
+  @Test
+  public void shouldPassEmailField() {
+    runTestAndAssert(
+        TestResourcesUtils.useResource("fields/email-field.json")
+    );
+  }
+
+  @Test
+  public void shouldPassImageField() {
+    runTestAndAssert(
+        TestResourcesUtils.useResource("fields/image-field.json")
+    );
+  }
+
+  @Test
+  public void shouldPassListField() {
+    runTestAndAssert(
+        TestResourcesUtils.useResource("fields/list-field.json")
+    );
+  }
+
+  @Test
+  public void shouldPassNumericField() {
+    runTestAndAssert(
+        TestResourcesUtils.useResource("fields/numeric-field.json")
+    );
+  }
+
+  @Test
+  public void shouldPassParagraphField() {
+    runTestAndAssert(
+        TestResourcesUtils.useResource("fields/paragraph-field.json")
+    );
+  }
+
+  @Test
+  public void shouldPassPhoneField() {
+    runTestAndAssert(
+        TestResourcesUtils.useResource("fields/phone-field.json")
+    );
+  }
+
+  @Test
+  public void shouldPassRadioField() {
+    runTestAndAssert(
+        TestResourcesUtils.useResource("fields/radio-field.json")
+    );
+  }
+
+  @Test
+  public void shouldPassRichTextField() {
+    runTestAndAssert(
+        TestResourcesUtils.useResource("fields/rich-text-field.json")
+    );
+  }
+
+  @Test
+  public void shouldPassVideoField() {
+    runTestAndAssert(
+        TestResourcesUtils.useResource("fields/video-field.json")
+    );
+  }
+
+  @Test
   public void shouldPassConstrainedTextField() {
     runTestAndAssert(
         TestResourcesUtils.useResource("fields/constrained-text-field.json")
