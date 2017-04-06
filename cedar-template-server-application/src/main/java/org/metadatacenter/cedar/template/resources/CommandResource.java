@@ -45,7 +45,7 @@ public class CommandResource extends AbstractTemplateServerResource {
   @POST
   @Timed
   @Path("/validate")
-  public Response validateTemplate(@QueryParam(QP_RESOURCE_TYPES) String resourceType) throws CedarException {
+  public Response validateResource(@QueryParam(QP_RESOURCE_TYPES) String resourceType) throws CedarException {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
 //    c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_CREATE); // XXX Permission for validation?
