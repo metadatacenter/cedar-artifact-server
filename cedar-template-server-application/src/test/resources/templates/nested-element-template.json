@@ -1379,7 +1379,6 @@
             "$schema": "http://json-schema.org/draft-04/schema#"
           }
         },
-        "required": [],
         "additionalProperties": false,
         "pav:createdOn": "2017-03-28T16:03:58-0700",
         "pav:createdBy": "https://metadatacenter.org/users/74c2d307-af38-43a3-9ca2-5c644d2a4e58",
