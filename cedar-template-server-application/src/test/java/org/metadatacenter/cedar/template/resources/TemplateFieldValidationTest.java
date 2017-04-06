@@ -12,16 +12,16 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
 
   @Test
-  public void shouldPassBasicTextField() {
+  public void shouldPassTextField() {
     runTestAndAssert(
-        TestResourcesUtils.useResource("fields/basic-text-field.json")
+        TestResourcesUtils.useResource("fields/text-field.json")
     );
   }
 
   @Test
-  public void shouldPassValueConstrainedField() {
+  public void shouldPassConstrainedTextField() {
     runTestAndAssert(
-        TestResourcesUtils.useResource("fields/value-constrained-field.json")
+        TestResourcesUtils.useResource("fields/constrained-text-field.json")
     );
   }
 
