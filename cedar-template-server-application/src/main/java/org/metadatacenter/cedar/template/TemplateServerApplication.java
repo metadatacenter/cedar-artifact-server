@@ -11,6 +11,7 @@ import org.metadatacenter.cedar.template.resources.TemplateElementsResource;
 import org.metadatacenter.cedar.template.resources.TemplateInstancesResource;
 import org.metadatacenter.cedar.template.resources.TemplatesResource;
 import org.metadatacenter.cedar.util.dw.CedarMicroserviceApplication;
+import org.metadatacenter.model.ServerName;
 import org.metadatacenter.model.CedarNodeType;
 import org.metadatacenter.server.service.TemplateElementService;
 import org.metadatacenter.server.service.TemplateFieldService;
@@ -33,8 +34,8 @@ public class TemplateServerApplication extends CedarMicroserviceApplication<Temp
   }
 
   @Override
-  public String getName() {
-    return "cedar-template-server";
+  protected ServerName getServerName() {
+    return ServerName.TEMPLATE;
   }
 
   @Override
