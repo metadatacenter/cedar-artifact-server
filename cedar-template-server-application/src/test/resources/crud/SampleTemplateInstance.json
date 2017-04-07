@@ -1,0 +1,37 @@
+{
+  "@context": {
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "pav": "http://purl.org/pav/",
+    "schema": "http://schema.org/",
+    "oslc": "http://open-services.net/ns/core#",
+    "schema:isBasedOn": {
+      "@type": "@id"
+    },
+    "schema:name": {
+      "@type": "xsd:string"
+    },
+    "schema:description": {
+      "@type": "xsd:string"
+    },
+    "pav:createdOn": {
+      "@type": "xsd:dateTime"
+    },
+    "pav:createdBy": {
+      "@type": "@id"
+    },
+    "pav:lastUpdatedOn": {
+      "@type": "xsd:dateTime"
+    },
+    "oslc:modifiedBy": {
+      "@type": "@id"
+    }
+  },
+  "schema:isBasedOn": "https://repo.metadatacenter.orgx/templates/8558e0c5-c123-431f-beda-9ed5e75f0d2c",
+  "schema:name": "Untitled metadata",
+  "schema:description": "Description",
+  "pav:createdOn": "2017-04-07T12:10:37-0700",
+  "pav:createdBy": "https://metadatacenter.org/users/8d787b98-33dd-4aff-a88c-440caf452c61",
+  "pav:lastUpdatedOn": "2017-04-07T12:10:37-0700",
+  "oslc:modifiedBy": "https://metadatacenter.org/users/8d787b98-33dd-4aff-a88c-440caf452c61",
+  "@id": "https://repo.metadatacenter.orgx/template-instances/697bf2ba-bde1-46ec-97a3-9f4c3eb5af01"
+}

@@ -39,7 +39,7 @@ public class BaseTemplateResourceTest {
   public static void createTestClient() {
     testClient = new JerseyClientBuilder(SERVER_APPLICATION.getEnvironment()).build("TestClient");
     testClient.property(ClientProperties.READ_TIMEOUT, 3000); // 3s
-    testClient.property(ClientProperties.CONNECT_TIMEOUT, 3000); // 3s
+    testClient.property(ClientProperties.CONNECT_TIMEOUT, 3000);
   }
 
   @AfterClass

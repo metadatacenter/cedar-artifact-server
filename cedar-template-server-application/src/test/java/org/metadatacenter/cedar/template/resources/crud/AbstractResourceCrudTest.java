@@ -9,6 +9,7 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.metadatacenter.cedar.template.TemplateServerApplication;
 import org.metadatacenter.cedar.template.TemplateServerConfiguration;
+import org.metadatacenter.cedar.template.resources.utils.TestConstants;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.util.test.TestUserUtil;
 
@@ -21,14 +22,20 @@ import static org.metadatacenter.constant.HttpConstants.HTTP_HEADER_AUTHORIZATIO
 
 public class AbstractResourceCrudTest {
 
-  private static String authHeaderValue;
-
-  private static Client testClient;
+  protected static String baseTestUrl;
+  protected static String authHeaderValue;
+  protected static Client testClient;
 
   @ClassRule
   public static final DropwizardAppRule<TemplateServerConfiguration> SERVER_APPLICATION =
       new DropwizardAppRule<>(TemplateServerApplication.class,
           ResourceHelpers.resourceFilePath("test-config.yml"));
+
+  @BeforeClass
+  public static void setBaseTestUrl() {
+    baseTestUrl = TestConstants.BASE_URL + SERVER_APPLICATION.getLocalPort();
+    authHeaderValue = TestUserUtil.getTestUser1AuthHeader(CedarConfig.getInstance());
+  }
 
   @BeforeClass
   public static void fetchAuthHeader() {
@@ -49,31 +56,27 @@ public class AbstractResourceCrudTest {
     }
   }
 
-  protected int getPortNumber() {
-    return SERVER_APPLICATION.getLocalPort();
-  }
-
-  protected Response sendGetRequest(@Nonnull String requestUrl) {
-    Response response = testClient.target(requestUrl)
-        .request()
-        .header(HTTP_HEADER_AUTHORIZATION, authHeaderValue)
-        .get();
-    return response;
-  }
-
-  protected Response sendPostRequest(@Nonnull String requestUrl, @Nonnull Object payload) {
-    Response response = testClient.target(requestUrl)
-        .request()
-        .header(HTTP_HEADER_AUTHORIZATION, authHeaderValue)
-        .post(Entity.json(payload));
-    return response;
-  }
-
-  protected Response sendDeleteRequest(@Nonnull String requestUrl) {
-    Response response = testClient.target(requestUrl)
-        .request()
-        .header(HTTP_HEADER_AUTHORIZATION, authHeaderValue)
-        .delete();
-    return response;
-  }
+//  protected Response sendGetRequest(@Nonnull String requestUrl) {
+//    Response response = testClient.target(requestUrl)
+//        .request()
+//        .header(HTTP_HEADER_AUTHORIZATION, authHeaderValue)
+//        .get();
+//    return response;
+//  }
+//
+//  protected Response sendPostRequest(@Nonnull String requestUrl, @Nonnull Object payload) {
+//    Response response = testClient.target(requestUrl)
+//        .request()
+//        .header(HTTP_HEADER_AUTHORIZATION, authHeaderValue)
+//        .post(Entity.json(payload));
+//    return response;
+//  }
+//
+//  protected Response sendDeleteRequest(@Nonnull String requestUrl) {
+//    Response response = testClient.target(requestUrl)
+//        .request()
+//        .header(HTTP_HEADER_AUTHORIZATION, authHeaderValue)
+//        .delete();
+//    return response;
+//  }
 }
