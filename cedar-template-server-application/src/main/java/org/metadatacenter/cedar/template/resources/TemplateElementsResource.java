@@ -3,12 +3,14 @@ package org.metadatacenter.cedar.template.resources;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
+import com.github.fge.jsonschema.core.report.ProcessingReport;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.constant.CustomHttpConstants;
 import org.metadatacenter.constant.HttpConstants;
 import org.metadatacenter.error.CedarErrorKey;
 import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.model.validation.CEDARModelValidator;
 import org.metadatacenter.rest.context.CedarRequestContext;
 import org.metadatacenter.rest.context.CedarRequestContextFactory;
 import org.metadatacenter.server.model.provenance.ProvenanceInfo;
@@ -60,6 +62,7 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
     //TODO: test if it is not empty
     //c.must(c.request().getRequestBody()).be(NonEmpty);
     JsonNode templateElement = c.request().getRequestBody().asJson();
+    ProcessingReportWrapper validationReport = validateTemplateElement(templateElement);
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     checkImportModeSetProvenanceAndId(CedarNodeType.ELEMENT, templateElement, pi, importMode);
@@ -79,8 +82,11 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
 
     String id = createdTemplateElement.get("@id").asText();
 
-    URI uri = CedarUrlUtil.getIdURI(uriInfo, id);
-    return Response.created(uri).entity(createdTemplateElement).build();
+    URI createdElementUri = CedarUrlUtil.getIdURI(uriInfo, id);
+    return CedarResponse.created(createdElementUri)
+        .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, validationReport.getValidationStatus())
+        .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_REPORT, validationReport)
+        .entity(createdTemplateElement).build();
   }
 
   @GET
@@ -198,8 +204,13 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
           .exception(e)
           .build();
     }
+    ProcessingReportWrapper validationReport = validateTemplateElement(updatedTemplateElement);
+
     MongoUtils.removeIdField(updatedTemplateElement);
-    return Response.ok().entity(updatedTemplateElement).build();
+    return CedarResponse.ok()
+        .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, validationReport.getValidationStatus())
+        .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_REPORT, validationReport)
+        .entity(updatedTemplateElement).build();
   }
 
   @DELETE
@@ -228,5 +239,11 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
           .build();
     }
     return CedarResponse.noContent().build();
+  }
+
+  private ProcessingReportWrapper validateTemplateElement(JsonNode templateElement) {
+    CEDARModelValidator validator = new CEDARModelValidator();
+    ProcessingReport processingReport = validator.validateTemplateElementNode(templateElement);
+    return new ProcessingReportWrapper(processingReport);
   }
 }
