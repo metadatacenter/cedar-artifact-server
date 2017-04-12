@@ -42,6 +42,7 @@ public class TemplateServerApplication extends CedarMicroserviceApplication<Temp
   public void initializeApp(Bootstrap<TemplateServerConfiguration> bootstrap) {
     CedarDataServices.initializeMongoClientFactoryForDocuments(
         cedarConfig.getTemplateServerConfig().getMongoConnection());
+    System.out.println("&&&" + cedarConfig.getTemplateServerConfig().getMongoConnection().getUser());
     MongoClient mongoClientForDocuments = CedarDataServices.getMongoClientFactoryForDocuments().getClient();
     templateFieldService = new TemplateFieldServiceMongoDB(
         mongoClientForDocuments,
