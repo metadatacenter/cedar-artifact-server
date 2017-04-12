@@ -32,10 +32,11 @@ env:
   - CEDAR_MONGO_USER_PASSWORD=password
   - CEDAR_TEST_USER1_ID=https://metadatacenter.org/users/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee
   - CEDAR_TEST_USER2_ID=abc
-  - CEDAR_ADMIN_USER_UUID=abc
+  - CEDAR_ADMIN_USER_API_KEY=abc
   - CEDAR_ADMIN_USER_PASSWORD=abc
   - CEDAR_NEO4J_TRANSACTION_URL=abc
   - CEDAR_NEO4J_AUTH_STRING=abc
+  - CEDAR_EVERYBODY_GROUP_NAME="Everybody"
   - CEDAR_NCBI_SRA_FTP_PASSWORD=abc
   - CEDAR_BIOPORTAL_API_KEY=abc
   - CEDAR_SALT_API_KEY=abc
