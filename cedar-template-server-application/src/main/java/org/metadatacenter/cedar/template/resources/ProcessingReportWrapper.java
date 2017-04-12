@@ -2,6 +2,8 @@ package org.metadatacenter.cedar.template.resources;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonschema.core.report.LogLevel;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.google.common.collect.Lists;
@@ -48,5 +50,15 @@ public class ProcessingReportWrapper implements ValidationReport {
       }
     });
     return errorMessages;
+  }
+
+  @Override
+  public String toString() {
+    ObjectMapper mapper = new ObjectMapper();
+    try {
+      return mapper.writeValueAsString(this);
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException("Programming error", e);
+    }
   }
 }
