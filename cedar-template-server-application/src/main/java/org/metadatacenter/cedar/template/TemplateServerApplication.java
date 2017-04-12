@@ -78,7 +78,8 @@ public class TemplateServerApplication extends CedarMicroserviceApplication<Temp
         templateInstanceService);
     environment.jersey().register(templates);
 
-    final TemplateInstancesResource instances = new TemplateInstancesResource(cedarConfig, templateInstanceService);
+    final TemplateInstancesResource instances = new TemplateInstancesResource(cedarConfig, templateInstanceService,
+        templateService);
     environment.jersey().register(instances);
 
     final CommandResource commands = new CommandResource(cedarConfig, templateService);

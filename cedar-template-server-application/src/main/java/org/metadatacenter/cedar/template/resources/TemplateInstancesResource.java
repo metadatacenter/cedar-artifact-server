@@ -2,6 +2,8 @@ package org.metadatacenter.cedar.template.resources;
 
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.github.fge.jsonschema.core.exceptions.ProcessingException;
+import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.jsonldjava.core.JsonLdError;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.constant.CustomHttpConstants;
@@ -14,12 +16,14 @@ import org.metadatacenter.model.CedarNodeType;
 import org.metadatacenter.model.request.OutputFormatType;
 import org.metadatacenter.model.request.OutputFormatTypeDetector;
 import org.metadatacenter.model.trimmer.JsonLdDocument;
+import org.metadatacenter.model.validation.CEDARModelValidator;
 import org.metadatacenter.rest.context.CedarRequestContext;
 import org.metadatacenter.rest.context.CedarRequestContextFactory;
 import org.metadatacenter.server.model.provenance.ProvenanceInfo;
 import org.metadatacenter.server.security.model.auth.CedarPermission;
 import org.metadatacenter.server.service.FieldNameInEx;
 import org.metadatacenter.server.service.TemplateInstanceService;
+import org.metadatacenter.server.service.TemplateService;
 import org.metadatacenter.util.http.CedarResponse;
 import org.metadatacenter.util.http.CedarUrlUtil;
 import org.metadatacenter.util.http.LinkHeaderUtil;
@@ -43,13 +47,15 @@ import static org.metadatacenter.rest.assertion.GenericAssertions.LoggedIn;
 public class TemplateInstancesResource extends AbstractTemplateServerResource {
 
   private final TemplateInstanceService<String, JsonNode> templateInstanceService;
+  private final TemplateService<String, JsonNode> templateService;
 
   protected static List<String> FIELD_NAMES_SUMMARY_LIST;
 
   public TemplateInstancesResource(CedarConfig cedarConfig, TemplateInstanceService<String, JsonNode>
-      templateInstanceService) {
+      templateInstanceService, TemplateService<String, JsonNode> templateService) {
     super(cedarConfig);
     this.templateInstanceService = templateInstanceService;
+    this.templateService = templateService;
     FIELD_NAMES_SUMMARY_LIST = new ArrayList<>();
     FIELD_NAMES_SUMMARY_LIST.addAll(cedarConfig.getTemplateRESTAPI().getSummaries().getInstance().getFields());
   }
@@ -65,6 +71,7 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
     //TODO: test if it is not empty
     //c.must(c.request().getRequestBody()).be(NonEmpty);
     JsonNode templateInstance = c.request().getRequestBody().asJson();
+    ProcessingReportWrapper validationReport = validateTemplateInstance(templateInstance);
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     checkImportModeSetProvenanceAndId(CedarNodeType.INSTANCE, templateInstance, pi, importMode);
@@ -84,7 +91,10 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
     String id = createdTemplateInstance.get("@id").asText();
 
     URI uri = CedarUrlUtil.getIdURI(uriInfo, id);
-    return Response.created(uri).entity(createdTemplateInstance).build();
+    return CedarResponse.created(uri)
+        .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, validationReport.getValidationStatus())
+        .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_REPORT, validationReport)
+        .entity(createdTemplateInstance).build();
   }
 
   @GET
@@ -195,8 +205,13 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
           .exception(e)
           .build();
     }
+    ProcessingReportWrapper validationReport = validateTemplateInstance(updatedTemplateInstance);
+
     MongoUtils.removeIdField(updatedTemplateInstance);
-    return Response.ok().entity(updatedTemplateInstance).build();
+    return CedarResponse.ok()
+        .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, validationReport.getValidationStatus())
+        .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_REPORT, validationReport)
+        .entity(updatedTemplateInstance).build();
   }
 
   @DELETE
@@ -276,5 +291,27 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
     } catch (JsonLdError e) {
       throw new CedarProcessingException("Error while converting the instance to RDF", e);
     }
+  }
+
+  private ProcessingReportWrapper validateTemplateInstance(JsonNode templateInstance) throws CedarException {
+    try {
+      JsonNode instanceSchema = getSchemaSource(templateInstance);
+      CEDARModelValidator validator = new CEDARModelValidator();
+      ProcessingReport processingReport = validator.validateTemplateInstanceNode(templateInstance, instanceSchema);
+      return new ProcessingReportWrapper(processingReport);
+    } catch (Exception e) {
+      throw newCedarException(e.getMessage());
+    }
+  }
+
+  private JsonNode getSchemaSource(JsonNode templateInstance) throws IOException, ProcessingException {
+    String templateRefId = templateInstance.get("schema:isBasedOn").asText();
+    JsonNode template = templateService.findTemplate(templateRefId);
+    MongoUtils.removeIdField(template);
+    return template;
+  }
+
+  private static CedarException newCedarException(String message) {
+    return new CedarException(message) {};
   }
 }
