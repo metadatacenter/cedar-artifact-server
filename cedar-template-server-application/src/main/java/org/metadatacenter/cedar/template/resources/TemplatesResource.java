@@ -189,6 +189,8 @@ public class TemplatesResource extends AbstractTemplateServerResource {
     c.must(c.user()).have(CedarPermission.TEMPLATE_UPDATE);
 
     JsonNode newTemplate = c.request().getRequestBody().asJson();
+    ProcessingReportWrapper validationReport = validateTemplate(newTemplate);
+
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     provenanceUtil.patchProvenanceInfo(newTemplate, pi);
     JsonNode updatedTemplate = null;
@@ -210,8 +212,6 @@ public class TemplatesResource extends AbstractTemplateServerResource {
           .exception(e)
           .build();
     }
-    ProcessingReportWrapper validationReport = validateTemplate(updatedTemplate);
-
     MongoUtils.removeIdField(updatedTemplate);
     return CedarResponse.ok()
         .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, validationReport.getValidationStatus())
