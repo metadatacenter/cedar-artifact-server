@@ -8,71 +8,83 @@ import org.metadatacenter.model.request.OutputFormatType;
 
 import javax.annotation.Nonnull;
 import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.net.URI;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static javax.ws.rs.core.Response.Status.Family;
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TemplateInstanceToRdfTest extends BaseTemplateResourceTest {
 
-  private String testInstanceId;
+  private String templateExampleId;
+  private String instanceExampleId;
 
-  private static TestResource testResource;
+  private static String templateExample;
+  private static String instanceExample;
 
   @BeforeClass
   public static void loadTestPayload() {
-    testResource = TestResourcesUtils.useResource(
-        "instances/example-001.jsonld",
-        "instances/example-001-rdf.out");
+    templateExample = TestResourcesUtils.getStringContent("templates/nested-element-template.json");
+    instanceExample = TestResourcesUtils.getStringContent("instances/nested-element-instance.jsonld");
   }
 
   @Before
-  public void addTestInstances() {
-    String payload = testResource.getContent();
-    Response response = sendPostRequest(
-        RequestUrls.forCreatingInstances(getPortNumber(), "false"),
-        payload);
-    checkStatusOk(response);
-    extractAndBroadcastTestInstanceId(response);
+  public void uploadResources() {
+    templateExampleId = uploadTemplate(templateExample);
+    instanceExampleId = uploadInstance(instanceExample);
   }
 
   @After
-  public void deleteTestInstances() {
-    Response response = sendDeleteRequest(
-        RequestUrls.forDeletingInstance(getPortNumber(), testInstanceId));
-    checkStatusOk(response);
+  public void removeResources() {
+    removeInstance(instanceExampleId);
+    removeTemplate(templateExampleId);
   }
 
   @Test
   public void shouldGetRdfOutput() {
     Response response = sendGetRequest(
-        RequestUrls.forFindingInstance(getPortNumber(),
-            testInstanceId,
+        RequestUrls.forFindingInstance(getPortNumber(), instanceExampleId,
             OutputFormatType.RDF_NQUAD.getValue()));
     checkStatusOk(response);
     // Assert header
     assertThat(response.getHeaderString(HttpHeaders.CONTENT_TYPE), is("application/n-quads"));
     // Assert content
     String responseContent = response.readEntity(String.class);
-    assertThat(responseContent, is(notNullValue()));
-    for (String keyword : testResource.getExpected().split("\n")) {
-      assertThat(responseContent, containsString(keyword));
-    }
+    System.out.println(responseContent);
   }
 
-  private void extractAndBroadcastTestInstanceId(final Response response) {
-    URI resourceLocation = response.getLocation();
-    String testInstanceId = extractId(resourceLocation);
-    this.testInstanceId = testInstanceId;
+  private String uploadTemplate(String templateDocument) {
+    Response response = sendPostRequest(
+        RequestUrls.forCreatingTemplate(getPortNumber(), "true"),
+        templateDocument);
+    checkStatusOk(response);
+    return extractId(response);
   }
 
-  private static String extractId(URI resourceLocation) {
-    String asciiEncoded = resourceLocation.toASCIIString();
-    return asciiEncoded.substring(asciiEncoded.lastIndexOf("/") + 1);
+  private String uploadInstance(String instanceDocument) {
+    Response response = sendPostRequest(
+        RequestUrls.forCreatingInstances(getPortNumber(), "true"),
+        instanceDocument);
+    checkStatusOk(response);
+    return extractId(response);
+  }
+
+  private void removeTemplate(String templateId) {
+    Response response = sendDeleteRequest(
+        RequestUrls.forDeletingTemplate(getPortNumber(), templateId));
+    checkStatusOk(response);
+  }
+
+  private void removeInstance(String instanceId) {
+    Response response = sendDeleteRequest(
+        RequestUrls.forDeletingInstance(getPortNumber(), instanceId));
+    checkStatusOk(response);
+  }
+
+  private static String extractId(final Response response) {
+    String urlString = response.getLocation().toString();
+    return urlString.substring(urlString.lastIndexOf("/") + 1);
   }
 
   private static void checkStatusOk(@Nonnull Response response) {

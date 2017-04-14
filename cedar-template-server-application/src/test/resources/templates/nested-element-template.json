@@ -1,5 +1,5 @@
 {
-  "@id": "https://repo.metadatacenter.orgx/templates/dc5a0562-6fd8-4cdc-9780-865ba89eeb69",
+  "@id": "https://repo.metadatacenter.orgx/templates/dc5a0562-6fd8-4cdc-9780-865ba89eeb61",
   "@type": "https://schema.metadatacenter.org/core/Template",
   "@context": {
     "xsd": "http://www.w3.org/2001/XMLSchema#",
