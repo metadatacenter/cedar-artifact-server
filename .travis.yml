@@ -25,22 +25,11 @@ script: '[ ${TRAVIS_PULL_REQUEST} = ''false'' ] && mvn -DskipTests=true clean --
   .m2/travis-settings.xml'
 env:
   global:
-  - CEDAR_HOME=${HOME}/
-  - CEDAR_HOST=abc
-  - CEDAR_LD_USER_BASE=abc
+  - CEDAR_HOST=metadatacenter.orgx
+  - CEDAR_KEYCLOAK_CLIENT_ID=cedar-angular-app
   - CEDAR_MONGO_USER_NAME=cedarUser
   - CEDAR_MONGO_USER_PASSWORD=password
+  - CEDAR_LD_USER_BASE=https://metadatacenter.org/users/
   - CEDAR_TEST_USER1_ID=https://metadatacenter.org/users/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee
-  - CEDAR_TEST_USER2_ID=abc
-  - CEDAR_ADMIN_USER_API_KEY=abc
-  - CEDAR_ADMIN_USER_PASSWORD=abc
-  - CEDAR_NEO4J_TRANSACTION_URL=abc
-  - CEDAR_NEO4J_AUTH_STRING=abc
-  - CEDAR_EVERYBODY_GROUP_NAME="Everybody"
-  - CEDAR_NCBI_SRA_FTP_PASSWORD=abc
-  - CEDAR_BIOPORTAL_API_KEY=abc
-  - CEDAR_SALT_API_KEY=abc
-  - CEDAR_PROFILE=server
-  - CEDAR_KEYCLOAK_CLIENT_ID=abc
   - secure: JgV78spvVlroLnrXcEJq5hHNdLii0vKqRlRVABpGI0HMb08jhImDZTVglHENI25AIdedkdc2iX9eVXz6xxUvc8HVJzh75F/s82xdgW/4teXj9E0wFvPqBVXVipQWRybDMkzpyDWd1lCiqWsa1NF2b6sW7eX9NZBOQLUYG8Y+Mo/5GB1TM/DS820559LvO+ASc3R0TGAKIWeHMUKPk5Redg0D+YGHyV2221FxYjX9+STIOEl+dpvYPgddXC32sfLYQzVDB3P4J1NRRzPmkBtMzT5LwCBl+raYY0SYm6YI2ocgvRsqFjd518K5a+RMXzaFEKbWSwsmwspJLJR6+9i6jXOVY6Rz6S9im0ezwRqFr076+NP3qadkLkTRIee2K4ZZoGYXzMZV7v3JJlJXUsa5lnnhQpzCaNkEFnzLgPdyA0WTrRASCD7kfvLiRPE4+/qphE4bs4oPjazcjL5lyTVS59HoJdoxM5TmAzcFynY1AJz+wYNXACRrqDDcFfjLkuwzcgB1p+oEB1XyudhdwAq1NQzwsFbAmXdDf7zn/6cbYTsSN4xFzEQAVX1u4yigxfvQpQfopN5Ensohibuj8Fbdx4rrmOmcTQzfkJfSCbVU8Aqv2KOn6vAmfp6r7LGbmMR7Ml0Hr6a8T7RcPrna3Ns9fD522Wqn49dAIUqM5V/onUs=
   - secure: QRxv6C3vnfzM/B//KY7nWahgWonju2Hb6zpRXV5PSzJUnzTL6atzmROw09bTbYlVqJI4xeoFWblOY01EfmRv7M1cU6JAycR5ocs1L7TbOhLt4MDWfskF6GM6vwCs6nV0M03HcWqE+oGPPRLxEQwiMrYA3iNut+hxpqsS2FfZb8iq7RysO6yxgRWV7elwGnEYHE1+byeQ9WPvstgTlBCtXv91H4AhMbFCdUxLOdI7NLXT9kisEjTx4QJ+kI9HLcvTgHhiONxqXhY9EUrgbtMNmVfKA2phMhOcJpx1v7ktM638u4pa4UwazPBNcdUu4AedkbWWHRhCWL4HP/9XvR+kJHYimTyJ7SgMUCMdrvmI09Flu1kfiRnfKtiKqQlyOmC5KFHPrfxq+WuYWHZIsdTr77Cn8CS/+O417dFwtm5YtXn5s4aCioOqCV6ACjDkxv85RNtRoYtYT/+bUqWse7XWNzqliN+BCafrsjKn4Qhf8rfj44pweYAfkaER1IRHiZlEcq/bGIehTAQCghDvIA8YNui4YlB2cKnpZ8eLQTJ4ZaTapipU6Ove7IdlQzjEqzE8AkqPsmFlyniAszor1lRqrZfpjDNcOXKaGa9LhrJ+it7bqSo9dcjXS9uZRKmvB+riXp6BqNfeXWOJk4RRw0b/5AbFsF+Cc4glKkKCNmltK5k=

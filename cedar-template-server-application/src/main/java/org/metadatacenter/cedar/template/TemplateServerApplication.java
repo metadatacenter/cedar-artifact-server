@@ -2,7 +2,6 @@ package org.metadatacenter.cedar.template;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.MongoClient;
-import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import org.metadatacenter.bridge.CedarDataServices;
 import org.metadatacenter.cedar.template.health.TemplateServerHealthCheck;
@@ -12,8 +11,8 @@ import org.metadatacenter.cedar.template.resources.TemplateInstancesResource;
 import org.metadatacenter.cedar.template.resources.TemplatesResource;
 import org.metadatacenter.cedar.util.dw.CedarMicroserviceApplication;
 import org.metadatacenter.config.MongoConfig;
-import org.metadatacenter.model.ServerName;
 import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.model.ServerName;
 import org.metadatacenter.server.service.TemplateElementService;
 import org.metadatacenter.server.service.TemplateFieldService;
 import org.metadatacenter.server.service.TemplateInstanceService;
@@ -40,7 +39,7 @@ public class TemplateServerApplication extends CedarMicroserviceApplication<Temp
   }
 
   @Override
-  public void initializeApp(Bootstrap<TemplateServerConfiguration> bootstrap) {
+  public void initializeApp() {
     MongoConfig templateServerConfig = cedarConfig.getTemplateServerConfig();
     CedarDataServices.initializeMongoClientFactoryForDocuments(
         templateServerConfig.getMongoConnection());
