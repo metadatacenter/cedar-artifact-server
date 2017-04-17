@@ -35,8 +35,9 @@ public class CedarConfigTemplateTest {
 
   @Test
   public void testGetInstance() throws Exception {
-    CedarConfig instance = CedarConfig.getInstance(CedarEnvironmentVariableProvider.getFor(SystemComponent
-        .SERVER_TEMPLATE));
+    SystemComponent systemComponent = SystemComponent.SERVER_TEMPLATE;
+    Map<String, String> environment = CedarEnvironmentVariableProvider.getFor(systemComponent);
+    CedarConfig instance = CedarConfig.getInstance(environment);
     Assert.assertNotNull(instance);
   }
 

@@ -36,7 +36,8 @@ public class BaseTemplateResourceTest {
 
   @BeforeClass
   public static void fetchAuthHeader() {
-    Map<String, String> environment = CedarEnvironmentVariableProvider.getFor(SystemComponent.SERVER_TEMPLATE);
+    SystemComponent systemComponent = SystemComponent.SERVER_TEMPLATE;
+    Map<String, String> environment = CedarEnvironmentVariableProvider.getFor(systemComponent);
     authHeaderValue = TestUserUtil.getTestUser1AuthHeader(CedarConfig.getInstance(environment));
   }
 
