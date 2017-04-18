@@ -301,7 +301,7 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   public void shouldFailMissingProperties_Field_Type() {
     // Arrange
     String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
-    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/street/@type");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/firstName/@type");
     // Act
     JsonNode responseMessage = runValidation(elementString);
     // Assert
@@ -313,7 +313,7 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   public void shouldFailMissingProperties_Field_Context() {
     // Arrange
     String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
-    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/street/@context");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/firstName/@context");
     // Act
     JsonNode responseMessage = runValidation(elementString);
     // Assert
@@ -325,7 +325,7 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   public void shouldFailMissingProperties_Field_JsonType() {
     // Arrange
     String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
-    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/street/type");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/firstName/type");
     // Act
     JsonNode responseMessage = runValidation(elementString);
     // Assert
@@ -337,7 +337,7 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   public void shouldFailMissingProperties_Field_Title() {
     // Arrange
     String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
-    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/street/title");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/firstName/title");
     // Act
     JsonNode responseMessage = runValidation(elementString);
     // Assert
@@ -349,7 +349,7 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   public void shouldFailMissingProperties_Field_Description() {
     // Arrange
     String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
-    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/street/description");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/firstName/description");
     // Act
     JsonNode responseMessage = runValidation(elementString);
     // Assert
@@ -361,7 +361,7 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   public void shouldFailMissingProperties_Field_Required() {
     // Arrange
     String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
-    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/street/required");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/firstName/required");
     // Act
     JsonNode responseMessage = runValidation(elementString);
     // Assert
@@ -373,7 +373,7 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   public void shouldFailMissingProperties_Field_CreatedOn() {
     // Arrange
     String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
-    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/street/pav:createdOn");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/firstName/pav:createdOn");
     // Act
     JsonNode responseMessage = runValidation(elementString);
     // Assert
@@ -385,7 +385,7 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   public void shouldFailMissingProperties_Field_CreatedBy() {
     // Arrange
     String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
-    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/street/pav:createdBy");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/firstName/pav:createdBy");
     // Act
     JsonNode responseMessage = runValidation(elementString);
     // Assert
@@ -397,7 +397,7 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   public void shouldFailMissingProperties_Field_LastUpdatedOn() {
     // Arrange
     String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
-    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/street/pav:lastUpdatedOn");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/firstName/pav:lastUpdatedOn");
     // Act
     JsonNode responseMessage = runValidation(elementString);
     // Assert
@@ -409,7 +409,7 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   public void shouldFailMissingProperties_Field_ModifiedBy() {
     // Arrange
     String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
-    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/street/oslc:modifiedBy");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/firstName/oslc:modifiedBy");
     // Act
     JsonNode responseMessage = runValidation(elementString);
     // Assert
@@ -421,7 +421,7 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   public void shouldFailMissingProperties_Field_AdditionalProperties() {
     // Arrange
     String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
-    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/street/additionalProperties");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/firstName/additionalProperties");
     // Act
     JsonNode responseMessage = runValidation(elementString);
     // Assert
@@ -433,7 +433,7 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   public void shouldFailMissingProperties_Field_Id() {
     // Arrange
     String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
-    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/street/@id");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/firstName/@id");
     // Act
     JsonNode responseMessage = runValidation(elementString);
     // Assert
@@ -445,7 +445,7 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   public void shouldFailMissingProperties_Field_Schema() {
     // Arrange
     String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
-    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/street/$schema");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/firstName/$schema");
     // Act
     JsonNode responseMessage = runValidation(elementString);
     // Assert
@@ -457,7 +457,7 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   public void shouldFailMissingProperties_Field_Properties() {
     // Arrange
     String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
-    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/street/properties");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/firstName/properties");
     // Act
     JsonNode responseMessage = runValidation(elementString);
     // Assert
@@ -469,7 +469,7 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   public void shouldFailMissingProperties_Field_Properties_Type() {
     // Arrange
     String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
-    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/street/properties/@type");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/firstName/properties/@type");
     // Act
     JsonNode responseMessage = runValidation(elementString);
     // Assert
@@ -481,12 +481,12 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   public void shouldFailMissingProperties_Field_Properties_Value() {
     // Arrange
     String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
-    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/street/properties/@value");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/firstName/properties/@value");
     // Act
     JsonNode responseMessage = runValidation(elementString);
     // Assert
     assertValidationStatus(responseMessage, "false");
-    assertValidationMessage(responseMessage, "A template field without value constraints must have a '@value' field at path /properties/street/properties/");
+    assertValidationMessage(responseMessage, "A template field without value constraints must have a '@value' field at path /properties/firstName/properties/");
   }
 
   private JsonNode runValidation(String payload) {
