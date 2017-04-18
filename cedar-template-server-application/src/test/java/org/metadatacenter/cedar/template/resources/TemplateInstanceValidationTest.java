@@ -1,5 +1,7 @@
 package org.metadatacenter.cedar.template.resources;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -7,9 +9,7 @@ import org.junit.Test;
 
 import javax.annotation.Nonnull;
 import javax.ws.rs.core.Response;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
+import java.io.IOException;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hamcrest.CoreMatchers.is;
@@ -48,69 +48,177 @@ public class TemplateInstanceValidationTest extends BaseTemplateResourceTest {
 
   @Test
   public void shouldPassSingleFieldInstance() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("instances/single-field-instance.jsonld")
-    );
+    // Arrange
+    String instanceString = TestResourcesUtils.getStringContent("instances/single-field-instance.jsonld");
+    // Act
+    JsonNode responseMessage = runValidation(instanceString);
+    // Assert
+    assertValidationStatus(responseMessage, "true");
   }
 
   @Test
   public void shouldPassMultiFieldInstance() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("instances/multi-field-instance.jsonld")
-    );
+    // Arrange
+    String instanceString = TestResourcesUtils.getStringContent("instances/multi-field-instance.jsonld");
+    // Act
+    JsonNode responseMessage = runValidation(instanceString);
+    // Assert
+    assertValidationStatus(responseMessage, "true");
   }
 
   @Test
   public void shouldPassNestedElementInstance() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("instances/nested-element-instance.jsonld")
-    );
+    // Arrange
+    String instanceString = TestResourcesUtils.getStringContent("instances/nested-element-instance.jsonld");
+    // Act
+    JsonNode responseMessage = runValidation(instanceString);
+    // Assert
+    assertValidationStatus(responseMessage, "true");
   }
 
   @Test
   public void shouldFailMissingContext() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("instances/missing-instance-context.jsonld")
-    );
+    // Arrange
+    String instanceString = TestResourcesUtils.getStringContent("instances/multi-field-instance.jsonld");
+    instanceString = JsonUtils.removeFieldFromDocument(instanceString, "/@context");
+    // Act
+    JsonNode responseMessage = runValidation(instanceString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"@context\"])");
   }
 
   @Test
   public void shouldFailMissingId() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("instances/missing-instance-id.jsonld")
-    );
+    // Arrange
+    String instanceString = TestResourcesUtils.getStringContent("instances/multi-field-instance.jsonld");
+    instanceString = JsonUtils.removeFieldFromDocument(instanceString, "/@id");
+    // Act
+    JsonNode responseMessage = runValidation(instanceString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"@id\"])");
   }
 
   @Test
-  public void shouldFailMissingProvenance() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("instances/missing-instance-provenance.jsonld")
-    );
+  public void shouldFailMissingIsBasedOn() {
+    // Arrange
+    String instanceString = TestResourcesUtils.getStringContent("instances/multi-field-instance.jsonld");
+    instanceString = JsonUtils.removeFieldFromDocument(instanceString, "/schema:isBasedOn");
+    // Act
+    JsonNode responseMessage = runValidation(instanceString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"schema:isBasedOn\"])");
+  }
+
+  @Test
+  public void shouldFailMissingName() {
+    // Arrange
+    String instanceString = TestResourcesUtils.getStringContent("instances/multi-field-instance.jsonld");
+    instanceString = JsonUtils.removeFieldFromDocument(instanceString, "/schema:name");
+    // Act
+    JsonNode responseMessage = runValidation(instanceString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"schema:name\"])");
+  }
+
+  @Test
+  public void shouldFailMissingDescription() {
+    // Arrange
+    String instanceString = TestResourcesUtils.getStringContent("instances/multi-field-instance.jsonld");
+    instanceString = JsonUtils.removeFieldFromDocument(instanceString, "/schema:description");
+    // Act
+    JsonNode responseMessage = runValidation(instanceString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"schema:description\"])");
+  }
+
+  @Test
+  public void shouldFailMissingCreatedOn() {
+    // Arrange
+    String instanceString = TestResourcesUtils.getStringContent("instances/multi-field-instance.jsonld");
+    instanceString = JsonUtils.removeFieldFromDocument(instanceString, "/pav:createdOn");
+    // Act
+    JsonNode responseMessage = runValidation(instanceString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"pav:createdOn\"])");
+  }
+
+  @Test
+  public void shouldFailMissingCreatedBy() {
+    // Arrange
+    String instanceString = TestResourcesUtils.getStringContent("instances/multi-field-instance.jsonld");
+    instanceString = JsonUtils.removeFieldFromDocument(instanceString, "/pav:createdBy");
+    // Act
+    JsonNode responseMessage = runValidation(instanceString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"pav:createdBy\"])");
+  }
+
+  @Test
+  public void shouldFailMissingLastUpdatedOn() {
+    // Arrange
+    String instanceString = TestResourcesUtils.getStringContent("instances/multi-field-instance.jsonld");
+    instanceString = JsonUtils.removeFieldFromDocument(instanceString, "/pav:lastUpdatedOn");
+    // Act
+    JsonNode responseMessage = runValidation(instanceString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"pav:lastUpdatedOn\"])");
+  }
+
+  @Test
+  public void shouldFailMissingModifiedBy() {
+    // Arrange
+    String instanceString = TestResourcesUtils.getStringContent("instances/multi-field-instance.jsonld");
+    instanceString = JsonUtils.removeFieldFromDocument(instanceString, "/oslc:modifiedBy");
+    // Act
+    JsonNode responseMessage = runValidation(instanceString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"oslc:modifiedBy\"])");
   }
 
   @Test
   public void shouldFailMissingFields() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("instances/missing-instance-fields.jsonld")
-    );
+    // Arrange
+    String instanceString = TestResourcesUtils.getStringContent("instances/multi-field-instance.jsonld");
+    instanceString = JsonUtils.removeFieldFromDocument(instanceString, "/studyName");
+    // Act
+    JsonNode responseMessage = runValidation(instanceString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"studyName\"])");
   }
 
-  @Test
-  public void shouldFailMissingValueInRequiredProperty() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("instances/missing-value-in-required-property.jsonld")
-    );
-  }
-
-  private void runTestAndAssert(TestResource testResource) {
-    String payload = testResource.getContent();
+  private JsonNode runValidation(String payload) {
     Response response = sendPostRequest(
         RequestUrls.forValidatingInstance(getPortNumber()),
         payload);
     checkStatusOk(response);
-    // Assert
-    String responseMessage = response.readEntity(String.class);
-    assertThat(responseMessage, is(testResource.getExpected()));
+    JsonNode responseMessage = getJsonResponseMessage(response);
+    return responseMessage;
+  }
+
+  private static void assertValidationMessage(JsonNode responseMessage, String expectedValue) {
+    assertThat(responseMessage.get("errors").get(0).asText(), is(expectedValue));
+  }
+
+  private static void assertValidationStatus(JsonNode responseMessage, String expectedValue) {
+    assertThat(responseMessage.get("validates").asText(), is(expectedValue));
+  }
+
+  private JsonNode getJsonResponseMessage(Response response) {
+    try {
+      return new ObjectMapper().readTree(response.readEntity(String.class));
+    } catch (IOException e) {
+      throw new RuntimeException("Programming error", e);
+    }
   }
 
   private String uploadTemplate(String templateDocument) {
@@ -130,14 +238,6 @@ public class TemplateInstanceValidationTest extends BaseTemplateResourceTest {
   private static String extractTemplateId(final Response response) {
     String urlString = response.getLocation().toString();
     return urlString.substring(urlString.lastIndexOf("/") + 1);
-  }
-
-  private static String toPlainText(String s) {
-    try {
-      return URLDecoder.decode(s, StandardCharsets.UTF_8.displayName());
-    } catch (UnsupportedEncodingException e) {
-      throw new RuntimeException(e.getMessage());
-    }
   }
 
   private static void checkStatusOk(@Nonnull Response response) {
