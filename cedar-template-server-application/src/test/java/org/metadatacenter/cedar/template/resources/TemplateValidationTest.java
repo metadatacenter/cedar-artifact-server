@@ -46,6 +46,26 @@ public class TemplateValidationTest extends BaseTemplateResourceTest {
   }
 
   @Test
+  public void shouldPassMultivaluedFieldTemplate() {
+    // Arrange
+    String templateString = TestResourcesUtils.getStringContent("templates/multivalued-field-template.json");
+    // Act
+    JsonNode responseMessage = runValidation(templateString);
+    // Assert
+    assertValidationStatus(responseMessage, "true");
+  }
+
+  @Test
+  public void shouldPassMultivaluedElementTemplate() {
+    // Arrange
+    String templateString = TestResourcesUtils.getStringContent("templates/multivalued-element-template.json");
+    // Act
+    JsonNode responseMessage = runValidation(templateString);
+    // Assert
+    assertValidationStatus(responseMessage, "true");
+  }
+
+  @Test
   public void shouldPassNestedElementTemplate() {
     // Arrange
     String templateString = TestResourcesUtils.getStringContent("templates/nested-element-template.json");
