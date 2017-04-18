@@ -19,16 +19,22 @@ public class TemplateInstanceValidationTest extends BaseTemplateResourceTest {
 
   private String singleFieldTemplateId;
   private String multiFieldTemplateId;
+  private String multivaluedFieldTemplateId;
+  private String multivaluedElementTemplateId;
   private String nestedElementTemplateId;
 
   private static String singleFieldTemplate;
   private static String multiFieldTemplate;
+  private static String multivaluedFieldTemplate;
+  private static String multivaluedElementTemplate;
   private static String nestedElementTemplate;
 
   @BeforeClass
   public static void loadTemplateExamples() {
     singleFieldTemplate = TestResourcesUtils.getStringContent("templates/single-field-template.json");
     multiFieldTemplate = TestResourcesUtils.getStringContent("templates/multi-field-template.json");
+    multivaluedFieldTemplate = TestResourcesUtils.getStringContent("templates/multivalued-field-template.json");
+    multivaluedElementTemplate = TestResourcesUtils.getStringContent("templates/multivalued-element-template.json");
     nestedElementTemplate = TestResourcesUtils.getStringContent("templates/nested-element-template.json");
   }
 
@@ -36,6 +42,8 @@ public class TemplateInstanceValidationTest extends BaseTemplateResourceTest {
   public void uploadTemplates() {
     singleFieldTemplateId = uploadTemplate(singleFieldTemplate);
     multiFieldTemplateId = uploadTemplate(multiFieldTemplate);
+    multivaluedFieldTemplateId = uploadTemplate(multivaluedFieldTemplate);
+    multivaluedElementTemplateId = uploadTemplate(multivaluedElementTemplate);
     nestedElementTemplateId = uploadTemplate(nestedElementTemplate);
   }
 
@@ -43,6 +51,8 @@ public class TemplateInstanceValidationTest extends BaseTemplateResourceTest {
   public void removeTemplates() {
     removeTemplate(singleFieldTemplateId);
     removeTemplate(multiFieldTemplateId);
+    removeTemplate(multivaluedFieldTemplateId);
+    removeTemplate(multivaluedElementTemplateId);
     removeTemplate(nestedElementTemplateId);
   }
 
@@ -60,6 +70,26 @@ public class TemplateInstanceValidationTest extends BaseTemplateResourceTest {
   public void shouldPassMultiFieldInstance() {
     // Arrange
     String instanceString = TestResourcesUtils.getStringContent("instances/multi-field-instance.jsonld");
+    // Act
+    JsonNode responseMessage = runValidation(instanceString);
+    // Assert
+    assertValidationStatus(responseMessage, "true");
+  }
+
+  @Test
+  public void shouldPassMultivaluedFieldInstance() {
+    // Arrange
+    String instanceString = TestResourcesUtils.getStringContent("instances/multivalued-field-instance.jsonld");
+    // Act
+    JsonNode responseMessage = runValidation(instanceString);
+    // Assert
+    assertValidationStatus(responseMessage, "true");
+  }
+
+  @Test
+  public void shouldPassMultivaluedElementInstance() {
+    // Arrange
+    String instanceString = TestResourcesUtils.getStringContent("instances/multivalued-element-instance.jsonld");
     // Act
     JsonNode responseMessage = runValidation(instanceString);
     // Assert
