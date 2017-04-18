@@ -1,1 +1,0 @@
-{"validates":"false","warnings":[],"errors":["instance value (true) not found in enum (possible values: [false])","Error validating artifact at path / against CEDAR sub-schema coreJSONSchemaFields.json"]}

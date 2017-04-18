@@ -17,116 +17,209 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
 
   @Test
   public void shouldPassEmptyElement() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("elements/empty-element.json")
-    );
+    // Arrange
+    String elementString = TestResourcesUtils.getStringContent("elements/empty-element.json");
+    // Act
+    JsonNode responseMessage = runValidation(elementString);
+    // Assert
+    assertValidationStatus(responseMessage, "true");
   }
 
   @Test
   public void shouldPassMultiFieldElement() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("elements/multi-field-element.json")
-    );
+    // Arrange
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    // Act
+    JsonNode responseMessage = runValidation(elementString);
+    // Assert
+    assertValidationStatus(responseMessage, "true");
   }
 
   @Test
   public void shouldFailMissingContext() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("elements/missing-element-context.json")
-    );
+    // Arrange
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/@context");
+    // Act
+    JsonNode responseMessage = runValidation(elementString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"@context\"])");
   }
 
   @Test
   public void shouldFailMissingId() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("elements/missing-element-id.json")
-    );
+    // Arrange
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/@id");
+    // Act
+    JsonNode responseMessage = runValidation(elementString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"@id\"])");
   }
 
   @Test
   public void shouldFailMissingType() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("elements/missing-element-type.json")
-    );
+    // Arrange
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/@type");
+    // Act
+    JsonNode responseMessage = runValidation(elementString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"@type\"])");
   }
 
   @Test
   public void shouldFailMissingJsonType() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("elements/missing-element-json-type.json")
-    );
+    // Arrange
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/type");
+    // Act
+    JsonNode responseMessage = runValidation(elementString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"type\"])");
   }
 
   @Test
   public void shouldFailMissingTitle() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("elements/missing-element-title.json")
-    );
+    // Arrange
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/title");
+    // Act
+    JsonNode responseMessage = runValidation(elementString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"title\"])");
   }
 
   @Test
   public void shouldFailMissingDescription() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("elements/missing-element-description.json")
-    );
+    // Arrange
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/description");
+    // Act
+    JsonNode responseMessage = runValidation(elementString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"description\"])");
   }
 
   @Test
   public void shouldFailMissingUi() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("elements/missing-element-ui.json")
-    );
+    // Arrange
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/_ui");
+    // Act
+    JsonNode responseMessage = runValidation(elementString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"_ui\"])");
   }
 
   @Test
   public void shouldFailMissingProperties() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("elements/missing-element-properties.json")
-    );
+    // Arrange
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties");
+    // Act
+    JsonNode responseMessage = runValidation(elementString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"properties\"])");
   }
 
   @Test
   public void shouldPassMissingRequired() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("elements/missing-element-required.json")
-    );
+    // Arrange
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/required");
+    // Act
+    JsonNode responseMessage = runValidation(elementString);
+    // Assert
+    assertValidationStatus(responseMessage, "true");
   }
 
   @Test
-  public void shouldFailMissingProvenance() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("elements/missing-element-provenance.json")
-    );
+  public void shouldFailMissingCreatedOn() {
+    // Arrange
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/pav:createdOn");
+    // Act
+    JsonNode responseMessage = runValidation(elementString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"pav:createdOn\"])");
+  }
+
+  @Test
+  public void shouldFailMissingCreatedBy() {
+    // Arrange
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/pav:createdBy");
+    // Act
+    JsonNode responseMessage = runValidation(elementString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"pav:createdBy\"])");
+  }
+
+  @Test
+  public void shouldFailMissingLastUpdatedOn() {
+    // Arrange
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/pav:lastUpdatedOn");
+    // Act
+    JsonNode responseMessage = runValidation(elementString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"pav:lastUpdatedOn\"])");
+  }
+
+  @Test
+  public void shouldFailMissingModifiedBy() {
+    // Arrange
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/oslc:modifiedBy");
+    // Act
+    JsonNode responseMessage = runValidation(elementString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"oslc:modifiedBy\"])");
   }
 
   @Test
   public void shouldPassMissingAdditionalProperties() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("elements/missing-element-additional-properties.json")
-    );
-  }
-
-  @Test
-  public void shouldFailInvalidValueAdditionalProperties() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("elements/invalid-value-additional-properties.json")
-    );
+    // Arrange
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/additionalProperties");
+    // Act
+    JsonNode responseMessage = runValidation(elementString);
+    // Assert
+    assertValidationStatus(responseMessage, "true");
   }
 
   @Test
   public void shouldFailMissingSchema() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("elements/missing-element-schema.json")
-    );
+    // Arrange
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/$schema");
+    // Act
+    JsonNode responseMessage = runValidation(elementString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"$schema\"])");
   }
 
   @Test
   public void shouldFailMissingProperties_Context() {
     // Arrange
-    String templateString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
-    templateString = JsonUtils.removeFieldFromDocument(templateString, "/properties/@context");
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/@context");
     // Act
-    JsonNode responseMessage = runValidation(templateString);
+    JsonNode responseMessage = runValidation(elementString);
     // Assert
     assertValidationStatus(responseMessage, "false");
     assertValidationMessage(responseMessage, "object has missing required properties ([\"@context\"])");
@@ -135,10 +228,10 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   @Test
   public void shouldFailMissingProperties_Id() {
     // Arrange
-    String templateString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
-    templateString = JsonUtils.removeFieldFromDocument(templateString, "/properties/@id");
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/@id");
     // Act
-    JsonNode responseMessage = runValidation(templateString);
+    JsonNode responseMessage = runValidation(elementString);
     // Assert
     assertValidationStatus(responseMessage, "false");
     assertValidationMessage(responseMessage, "object has missing required properties ([\"@id\"])");
@@ -147,10 +240,10 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   @Test
   public void shouldFailMissingProperties_Type() {
     // Arrange
-    String templateString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
-    templateString = JsonUtils.removeFieldFromDocument(templateString, "/properties/@type");
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/@type");
     // Act
-    JsonNode responseMessage = runValidation(templateString);
+    JsonNode responseMessage = runValidation(elementString);
     // Assert
     assertValidationStatus(responseMessage, "false");
     assertValidationMessage(responseMessage, "object has missing required properties ([\"@type\"])");
@@ -159,10 +252,10 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   @Test
   public void shouldFailMissingProperties_CreatedOn() {
     // Arrange
-    String templateString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
-    templateString = JsonUtils.removeFieldFromDocument(templateString, "/properties/pav:createdOn");
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/pav:createdOn");
     // Act
-    JsonNode responseMessage = runValidation(templateString);
+    JsonNode responseMessage = runValidation(elementString);
     // Assert
     assertValidationStatus(responseMessage, "false");
     assertValidationMessage(responseMessage, "object has missing required properties ([\"pav:createdOn\"])");
@@ -171,10 +264,10 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   @Test
   public void shouldFailMissingProperties_CreatedBy() {
     // Arrange
-    String templateString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
-    templateString = JsonUtils.removeFieldFromDocument(templateString, "/properties/pav:createdBy");
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/pav:createdBy");
     // Act
-    JsonNode responseMessage = runValidation(templateString);
+    JsonNode responseMessage = runValidation(elementString);
     // Assert
     assertValidationStatus(responseMessage, "false");
     assertValidationMessage(responseMessage, "object has missing required properties ([\"pav:createdBy\"])");
@@ -183,10 +276,10 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   @Test
   public void shouldFailMissingProperties_LastUpdatedOn() {
     // Arrange
-    String templateString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
-    templateString = JsonUtils.removeFieldFromDocument(templateString, "/properties/pav:lastUpdatedOn");
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/pav:lastUpdatedOn");
     // Act
-    JsonNode responseMessage = runValidation(templateString);
+    JsonNode responseMessage = runValidation(elementString);
     // Assert
     assertValidationStatus(responseMessage, "false");
     assertValidationMessage(responseMessage, "object has missing required properties ([\"pav:lastUpdatedOn\"])");
@@ -195,10 +288,10 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   @Test
   public void shouldFailMissingProperties_ModifiedBy() {
     // Arrange
-    String templateString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
-    templateString = JsonUtils.removeFieldFromDocument(templateString, "/properties/oslc:modifiedBy");
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/oslc:modifiedBy");
     // Act
-    JsonNode responseMessage = runValidation(templateString);
+    JsonNode responseMessage = runValidation(elementString);
     // Assert
     assertValidationStatus(responseMessage, "false");
     assertValidationMessage(responseMessage, "object has missing required properties ([\"oslc:modifiedBy\"])");
@@ -207,22 +300,22 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   @Test
   public void shouldFailMissingProperties_Field_Type() {
     // Arrange
-    String templateString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
-    templateString = JsonUtils.removeFieldFromDocument(templateString, "/properties/street/@type");
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/street/@type");
     // Act
-    JsonNode responseMessage = runValidation(templateString);
+    JsonNode responseMessage = runValidation(elementString);
     // Assert
     assertValidationStatus(responseMessage, "false");
-    assertValidationMessage(responseMessage, "");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"@type\"])");
   }
 
   @Test
   public void shouldFailMissingProperties_Field_Context() {
     // Arrange
-    String templateString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
-    templateString = JsonUtils.removeFieldFromDocument(templateString, "/properties/street/@context");
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/street/@context");
     // Act
-    JsonNode responseMessage = runValidation(templateString);
+    JsonNode responseMessage = runValidation(elementString);
     // Assert
     assertValidationStatus(responseMessage, "false");
     assertValidationMessage(responseMessage, "object has missing required properties ([\"@context\"])");
@@ -231,10 +324,10 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   @Test
   public void shouldFailMissingProperties_Field_JsonType() {
     // Arrange
-    String templateString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
-    templateString = JsonUtils.removeFieldFromDocument(templateString, "/properties/street/type");
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/street/type");
     // Act
-    JsonNode responseMessage = runValidation(templateString);
+    JsonNode responseMessage = runValidation(elementString);
     // Assert
     assertValidationStatus(responseMessage, "false");
     assertValidationMessage(responseMessage, "object has missing required properties ([\"type\"])");
@@ -243,10 +336,10 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   @Test
   public void shouldFailMissingProperties_Field_Title() {
     // Arrange
-    String templateString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
-    templateString = JsonUtils.removeFieldFromDocument(templateString, "/properties/street/title");
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/street/title");
     // Act
-    JsonNode responseMessage = runValidation(templateString);
+    JsonNode responseMessage = runValidation(elementString);
     // Assert
     assertValidationStatus(responseMessage, "false");
     assertValidationMessage(responseMessage, "object has missing required properties ([\"title\"])");
@@ -255,10 +348,10 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   @Test
   public void shouldFailMissingProperties_Field_Description() {
     // Arrange
-    String templateString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
-    templateString = JsonUtils.removeFieldFromDocument(templateString, "/properties/street/description");
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/street/description");
     // Act
-    JsonNode responseMessage = runValidation(templateString);
+    JsonNode responseMessage = runValidation(elementString);
     // Assert
     assertValidationStatus(responseMessage, "false");
     assertValidationMessage(responseMessage, "object has missing required properties ([\"description\"])");
@@ -267,10 +360,10 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   @Test
   public void shouldFailMissingProperties_Field_Required() {
     // Arrange
-    String templateString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
-    templateString = JsonUtils.removeFieldFromDocument(templateString, "/properties/street/required");
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/street/required");
     // Act
-    JsonNode responseMessage = runValidation(templateString);
+    JsonNode responseMessage = runValidation(elementString);
     // Assert
     assertValidationStatus(responseMessage, "false");
     assertValidationMessage(responseMessage, "object has missing required properties ([\"required\"])");
@@ -279,10 +372,10 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   @Test
   public void shouldFailMissingProperties_Field_CreatedOn() {
     // Arrange
-    String templateString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
-    templateString = JsonUtils.removeFieldFromDocument(templateString, "/properties/street/pav:createdOn");
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/street/pav:createdOn");
     // Act
-    JsonNode responseMessage = runValidation(templateString);
+    JsonNode responseMessage = runValidation(elementString);
     // Assert
     assertValidationStatus(responseMessage, "false");
     assertValidationMessage(responseMessage, "object has missing required properties ([\"pav:createdOn\"])");
@@ -291,10 +384,10 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   @Test
   public void shouldFailMissingProperties_Field_CreatedBy() {
     // Arrange
-    String templateString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
-    templateString = JsonUtils.removeFieldFromDocument(templateString, "/properties/street/pav:createdBy");
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/street/pav:createdBy");
     // Act
-    JsonNode responseMessage = runValidation(templateString);
+    JsonNode responseMessage = runValidation(elementString);
     // Assert
     assertValidationStatus(responseMessage, "false");
     assertValidationMessage(responseMessage, "object has missing required properties ([\"pav:createdBy\"])");
@@ -303,10 +396,10 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   @Test
   public void shouldFailMissingProperties_Field_LastUpdatedOn() {
     // Arrange
-    String templateString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
-    templateString = JsonUtils.removeFieldFromDocument(templateString, "/properties/street/pav:lastUpdatedOn");
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/street/pav:lastUpdatedOn");
     // Act
-    JsonNode responseMessage = runValidation(templateString);
+    JsonNode responseMessage = runValidation(elementString);
     // Assert
     assertValidationStatus(responseMessage, "false");
     assertValidationMessage(responseMessage, "object has missing required properties ([\"pav:lastUpdatedOn\"])");
@@ -315,10 +408,10 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   @Test
   public void shouldFailMissingProperties_Field_ModifiedBy() {
     // Arrange
-    String templateString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
-    templateString = JsonUtils.removeFieldFromDocument(templateString, "/properties/street/oslc:modifiedBy");
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/street/oslc:modifiedBy");
     // Act
-    JsonNode responseMessage = runValidation(templateString);
+    JsonNode responseMessage = runValidation(elementString);
     // Assert
     assertValidationStatus(responseMessage, "false");
     assertValidationMessage(responseMessage, "object has missing required properties ([\"oslc:modifiedBy\"])");
@@ -327,10 +420,10 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   @Test
   public void shouldFailMissingProperties_Field_AdditionalProperties() {
     // Arrange
-    String templateString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
-    templateString = JsonUtils.removeFieldFromDocument(templateString, "/properties/street/additionalProperties");
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/street/additionalProperties");
     // Act
-    JsonNode responseMessage = runValidation(templateString);
+    JsonNode responseMessage = runValidation(elementString);
     // Assert
     assertValidationStatus(responseMessage, "false");
     assertValidationMessage(responseMessage, "object has missing required properties ([\"additionalProperties\"])");
@@ -339,22 +432,22 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   @Test
   public void shouldFailMissingProperties_Field_Id() {
     // Arrange
-    String templateString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
-    templateString = JsonUtils.removeFieldFromDocument(templateString, "/properties/street/@id");
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/street/@id");
     // Act
-    JsonNode responseMessage = runValidation(templateString);
+    JsonNode responseMessage = runValidation(elementString);
     // Assert
     assertValidationStatus(responseMessage, "false");
-    assertValidationMessage(responseMessage, "");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"@id\"])");
   }
 
   @Test
   public void shouldFailMissingProperties_Field_Schema() {
     // Arrange
-    String templateString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
-    templateString = JsonUtils.removeFieldFromDocument(templateString, "/properties/street/$schema");
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/street/$schema");
     // Act
-    JsonNode responseMessage = runValidation(templateString);
+    JsonNode responseMessage = runValidation(elementString);
     // Assert
     assertValidationStatus(responseMessage, "false");
     assertValidationMessage(responseMessage, "object has missing required properties ([\"$schema\"])");
@@ -363,10 +456,10 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   @Test
   public void shouldFailMissingProperties_Field_Properties() {
     // Arrange
-    String templateString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
-    templateString = JsonUtils.removeFieldFromDocument(templateString, "/properties/street/properties");
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/street/properties");
     // Act
-    JsonNode responseMessage = runValidation(templateString);
+    JsonNode responseMessage = runValidation(elementString);
     // Assert
     assertValidationStatus(responseMessage, "false");
     assertValidationMessage(responseMessage, "No JSON Schema properties field in artifact at path /");
@@ -375,10 +468,10 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   @Test
   public void shouldFailMissingProperties_Field_Properties_Type() {
     // Arrange
-    String templateString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
-    templateString = JsonUtils.removeFieldFromDocument(templateString, "/properties/street/properties/@type");
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/street/properties/@type");
     // Act
-    JsonNode responseMessage = runValidation(templateString);
+    JsonNode responseMessage = runValidation(elementString);
     // Assert
     assertValidationStatus(responseMessage, "false");
     assertValidationMessage(responseMessage, "object has missing required properties ([\"@type\"])");
@@ -387,24 +480,13 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   @Test
   public void shouldFailMissingProperties_Field_Properties_Value() {
     // Arrange
-    String templateString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
-    templateString = JsonUtils.removeFieldFromDocument(templateString, "/properties/street/properties/@value");
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/properties/street/properties/@value");
     // Act
-    JsonNode responseMessage = runValidation(templateString);
+    JsonNode responseMessage = runValidation(elementString);
     // Assert
     assertValidationStatus(responseMessage, "false");
     assertValidationMessage(responseMessage, "A template field without value constraints must have a '@value' field at path /properties/street/properties/");
-  }
-
-  private void runTestAndAssert(TestResource testResource) {
-    String payload = testResource.getContent();
-    Response response = sendPostRequest(
-        RequestUrls.forValidatingElement(getPortNumber()),
-        payload);
-    checkStatusOk(response);
-    // Assert
-    String responseMessage = response.readEntity(String.class);
-    assertThat(responseMessage, is(testResource.getExpected()));
   }
 
   private JsonNode runValidation(String payload) {
