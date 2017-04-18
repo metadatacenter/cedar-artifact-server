@@ -17,121 +17,221 @@ public class TemplateValidationTest extends BaseTemplateResourceTest {
 
   @Test
   public void shouldPassEmptyTemplate() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("templates/empty-template.json")
-    );
+    // Arrange
+    String templateString = TestResourcesUtils.getStringContent("templates/empty-template.json");
+    // Act
+    JsonNode responseMessage = runValidation(templateString);
+    // Assert
+    assertValidationStatus(responseMessage, "true");
   }
 
   @Test
   public void shouldPassSingleFieldTemplate() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("templates/single-field-template.json")
-    );
+    // Arrange
+    String templateString = TestResourcesUtils.getStringContent("templates/single-field-template.json");
+    // Act
+    JsonNode responseMessage = runValidation(templateString);
+    // Assert
+    assertValidationStatus(responseMessage, "true");
   }
 
   @Test
   public void shouldPassMultiFieldTemplate() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("templates/multi-field-template.json")
-    );
+    // Arrange
+    String templateString = TestResourcesUtils.getStringContent("templates/multi-field-template.json");
+    // Act
+    JsonNode responseMessage = runValidation(templateString);
+    // Assert
+    assertValidationStatus(responseMessage, "true");
   }
 
   @Test
   public void shouldPassNestedElementTemplate() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("templates/nested-element-template.json")
-    );
+    // Arrange
+    String templateString = TestResourcesUtils.getStringContent("templates/nested-element-template.json");
+    // Act
+    JsonNode responseMessage = runValidation(templateString);
+    // Assert
+    assertValidationStatus(responseMessage, "true");
   }
 
   @Test
   public void shouldFailMissingContext() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("templates/missing-template-context.json")
-    );
+    // Arrange
+    String templateString = TestResourcesUtils.getStringContent("templates/multi-field-template.json");
+    templateString = JsonUtils.removeFieldFromDocument(templateString, "/@context");
+    // Act
+    JsonNode responseMessage = runValidation(templateString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"@context\"])");
   }
 
   @Test
   public void shouldFailMissingId() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("templates/missing-template-id.json")
-    );
+    // Arrange
+    String templateString = TestResourcesUtils.getStringContent("templates/multi-field-template.json");
+    templateString = JsonUtils.removeFieldFromDocument(templateString, "/@id");
+    // Act
+    JsonNode responseMessage = runValidation(templateString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"@id\"])");
   }
 
   @Test
   public void shouldFailMissingType() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("templates/missing-template-type.json")
-    );
+    // Arrange
+    String templateString = TestResourcesUtils.getStringContent("templates/multi-field-template.json");
+    templateString = JsonUtils.removeFieldFromDocument(templateString, "/@type");
+    // Act
+    JsonNode responseMessage = runValidation(templateString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"@type\"])");
   }
 
   @Test
   public void shouldFailMissingJsonType() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("templates/missing-template-json-type.json")
-    );
+    // Arrange
+    String templateString = TestResourcesUtils.getStringContent("templates/multi-field-template.json");
+    templateString = JsonUtils.removeFieldFromDocument(templateString, "/type");
+    // Act
+    JsonNode responseMessage = runValidation(templateString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"type\"])");
   }
 
   @Test
   public void shouldFailMissingTitle() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("templates/missing-template-title.json")
-    );
+    // Arrange
+    String templateString = TestResourcesUtils.getStringContent("templates/multi-field-template.json");
+    templateString = JsonUtils.removeFieldFromDocument(templateString, "/title");
+    // Act
+    JsonNode responseMessage = runValidation(templateString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"title\"])");
   }
 
   @Test
   public void shouldFailMissingDescription() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("templates/missing-template-description.json")
-    );
+    // Arrange
+    String templateString = TestResourcesUtils.getStringContent("templates/multi-field-template.json");
+    templateString = JsonUtils.removeFieldFromDocument(templateString, "/description");
+    // Act
+    JsonNode responseMessage = runValidation(templateString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"description\"])");
   }
 
   @Test
   public void shouldFailMissingUi() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("templates/missing-template-ui.json")
-    );
+    // Arrange
+    String templateString = TestResourcesUtils.getStringContent("templates/multi-field-template.json");
+    templateString = JsonUtils.removeFieldFromDocument(templateString, "/_ui");
+    // Act
+    JsonNode responseMessage = runValidation(templateString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"_ui\"])");
   }
 
   @Test
   public void shouldFailMissingProperties() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("templates/missing-template-properties.json")
-    );
+    // Arrange
+    String templateString = TestResourcesUtils.getStringContent("templates/multi-field-template.json");
+    templateString = JsonUtils.removeFieldFromDocument(templateString, "/properties");
+    // Act
+    JsonNode responseMessage = runValidation(templateString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"properties\"])");
   }
 
   @Test
   public void shouldFailMissingRequired() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("templates/missing-template-required.json")
-    );
+    // Arrange
+    String templateString = TestResourcesUtils.getStringContent("templates/multi-field-template.json");
+    templateString = JsonUtils.removeFieldFromDocument(templateString, "/required");
+    // Act
+    JsonNode responseMessage = runValidation(templateString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"required\"])");
   }
 
   @Test
-  public void shouldFailMissingProvenance() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("templates/missing-template-provenance.json")
-    );
+  public void shouldFailMissingCreatedOn() {
+    // Arrange
+    String templateString = TestResourcesUtils.getStringContent("templates/multi-field-template.json");
+    templateString = JsonUtils.removeFieldFromDocument(templateString, "/pav:createdOn");
+    // Act
+    JsonNode responseMessage = runValidation(templateString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"pav:createdOn\"])");
+  }
+
+  @Test
+  public void shouldFailMissingCreatedBy() {
+    // Arrange
+    String templateString = TestResourcesUtils.getStringContent("templates/multi-field-template.json");
+    templateString = JsonUtils.removeFieldFromDocument(templateString, "/pav:createdBy");
+    // Act
+    JsonNode responseMessage = runValidation(templateString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"pav:createdBy\"])");
+  }
+
+  @Test
+  public void shouldFailMissingLastUpdatedOn() {
+    // Arrange
+    String templateString = TestResourcesUtils.getStringContent("templates/multi-field-template.json");
+    templateString = JsonUtils.removeFieldFromDocument(templateString, "/pav:lastUpdatedOn");
+    // Act
+    JsonNode responseMessage = runValidation(templateString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"pav:lastUpdatedOn\"])");
+  }
+
+  @Test
+  public void shouldFailMissingModifiedBy() {
+    // Arrange
+    String templateString = TestResourcesUtils.getStringContent("templates/multi-field-template.json");
+    templateString = JsonUtils.removeFieldFromDocument(templateString, "/oslc:modifiedBy");
+    // Act
+    JsonNode responseMessage = runValidation(templateString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"oslc:modifiedBy\"])");
   }
 
   @Test
   public void shouldPassMissingAdditionalProperties() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("templates/missing-template-additional-properties.json")
-    );
-  }
-
-  @Test
-  public void shouldFailInvalidValueAdditionalProperties() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("templates/invalid-value-additional-properties.json")
-    );
+    // Arrange
+    String templateString = TestResourcesUtils.getStringContent("templates/multi-field-template.json");
+    templateString = JsonUtils.removeFieldFromDocument(templateString, "/additionalProperties");
+    // Act
+    JsonNode responseMessage = runValidation(templateString);
+    // Assert
+    assertValidationStatus(responseMessage, "true");
   }
 
   @Test
   public void shouldFailMissingSchema() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("templates/missing-template-schema.json")
-    );
+    // Arrange
+    String templateString = TestResourcesUtils.getStringContent("templates/multi-field-template.json");
+    templateString = JsonUtils.removeFieldFromDocument(templateString, "/$schema");
+    // Act
+    JsonNode responseMessage = runValidation(templateString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"$schema\"])");
   }
 
   @Test
@@ -203,7 +303,7 @@ public class TemplateValidationTest extends BaseTemplateResourceTest {
     JsonNode responseMessage = runValidation(templateString);
     // Assert
     assertValidationStatus(responseMessage, "false");
-    assertValidationMessage(responseMessage, "object has missing required properties ([\"schema:description=\"])");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"schema:description\"])");
   }
 
   @Test
@@ -263,7 +363,7 @@ public class TemplateValidationTest extends BaseTemplateResourceTest {
     JsonNode responseMessage = runValidation(templateString);
     // Assert
     assertValidationStatus(responseMessage, "false");
-    assertValidationMessage(responseMessage, "");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"@type\"])");
   }
 
   @Test
@@ -395,7 +495,7 @@ public class TemplateValidationTest extends BaseTemplateResourceTest {
     JsonNode responseMessage = runValidation(templateString);
     // Assert
     assertValidationStatus(responseMessage, "false");
-    assertValidationMessage(responseMessage, "");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"@id\"])");
   }
 
   @Test
@@ -419,7 +519,7 @@ public class TemplateValidationTest extends BaseTemplateResourceTest {
     JsonNode responseMessage = runValidation(templateString);
     // Assert
     assertValidationStatus(responseMessage, "false");
-    assertValidationMessage(responseMessage, "No JSON Schema properties field in artifact at path /");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"properties\"])");
   }
 
   @Test
@@ -444,17 +544,6 @@ public class TemplateValidationTest extends BaseTemplateResourceTest {
     // Assert
     assertValidationStatus(responseMessage, "false");
     assertValidationMessage(responseMessage, "A template field without value constraints must have a '@value' field at path /properties/studyName/properties/");
-  }
-
-  private void runTestAndAssert(TestResource testResource) {
-    String payload = testResource.getContent();
-    Response response = sendPostRequest(
-        RequestUrls.forValidatingTemplate(getPortNumber()),
-        payload);
-    checkStatusOk(response);
-    // Assert
-    String responseMessage = response.readEntity(String.class);
-    assertThat(responseMessage, is(testResource.getExpected()));
   }
 
   private JsonNode runValidation(String payload) {
