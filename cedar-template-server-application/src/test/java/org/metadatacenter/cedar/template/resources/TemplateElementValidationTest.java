@@ -36,6 +36,16 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   }
 
   @Test
+  public void shouldPassNestedElement() {
+    // Arrange
+    String elementString = TestResourcesUtils.getStringContent("elements/nested-element.json");
+    // Act
+    JsonNode responseMessage = runValidation(elementString);
+    // Assert
+    assertValidationStatus(responseMessage, "true");
+  }
+
+  @Test
   public void shouldFailMissingContext() {
     // Arrange
     String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
