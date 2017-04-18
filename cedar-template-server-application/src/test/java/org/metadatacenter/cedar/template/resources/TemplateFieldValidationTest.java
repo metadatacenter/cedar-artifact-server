@@ -363,7 +363,7 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
   @Test
   public void shouldFailMisplacedIdProperty_InTextField() {
     // Arrange
-    String fieldString = TestResourcesUtils.getStringContent("fields/misplace-id-property-in-text-field.json");
+    String fieldString = TestResourcesUtils.getStringContent("fields/value-constraints/invalid-text-field-1.json");
     // Act
     JsonNode responseMessage = runValidation(fieldString);
     // Assert
@@ -374,7 +374,7 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
   @Test
   public void shouldFailMisplacedValueProperty_InConstrainedTextField() {
     // Arrange
-    String fieldString = TestResourcesUtils.getStringContent("fields/misplace-value-property-in-constrained-text-field.json");
+    String fieldString = TestResourcesUtils.getStringContent("fields/value-constraints/invalid-constrained-text-field-1.json");
     // Act
     JsonNode responseMessage = runValidation(fieldString);
     // Assert
@@ -385,7 +385,7 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
   @Test
   public void shouldFailMisplaceValueIdProperty_InTextField() {
     // Arrange
-    String fieldString = TestResourcesUtils.getStringContent("fields/misplace-value+id-property-in-text-field.json");
+    String fieldString = TestResourcesUtils.getStringContent("fields/value-constraints/invalid-text-field-2.json");
     // Act
     JsonNode responseMessage = runValidation(fieldString);
     // Assert
@@ -396,7 +396,7 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
   @Test
   public void shouldFailMisplaceValueIdProperty_InConstrainedTextField() {
     // Arrange
-    String fieldString = TestResourcesUtils.getStringContent("fields/misplace-value+id-property-in-constrainted-text-field.json");
+    String fieldString = TestResourcesUtils.getStringContent("fields/value-constraints/invalid-constrained-text-field-2.json");
     // Act
     JsonNode responseMessage = runValidation(fieldString);
     // Assert
@@ -407,7 +407,7 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
   @Test
   public void shouldFailMisplacedIdProperty_InRadioField() {
     // Arrange
-    String fieldString = TestResourcesUtils.getStringContent("fields/misplace-id-property-in-radio-field.json");
+    String fieldString = TestResourcesUtils.getStringContent("fields/value-constraints/invalid-radio-field.json");
     // Act
     JsonNode responseMessage = runValidation(fieldString);
     // Assert
