@@ -1,1 +1,0 @@
-{"validates":"false","warnings":[],"errors":["object has missing required properties ([\"type\"])","Error validating artifact at path / against CEDAR sub-schema coreJSONSchemaFields.json"]}

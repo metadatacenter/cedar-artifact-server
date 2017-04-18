@@ -1,9 +1,13 @@
 package org.metadatacenter.cedar.template.resources;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 
 import javax.annotation.Nonnull;
 import javax.ws.rs.core.Response;
+
+import java.io.IOException;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hamcrest.CoreMatchers.is;
@@ -13,244 +17,427 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
 
   @Test
   public void shouldPassTextField() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("fields/text-field.json")
-    );
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/text-field.json");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "true");
   }
 
   @Test
   public void shouldPassCheckboxField() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("fields/checkbox-field.json")
-    );
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/checkbox-field.json");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "true");
   }
 
   @Test
   public void shouldPassDateField() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("fields/date-field.json")
-    );
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/date-field.json");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "true");
   }
 
   @Test
   public void shouldPassEmailField() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("fields/email-field.json")
-    );
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/email-field.json");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "true");
   }
 
   @Test
   public void shouldPassImageField() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("fields/image-field.json")
-    );
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/image-field.json");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "true");
   }
 
   @Test
   public void shouldPassListField() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("fields/list-field.json")
-    );
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/list-field.json");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "true");
   }
 
   @Test
   public void shouldPassNumericField() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("fields/numeric-field.json")
-    );
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/numeric-field.json");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "true");
   }
 
   @Test
   public void shouldPassParagraphField() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("fields/paragraph-field.json")
-    );
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/paragraph-field.json");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "true");
   }
 
   @Test
   public void shouldPassPhoneField() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("fields/phone-field.json")
-    );
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/phone-field.json");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "true");
   }
 
   @Test
   public void shouldPassRadioField() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("fields/radio-field.json")
-    );
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/radio-field.json");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "true");
   }
 
   @Test
   public void shouldPassRichTextField() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("fields/rich-text-field.json")
-    );
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/rich-text-field.json");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "true");
   }
 
   @Test
   public void shouldPassVideoField() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("fields/video-field.json")
-    );
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/video-field.json");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "true");
   }
 
   @Test
   public void shouldPassConstrainedTextField() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("fields/constrained-text-field.json")
-    );
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/constrained-text-field.json");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "true");
   }
 
   @Test
   public void shouldFailMissingContext() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("fields/missing-field-context.json")
-    );
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/text-field.json");
+    fieldString = JsonUtils.removeFieldFromDocument(fieldString, "/@context");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"@context\"])");
   }
 
   @Test
   public void shouldPassMissingId() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("fields/missing-field-id.json")
-    );
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/text-field.json");
+    fieldString = JsonUtils.removeFieldFromDocument(fieldString, "/@id");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "true");
   }
 
   @Test
   public void shouldFailMissingType() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("fields/missing-field-type.json")
-    );
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/text-field.json");
+    fieldString = JsonUtils.removeFieldFromDocument(fieldString, "/@type");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"@type\"])");
   }
 
   @Test
   public void shouldFailMissingJsonType() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("fields/missing-field-json-type.json")
-    );
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/text-field.json");
+    fieldString = JsonUtils.removeFieldFromDocument(fieldString, "/type");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"type\"])");
   }
 
   @Test
   public void shouldFailMissingTitle() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("fields/missing-field-title.json")
-    );
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/text-field.json");
+    fieldString = JsonUtils.removeFieldFromDocument(fieldString, "/title");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"title\"])");
   }
 
   @Test
   public void shouldFailMissingDescription() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("fields/missing-field-description.json")
-    );
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/text-field.json");
+    fieldString = JsonUtils.removeFieldFromDocument(fieldString, "/description");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"description\"])");
   }
 
   @Test
   public void shouldFailMissingUi() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("fields/missing-field-ui.json")
-    );
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/text-field.json");
+    fieldString = JsonUtils.removeFieldFromDocument(fieldString, "/_ui");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"_ui\"])");
   }
 
   @Test
   public void shouldFailMissingProperties() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("fields/missing-field-properties.json")
-    );
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/text-field.json");
+    fieldString = JsonUtils.removeFieldFromDocument(fieldString, "/properties");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"properties\"])");
   }
 
   @Test
   public void shouldFailMissingRequired() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("fields/missing-field-required.json")
-    );
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/text-field.json");
+    fieldString = JsonUtils.removeFieldFromDocument(fieldString, "/required");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"required\"])");
   }
 
   @Test
   public void shouldFailMissingValueConstraints() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("fields/missing-field-value-constraints.json")
-    );
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/text-field.json");
+    fieldString = JsonUtils.removeFieldFromDocument(fieldString, "/_valueConstraints");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"_valueConstraints\"])");
   }
 
   @Test
-  public void shouldFailMissingProvenance() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("fields/missing-field-provenance.json")
-    );
+  public void shouldFailMissingCreatedOn() {
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/text-field.json");
+    fieldString = JsonUtils.removeFieldFromDocument(fieldString, "/pav:createdOn");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"pav:createdOn\"])");
+  }
+
+  @Test
+  public void shouldFailMissingCreatedBy() {
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/text-field.json");
+    fieldString = JsonUtils.removeFieldFromDocument(fieldString, "/pav:createdBy");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"pav:createdBy\"])");
+  }
+
+  @Test
+  public void shouldFailMissingLastUpdatedOn() {
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/text-field.json");
+    fieldString = JsonUtils.removeFieldFromDocument(fieldString, "/pav:lastUpdatedOn");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"pav:lastUpdatedOn\"])");
+  }
+
+  @Test
+  public void shouldFailMissingModifiedBy() {
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/text-field.json");
+    fieldString = JsonUtils.removeFieldFromDocument(fieldString, "/oslc:modifiedBy");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"oslc:modifiedBy\"])");
   }
 
   @Test
   public void shouldFailMissingAdditionalProperties() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("fields/missing-field-additional-properties.json")
-    );
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/text-field.json");
+    fieldString = JsonUtils.removeFieldFromDocument(fieldString, "/additionalProperties");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"additionalProperties\"])");
   }
 
   @Test
   public void shouldFailMissingSchema() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("fields/missing-field-schema.json")
-    );
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/text-field.json");
+    fieldString = JsonUtils.removeFieldFromDocument(fieldString, "/$schema");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"$schema\"])");
   }
 
   @Test
-  public void shouldFailMissingPropertiesValueFieldForNonConstrainedValue() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("fields/missing-field-properties-value-ncv.json")
-    );
+  public void shouldFailMissingProperties_Value() {
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/text-field.json");
+    fieldString = JsonUtils.removeFieldFromDocument(fieldString, "/properties/@value");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "A template field without value constraints must have a '@value' field at path /properties/");
   }
 
   @Test
-  public void shouldFailMissingPropertiesIdForConstrainedValue() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("fields/missing-field-properties-id-cv.json")
-    );
+  public void shouldFailMissingProperties_Id() {
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/constrained-text-field.json");
+    fieldString = JsonUtils.removeFieldFromDocument(fieldString, "/properties/@id");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "A template field with value constraints must have an '@id' field at path /properties/");
   }
 
   @Test
   public void shouldFailMisplacedIdProperty_InTextField() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("fields/misplace-id-property-in-text-field.json")
-    );
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/misplace-id-property-in-text-field.json");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "A template field without value constraints must have a '@value' and not an '@id' field at path /properties/");
   }
 
   @Test
   public void shouldFailMisplacedValueProperty_InConstrainedTextField() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("fields/misplace-value-property-in-constrained-text-field.json")
-    );
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/misplace-value-property-in-constrained-text-field.json");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "A template field with value constraints must have an '@id' and not a '@value' field at path /properties/");
   }
 
   @Test
   public void shouldFailMisplaceValueIdProperty_InTextField() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("fields/misplace-value+id-property-in-text-field.json")
-    );
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/misplace-value+id-property-in-text-field.json");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "A template field without value constraints must not have an '@id' field at path /properties/");
   }
 
   @Test
   public void shouldFailMisplaceValueIdProperty_InConstrainedTextField() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("fields/misplace-value+id-property-in-constrainted-text-field.json")
-    );
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/misplace-value+id-property-in-constrainted-text-field.json");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "A template field with value constraints must not have a '@value' field at path /properties/");
   }
 
   @Test
   public void shouldFailMisplacedIdProperty_InRadioField() {
-    runTestAndAssert(
-        TestResourcesUtils.useResource("fields/misplace-id-property-in-radio-field.json")
-    );
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/misplace-id-property-in-radio-field.json");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "A template field without value constraints must have a '@value' and not an '@id' field at path /properties/");
   }
 
-  private void runTestAndAssert(TestResource testResource) {
-    String payload = testResource.getContent();
+  private JsonNode runValidation(String payload) {
     Response response = sendPostRequest(
         RequestUrls.forValidatingField(getPortNumber()),
         payload);
     checkStatusOk(response);
-    // Assert
-    String responseMessage = response.readEntity(String.class);
-    assertThat(responseMessage, is(testResource.getExpected()));
+    JsonNode responseMessage = getJsonResponseMessage(response);
+    return responseMessage;
+  }
+
+  private static void assertValidationMessage(JsonNode responseMessage, String expectedValue) {
+    assertThat(responseMessage.get("errors").get(0).asText(), is(expectedValue));
+  }
+
+  private static void assertValidationStatus(JsonNode responseMessage, String expectedValue) {
+    assertThat(responseMessage.get("validates").asText(), is(expectedValue));
+  }
+
+  private JsonNode getJsonResponseMessage(Response response) {
+    try {
+      return new ObjectMapper().readTree(response.readEntity(String.class));
+    } catch (IOException e) {
+      throw new RuntimeException("Programming error", e);
+    }
   }
 
   private static void checkStatusOk(@Nonnull Response response) {
