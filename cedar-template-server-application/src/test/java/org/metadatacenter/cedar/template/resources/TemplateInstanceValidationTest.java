@@ -17,33 +17,33 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TemplateInstanceValidationTest extends BaseTemplateResourceTest {
 
-  private String templateExampleId1;
-  private String templateExampleId2;
-  private String templateExampleId3;
+  private String singleFieldTemplateId;
+  private String multiFieldTemplateId;
+  private String nestedElementTemplateId;
 
-  private static String templateExample1;
-  private static String templateExample2;
-  private static String templateExample3;
+  private static String singleFieldTemplate;
+  private static String multiFieldTemplate;
+  private static String nestedElementTemplate;
 
   @BeforeClass
   public static void loadTemplateExamples() {
-    templateExample1 = TestResourcesUtils.getStringContent("templates/single-field-template.json");
-    templateExample2 = TestResourcesUtils.getStringContent("templates/multi-field-template.json");
-    templateExample3 = TestResourcesUtils.getStringContent("templates/nested-element-template.json");
+    singleFieldTemplate = TestResourcesUtils.getStringContent("templates/single-field-template.json");
+    multiFieldTemplate = TestResourcesUtils.getStringContent("templates/multi-field-template.json");
+    nestedElementTemplate = TestResourcesUtils.getStringContent("templates/nested-element-template.json");
   }
 
   @Before
   public void uploadTemplates() {
-    templateExampleId1 = uploadTemplate(templateExample1);
-    templateExampleId2 = uploadTemplate(templateExample2);
-    templateExampleId3 = uploadTemplate(templateExample3);
+    singleFieldTemplateId = uploadTemplate(singleFieldTemplate);
+    multiFieldTemplateId = uploadTemplate(multiFieldTemplate);
+    nestedElementTemplateId = uploadTemplate(nestedElementTemplate);
   }
 
   @After
   public void removeTemplates() {
-    removeTemplate(templateExampleId1);
-    removeTemplate(templateExampleId2);
-    removeTemplate(templateExampleId3);
+    removeTemplate(singleFieldTemplateId);
+    removeTemplate(multiFieldTemplateId);
+    removeTemplate(nestedElementTemplateId);
   }
 
   @Test
