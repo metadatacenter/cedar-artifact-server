@@ -3,12 +3,15 @@ package org.metadatacenter.cedar.template.resources;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
-import com.github.fge.jsonschema.core.report.*;
 import org.metadatacenter.config.CedarConfig;
+import org.metadatacenter.error.CedarErrorKey;
+import org.metadatacenter.error.CedarErrorPack;
 import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.model.request.ResourceType;
 import org.metadatacenter.model.request.ResourceTypeDetector;
 import org.metadatacenter.model.validation.CEDARModelValidator;
+import org.metadatacenter.model.validation.ModelValidator;
+import org.metadatacenter.model.validation.report.ValidationReport;
 import org.metadatacenter.rest.context.CedarRequestContext;
 import org.metadatacenter.rest.context.CedarRequestContextFactory;
 import org.metadatacenter.server.service.TemplateService;
@@ -45,58 +48,77 @@ public class CommandResource extends AbstractTemplateServerResource {
   @POST
   @Timed
   @Path("/validate")
-  public Response validateResource(@QueryParam(QP_RESOURCE_TYPES) String resourceType) throws CedarException {
+  public Response validateResource(@QueryParam(QP_RESOURCE_TYPES) String type) throws CedarException {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
 //    c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_CREATE); // XXX Permission for validation?
 
-    ResourceType type = ResourceTypeDetector.detectType(resourceType);
+    ResourceType resourceType = ResourceTypeDetector.detectType(type);
 
-    JsonNode payload = c.request().getRequestBody().asJson();
+    JsonNode resourceNode = c.request().getRequestBody().asJson();
 
-    ProcessingReport report = new DevNullProcessingReport();
-    if (type == ResourceType.TEMPLATE) {
-      report = validateTemplateNode(payload);
-    } else if (type == ResourceType.ELEMENT) {
-      report = validateTemplateElementNode(payload);
-    } else if (type == ResourceType.FIELD) {
-      report = validateTemplateFieldNode(payload);
-    } else if (type == ResourceType.INSTANCE) {
-      report = validateTemplateInstanceNode(payload);
-    }
-    ValidationReport validationReport = new ProcessingReportWrapper(report);
+    ValidationReport validationReport = validateResource(resourceNode, resourceType);
     return Response.ok().entity(validationReport).build();
   }
 
-  private ProcessingReport validateTemplateNode(JsonNode template) {
-    CEDARModelValidator validator = new CEDARModelValidator();
-    ProcessingReport processingReport = validator.validateTemplateNode(template);
-    return processingReport;
+  private ValidationReport validateResource(JsonNode resource, ResourceType type) throws CedarException {
+    ValidationReport validationReport = null;
+    if (type == ResourceType.TEMPLATE) {
+      validationReport = validateTemplate(resource);
+    } else if (type == ResourceType.ELEMENT) {
+      validationReport = validateTemplateElement(resource);
+    } else if (type == ResourceType.FIELD) {
+      validationReport = validateTemplateField(resource);
+    } else if (type == ResourceType.INSTANCE) {
+      validationReport = validateTemplateInstance(resource);
+    } else {
+      CedarErrorPack errorPack = new CedarErrorPack()
+          .errorKey(CedarErrorKey.METHOD_NOT_IMPLEMENTED)
+          .message("Validation method for type " + type + " is not implemented yet");
+      throw new CedarException(errorPack){};
+    }
+    return validationReport;
   }
 
-  private ProcessingReport validateTemplateElementNode(JsonNode templateElement) {
-    CEDARModelValidator validator = new CEDARModelValidator();
-    ProcessingReport processingReport = validator.validateTemplateElementNode(templateElement);
-    return processingReport;
-  }
-
-  private ProcessingReport validateTemplateFieldNode(JsonNode templateField) throws CedarException {
+  private ValidationReport validateTemplate(JsonNode template) throws CedarException {
     try {
-      CEDARModelValidator validator = new CEDARModelValidator();
-      ProcessingReport processingReport = validator.validateTemplateFieldNode(templateField);
-      return processingReport;
+      ModelValidator validator = new CEDARModelValidator();
+      ValidationReport validationReport = validator.validateTemplate(template);
+      return validationReport;
     } catch (Exception e) {
       log.error(e.getMessage(), e);
       throw newCedarException(e.getMessage());
     }
   }
 
-  private ProcessingReport validateTemplateInstanceNode(JsonNode templateInstance) throws CedarException {
+  private ValidationReport validateTemplateElement(JsonNode templateElement) throws CedarException {
+    try {
+      ModelValidator validator = new CEDARModelValidator();
+      ValidationReport validationReport = validator.validateTemplateElement(templateElement);
+      return validationReport;
+    } catch (Exception e) {
+      log.error(e.getMessage(), e);
+      throw newCedarException(e.getMessage());
+    }
+  }
+
+  private ValidationReport validateTemplateField(JsonNode templateField) throws CedarException {
+    try {
+      ModelValidator validator = new CEDARModelValidator();
+      ValidationReport validationReport = validator.validateTemplateField(templateField);
+      return validationReport;
+    } catch (Exception e) {
+      log.error(e.getMessage(), e);
+      throw newCedarException(e.getMessage());
+    }
+  }
+
+  private ValidationReport validateTemplateInstance(JsonNode templateInstance) throws CedarException {
     try {
       JsonNode instanceSchema = getSchemaSource(templateInstance);
-      CEDARModelValidator validator = new CEDARModelValidator();
-      ProcessingReport processingReport = validator.validateTemplateInstanceNode(templateInstance, instanceSchema);
-      return processingReport;
+      ModelValidator validator = new CEDARModelValidator();
+      ValidationReport validationReport = validator.validateTemplateInstance(templateInstance, instanceSchema);
+      return validationReport;
     } catch (Exception e) {
       log.error(e.getMessage(), e);
       throw newCedarException(e.getMessage());
@@ -113,5 +135,4 @@ public class CommandResource extends AbstractTemplateServerResource {
   private static CedarException newCedarException(String message) {
     return new CedarException(message) {};
   }
-
 }

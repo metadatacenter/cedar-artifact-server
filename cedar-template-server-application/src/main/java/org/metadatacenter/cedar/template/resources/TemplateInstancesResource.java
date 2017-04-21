@@ -17,6 +17,8 @@ import org.metadatacenter.model.request.OutputFormatType;
 import org.metadatacenter.model.request.OutputFormatTypeDetector;
 import org.metadatacenter.model.trimmer.JsonLdDocument;
 import org.metadatacenter.model.validation.CEDARModelValidator;
+import org.metadatacenter.model.validation.ModelValidator;
+import org.metadatacenter.model.validation.report.ValidationReport;
 import org.metadatacenter.rest.context.CedarRequestContext;
 import org.metadatacenter.rest.context.CedarRequestContextFactory;
 import org.metadatacenter.server.model.provenance.ProvenanceInfo;
@@ -71,7 +73,7 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
     //TODO: test if it is not empty
     //c.must(c.request().getRequestBody()).be(NonEmpty);
     JsonNode templateInstance = c.request().getRequestBody().asJson();
-    ProcessingReportWrapper validationReport = validateTemplateInstance(templateInstance);
+    ValidationReport validationReport = validateTemplateInstance(templateInstance);
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     checkImportModeSetProvenanceAndId(CedarNodeType.INSTANCE, templateInstance, pi, importMode);
@@ -185,7 +187,7 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
     c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_UPDATE);
 
     JsonNode newInstance = c.request().getRequestBody().asJson();
-    ProcessingReportWrapper validationReport = validateTemplateInstance(newInstance);
+    ValidationReport validationReport = validateTemplateInstance(newInstance);
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     provenanceUtil.patchProvenanceInfo(newInstance, pi);
@@ -249,8 +251,7 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
           .errorKey(CedarErrorKey.TEMPLATE_INSTANCE_NOT_FOUND)
           .message("The template instance can not be found by id:" + id)
           .sourceException(e);
-      throw new CedarException(errorPack) {
-      };
+      throw new CedarException(errorPack){};
     }
   }
 
@@ -275,8 +276,7 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
       responseObject = getRdfString(templateInstance);
       mediaType = "application/n-quads";
     } else {
-      throw new CedarException("Programming error: no handler is programmed for format type: " + formatType) {
-      };
+      throw new CedarException("Programming error: no handler is programmed for format type: " + formatType){};
     }
     return Response.ok(responseObject, mediaType).build();
   }
@@ -293,12 +293,12 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
     }
   }
 
-  private ProcessingReportWrapper validateTemplateInstance(JsonNode templateInstance) throws CedarException {
+  private ValidationReport validateTemplateInstance(JsonNode templateInstance) throws CedarException {
     try {
       JsonNode instanceSchema = getSchemaSource(templateInstance);
-      CEDARModelValidator validator = new CEDARModelValidator();
-      ProcessingReport processingReport = validator.validateTemplateInstanceNode(templateInstance, instanceSchema);
-      return new ProcessingReportWrapper(processingReport);
+      ModelValidator validator = new CEDARModelValidator();
+      ValidationReport validationReport = validator.validateTemplateInstance(templateInstance, instanceSchema);
+      return validationReport;
     } catch (Exception e) {
       throw newCedarException(e.getMessage());
     }

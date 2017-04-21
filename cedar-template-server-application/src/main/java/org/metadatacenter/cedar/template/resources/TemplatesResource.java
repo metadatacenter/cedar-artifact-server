@@ -12,6 +12,8 @@ import org.metadatacenter.error.CedarErrorReasonKey;
 import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.model.CedarNodeType;
 import org.metadatacenter.model.validation.CEDARModelValidator;
+import org.metadatacenter.model.validation.ModelValidator;
+import org.metadatacenter.model.validation.report.ValidationReport;
 import org.metadatacenter.rest.context.CedarRequestContext;
 import org.metadatacenter.rest.context.CedarRequestContextFactory;
 import org.metadatacenter.server.model.provenance.ProvenanceInfo;
@@ -70,7 +72,7 @@ public class TemplatesResource extends AbstractTemplateServerResource {
     //TODO: test if it is not empty
     //c.must(c.request().getRequestBody()).be(NonEmpty);
     JsonNode template = c.request().getRequestBody().asJson();
-    ProcessingReportWrapper validationReport = validateTemplate(template);
+    ValidationReport validationReport = validateTemplate(template);
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     checkImportModeSetProvenanceAndId(CedarNodeType.TEMPLATE, template, pi, importMode);
@@ -189,7 +191,7 @@ public class TemplatesResource extends AbstractTemplateServerResource {
     c.must(c.user()).have(CedarPermission.TEMPLATE_UPDATE);
 
     JsonNode newTemplate = c.request().getRequestBody().asJson();
-    ProcessingReportWrapper validationReport = validateTemplate(newTemplate);
+    ValidationReport validationReport = validateTemplate(newTemplate);
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     provenanceUtil.patchProvenanceInfo(newTemplate, pi);
@@ -259,9 +261,17 @@ public class TemplatesResource extends AbstractTemplateServerResource {
     return CedarResponse.noContent().build();
   }
 
-  private ProcessingReportWrapper validateTemplate(JsonNode template) {
-    CEDARModelValidator validator = new CEDARModelValidator();
-    ProcessingReport processingReport = validator.validateTemplateNode(template);
-    return new ProcessingReportWrapper(processingReport);
+  private ValidationReport validateTemplate(JsonNode template) throws CedarException {
+    try {
+      ModelValidator validator = new CEDARModelValidator();
+      ValidationReport validationReport = validator.validateTemplate(template);
+      return validationReport;
+    } catch (Exception e) {
+      throw newCedarException(e.getMessage());
+    }
+  }
+
+  private static CedarException newCedarException(String message) {
+    return new CedarException(message) {};
   }
 }
