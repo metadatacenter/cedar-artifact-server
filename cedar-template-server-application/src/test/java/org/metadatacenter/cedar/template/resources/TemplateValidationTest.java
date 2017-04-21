@@ -576,7 +576,7 @@ public class TemplateValidationTest extends BaseTemplateResourceTest {
   }
 
   private static void assertValidationMessage(JsonNode responseMessage, String expectedValue) {
-    assertThat(responseMessage.get("errors").get(0).asText(), is(expectedValue));
+    assertThat(responseMessage.get("errors").get(0).get("message").asText(), is(expectedValue));
   }
 
   private static void assertValidationStatus(JsonNode responseMessage, String expectedValue) {

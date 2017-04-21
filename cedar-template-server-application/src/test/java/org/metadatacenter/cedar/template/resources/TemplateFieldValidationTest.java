@@ -345,7 +345,7 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
     JsonNode responseMessage = runValidation(fieldString);
     // Assert
     assertValidationStatus(responseMessage, "false");
-    assertValidationMessage(responseMessage, "A template field without value constraints must have a '@value' field at path /properties/");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"@value\"])");
   }
 
   @Test
@@ -357,7 +357,7 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
     JsonNode responseMessage = runValidation(fieldString);
     // Assert
     assertValidationStatus(responseMessage, "false");
-    assertValidationMessage(responseMessage, "A template field with value constraints must have an '@id' field at path /properties/");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"@id\"])");
   }
 
   @Test
@@ -368,7 +368,7 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
     JsonNode responseMessage = runValidation(fieldString);
     // Assert
     assertValidationStatus(responseMessage, "false");
-    assertValidationMessage(responseMessage, "A template field without value constraints must have a '@value' and not an '@id' field at path /properties/");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\\\"@value\\\"])");
   }
 
   @Test
@@ -379,7 +379,7 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
     JsonNode responseMessage = runValidation(fieldString);
     // Assert
     assertValidationStatus(responseMessage, "false");
-    assertValidationMessage(responseMessage, "A template field with value constraints must have an '@id' and not a '@value' field at path /properties/");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"@id\"])");
   }
 
   @Test
@@ -390,7 +390,7 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
     JsonNode responseMessage = runValidation(fieldString);
     // Assert
     assertValidationStatus(responseMessage, "false");
-    assertValidationMessage(responseMessage, "A template field without value constraints must not have an '@id' field at path /properties/");
+    assertValidationMessage(responseMessage, "object has invalid properties ([\"@id\"])");
   }
 
   @Test
@@ -401,7 +401,7 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
     JsonNode responseMessage = runValidation(fieldString);
     // Assert
     assertValidationStatus(responseMessage, "false");
-    assertValidationMessage(responseMessage, "A template field with value constraints must not have a '@value' field at path /properties/");
+    assertValidationMessage(responseMessage, "object has invalid properties ([\"@value\"])");
   }
 
   @Test
@@ -412,7 +412,7 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
     JsonNode responseMessage = runValidation(fieldString);
     // Assert
     assertValidationStatus(responseMessage, "false");
-    assertValidationMessage(responseMessage, "A template field without value constraints must have a '@value' and not an '@id' field at path /properties/");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"@value\"])");
   }
 
   private JsonNode runValidation(String payload) {
@@ -425,7 +425,7 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
   }
 
   private static void assertValidationMessage(JsonNode responseMessage, String expectedValue) {
-    assertThat(responseMessage.get("errors").get(0).asText(), is(expectedValue));
+    assertThat(responseMessage.get("errors").get(0).get("message").asText(), is(expectedValue));
   }
 
   private static void assertValidationStatus(JsonNode responseMessage, String expectedValue) {
