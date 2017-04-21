@@ -54,9 +54,7 @@ public class CommandResource extends AbstractTemplateServerResource {
 //    c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_CREATE); // XXX Permission for validation?
 
     ResourceType resourceType = ResourceTypeDetector.detectType(type);
-
     JsonNode resourceNode = c.request().getRequestBody().asJson();
-
     ValidationReport validationReport = validateResource(resourceNode, resourceType);
     return Response.ok().entity(validationReport).build();
   }
@@ -80,47 +78,11 @@ public class CommandResource extends AbstractTemplateServerResource {
     return validationReport;
   }
 
-  private ValidationReport validateTemplate(JsonNode template) throws CedarException {
-    try {
-      ModelValidator validator = new CEDARModelValidator();
-      ValidationReport validationReport = validator.validateTemplate(template);
-      return validationReport;
-    } catch (Exception e) {
-      log.error(e.getMessage(), e);
-      throw newCedarException(e.getMessage());
-    }
-  }
-
-  private ValidationReport validateTemplateElement(JsonNode templateElement) throws CedarException {
-    try {
-      ModelValidator validator = new CEDARModelValidator();
-      ValidationReport validationReport = validator.validateTemplateElement(templateElement);
-      return validationReport;
-    } catch (Exception e) {
-      log.error(e.getMessage(), e);
-      throw newCedarException(e.getMessage());
-    }
-  }
-
-  private ValidationReport validateTemplateField(JsonNode templateField) throws CedarException {
-    try {
-      ModelValidator validator = new CEDARModelValidator();
-      ValidationReport validationReport = validator.validateTemplateField(templateField);
-      return validationReport;
-    } catch (Exception e) {
-      log.error(e.getMessage(), e);
-      throw newCedarException(e.getMessage());
-    }
-  }
-
   private ValidationReport validateTemplateInstance(JsonNode templateInstance) throws CedarException {
     try {
       JsonNode instanceSchema = getSchemaSource(templateInstance);
-      ModelValidator validator = new CEDARModelValidator();
-      ValidationReport validationReport = validator.validateTemplateInstance(templateInstance, instanceSchema);
-      return validationReport;
-    } catch (Exception e) {
-      log.error(e.getMessage(), e);
+      return validateTemplateInstance(templateInstance, instanceSchema);
+    } catch (IOException | ProcessingException e) {
       throw newCedarException(e.getMessage());
     }
   }
@@ -130,9 +92,5 @@ public class CommandResource extends AbstractTemplateServerResource {
     JsonNode template = templateService.findTemplate(templateRefId);
     MongoUtils.removeIdField(template);
     return template;
-  }
-
-  private static CedarException newCedarException(String message) {
-    return new CedarException(message) {};
   }
 }

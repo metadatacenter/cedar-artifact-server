@@ -3,15 +3,12 @@ package org.metadatacenter.cedar.template.resources;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
-import com.github.fge.jsonschema.core.report.ProcessingReport;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.constant.CustomHttpConstants;
 import org.metadatacenter.constant.HttpConstants;
 import org.metadatacenter.error.CedarErrorKey;
 import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.model.CedarNodeType;
-import org.metadatacenter.model.validation.CEDARModelValidator;
-import org.metadatacenter.model.validation.ModelValidator;
 import org.metadatacenter.model.validation.report.ValidationReport;
 import org.metadatacenter.rest.context.CedarRequestContext;
 import org.metadatacenter.rest.context.CedarRequestContextFactory;
@@ -20,7 +17,10 @@ import org.metadatacenter.server.security.model.auth.CedarPermission;
 import org.metadatacenter.server.service.FieldNameInEx;
 import org.metadatacenter.server.service.TemplateElementService;
 import org.metadatacenter.server.service.TemplateFieldService;
-import org.metadatacenter.util.http.*;
+import org.metadatacenter.util.http.CedarResponse;
+import org.metadatacenter.util.http.CedarUrlUtil;
+import org.metadatacenter.util.http.LinkHeaderUtil;
+import org.metadatacenter.util.http.PagedQuery;
 import org.metadatacenter.util.mongo.MongoUtils;
 
 import javax.management.InstanceNotFoundException;
@@ -241,19 +241,5 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
           .build();
     }
     return CedarResponse.noContent().build();
-  }
-
-  private ValidationReport validateTemplateElement(JsonNode templateElement) throws CedarException {
-    try {
-      ModelValidator validator = new CEDARModelValidator();
-      ValidationReport validationReport = validator.validateTemplateElement(templateElement);
-      return validationReport;
-    } catch (Exception e) {
-      throw newCedarException(e.getMessage());
-    }
-  }
-
-  private static CedarException newCedarException(String message) {
-    return new CedarException(message) {};
   }
 }

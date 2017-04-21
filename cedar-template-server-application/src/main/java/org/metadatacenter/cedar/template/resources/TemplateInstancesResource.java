@@ -3,7 +3,6 @@ package org.metadatacenter.cedar.template.resources;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
-import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.jsonldjava.core.JsonLdError;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.constant.CustomHttpConstants;
@@ -16,8 +15,6 @@ import org.metadatacenter.model.CedarNodeType;
 import org.metadatacenter.model.request.OutputFormatType;
 import org.metadatacenter.model.request.OutputFormatTypeDetector;
 import org.metadatacenter.model.trimmer.JsonLdDocument;
-import org.metadatacenter.model.validation.CEDARModelValidator;
-import org.metadatacenter.model.validation.ModelValidator;
 import org.metadatacenter.model.validation.report.ValidationReport;
 import org.metadatacenter.rest.context.CedarRequestContext;
 import org.metadatacenter.rest.context.CedarRequestContextFactory;
@@ -251,7 +248,8 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
           .errorKey(CedarErrorKey.TEMPLATE_INSTANCE_NOT_FOUND)
           .message("The template instance can not be found by id:" + id)
           .sourceException(e);
-      throw new CedarException(errorPack){};
+      throw new CedarException(errorPack) {
+      };
     }
   }
 
@@ -262,7 +260,8 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
         .build();
   }
 
-  private Response sendFormattedTemplateInstance(JsonNode templateInstance, OutputFormatType formatType) throws CedarException {
+  private Response sendFormattedTemplateInstance(JsonNode templateInstance, OutputFormatType formatType) throws
+      CedarException {
     Object responseObject = null;
     String mediaType = null;
     if (formatType == OutputFormatType.JSONLD) { // The assumption is the formatType is already a valid-and-supported
@@ -276,7 +275,8 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
       responseObject = getRdfString(templateInstance);
       mediaType = "application/n-quads";
     } else {
-      throw new CedarException("Programming error: no handler is programmed for format type: " + formatType){};
+      throw new CedarException("Programming error: no handler is programmed for format type: " + formatType) {
+      };
     }
     return Response.ok(responseObject, mediaType).build();
   }
@@ -296,10 +296,8 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
   private ValidationReport validateTemplateInstance(JsonNode templateInstance) throws CedarException {
     try {
       JsonNode instanceSchema = getSchemaSource(templateInstance);
-      ModelValidator validator = new CEDARModelValidator();
-      ValidationReport validationReport = validator.validateTemplateInstance(templateInstance, instanceSchema);
-      return validationReport;
-    } catch (Exception e) {
+      return validateTemplateInstance(templateInstance, instanceSchema);
+    } catch (IOException | ProcessingException e) {
       throw newCedarException(e.getMessage());
     }
   }
@@ -309,9 +307,5 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
     JsonNode template = templateService.findTemplate(templateRefId);
     MongoUtils.removeIdField(template);
     return template;
-  }
-
-  private static CedarException newCedarException(String message) {
-    return new CedarException(message) {};
   }
 }

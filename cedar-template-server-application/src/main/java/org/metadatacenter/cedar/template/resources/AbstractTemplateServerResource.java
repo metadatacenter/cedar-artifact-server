@@ -2,11 +2,15 @@ package org.metadatacenter.cedar.template.resources;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.jetbrains.annotations.NotNull;
 import org.metadatacenter.cedar.util.dw.CedarMicroserviceResource;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.exception.CedarProcessingException;
 import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.model.validation.CEDARModelValidator;
+import org.metadatacenter.model.validation.ModelValidator;
+import org.metadatacenter.model.validation.report.ValidationReport;
 import org.metadatacenter.rest.exception.CedarAssertionException;
 import org.metadatacenter.server.jsonld.LinkedDataUtil;
 import org.metadatacenter.server.model.provenance.ProvenanceInfo;
@@ -80,4 +84,45 @@ public class AbstractTemplateServerResource extends CedarMicroserviceResource {
     }
   }
 
+  protected ValidationReport validateTemplate(JsonNode template) throws CedarException {
+    try {
+      return newModelValidator().validateTemplate(template);
+    } catch (Exception e) {
+      throw newCedarException(e.getMessage());
+    }
+  }
+
+  protected ValidationReport validateTemplateElement(JsonNode templateElement) throws CedarException {
+    try {
+      return newModelValidator().validateTemplateElement(templateElement);
+    } catch (Exception e) {
+      throw newCedarException(e.getMessage());
+    }
+  }
+
+  protected ValidationReport validateTemplateField(JsonNode templateField) throws CedarException {
+    try {
+      return newModelValidator().validateTemplateField(templateField);
+    } catch (Exception e) {
+      throw newCedarException(e.getMessage());
+    }
+  }
+
+  protected ValidationReport validateTemplateInstance(JsonNode templateInstance, JsonNode instanceSchema)
+      throws CedarException {
+    try {
+      return newModelValidator().validateTemplateInstance(templateInstance, instanceSchema);
+    } catch (Exception e) {
+      throw newCedarException(e.getMessage());
+    }
+  }
+
+  @NotNull
+  private static ModelValidator newModelValidator() {
+    return new CEDARModelValidator();
+  }
+
+  protected static CedarException newCedarException(String message) {
+    return new CedarException(message) {};
+  }
 }
