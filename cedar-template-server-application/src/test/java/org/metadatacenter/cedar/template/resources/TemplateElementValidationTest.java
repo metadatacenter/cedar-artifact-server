@@ -496,7 +496,7 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
     JsonNode responseMessage = runValidation(elementString);
     // Assert
     assertValidationStatus(responseMessage, "false");
-    assertValidationMessage(responseMessage, "A template field without value constraints must have a '@value' field at path /properties/firstName/properties/");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"@value\"])");
   }
 
   private JsonNode runValidation(String payload) {

@@ -368,7 +368,7 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
     JsonNode responseMessage = runValidation(fieldString);
     // Assert
     assertValidationStatus(responseMessage, "false");
-    assertValidationMessage(responseMessage, "object has missing required properties ([\\\"@value\\\"])");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"@value\"])");
   }
 
   @Test
