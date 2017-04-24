@@ -9,6 +9,7 @@ import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.exception.CedarProcessingException;
 import org.metadatacenter.model.CedarNodeType;
 import org.metadatacenter.model.validation.CEDARModelValidator;
+import org.metadatacenter.model.validation.CedarValidator;
 import org.metadatacenter.model.validation.ModelValidator;
 import org.metadatacenter.model.validation.report.ValidationReport;
 import org.metadatacenter.rest.exception.CedarAssertionException;
@@ -119,7 +120,7 @@ public class AbstractTemplateServerResource extends CedarMicroserviceResource {
 
   @NotNull
   private static ModelValidator newModelValidator() {
-    return new CEDARModelValidator();
+    return new CedarValidator();
   }
 
   protected static CedarException newCedarException(String message) {
