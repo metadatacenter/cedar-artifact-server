@@ -472,7 +472,7 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
     JsonNode responseMessage = runValidation(elementString);
     // Assert
     assertValidationStatus(responseMessage, "false");
-    assertValidationMessage(responseMessage, "No JSON Schema properties field in artifact at path /");
+    assertValidationMessage(responseMessage, "object has missing required properties ([\"properties\"])");
   }
 
   @Test
