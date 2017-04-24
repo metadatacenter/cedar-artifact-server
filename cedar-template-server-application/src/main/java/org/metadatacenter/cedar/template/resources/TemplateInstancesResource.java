@@ -15,6 +15,7 @@ import org.metadatacenter.model.CedarNodeType;
 import org.metadatacenter.model.request.OutputFormatType;
 import org.metadatacenter.model.request.OutputFormatTypeDetector;
 import org.metadatacenter.model.trimmer.JsonLdDocument;
+import org.metadatacenter.model.validation.report.ReportUtils;
 import org.metadatacenter.model.validation.report.ValidationReport;
 import org.metadatacenter.rest.context.CedarRequestContext;
 import org.metadatacenter.rest.context.CedarRequestContextFactory;
@@ -28,6 +29,8 @@ import org.metadatacenter.util.http.CedarUrlUtil;
 import org.metadatacenter.util.http.LinkHeaderUtil;
 import org.metadatacenter.util.http.PagedQuery;
 import org.metadatacenter.util.mongo.MongoUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.management.InstanceNotFoundException;
 import javax.ws.rs.*;
@@ -44,6 +47,8 @@ import static org.metadatacenter.rest.assertion.GenericAssertions.LoggedIn;
 @Path("/template-instances")
 @Produces(MediaType.APPLICATION_JSON)
 public class TemplateInstancesResource extends AbstractTemplateServerResource {
+
+  private static final Logger logger = LoggerFactory.getLogger(TemplateInstancesResource.class);
 
   private final TemplateInstanceService<String, JsonNode> templateInstanceService;
   private final TemplateService<String, JsonNode> templateService;
@@ -71,6 +76,7 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
     //c.must(c.request().getRequestBody()).be(NonEmpty);
     JsonNode templateInstance = c.request().getRequestBody().asJson();
     ValidationReport validationReport = validateTemplateInstance(templateInstance);
+    ReportUtils.outputLogger(logger, validationReport, true);
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     checkImportModeSetProvenanceAndId(CedarNodeType.INSTANCE, templateInstance, pi, importMode);
@@ -185,6 +191,7 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
 
     JsonNode newInstance = c.request().getRequestBody().asJson();
     ValidationReport validationReport = validateTemplateInstance(newInstance);
+    ReportUtils.outputLogger(logger, validationReport, true);
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     provenanceUtil.patchProvenanceInfo(newInstance, pi);

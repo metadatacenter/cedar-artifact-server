@@ -9,6 +9,7 @@ import org.metadatacenter.constant.HttpConstants;
 import org.metadatacenter.error.CedarErrorKey;
 import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.model.validation.report.ReportUtils;
 import org.metadatacenter.model.validation.report.ValidationReport;
 import org.metadatacenter.rest.context.CedarRequestContext;
 import org.metadatacenter.rest.context.CedarRequestContextFactory;
@@ -22,6 +23,8 @@ import org.metadatacenter.util.http.CedarUrlUtil;
 import org.metadatacenter.util.http.LinkHeaderUtil;
 import org.metadatacenter.util.http.PagedQuery;
 import org.metadatacenter.util.mongo.MongoUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.management.InstanceNotFoundException;
 import javax.ws.rs.*;
@@ -38,6 +41,8 @@ import static org.metadatacenter.rest.assertion.GenericAssertions.LoggedIn;
 @Path("/template-elements")
 @Produces(MediaType.APPLICATION_JSON)
 public class TemplateElementsResource extends AbstractTemplateServerResource {
+
+  private static final Logger logger = LoggerFactory.getLogger(TemplateInstancesResource.class);
 
   private static TemplateElementService<String, JsonNode> templateElementService;
   private static TemplateFieldService<String, JsonNode> templateFieldService;
@@ -65,6 +70,7 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
     //c.must(c.request().getRequestBody()).be(NonEmpty);
     JsonNode templateElement = c.request().getRequestBody().asJson();
     ValidationReport validationReport = validateTemplateElement(templateElement);
+    ReportUtils.outputLogger(logger, validationReport, true);
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     checkImportModeSetProvenanceAndId(CedarNodeType.ELEMENT, templateElement, pi, importMode);
@@ -186,6 +192,7 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
 
     JsonNode newElement = c.request().getRequestBody().asJson();
     ValidationReport validationReport = validateTemplateElement(newElement);
+    ReportUtils.outputLogger(logger, validationReport, true);
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     provenanceUtil.patchProvenanceInfo(newElement, pi);
