@@ -136,6 +136,16 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
   }
 
   @Test
+  public void shouldPassLinkField() {
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/link-field.json");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "true");
+  }
+
+  @Test
   public void shouldPassConstrainedTextField() {
     // Arrange
     String fieldString = TestResourcesUtils.getStringContent("fields/constrained-text-field.json");
