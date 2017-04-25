@@ -509,11 +509,15 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   }
 
   private static void assertValidationMessage(JsonNode responseMessage, String expectedValue) {
-    assertThat(responseMessage.get("errors").get(0).get("message").asText(), is(expectedValue));
+    assertThat(printReason(responseMessage), responseMessage.get("errors").get(0).get("message").asText(), is(expectedValue));
   }
 
   private static void assertValidationStatus(JsonNode responseMessage, String expectedValue) {
-    assertThat(responseMessage.get("validates").asText(), is(expectedValue));
+    assertThat(printReason(responseMessage), responseMessage.get("validates").asText(), is(expectedValue));
+  }
+
+  private static String printReason(JsonNode responseMessage) {
+    return "The server is returning a different validation report.\n(application/json): " + responseMessage.toString();
   }
 
   private JsonNode getJsonResponseMessage(Response response) {
