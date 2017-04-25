@@ -164,7 +164,7 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
     JsonNode responseMessage = runValidation(fieldString);
     // Assert
     assertValidationStatus(responseMessage, "false");
-    assertValidationMessage(responseMessage, "object has missing required properties ([\"@context\"])");
+    assertValidationMessage(responseMessage, "object has missing required properties (['@context'])");
   }
 
   @Test
@@ -187,7 +187,7 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
     JsonNode responseMessage = runValidation(fieldString);
     // Assert
     assertValidationStatus(responseMessage, "false");
-    assertValidationMessage(responseMessage, "object has missing required properties ([\"@type\"])");
+    assertValidationMessage(responseMessage, "object has missing required properties (['@type'])");
   }
 
   @Test
@@ -199,7 +199,7 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
     JsonNode responseMessage = runValidation(fieldString);
     // Assert
     assertValidationStatus(responseMessage, "false");
-    assertValidationMessage(responseMessage, "object has missing required properties ([\"type\"])");
+    assertValidationMessage(responseMessage, "object has missing required properties (['type'])");
   }
 
   @Test
@@ -211,7 +211,7 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
     JsonNode responseMessage = runValidation(fieldString);
     // Assert
     assertValidationStatus(responseMessage, "false");
-    assertValidationMessage(responseMessage, "object has missing required properties ([\"title\"])");
+    assertValidationMessage(responseMessage, "object has missing required properties (['title'])");
   }
 
   @Test
@@ -223,7 +223,7 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
     JsonNode responseMessage = runValidation(fieldString);
     // Assert
     assertValidationStatus(responseMessage, "false");
-    assertValidationMessage(responseMessage, "object has missing required properties ([\"description\"])");
+    assertValidationMessage(responseMessage, "object has missing required properties (['description'])");
   }
 
   @Test
@@ -235,7 +235,7 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
     JsonNode responseMessage = runValidation(fieldString);
     // Assert
     assertValidationStatus(responseMessage, "false");
-    assertValidationMessage(responseMessage, "object has missing required properties ([\"_ui\"])");
+    assertValidationMessage(responseMessage, "object has missing required properties (['_ui'])");
   }
 
   @Test
@@ -247,7 +247,7 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
     JsonNode responseMessage = runValidation(fieldString);
     // Assert
     assertValidationStatus(responseMessage, "false");
-    assertValidationMessage(responseMessage, "object has missing required properties ([\"properties\"])");
+    assertValidationMessage(responseMessage, "object has missing required properties (['properties'])");
   }
 
   @Test
@@ -259,7 +259,7 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
     JsonNode responseMessage = runValidation(fieldString);
     // Assert
     assertValidationStatus(responseMessage, "false");
-    assertValidationMessage(responseMessage, "object has missing required properties ([\"required\"])");
+    assertValidationMessage(responseMessage, "object has missing required properties (['required'])");
   }
 
   @Test
@@ -271,7 +271,7 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
     JsonNode responseMessage = runValidation(fieldString);
     // Assert
     assertValidationStatus(responseMessage, "false");
-    assertValidationMessage(responseMessage, "object has missing required properties ([\"_valueConstraints\"])");
+    assertValidationMessage(responseMessage, "object has missing required properties (['_valueConstraints'])");
   }
 
   @Test
@@ -283,7 +283,7 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
     JsonNode responseMessage = runValidation(fieldString);
     // Assert
     assertValidationStatus(responseMessage, "false");
-    assertValidationMessage(responseMessage, "object has missing required properties ([\"pav:createdOn\"])");
+    assertValidationMessage(responseMessage, "object has missing required properties (['pav:createdOn'])");
   }
 
   @Test
@@ -295,7 +295,7 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
     JsonNode responseMessage = runValidation(fieldString);
     // Assert
     assertValidationStatus(responseMessage, "false");
-    assertValidationMessage(responseMessage, "object has missing required properties ([\"pav:createdBy\"])");
+    assertValidationMessage(responseMessage, "object has missing required properties (['pav:createdBy'])");
   }
 
   @Test
@@ -307,7 +307,7 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
     JsonNode responseMessage = runValidation(fieldString);
     // Assert
     assertValidationStatus(responseMessage, "false");
-    assertValidationMessage(responseMessage, "object has missing required properties ([\"pav:lastUpdatedOn\"])");
+    assertValidationMessage(responseMessage, "object has missing required properties (['pav:lastUpdatedOn'])");
   }
 
   @Test
@@ -319,7 +319,7 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
     JsonNode responseMessage = runValidation(fieldString);
     // Assert
     assertValidationStatus(responseMessage, "false");
-    assertValidationMessage(responseMessage, "object has missing required properties ([\"oslc:modifiedBy\"])");
+    assertValidationMessage(responseMessage, "object has missing required properties (['oslc:modifiedBy'])");
   }
 
   @Test
@@ -331,7 +331,7 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
     JsonNode responseMessage = runValidation(fieldString);
     // Assert
     assertValidationStatus(responseMessage, "false");
-    assertValidationMessage(responseMessage, "object has missing required properties ([\"additionalProperties\"])");
+    assertValidationMessage(responseMessage, "object has missing required properties (['additionalProperties'])");
   }
 
   @Test
@@ -343,7 +343,7 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
     JsonNode responseMessage = runValidation(fieldString);
     // Assert
     assertValidationStatus(responseMessage, "false");
-    assertValidationMessage(responseMessage, "object has missing required properties ([\"$schema\"])");
+    assertValidationMessage(responseMessage, "object has missing required properties (['$schema'])");
   }
 
   @Test
@@ -355,7 +355,7 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
     JsonNode responseMessage = runValidation(fieldString);
     // Assert
     assertValidationStatus(responseMessage, "false");
-    assertValidationMessage(responseMessage, "object has missing required properties ([\"@value\"])");
+    assertValidationMessage(responseMessage, "object has missing required properties (['@value'])");
   }
 
   @Test
@@ -367,7 +367,7 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
     JsonNode responseMessage = runValidation(fieldString);
     // Assert
     assertValidationStatus(responseMessage, "false");
-    assertValidationMessage(responseMessage, "object has missing required properties ([\"@id\"])");
+    assertValidationMessage(responseMessage, "object has missing required properties (['@id'])");
   }
 
   @Test
@@ -378,7 +378,7 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
     JsonNode responseMessage = runValidation(fieldString);
     // Assert
     assertValidationStatus(responseMessage, "false");
-    assertValidationMessage(responseMessage, "object has missing required properties ([\"@value\"])");
+    assertValidationMessage(responseMessage, "object has missing required properties (['@value'])");
   }
 
   @Test
@@ -389,7 +389,7 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
     JsonNode responseMessage = runValidation(fieldString);
     // Assert
     assertValidationStatus(responseMessage, "false");
-    assertValidationMessage(responseMessage, "object has missing required properties ([\"@id\"])");
+    assertValidationMessage(responseMessage, "object has missing required properties (['@id'])");
   }
 
   @Test
@@ -400,7 +400,7 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
     JsonNode responseMessage = runValidation(fieldString);
     // Assert
     assertValidationStatus(responseMessage, "false");
-    assertValidationMessage(responseMessage, "object has invalid properties ([\"@id\"])");
+    assertValidationMessage(responseMessage, "object has invalid properties (['@id'])");
   }
 
   @Test
@@ -411,7 +411,7 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
     JsonNode responseMessage = runValidation(fieldString);
     // Assert
     assertValidationStatus(responseMessage, "false");
-    assertValidationMessage(responseMessage, "object has invalid properties ([\"@value\"])");
+    assertValidationMessage(responseMessage, "object has invalid properties (['@value'])");
   }
 
   @Test
@@ -422,7 +422,7 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
     JsonNode responseMessage = runValidation(fieldString);
     // Assert
     assertValidationStatus(responseMessage, "false");
-    assertValidationMessage(responseMessage, "object has missing required properties ([\"@value\"])");
+    assertValidationMessage(responseMessage, "object has missing required properties (['@value'])");
   }
 
   private JsonNode runValidation(String payload) {
