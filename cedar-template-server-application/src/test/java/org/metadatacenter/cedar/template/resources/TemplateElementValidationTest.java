@@ -130,6 +130,54 @@ public class TemplateElementValidationTest extends BaseTemplateResourceTest {
   }
 
   @Test
+  public void shouldFailMissingUi_Title() {
+    // Arrange
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/_ui/title");
+    // Act
+    JsonNode responseMessage = runValidation(elementString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties (['title'])");
+  }
+
+  @Test
+  public void shouldFailMissingUi_Description() {
+    // Arrange
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/_ui/description");
+    // Act
+    JsonNode responseMessage = runValidation(elementString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties (['description'])");
+  }
+
+  @Test
+  public void shouldFailMissingUi_Order() {
+    // Arrange
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/_ui/order");
+    // Act
+    JsonNode responseMessage = runValidation(elementString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties (['order'])");
+  }
+
+  @Test
+  public void shouldFailMissingUi_PropertyLabels() {
+    // Arrange
+    String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");
+    elementString = JsonUtils.removeFieldFromDocument(elementString, "/_ui/propertyLabels");
+    // Act
+    JsonNode responseMessage = runValidation(elementString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties (['propertyLabels'])");
+  }
+
+  @Test
   public void shouldFailMissingProperties() {
     // Arrange
     String elementString = TestResourcesUtils.getStringContent("elements/multi-field-element.json");

@@ -239,6 +239,42 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
   }
 
   @Test
+  public void shouldFailMissingUi_Title() {
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/text-field.json");
+    fieldString = JsonUtils.removeFieldFromDocument(fieldString, "/_ui/title");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties (['title'])");
+  }
+
+  @Test
+  public void shouldFailMissingUi_Description() {
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/text-field.json");
+    fieldString = JsonUtils.removeFieldFromDocument(fieldString, "/_ui/description");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties (['description'])");
+  }
+
+  @Test
+  public void shouldFailMissingUi_InputType() {
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/text-field.json");
+    fieldString = JsonUtils.removeFieldFromDocument(fieldString, "/_ui/inputType");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties (['inputType'])");
+  }
+
+  @Test
   public void shouldFailMissingProperties() {
     // Arrange
     String fieldString = TestResourcesUtils.getStringContent("fields/text-field.json");
