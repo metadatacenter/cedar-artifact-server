@@ -371,6 +371,78 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
   }
 
   @Test
+  public void shouldFailMissingProperties_Type() {
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/text-field.json");
+    fieldString = JsonUtils.removeFieldFromDocument(fieldString, "/properties/@type");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties (['@type'])");
+  }
+
+  @Test
+  public void shouldFailMissingProperties_CreatedOn() {
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/text-field.json");
+    fieldString = JsonUtils.removeFieldFromDocument(fieldString, "/properties/pav:createdOn");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties (['pav:createdOn'])");
+  }
+
+  @Test
+  public void shouldFailMissingProperties_CreatedBy() {
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/text-field.json");
+    fieldString = JsonUtils.removeFieldFromDocument(fieldString, "/properties/pav:createdBy");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties (['pav:createdBy'])");
+  }
+
+  @Test
+  public void shouldFailMissingProperties_LastUpdatedOn() {
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/text-field.json");
+    fieldString = JsonUtils.removeFieldFromDocument(fieldString, "/properties/pav:lastUpdatedOn");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties (['pav:lastUpdatedOn'])");
+  }
+
+  @Test
+  public void shouldFailMissingProperties_ModifiedBy() {
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/text-field.json");
+    fieldString = JsonUtils.removeFieldFromDocument(fieldString, "/properties/oslc:modifiedBy");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties (['oslc:modifiedBy'])");
+  }
+
+  @Test
+  public void shouldFailMissingProperties_ValueLabel() {
+    // Arrange
+    String fieldString = TestResourcesUtils.getStringContent("fields/text-field.json");
+    fieldString = JsonUtils.removeFieldFromDocument(fieldString, "/properties/_valueLabel");
+    // Act
+    JsonNode responseMessage = runValidation(fieldString);
+    // Assert
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties (['_valueLabel'])");
+  }
+
+  @Test
   public void shouldFailMisplacedIdProperty_InTextField() {
     // Arrange
     String fieldString = TestResourcesUtils.getStringContent("fields/value-constraints/invalid-text-field-1.json");
