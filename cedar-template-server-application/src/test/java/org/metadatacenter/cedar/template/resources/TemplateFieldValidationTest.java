@@ -431,15 +431,14 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
   }
 
   @Test
-  public void shouldFailMissingProperties_ValueLabel() {
+  public void shouldPassMissingProperties_ValueLabel() {
     // Arrange
     String fieldString = TestResourcesUtils.getStringContent("fields/text-field.json");
     fieldString = JsonUtils.removeFieldFromDocument(fieldString, "/properties/_valueLabel");
     // Act
     JsonNode responseMessage = runValidation(fieldString);
     // Assert
-    assertValidationStatus(responseMessage, "false");
-    assertValidationMessage(responseMessage, "object has missing required properties (['_valueLabel'])");
+    assertValidationStatus(responseMessage, "true");
   }
 
   @Test
