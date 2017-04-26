@@ -321,12 +321,8 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
   private static JsonNode checkInstanceSchemaExists(JsonNode templateInstance) throws CedarException {
     JsonNode isBasedOnNode = templateInstance.path(CedarModelVocabulary.SCHEMA_IS_BASED_ON);
     if (isBasedOnNode.isMissingNode()) {
-      CedarErrorPack errorPack = new CedarErrorPack()
-          .status(Response.Status.BAD_REQUEST)
-          .errorKey(CedarErrorKey.INVALID_INPUT)
-          .message(String.format("Template instance has missing a missing property (%s)",
-              CedarModelVocabulary.SCHEMA_IS_BASED_ON));
-      throw new CedarException(errorPack) {};
+      throw newBadRequestException(String.format("Template instance has missing a missing property (%s)",
+          CedarModelVocabulary.SCHEMA_IS_BASED_ON));
     }
     return templateInstance;
   }

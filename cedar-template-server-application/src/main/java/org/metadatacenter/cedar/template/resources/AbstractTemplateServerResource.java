@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.jetbrains.annotations.NotNull;
 import org.metadatacenter.cedar.util.dw.CedarMicroserviceResource;
 import org.metadatacenter.config.CedarConfig;
+import org.metadatacenter.error.CedarErrorKey;
+import org.metadatacenter.error.CedarErrorPack;
 import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.exception.CedarProcessingException;
 import org.metadatacenter.model.CedarNodeType;
@@ -17,6 +19,7 @@ import org.metadatacenter.server.jsonld.LinkedDataUtil;
 import org.metadatacenter.server.model.provenance.ProvenanceInfo;
 import org.metadatacenter.util.provenance.ProvenanceUtil;
 
+import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -125,5 +128,13 @@ public class AbstractTemplateServerResource extends CedarMicroserviceResource {
 
   protected static CedarException newCedarException(String message) {
     return new CedarException(message) {};
+  }
+
+  protected static CedarException newBadRequestException(String message) {
+    CedarErrorPack errorPack = new CedarErrorPack()
+        .status(Response.Status.BAD_REQUEST)
+        .errorKey(CedarErrorKey.INVALID_INPUT)
+        .message(message);
+    return new CedarException(errorPack){};
   }
 }
