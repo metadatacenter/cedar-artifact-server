@@ -3,7 +3,6 @@ package org.metadatacenter.cedar.template.resources;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
-import org.eclipse.jetty.http.HttpStatus;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.error.CedarErrorKey;
 import org.metadatacenter.error.CedarErrorPack;
@@ -11,8 +10,6 @@ import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.model.core.CedarModelVocabulary;
 import org.metadatacenter.model.request.ResourceType;
 import org.metadatacenter.model.request.ResourceTypeDetector;
-import org.metadatacenter.model.validation.CEDARModelValidator;
-import org.metadatacenter.model.validation.ModelValidator;
 import org.metadatacenter.model.validation.report.ValidationReport;
 import org.metadatacenter.rest.context.CedarRequestContext;
 import org.metadatacenter.rest.context.CedarRequestContextFactory;
@@ -80,16 +77,50 @@ public class CommandResource extends AbstractTemplateServerResource {
     return validationReport;
   }
 
-  private ValidationReport validateTemplateInstance(JsonNode templateInstance) throws CedarException {
+  private ValidationReport validateTemplateInstance(JsonNode payload) throws CedarException {
     try {
-      JsonNode instanceSchema = getSchemaSource(templateInstance);
-      return validateTemplateInstance(templateInstance, instanceSchema);
+      ValidationReport validationReport = null;
+      JsonNode instanceObject = getInstanceObject(payload);
+      if (hasUserSpecifiedSchema(payload)) {
+        validationReport = validateUsingUserSpecifiedSchema(payload, instanceObject);
+      } else {
+        validationReport = validateUsingInstanceSpecifiedSchema(instanceObject);
+      }
+      return validationReport;
     } catch (IOException | ProcessingException e) {
       throw newCedarException(e.getMessage());
     }
   }
 
-  private JsonNode getSchemaSource(JsonNode templateInstance) throws IOException, ProcessingException, CedarException {
+  private boolean hasUserSpecifiedSchema(JsonNode payload) {
+    return !payload.path("schema").isMissingNode() && !payload.path("schema").isNull();
+  }
+
+  private ValidationReport validateUsingUserSpecifiedSchema(JsonNode payload, JsonNode instanceObject)
+      throws CedarException {
+    JsonNode instanceSchema = payload.get("schema");
+    ValidationReport schemaValidationReport = validateTemplate(instanceSchema); // validate the input schema
+    if (schemaValidationReport.getValidationStatus().equals("false")) {
+      return schemaValidationReport; // return schema validation report instead
+    }
+    return validateTemplateInstance(instanceObject, instanceSchema);
+  }
+
+  private ValidationReport validateUsingInstanceSpecifiedSchema(JsonNode instanceObject)
+      throws IOException, ProcessingException, CedarException {
+    JsonNode instanceSchema = getSchemaObject(instanceObject);
+    return validateTemplateInstance(instanceObject, instanceSchema);
+  }
+
+  private static JsonNode getInstanceObject(JsonNode payload) throws CedarException {
+    JsonNode instanceObject = payload;
+    if (!payload.path("instance").isMissingNode()) {
+      instanceObject = payload.get("instance");
+    }
+    return instanceObject;
+  }
+
+  private JsonNode getSchemaObject(JsonNode templateInstance) throws IOException, ProcessingException, CedarException {
     checkInstanceSchemaExists(templateInstance);
     String templateRefId = templateInstance.get(CedarModelVocabulary.SCHEMA_IS_BASED_ON).asText();
     JsonNode template = templateService.findTemplate(templateRefId);
