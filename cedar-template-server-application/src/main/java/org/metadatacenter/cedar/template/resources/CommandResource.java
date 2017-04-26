@@ -131,7 +131,7 @@ public class CommandResource extends AbstractTemplateServerResource {
   private static JsonNode checkInstanceSchemaExists(JsonNode templateInstance) throws CedarException {
     JsonNode isBasedOnNode = templateInstance.path(CedarModelVocabulary.SCHEMA_IS_BASED_ON);
     if (isBasedOnNode.isMissingNode()) {
-      throw newBadRequestException(String.format("Template instance has missing a missing property (%s)",
+      throw newBadRequestException(String.format("Template instance has a missing property ('%s')",
           CedarModelVocabulary.SCHEMA_IS_BASED_ON));
     }
     return templateInstance;
