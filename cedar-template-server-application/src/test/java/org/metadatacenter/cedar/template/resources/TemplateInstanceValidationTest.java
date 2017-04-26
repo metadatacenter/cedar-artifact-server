@@ -130,16 +130,13 @@ public class TemplateInstanceValidationTest extends BaseTemplateResourceTest {
     assertValidationMessage(responseMessage, "object has missing required properties (['@id'])");
   }
 
-  @Test
+  @Test(expected=RuntimeException.class) // 400: Bad Request
   public void shouldFailMissingIsBasedOn() {
     // Arrange
     String instanceString = TestResourcesUtils.getStringContent("instances/multi-field-instance.jsonld");
     instanceString = JsonUtils.removeFieldFromDocument(instanceString, "/schema:isBasedOn");
     // Act
-    JsonNode responseMessage = runValidation(instanceString);
-    // Assert
-    assertValidationStatus(responseMessage, "false");
-    assertValidationMessage(responseMessage, "object has missing required properties (['schema:isBasedOn'])");
+    runValidation(instanceString);
   }
 
   @Test

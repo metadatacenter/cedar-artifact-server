@@ -12,6 +12,7 @@ import org.metadatacenter.error.CedarErrorPack;
 import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.exception.CedarProcessingException;
 import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.model.core.CedarModelVocabulary;
 import org.metadatacenter.model.request.OutputFormatType;
 import org.metadatacenter.model.request.OutputFormatTypeDetector;
 import org.metadatacenter.model.trimmer.JsonLdDocument;
@@ -309,10 +310,24 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
     }
   }
 
-  private JsonNode getSchemaSource(JsonNode templateInstance) throws IOException, ProcessingException {
-    String templateRefId = templateInstance.get("schema:isBasedOn").asText();
+  private JsonNode getSchemaSource(JsonNode templateInstance) throws IOException, ProcessingException, CedarException {
+    checkInstanceSchemaExists(templateInstance);
+    String templateRefId = templateInstance.get(CedarModelVocabulary.SCHEMA_IS_BASED_ON).asText();
     JsonNode template = templateService.findTemplate(templateRefId);
     MongoUtils.removeIdField(template);
     return template;
+  }
+
+  private static JsonNode checkInstanceSchemaExists(JsonNode templateInstance) throws CedarException {
+    JsonNode isBasedOnNode = templateInstance.path(CedarModelVocabulary.SCHEMA_IS_BASED_ON);
+    if (isBasedOnNode.isMissingNode()) {
+      CedarErrorPack errorPack = new CedarErrorPack()
+          .status(Response.Status.BAD_REQUEST)
+          .errorKey(CedarErrorKey.INVALID_INPUT)
+          .message(String.format("Template instance has missing a missing property (%s)",
+              CedarModelVocabulary.SCHEMA_IS_BASED_ON));
+      throw new CedarException(errorPack) {};
+    }
+    return templateInstance;
   }
 }

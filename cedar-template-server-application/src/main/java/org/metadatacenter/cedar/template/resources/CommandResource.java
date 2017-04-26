@@ -3,10 +3,12 @@ package org.metadatacenter.cedar.template.resources;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
+import org.eclipse.jetty.http.HttpStatus;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.error.CedarErrorKey;
 import org.metadatacenter.error.CedarErrorPack;
 import org.metadatacenter.exception.CedarException;
+import org.metadatacenter.model.core.CedarModelVocabulary;
 import org.metadatacenter.model.request.ResourceType;
 import org.metadatacenter.model.request.ResourceTypeDetector;
 import org.metadatacenter.model.validation.CEDARModelValidator;
@@ -87,10 +89,24 @@ public class CommandResource extends AbstractTemplateServerResource {
     }
   }
 
-  private JsonNode getSchemaSource(JsonNode templateInstance) throws IOException, ProcessingException {
-    String templateRefId = templateInstance.get("schema:isBasedOn").asText();
+  private JsonNode getSchemaSource(JsonNode templateInstance) throws IOException, ProcessingException, CedarException {
+    checkInstanceSchemaExists(templateInstance);
+    String templateRefId = templateInstance.get(CedarModelVocabulary.SCHEMA_IS_BASED_ON).asText();
     JsonNode template = templateService.findTemplate(templateRefId);
     MongoUtils.removeIdField(template);
     return template;
+  }
+
+  private static JsonNode checkInstanceSchemaExists(JsonNode templateInstance) throws CedarException {
+    JsonNode isBasedOnNode = templateInstance.path(CedarModelVocabulary.SCHEMA_IS_BASED_ON);
+    if (isBasedOnNode.isMissingNode()) {
+      CedarErrorPack errorPack = new CedarErrorPack()
+          .status(Response.Status.BAD_REQUEST)
+          .errorKey(CedarErrorKey.INVALID_INPUT)
+          .message(String.format("Template instance has missing a missing property (%s)",
+              CedarModelVocabulary.SCHEMA_IS_BASED_ON));
+      throw new CedarException(errorPack) {};
+    }
+    return templateInstance;
   }
 }
