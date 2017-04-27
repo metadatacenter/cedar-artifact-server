@@ -2,8 +2,6 @@ package org.metadatacenter.cedar.template.resources;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -16,12 +14,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TemplateInstanceValidationTest extends BaseTemplateResourceTest {
-
-  private String singleFieldTemplateId;
-  private String multiFieldTemplateId;
-  private String multivaluedFieldTemplateId;
-  private String multivaluedElementTemplateId;
-  private String nestedElementTemplateId;
 
   private static String singleFieldTemplate;
   private static String multiFieldTemplate;
@@ -38,30 +30,13 @@ public class TemplateInstanceValidationTest extends BaseTemplateResourceTest {
     nestedElementTemplate = TestResourcesUtils.getStringContent("templates/nested-element-template.json");
   }
 
-  @Before
-  public void uploadTemplates() {
-    singleFieldTemplateId = uploadTemplate(singleFieldTemplate);
-    multiFieldTemplateId = uploadTemplate(multiFieldTemplate);
-    multivaluedFieldTemplateId = uploadTemplate(multivaluedFieldTemplate);
-    multivaluedElementTemplateId = uploadTemplate(multivaluedElementTemplate);
-    nestedElementTemplateId = uploadTemplate(nestedElementTemplate);
-  }
-
-  @After
-  public void removeTemplates() {
-    removeTemplate(singleFieldTemplateId);
-    removeTemplate(multiFieldTemplateId);
-    removeTemplate(multivaluedFieldTemplateId);
-    removeTemplate(multivaluedElementTemplateId);
-    removeTemplate(nestedElementTemplateId);
-  }
-
   @Test
   public void shouldPassSingleFieldInstance() {
     // Arrange
     String instanceString = TestResourcesUtils.getStringContent("instances/single-field-instance.jsonld");
+    String payload = createPayload(instanceString, singleFieldTemplate);
     // Act
-    JsonNode responseMessage = runValidation(instanceString);
+    JsonNode responseMessage = runValidation(payload);
     // Assert
     assertValidationStatus(responseMessage, "true");
   }
@@ -70,8 +45,9 @@ public class TemplateInstanceValidationTest extends BaseTemplateResourceTest {
   public void shouldPassMultiFieldInstance() {
     // Arrange
     String instanceString = TestResourcesUtils.getStringContent("instances/multi-field-instance.jsonld");
+    String payload = createPayload(instanceString, multiFieldTemplate);
     // Act
-    JsonNode responseMessage = runValidation(instanceString);
+    JsonNode responseMessage = runValidation(payload);
     // Assert
     assertValidationStatus(responseMessage, "true");
   }
@@ -80,8 +56,9 @@ public class TemplateInstanceValidationTest extends BaseTemplateResourceTest {
   public void shouldPassMultivaluedFieldInstance() {
     // Arrange
     String instanceString = TestResourcesUtils.getStringContent("instances/multivalued-field-instance.jsonld");
+    String payload = createPayload(instanceString, multivaluedFieldTemplate);
     // Act
-    JsonNode responseMessage = runValidation(instanceString);
+    JsonNode responseMessage = runValidation(payload);
     // Assert
     assertValidationStatus(responseMessage, "true");
   }
@@ -90,8 +67,9 @@ public class TemplateInstanceValidationTest extends BaseTemplateResourceTest {
   public void shouldPassMultivaluedElementInstance() {
     // Arrange
     String instanceString = TestResourcesUtils.getStringContent("instances/multivalued-element-instance.jsonld");
+    String payload = createPayload(instanceString, multivaluedElementTemplate);
     // Act
-    JsonNode responseMessage = runValidation(instanceString);
+    JsonNode responseMessage = runValidation(payload);
     // Assert
     assertValidationStatus(responseMessage, "true");
   }
@@ -100,8 +78,9 @@ public class TemplateInstanceValidationTest extends BaseTemplateResourceTest {
   public void shouldPassNestedElementInstance() {
     // Arrange
     String instanceString = TestResourcesUtils.getStringContent("instances/nested-element-instance.jsonld");
+    String payload = createPayload(instanceString, nestedElementTemplate);
     // Act
-    JsonNode responseMessage = runValidation(instanceString);
+    JsonNode responseMessage = runValidation(payload);
     // Assert
     assertValidationStatus(responseMessage, "true");
   }
@@ -111,8 +90,9 @@ public class TemplateInstanceValidationTest extends BaseTemplateResourceTest {
     // Arrange
     String instanceString = TestResourcesUtils.getStringContent("instances/multi-field-instance.jsonld");
     instanceString = JsonUtils.removeFieldFromDocument(instanceString, "/@context");
+    String payload = createPayload(instanceString, multiFieldTemplate);
     // Act
-    JsonNode responseMessage = runValidation(instanceString);
+    JsonNode responseMessage = runValidation(payload);
     // Assert
     assertValidationStatus(responseMessage, "false");
     assertValidationMessage(responseMessage, "object has missing required properties (['@context'])");
@@ -123,20 +103,12 @@ public class TemplateInstanceValidationTest extends BaseTemplateResourceTest {
     // Arrange
     String instanceString = TestResourcesUtils.getStringContent("instances/multi-field-instance.jsonld");
     instanceString = JsonUtils.removeFieldFromDocument(instanceString, "/@id");
+    String payload = createPayload(instanceString, multiFieldTemplate);
     // Act
-    JsonNode responseMessage = runValidation(instanceString);
+    JsonNode responseMessage = runValidation(payload);
     // Assert
     assertValidationStatus(responseMessage, "false");
     assertValidationMessage(responseMessage, "object has missing required properties (['@id'])");
-  }
-
-  @Test(expected=RuntimeException.class) // 400: Bad Request
-  public void shouldFailMissingIsBasedOn() {
-    // Arrange
-    String instanceString = TestResourcesUtils.getStringContent("instances/multi-field-instance.jsonld");
-    instanceString = JsonUtils.removeFieldFromDocument(instanceString, "/schema:isBasedOn");
-    // Act
-    runValidation(instanceString);
   }
 
   @Test
@@ -144,8 +116,9 @@ public class TemplateInstanceValidationTest extends BaseTemplateResourceTest {
     // Arrange
     String instanceString = TestResourcesUtils.getStringContent("instances/multi-field-instance.jsonld");
     instanceString = JsonUtils.removeFieldFromDocument(instanceString, "/schema:name");
+    String payload = createPayload(instanceString, multiFieldTemplate);
     // Act
-    JsonNode responseMessage = runValidation(instanceString);
+    JsonNode responseMessage = runValidation(payload);
     // Assert
     assertValidationStatus(responseMessage, "false");
     assertValidationMessage(responseMessage, "object has missing required properties (['schema:name'])");
@@ -156,8 +129,9 @@ public class TemplateInstanceValidationTest extends BaseTemplateResourceTest {
     // Arrange
     String instanceString = TestResourcesUtils.getStringContent("instances/multi-field-instance.jsonld");
     instanceString = JsonUtils.removeFieldFromDocument(instanceString, "/schema:description");
+    String payload = createPayload(instanceString, multiFieldTemplate);
     // Act
-    JsonNode responseMessage = runValidation(instanceString);
+    JsonNode responseMessage = runValidation(payload);
     // Assert
     assertValidationStatus(responseMessage, "false");
     assertValidationMessage(responseMessage, "object has missing required properties (['schema:description'])");
@@ -168,8 +142,9 @@ public class TemplateInstanceValidationTest extends BaseTemplateResourceTest {
     // Arrange
     String instanceString = TestResourcesUtils.getStringContent("instances/multi-field-instance.jsonld");
     instanceString = JsonUtils.removeFieldFromDocument(instanceString, "/pav:createdOn");
+    String payload = createPayload(instanceString, multiFieldTemplate);
     // Act
-    JsonNode responseMessage = runValidation(instanceString);
+    JsonNode responseMessage = runValidation(payload);
     // Assert
     assertValidationStatus(responseMessage, "false");
     assertValidationMessage(responseMessage, "object has missing required properties (['pav:createdOn'])");
@@ -180,8 +155,9 @@ public class TemplateInstanceValidationTest extends BaseTemplateResourceTest {
     // Arrange
     String instanceString = TestResourcesUtils.getStringContent("instances/multi-field-instance.jsonld");
     instanceString = JsonUtils.removeFieldFromDocument(instanceString, "/pav:createdBy");
+    String payload = createPayload(instanceString, multiFieldTemplate);
     // Act
-    JsonNode responseMessage = runValidation(instanceString);
+    JsonNode responseMessage = runValidation(payload);
     // Assert
     assertValidationStatus(responseMessage, "false");
     assertValidationMessage(responseMessage, "object has missing required properties (['pav:createdBy'])");
@@ -192,8 +168,9 @@ public class TemplateInstanceValidationTest extends BaseTemplateResourceTest {
     // Arrange
     String instanceString = TestResourcesUtils.getStringContent("instances/multi-field-instance.jsonld");
     instanceString = JsonUtils.removeFieldFromDocument(instanceString, "/pav:lastUpdatedOn");
+    String payload = createPayload(instanceString, multiFieldTemplate);
     // Act
-    JsonNode responseMessage = runValidation(instanceString);
+    JsonNode responseMessage = runValidation(payload);
     // Assert
     assertValidationStatus(responseMessage, "false");
     assertValidationMessage(responseMessage, "object has missing required properties (['pav:lastUpdatedOn'])");
@@ -204,8 +181,9 @@ public class TemplateInstanceValidationTest extends BaseTemplateResourceTest {
     // Arrange
     String instanceString = TestResourcesUtils.getStringContent("instances/multi-field-instance.jsonld");
     instanceString = JsonUtils.removeFieldFromDocument(instanceString, "/oslc:modifiedBy");
+    String payload = createPayload(instanceString, multiFieldTemplate);
     // Act
-    JsonNode responseMessage = runValidation(instanceString);
+    JsonNode responseMessage = runValidation(payload);
     // Assert
     assertValidationStatus(responseMessage, "false");
     assertValidationMessage(responseMessage, "object has missing required properties (['oslc:modifiedBy'])");
@@ -216,11 +194,16 @@ public class TemplateInstanceValidationTest extends BaseTemplateResourceTest {
     // Arrange
     String instanceString = TestResourcesUtils.getStringContent("instances/multi-field-instance.jsonld");
     instanceString = JsonUtils.removeFieldFromDocument(instanceString, "/studyName");
+    String payload = createPayload(instanceString, multiFieldTemplate);
     // Act
-    JsonNode responseMessage = runValidation(instanceString);
+    JsonNode responseMessage = runValidation(payload);
     // Assert
     assertValidationStatus(responseMessage, "false");
     assertValidationMessage(responseMessage, "object has missing required properties (['studyName'])");
+  }
+
+  private static String createPayload(String instance, String schema) {
+    return String.format("{ \"instance\": %s,\n\"schema\": %s }", instance, schema);
   }
 
   private JsonNode runValidation(String payload) {
@@ -233,11 +216,13 @@ public class TemplateInstanceValidationTest extends BaseTemplateResourceTest {
   }
 
   private static void assertValidationMessage(JsonNode responseMessage, String expectedValue) {
-    assertThat(printReason(responseMessage), responseMessage.get("errors").get(0).get("message").asText(), is(expectedValue));
+    String errorMessage = responseMessage.get("errors").get(0).get("message").asText();
+    assertThat(printReason(responseMessage), errorMessage, is(expectedValue));
   }
 
   private static void assertValidationStatus(JsonNode responseMessage, String expectedValue) {
-    assertThat(printReason(responseMessage), responseMessage.get("validates").asText(), is(expectedValue));
+    String statusMessage = responseMessage.get("validates").asText();
+    assertThat(printReason(responseMessage), statusMessage, is(expectedValue));
   }
 
   private static String printReason(JsonNode responseMessage) {
