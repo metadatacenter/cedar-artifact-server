@@ -71,9 +71,20 @@
       "format": "uri"
     },
     "@type": {
-      "type": "string",
-      "enum": [
-        "xsd:decimal"
+      "oneOf": [
+        {
+          "type": "string",
+          "format": "uri"
+        },
+        {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "format": "uri"
+          },
+          "uniqueItems": true
+        }
       ]
     }
   },
