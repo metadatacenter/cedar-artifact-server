@@ -168,14 +168,15 @@ public class TemplateFieldValidationTest extends BaseTemplateResourceTest {
   }
 
   @Test
-  public void shouldPassMissingId() {
+  public void shouldFailMissingId() {
     // Arrange
     String fieldString = TestResourcesUtils.getStringContent("fields/text-field.json");
     fieldString = JsonUtils.removeFieldFromDocument(fieldString, "/@id");
     // Act
     JsonNode responseMessage = runValidation(fieldString);
     // Assert
-    assertValidationStatus(responseMessage, "true");
+    assertValidationStatus(responseMessage, "false");
+    assertValidationMessage(responseMessage, "object has missing required properties (['@id'])");
   }
 
   @Test
