@@ -3,30 +3,23 @@ package org.metadatacenter.cedar.template.resources.crud;
 import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.testing.ResourceHelpers;
 import io.dropwizard.testing.junit.DropwizardAppRule;
-import junitparams.Parameters;
-import junitparams.naming.TestCaseName;
 import org.glassfish.jersey.client.ClientProperties;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Test;
 import org.metadatacenter.cedar.template.TemplateServerApplication;
 import org.metadatacenter.cedar.template.TemplateServerConfiguration;
 import org.metadatacenter.cedar.template.resources.utils.TestConstants;
-import org.metadatacenter.config.CedarConfig;
+import org.metadatacenter.cedar.template.resources.utils.TestUtil;
+import org.metadatacenter.model.CedarNodeType;
 import org.metadatacenter.util.test.TestUserUtil;
-import org.metadatacenter.util.test.TestUtil;
 
-import javax.annotation.Nonnull;
 import javax.ws.rs.client.Client;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Response;
-
-import java.util.HashMap;
 import java.util.Map;
 
-import static org.metadatacenter.cedar.template.resources.utils.TestConstants.TEMPLATE_ROUTE;
-import static org.metadatacenter.constant.HttpConstants.HTTP_HEADER_AUTHORIZATION;
+import static org.metadatacenter.cedar.template.resources.utils.TestConstants.DEFAULT_TIMEOUT;
+import static org.metadatacenter.cedar.template.resources.utils.TestConstants.TEST_CLIENT_NAME;
+import static org.metadatacenter.cedar.template.resources.utils.TestConstants.TEST_CONFIG_FILE;
 
 public class AbstractResourceCrudTest {
 
@@ -34,34 +27,35 @@ public class AbstractResourceCrudTest {
   protected static String authHeader;
   protected static Client testClient;
 
-  static {
-    Map<String, String> env = new HashMap<>();
-    env.putAll(System.getenv());
-    env.put("CEDAR_MONGO_USER_NAME", "bla");
-    TestUtil.setEnv(env);
-  }
+  protected static Map<String, CedarNodeType> createdResources;
 
   @ClassRule
   public static final DropwizardAppRule<TemplateServerConfiguration> SERVER_APPLICATION =
       new DropwizardAppRule<>(TemplateServerApplication.class,
-          ResourceHelpers.resourceFilePath("test-config.yml"));
+          ResourceHelpers.resourceFilePath(TEST_CONFIG_FILE));
 
   @BeforeClass
-  public static void setBaseTestUrl() {
+  public static void oneTimeSetUpAbstract() {
+    // Get authorization header for TestUser1
+    authHeader = TestUserUtil.getTestUser1AuthHeader(TestUtil.getCedarConfig());
+
+    // Test server url
     baseTestUrl = TestConstants.BASE_URL + ":" + SERVER_APPLICATION.getLocalPort();
-    authHeader = TestUserUtil.getTestUser1AuthHeader(CedarConfig.getInstance());
-  }
 
-  @BeforeClass
-  public static void fetchAuthHeader() {
-    authHeader = TestUserUtil.getTestUser1AuthHeader(CedarConfig.getInstance());
-  }
+    // Set up test client
+    testClient = new JerseyClientBuilder(SERVER_APPLICATION.getEnvironment()).build(TEST_CLIENT_NAME);
+    testClient.property(ClientProperties.READ_TIMEOUT, DEFAULT_TIMEOUT);
+    testClient.property(ClientProperties.CONNECT_TIMEOUT, DEFAULT_TIMEOUT);
 
-  @BeforeClass
-  public static void createTestClient() {
-    testClient = new JerseyClientBuilder(SERVER_APPLICATION.getEnvironment()).build("TestClient");
-    testClient.property(ClientProperties.READ_TIMEOUT, 3000); // 3s
-    testClient.property(ClientProperties.CONNECT_TIMEOUT, 3000); // 3s
+
+    //****
+    String host = TestUtil.getCedarConfig().getHost();
+    String base = TestUtil.getCedarConfig().getServers().getTemplate().getBase();
+    String port = TestUtil.getCedarConfig().getServers().getTemplate().getBase();
+    String a = "2";
+
+
+
   }
 
   @AfterClass
@@ -70,29 +64,5 @@ public class AbstractResourceCrudTest {
       testClient.close();
     }
   }
-
-//  protected Response sendGetRequest(@Nonnull String requestUrl) {
-//    Response response = testClient.target(requestUrl)
-//        .request()
-//        .header(HTTP_HEADER_AUTHORIZATION, authHeaderValue)
-//        .get();
-//    return response;
-//  }
-//
-//  protected Response sendPostRequest(@Nonnull String requestUrl, @Nonnull Object payload) {
-//    Response response = testClient.target(requestUrl)
-//        .request()
-//        .header(HTTP_HEADER_AUTHORIZATION, authHeaderValue)
-//        .post(Entity.json(payload));
-//    return response;
-//  }
-//
-//  protected Response sendDeleteRequest(@Nonnull String requestUrl) {
-//    Response response = testClient.target(requestUrl)
-//        .request()
-//        .header(HTTP_HEADER_AUTHORIZATION, authHeaderValue)
-//        .delete();
-//    return response;
-//  }
 
 }

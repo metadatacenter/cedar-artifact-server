@@ -6,7 +6,9 @@ import org.metadatacenter.bridge.CedarDataServices;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.config.MongoConfig;
 import org.metadatacenter.config.MongoConnection;
+import org.metadatacenter.config.environment.CedarEnvironmentVariableProvider;
 import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.model.SystemComponent;
 import org.metadatacenter.server.service.TemplateElementService;
 import org.metadatacenter.server.service.TemplateFieldService;
 import org.metadatacenter.server.service.TemplateInstanceService;
@@ -18,6 +20,7 @@ import org.metadatacenter.server.service.mongodb.TemplateServiceMongoDB;
 import org.metadatacenter.util.json.JsonMapper;
 
 import java.io.IOException;
+import java.util.Map;
 
 public class TestUtil {
 
@@ -28,10 +31,7 @@ public class TestUtil {
   public static TemplateInstanceService<String, JsonNode> templateInstanceService;
 
   static {
-    cedarConfig = CedarConfig.getInstance();
-
-    //MongoConnection mongoConnectionTest = cedarConfig.getTemplateServerConfig().getMongoConnection();
-    //mongoConnectionTest.setDatabaseName(cedarConfig.getTemplateServerConfig().getDatabaseNameTest());
+    cedarConfig = getCedarConfig();
 
     CedarDataServices.initializeMongoClientFactoryForDocuments(
         cedarConfig.getTemplateServerConfig().getMongoConnection());
@@ -40,17 +40,24 @@ public class TestUtil {
     templateElementService = new TemplateElementServiceMongoDB(
         mongoClientForDocuments,
         cedarConfig.getTemplateServerConfig().getDatabaseName(),
-        cedarConfig.getMongoCollectionName(CedarNodeType.ELEMENT));
+        cedarConfig.getTemplateServerConfig().getMongoCollectionName(CedarNodeType.ELEMENT));
 
     templateService = new TemplateServiceMongoDB(
         mongoClientForDocuments,
         cedarConfig.getTemplateServerConfig().getDatabaseName(),
-        cedarConfig.getMongoCollectionName(CedarNodeType.TEMPLATE));
+        cedarConfig.getTemplateServerConfig().getMongoCollectionName(CedarNodeType.TEMPLATE));
 
     templateInstanceService = new TemplateInstanceServiceMongoDB(
         mongoClientForDocuments,
         cedarConfig.getTemplateServerConfig().getDatabaseName(),
-        cedarConfig.getMongoCollectionName(CedarNodeType.INSTANCE));
+        cedarConfig.getTemplateServerConfig().getMongoCollectionName(CedarNodeType.INSTANCE));
+  }
+
+  public static CedarConfig getCedarConfig() {
+    SystemComponent systemComponent = SystemComponent.SERVER_TEMPLATE;
+    Map<String, String> environment = CedarEnvironmentVariableProvider.getFor(systemComponent);
+    CedarConfig cedarConfig = CedarConfig.getInstance(environment);
+    return cedarConfig;
   }
 
   public static JsonNode readFileAsJson(String path) throws IOException {

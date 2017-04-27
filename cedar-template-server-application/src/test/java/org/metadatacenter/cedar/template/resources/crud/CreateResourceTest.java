@@ -82,73 +82,73 @@ public class CreateResourceTest extends AbstractResourceCrudTest {
    * 'CREATE' TESTS
    */
 
-  @Test
-  @TestCaseName(TEST_NAME_PATTERN)
-  @Parameters(method = "getCommonParams1")
-  public void createResourceTest(String resourceUrlRoute, JsonNode sampleResource) {
-    String url = baseTestUrl + resourceUrlRoute;
-    // Service invocation
-    Response response = testClient.target(url).request().header("Authorization", authHeader).post(Entity.json
-        (sampleResource));
-    // Check HTTP response
-    Assert.assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
-    // Retrieve the resource created
-    String location = response.getHeaderString(LOCATION);
-    Response findResponse = testClient.target(location).request().header("Authorization", authHeader).get();
-    JsonNode expected = sampleResource;
-    JsonNode actual = findResponse.readEntity(JsonNode.class);
-    // Check that id and provenance information have been generated
-    Assert.assertNotEquals(actual.get(ID_FIELD), null);
-    for (String provField : PROV_FIELDS) {
-      Assert.assertNotEquals(actual.get(provField), null);
-    }
-    // Check that all the other fields contain the expected values
-    ((ObjectNode) expected).remove(ID_FIELD);
-    ((ObjectNode) actual).remove(ID_FIELD);
-    for (String provField : PROV_FIELDS) {
-      ((ObjectNode) expected).remove(provField);
-      ((ObjectNode) actual).remove(provField);
-    }
-    Assert.assertEquals(expected, actual);
-  }
+//  @Test
+//  @TestCaseName(TEST_NAME_PATTERN)
+//  @Parameters(method = "getCommonParams1")
+//  public void createResourceTest(String resourceUrlRoute, JsonNode sampleResource) {
+//    String url = baseTestUrl + resourceUrlRoute;
+//    // Service invocation
+//    Response response = testClient.target(url).request().header("Authorization", authHeader).post(Entity.json
+//        (sampleResource));
+//    // Check HTTP response
+//    Assert.assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
+//    // Retrieve the resource created
+//    String location = response.getHeaderString(LOCATION);
+//    Response findResponse = testClient.target(location).request().header("Authorization", authHeader).get();
+//    JsonNode expected = sampleResource;
+//    JsonNode actual = findResponse.readEntity(JsonNode.class);
+//    // Check that id and provenance information have been generated
+//    Assert.assertNotEquals(actual.get(ID_FIELD), null);
+//    for (String provField : PROV_FIELDS) {
+//      Assert.assertNotEquals(actual.get(provField), null);
+//    }
+//    // Check that all the other fields contain the expected values
+//    ((ObjectNode) expected).remove(ID_FIELD);
+//    ((ObjectNode) actual).remove(ID_FIELD);
+//    for (String provField : PROV_FIELDS) {
+//      ((ObjectNode) expected).remove(provField);
+//      ((ObjectNode) actual).remove(provField);
+//    }
+//    Assert.assertEquals(expected, actual);
+//  }
 
-  @Test
-  @TestCaseName(TEST_NAME_PATTERN)
-  @Parameters(method = "getCommonParams2")
-  public void createResourceMalformedBodyTest(String resourceUrlRoute) {
-    String url = baseTestUrl + resourceUrlRoute;
-    // Post empty json
-    Response response1 = testClient.target(url).request().header("Authorization", authHeader).post(Entity.json(""));
-    // Check HTTP response
-    Assert.assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response1.getStatus());
-    // Post invalid json
-    Response response2 = testClient.target(url).request().header("Authorization", authHeader).post(Entity.json(INVALID_JSON));
-    // Check HTTP response
-    Assert.assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response2.getStatus());
-  }
-
-  @Test
-  @TestCaseName(TEST_NAME_PATTERN)
-  @Parameters(method = "getCommonParams1")
-  public void createResourceMissingAuthorizationHeaderTest(String resourceUrlRoute, String sampleResource) {
-    String url = baseTestUrl + resourceUrlRoute;
-    // Service invocation without Authorization header
-    Response response = testClient.target(url).request().post(Entity.json(sampleResource));
-    // Check HTTP response
-    Assert.assertEquals(Response.Status.FORBIDDEN.getStatusCode(), response.getStatus());
-  }
-
-  @Test
-  @TestCaseName(TEST_NAME_PATTERN)
-  @Parameters(method = "getCommonParams1")
-  public void createResourceUnauthorizedKeyTest(String resourceUrlRoute, String sampleResource) {
-    String url = baseTestUrl + resourceUrlRoute;
-    String newAuthHeader = "apiKey " + NON_EXISTENT_API_KEY;
-    // Service invocation without unauthorized api key
-    Response response = testClient.target(url).request().header("Authorization", newAuthHeader).post(Entity.json(sampleResource));
-    // Check HTTP response
-    Assert.assertEquals(Response.Status.FORBIDDEN.getStatusCode(), response.getStatus());
-  }
+//  @Test
+//  @TestCaseName(TEST_NAME_PATTERN)
+//  @Parameters(method = "getCommonParams2")
+//  public void createResourceMalformedBodyTest(String resourceUrlRoute) {
+//    String url = baseTestUrl + resourceUrlRoute;
+//    // Post empty json
+//    Response response1 = testClient.target(url).request().header("Authorization", authHeader).post(Entity.json(""));
+//    // Check HTTP response
+//    Assert.assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response1.getStatus());
+//    // Post invalid json
+//    Response response2 = testClient.target(url).request().header("Authorization", authHeader).post(Entity.json(INVALID_JSON));
+//    // Check HTTP response
+//    Assert.assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response2.getStatus());
+//  }
+//
+//  @Test
+//  @TestCaseName(TEST_NAME_PATTERN)
+//  @Parameters(method = "getCommonParams1")
+//  public void createResourceMissingAuthorizationHeaderTest(String resourceUrlRoute, String sampleResource) {
+//    String url = baseTestUrl + resourceUrlRoute;
+//    // Service invocation without Authorization header
+//    Response response = testClient.target(url).request().post(Entity.json(sampleResource));
+//    // Check HTTP response
+//    Assert.assertEquals(Response.Status.FORBIDDEN.getStatusCode(), response.getStatus());
+//  }
+//
+//  @Test
+//  @TestCaseName(TEST_NAME_PATTERN)
+//  @Parameters(method = "getCommonParams1")
+//  public void createResourceUnauthorizedKeyTest(String resourceUrlRoute, String sampleResource) {
+//    String url = baseTestUrl + resourceUrlRoute;
+//    String newAuthHeader = "apiKey " + NON_EXISTENT_API_KEY;
+//    // Service invocation without unauthorized api key
+//    Response response = testClient.target(url).request().header("Authorization", newAuthHeader).post(Entity.json(sampleResource));
+//    // Check HTTP response
+//    Assert.assertEquals(Response.Status.FORBIDDEN.getStatusCode(), response.getStatus());
+//  }
 
   /***
    * Helper methods
@@ -167,16 +167,16 @@ public class CreateResourceTest extends AbstractResourceCrudTest {
    */
 
   // String resourceUrlRoute, String sampleResource
-  private Object getCommonParams1() {
-    return new Object[]{
-        new Object[]{TEMPLATE_ROUTE, sampleTemplate},
-        new Object[]{ELEMENT_ROUTE, sampleElement},
-        new Object[]{INSTANCE_ROUTE, sampleInstance}
-    };
-  }
+//  private Object getCommonParams1() {
+//    return new Object[]{
+//        new Object[]{TEMPLATE_ROUTE, sampleTemplate},
+//        new Object[]{ELEMENT_ROUTE, sampleElement},
+//        new Object[]{INSTANCE_ROUTE, sampleInstance}
+//    };
+//  }
 
   // String sampleResource
-  private Object getCommonParams2() {
-    return new Object[]{TEMPLATE_ROUTE, ELEMENT_ROUTE, INSTANCE_ROUTE};
-  }
+//  private Object getCommonParams2() {
+//    return new Object[]{TEMPLATE_ROUTE, ELEMENT_ROUTE, INSTANCE_ROUTE};
+//  }
 }

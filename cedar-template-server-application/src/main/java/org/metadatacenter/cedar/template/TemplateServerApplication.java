@@ -37,13 +37,12 @@ public class TemplateServerApplication extends CedarMicroserviceApplication<Temp
 
   @Override
   public void initializeApp() {
+
     MongoConfig templateServerConfig = cedarConfig.getTemplateServerConfig();
     CedarDataServices.initializeMongoClientFactoryForDocuments(templateServerConfig.getMongoConnection());
 
     MongoClient mongoClientForDocuments = CedarDataServices.getMongoClientFactoryForDocuments().getClient();
-    templateFieldService = new TemplateFieldServiceMongoDB(
-        mongoClientForDocuments,
-        templateServerConfig.getDatabaseName(),
+    templateFieldService = new TemplateFieldServiceMongoDB(mongoClientForDocuments, templateServerConfig.getDatabaseName(),
         templateServerConfig.getMongoCollectionName(CedarNodeType.FIELD));
 
     templateElementService = new TemplateElementServiceMongoDB(
@@ -60,6 +59,7 @@ public class TemplateServerApplication extends CedarMicroserviceApplication<Temp
         mongoClientForDocuments,
         templateServerConfig.getDatabaseName(),
         templateServerConfig.getMongoCollectionName(CedarNodeType.INSTANCE));
+
   }
 
   @Override
