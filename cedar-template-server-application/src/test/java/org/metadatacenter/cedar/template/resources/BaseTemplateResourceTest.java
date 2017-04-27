@@ -10,6 +10,8 @@ import org.junit.ClassRule;
 import org.metadatacenter.cedar.template.TemplateServerApplication;
 import org.metadatacenter.cedar.template.TemplateServerConfiguration;
 import org.metadatacenter.config.CedarConfig;
+import org.metadatacenter.config.environment.CedarEnvironmentVariableProvider;
+import org.metadatacenter.model.SystemComponent;
 import org.metadatacenter.util.test.TestUserUtil;
 
 import javax.annotation.Nonnull;
@@ -17,9 +19,11 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
 
+import java.util.Map;
+
 import static org.metadatacenter.constant.HttpConstants.HTTP_HEADER_AUTHORIZATION;
 
-public class BaseTemplateResourceTest {
+public abstract class BaseTemplateResourceTest {
 
   private static String authHeaderValue;
 
@@ -32,7 +36,9 @@ public class BaseTemplateResourceTest {
 
   @BeforeClass
   public static void fetchAuthHeader() {
-    authHeaderValue = TestUserUtil.getTestUser1AuthHeader(CedarConfig.getInstance());
+    SystemComponent systemComponent = SystemComponent.SERVER_TEMPLATE;
+    Map<String, String> environment = CedarEnvironmentVariableProvider.getFor(systemComponent);
+    authHeaderValue = TestUserUtil.getTestUser1AuthHeader(CedarConfig.getInstance(environment));
   }
 
   @BeforeClass

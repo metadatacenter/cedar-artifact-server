@@ -10,6 +10,8 @@ import org.metadatacenter.error.CedarErrorKey;
 import org.metadatacenter.error.CedarErrorReasonKey;
 import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.model.validation.report.ReportUtils;
+import org.metadatacenter.model.validation.report.ValidationReport;
 import org.metadatacenter.rest.context.CedarRequestContext;
 import org.metadatacenter.rest.context.CedarRequestContextFactory;
 import org.metadatacenter.server.model.provenance.ProvenanceInfo;
@@ -23,6 +25,8 @@ import org.metadatacenter.util.http.CedarUrlUtil;
 import org.metadatacenter.util.http.LinkHeaderUtil;
 import org.metadatacenter.util.http.PagedQuery;
 import org.metadatacenter.util.mongo.MongoUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.management.InstanceNotFoundException;
 import javax.ws.rs.*;
@@ -39,6 +43,8 @@ import static org.metadatacenter.rest.assertion.GenericAssertions.LoggedIn;
 @Path("/templates")
 @Produces(MediaType.APPLICATION_JSON)
 public class TemplatesResource extends AbstractTemplateServerResource {
+
+  private static final Logger logger = LoggerFactory.getLogger(TemplatesResource.class);
 
   private final TemplateService<String, JsonNode> templateService;
   private final TemplateFieldService<String, JsonNode> templateFieldService;
@@ -68,6 +74,8 @@ public class TemplatesResource extends AbstractTemplateServerResource {
     //TODO: test if it is not empty
     //c.must(c.request().getRequestBody()).be(NonEmpty);
     JsonNode template = c.request().getRequestBody().asJson();
+    ValidationReport validationReport = validateTemplate(template);
+    ReportUtils.outputLogger(logger, validationReport, true);
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     checkImportModeSetProvenanceAndId(CedarNodeType.TEMPLATE, template, pi, importMode);
@@ -87,8 +95,11 @@ public class TemplatesResource extends AbstractTemplateServerResource {
 
     String id = createdTemplate.get("@id").asText();
 
-    URI uri = CedarUrlUtil.getIdURI(uriInfo, id);
-    return Response.created(uri).entity(createdTemplate).build();
+    URI createdTemplateUri = CedarUrlUtil.getIdURI(uriInfo, id);
+    return CedarResponse.created(createdTemplateUri)
+        .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, validationReport.getValidationStatus())
+        .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_REPORT, validationReport)
+        .entity(createdTemplate).build();
   }
 
   @GET
@@ -183,6 +194,9 @@ public class TemplatesResource extends AbstractTemplateServerResource {
     c.must(c.user()).have(CedarPermission.TEMPLATE_UPDATE);
 
     JsonNode newTemplate = c.request().getRequestBody().asJson();
+    ValidationReport validationReport = validateTemplate(newTemplate);
+    ReportUtils.outputLogger(logger, validationReport, true);
+
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     provenanceUtil.patchProvenanceInfo(newTemplate, pi);
     JsonNode updatedTemplate = null;
@@ -205,7 +219,10 @@ public class TemplatesResource extends AbstractTemplateServerResource {
           .build();
     }
     MongoUtils.removeIdField(updatedTemplate);
-    return Response.ok().entity(updatedTemplate).build();
+    return CedarResponse.ok()
+        .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, validationReport.getValidationStatus())
+        .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_REPORT, validationReport)
+        .entity(updatedTemplate).build();
   }
 
   @DELETE
@@ -247,5 +264,4 @@ public class TemplatesResource extends AbstractTemplateServerResource {
     }
     return CedarResponse.noContent().build();
   }
-
 }
