@@ -42,18 +42,18 @@ public class RequestUrls {
   }
 
   public static String forValidatingTemplate(int portNumber) {
-    return String.format("%s:%d/command/validate?resource_types=template", SERVICE_BASE_URL, portNumber);
+    return String.format("%s:%d/command/validate?resource_type=template", SERVICE_BASE_URL, portNumber);
   }
 
   public static String forValidatingElement(int portNumber) {
-    return String.format("%s:%d/command/validate?resource_types=element", SERVICE_BASE_URL, portNumber);
+    return String.format("%s:%d/command/validate?resource_type=element", SERVICE_BASE_URL, portNumber);
   }
 
   public static String forValidatingField(int portNumber) {
-    return String.format("%s:%d/command/validate?resource_types=field", SERVICE_BASE_URL, portNumber);
+    return String.format("%s:%d/command/validate?resource_type=field", SERVICE_BASE_URL, portNumber);
   }
 
   public static String forValidatingInstance(int portNumber) {
-    return String.format("%s:%d/command/validate?resource_types=instance", SERVICE_BASE_URL, portNumber);
+    return String.format("%s:%d/command/validate?resource_type=instance", SERVICE_BASE_URL, portNumber);
   }
 }

@@ -28,7 +28,7 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.metadatacenter.constant.CedarQueryParameters.QP_RESOURCE_TYPES;
+import static org.metadatacenter.constant.CedarQueryParameters.QP_RESOURCE_TYPE;
 import static org.metadatacenter.rest.assertion.GenericAssertions.LoggedIn;
 
 @Path("/command")
@@ -47,7 +47,7 @@ public class CommandResource extends AbstractTemplateServerResource {
   @POST
   @Timed
   @Path("/validate")
-  public Response validateResource(@QueryParam(QP_RESOURCE_TYPES) String type) throws CedarException {
+  public Response validateResource(@QueryParam(QP_RESOURCE_TYPE) String type) throws CedarException {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
 //    c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_CREATE); // XXX Permission for validation?
