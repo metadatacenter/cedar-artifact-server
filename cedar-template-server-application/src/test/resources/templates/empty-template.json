@@ -26,7 +26,8 @@
         "title": "Empty Template",
         "description": "Description",
         "pages": [],
-        "order": []
+        "order": [],
+        "propertyLabels": {}
     },
     "properties": {
         "@context": {
