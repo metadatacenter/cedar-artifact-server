@@ -11,7 +11,8 @@
   "_ui": {
     "title": "Write a description",
     "description": "",
-    "inputType": "richtext"
+    "inputType": "richtext",
+    "content": "Lorem ipsum"
   },
   "properties": {
     "@id": {
@@ -65,12 +66,9 @@
         "null"
       ],
       "format": "uri"
-    },
-    "_content": null
+    }
   },
-  "required": [
-    "_content"
-  ],
+  "required": [],
   "pav:createdOn": "2017-04-12T16:39:08-0700",
   "pav:createdBy": "https://metadatacenter.org/users/67a894dc-e9df-42d0-bb6e-5dbb4aa9dd79",
   "pav:lastUpdatedOn": "2017-04-12T16:39:08-0700",
