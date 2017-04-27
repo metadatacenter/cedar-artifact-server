@@ -23,7 +23,7 @@ import java.util.Map;
 
 import static org.metadatacenter.constant.HttpConstants.HTTP_HEADER_AUTHORIZATION;
 
-public class BaseTemplateResourceTest {
+public abstract class BaseTemplateResourceTest {
 
   private static String authHeaderValue;
 

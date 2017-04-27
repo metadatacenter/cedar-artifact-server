@@ -5,10 +5,7 @@ import com.mongodb.MongoClient;
 import io.dropwizard.setup.Environment;
 import org.metadatacenter.bridge.CedarDataServices;
 import org.metadatacenter.cedar.template.health.TemplateServerHealthCheck;
-import org.metadatacenter.cedar.template.resources.IndexResource;
-import org.metadatacenter.cedar.template.resources.TemplateElementsResource;
-import org.metadatacenter.cedar.template.resources.TemplateInstancesResource;
-import org.metadatacenter.cedar.template.resources.TemplatesResource;
+import org.metadatacenter.cedar.template.resources.*;
 import org.metadatacenter.cedar.util.dw.CedarMicroserviceApplication;
 import org.metadatacenter.config.MongoConfig;
 import org.metadatacenter.model.CedarNodeType;
@@ -82,8 +79,12 @@ public class TemplateServerApplication extends CedarMicroserviceApplication<Temp
         templateInstanceService);
     environment.jersey().register(templates);
 
-    final TemplateInstancesResource instances = new TemplateInstancesResource(cedarConfig, templateInstanceService);
+    final TemplateInstancesResource instances = new TemplateInstancesResource(cedarConfig, templateInstanceService,
+        templateService);
     environment.jersey().register(instances);
+
+    final CommandResource commands = new CommandResource(cedarConfig, templateService);
+    environment.jersey().register(commands);
 
     final TemplateServerHealthCheck healthCheck = new TemplateServerHealthCheck();
     environment.healthChecks().register("message", healthCheck);

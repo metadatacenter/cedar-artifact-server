@@ -9,6 +9,8 @@ import org.metadatacenter.constant.HttpConstants;
 import org.metadatacenter.error.CedarErrorKey;
 import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.model.validation.report.ReportUtils;
+import org.metadatacenter.model.validation.report.ValidationReport;
 import org.metadatacenter.rest.context.CedarRequestContext;
 import org.metadatacenter.rest.context.CedarRequestContextFactory;
 import org.metadatacenter.server.model.provenance.ProvenanceInfo;
@@ -16,8 +18,13 @@ import org.metadatacenter.server.security.model.auth.CedarPermission;
 import org.metadatacenter.server.service.FieldNameInEx;
 import org.metadatacenter.server.service.TemplateElementService;
 import org.metadatacenter.server.service.TemplateFieldService;
-import org.metadatacenter.util.http.*;
+import org.metadatacenter.util.http.CedarResponse;
+import org.metadatacenter.util.http.CedarUrlUtil;
+import org.metadatacenter.util.http.LinkHeaderUtil;
+import org.metadatacenter.util.http.PagedQuery;
 import org.metadatacenter.util.mongo.MongoUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.management.InstanceNotFoundException;
 import javax.ws.rs.*;
@@ -34,6 +41,8 @@ import static org.metadatacenter.rest.assertion.GenericAssertions.LoggedIn;
 @Path("/template-elements")
 @Produces(MediaType.APPLICATION_JSON)
 public class TemplateElementsResource extends AbstractTemplateServerResource {
+
+  private static final Logger logger = LoggerFactory.getLogger(TemplateInstancesResource.class);
 
   private static TemplateElementService<String, JsonNode> templateElementService;
   private static TemplateFieldService<String, JsonNode> templateFieldService;
@@ -60,6 +69,8 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
     //TODO: test if it is not empty
     //c.must(c.request().getRequestBody()).be(NonEmpty);
     JsonNode templateElement = c.request().getRequestBody().asJson();
+    ValidationReport validationReport = validateTemplateElement(templateElement);
+    ReportUtils.outputLogger(logger, validationReport, true);
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     checkImportModeSetProvenanceAndId(CedarNodeType.ELEMENT, templateElement, pi, importMode);
@@ -79,8 +90,11 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
 
     String id = createdTemplateElement.get("@id").asText();
 
-    URI uri = CedarUrlUtil.getIdURI(uriInfo, id);
-    return Response.created(uri).entity(createdTemplateElement).build();
+    URI createdElementUri = CedarUrlUtil.getIdURI(uriInfo, id);
+    return CedarResponse.created(createdElementUri)
+        .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, validationReport.getValidationStatus())
+        .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_REPORT, validationReport)
+        .entity(createdTemplateElement).build();
   }
 
   @GET
@@ -177,6 +191,9 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
     c.must(c.user()).have(CedarPermission.TEMPLATE_ELEMENT_UPDATE);
 
     JsonNode newElement = c.request().getRequestBody().asJson();
+    ValidationReport validationReport = validateTemplateElement(newElement);
+    ReportUtils.outputLogger(logger, validationReport, true);
+
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     provenanceUtil.patchProvenanceInfo(newElement, pi);
     JsonNode updatedTemplateElement = null;
@@ -199,7 +216,10 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
           .build();
     }
     MongoUtils.removeIdField(updatedTemplateElement);
-    return Response.ok().entity(updatedTemplateElement).build();
+    return CedarResponse.ok()
+        .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, validationReport.getValidationStatus())
+        .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_REPORT, validationReport)
+        .entity(updatedTemplateElement).build();
   }
 
   @DELETE
@@ -229,5 +249,4 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
     }
     return CedarResponse.noContent().build();
   }
-
 }

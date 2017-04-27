@@ -227,5 +227,4 @@ public class TemplateFieldsResource extends AbstractTemplateServerResource {
     }
     return CedarResponse.noContent().build();
   }
-
 }
