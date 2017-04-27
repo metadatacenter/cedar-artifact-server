@@ -853,7 +853,7 @@
               },
               "@value": {
                 "type": [
-                  "array",
+                  "string",
                   "null"
                 ]
               },
