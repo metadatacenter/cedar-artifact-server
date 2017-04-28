@@ -37,6 +37,7 @@ import java.util.*;
 import static org.metadatacenter.constant.CedarPathParameters.PP_ID;
 import static org.metadatacenter.constant.CedarQueryParameters.*;
 import static org.metadatacenter.rest.assertion.GenericAssertions.LoggedIn;
+import static org.metadatacenter.rest.assertion.GenericAssertions.NonEmpty;
 
 @Path("/template-elements")
 @Produces(MediaType.APPLICATION_JSON)
@@ -65,9 +66,9 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_ELEMENT_CREATE);
-
-    //TODO: test if it is not empty
+    // TODO: the non-empty check is not working
     //c.must(c.request().getRequestBody()).be(NonEmpty);
+
     JsonNode templateElement = c.request().getRequestBody().asJson();
     ValidationReport validationReport = validateTemplateElement(templateElement);
     ReportUtils.outputLogger(logger, validationReport, true);

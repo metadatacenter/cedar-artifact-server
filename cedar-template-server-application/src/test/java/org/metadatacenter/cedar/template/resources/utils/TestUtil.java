@@ -1,11 +1,10 @@
 package org.metadatacenter.cedar.template.resources.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.MongoClient;
 import org.metadatacenter.bridge.CedarDataServices;
 import org.metadatacenter.config.CedarConfig;
-import org.metadatacenter.config.MongoConfig;
-import org.metadatacenter.config.MongoConnection;
 import org.metadatacenter.config.environment.CedarEnvironmentVariableProvider;
 import org.metadatacenter.model.CedarNodeType;
 import org.metadatacenter.model.SystemComponent;
@@ -14,13 +13,16 @@ import org.metadatacenter.server.service.TemplateFieldService;
 import org.metadatacenter.server.service.TemplateInstanceService;
 import org.metadatacenter.server.service.TemplateService;
 import org.metadatacenter.server.service.mongodb.TemplateElementServiceMongoDB;
-import org.metadatacenter.server.service.mongodb.TemplateFieldServiceMongoDB;
 import org.metadatacenter.server.service.mongodb.TemplateInstanceServiceMongoDB;
 import org.metadatacenter.server.service.mongodb.TemplateServiceMongoDB;
 import org.metadatacenter.util.json.JsonMapper;
 
+import javax.management.InstanceNotFoundException;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.Map;
+
+import static org.metadatacenter.cedar.template.resources.utils.TestConstants.*;
 
 public class TestUtil {
 
@@ -64,10 +66,47 @@ public class TestUtil {
     return JsonMapper.MAPPER.readTree(TestUtil.class.getClassLoader().getResourceAsStream(path));
   }
 
-  public static void deleteAllResources() {
-    templateService.deleteAllTemplates();;
-    templateElementService.deleteAllTemplateElements();
-    templateInstanceService.deleteAllTemplateInstances();
+  /**
+   * Remove resources by id
+   */
+  public static void removeResources(Map<String, CedarNodeType> resourceMap) throws IOException,
+      InstanceNotFoundException {
+    Iterator it = resourceMap.entrySet().iterator();
+    while (it.hasNext()) {
+      Map.Entry pair = (Map.Entry)it.next();
+      String id = (String) pair.getKey();
+      CedarNodeType resourceType = (CedarNodeType) pair.getValue();
+      removeResource(id, resourceType);
+      System.out.println("Resource: " + id + " has been removed correctly");
+    }
+  }
+
+  public static void removeResource(String id, CedarNodeType resourceType) throws IOException,
+      InstanceNotFoundException {
+    if (resourceType.equals(CedarNodeType.TEMPLATE)) {
+      templateService.deleteTemplate(id);
+    } else if (resourceType.equals(CedarNodeType.ELEMENT)) {
+      templateElementService.deleteTemplateElement(id);
+    } else if (resourceType.equals(CedarNodeType.FIELD)) {
+      templateFieldService.deleteTemplateField(id);
+    } else { // Template instance
+      templateInstanceService.deleteTemplateInstance(id);
+    }
+  }
+
+  public static String getResourceUrlRoute(String baseTestUrl, CedarNodeType resourceType) {
+    String url = baseTestUrl + "/";
+    if (resourceType.equals(CedarNodeType.TEMPLATE)) {
+      url += TEMPLATE_ROUTE;
+    } else if (resourceType.equals(CedarNodeType.ELEMENT)) {
+      url += ELEMENT_ROUTE;
+    } else if (resourceType.equals(CedarNodeType.INSTANCE)) {
+      url += INSTANCE_ROUTE;
+    }
+    else {
+      throw new InternalError("Wrong resource type: " + resourceType.name());
+    }
+    return url;
   }
 
 }

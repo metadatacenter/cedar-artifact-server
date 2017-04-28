@@ -8,3 +8,8 @@ logging:
   level: INFO
   loggers:
     org.metadatacenter: DEBUG
+  appenders:
+    - type: console
+      threshold: ALL
+      timeZone: UTC
+      target: stdout
