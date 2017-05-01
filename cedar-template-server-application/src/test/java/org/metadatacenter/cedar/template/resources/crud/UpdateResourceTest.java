@@ -35,7 +35,7 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
     try {
       JsonNode createdResource = createResource(sampleResource, resourceType);
       createdResources.put(createdResource.get(ID_FIELD).asText(), resourceType);
-      String createdResourceId = createdResource.get("@id").asText();
+      String createdResourceId = createdResource.get(ID_FIELD).asText();
       // Update the resource
       String fieldName = "title";
       String fieldNewValue = "This is a new title";

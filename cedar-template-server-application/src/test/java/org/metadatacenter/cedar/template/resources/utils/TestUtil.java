@@ -1,7 +1,6 @@
 package org.metadatacenter.cedar.template.resources.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.MongoClient;
 import org.metadatacenter.bridge.CedarDataServices;
 import org.metadatacenter.config.CedarConfig;
@@ -17,9 +16,7 @@ import org.metadatacenter.server.service.mongodb.TemplateInstanceServiceMongoDB;
 import org.metadatacenter.server.service.mongodb.TemplateServiceMongoDB;
 import org.metadatacenter.util.json.JsonMapper;
 
-import javax.management.InstanceNotFoundException;
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.Map;
 
 import static org.metadatacenter.cedar.template.resources.utils.TestConstants.*;

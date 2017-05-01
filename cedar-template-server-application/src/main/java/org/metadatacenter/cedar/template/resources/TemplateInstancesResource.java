@@ -259,6 +259,8 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
     return CedarResponse.noContent().build();
   }
 
+
+
   private Response sendFormattedTemplateInstance(JsonNode templateInstance, OutputFormatType formatType) throws
       CedarException {
     Object responseObject = null;

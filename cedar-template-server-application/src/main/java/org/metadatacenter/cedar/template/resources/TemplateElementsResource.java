@@ -66,7 +66,7 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_ELEMENT_CREATE);
-    // TODO: the non-empty check is not working
+    // TODO: not working
     //c.must(c.request().getRequestBody()).be(NonEmpty);
 
     JsonNode templateElement = c.request().getRequestBody().asJson();

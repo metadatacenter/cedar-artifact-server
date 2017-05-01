@@ -1,7 +1,6 @@
 package org.metadatacenter.cedar.template.resources.crud;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import junitparams.naming.TestCaseName;
@@ -11,12 +10,12 @@ import org.junit.runner.RunWith;
 import org.metadatacenter.cedar.template.resources.utils.TestUtil;
 import org.metadatacenter.model.CedarNodeType;
 
-import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.net.URLEncoder;
 
-import static org.metadatacenter.cedar.template.resources.utils.TestConstants.*;
+import static org.metadatacenter.cedar.template.resources.utils.TestConstants.ID_FIELD;
+import static org.metadatacenter.cedar.template.resources.utils.TestConstants.TEST_NAME_PATTERN;
 
 @RunWith(JUnitParamsRunner.class)
 public class DeleteResourceTest extends AbstractResourceCrudTest {

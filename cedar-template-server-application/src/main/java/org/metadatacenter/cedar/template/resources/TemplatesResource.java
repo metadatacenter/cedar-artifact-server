@@ -66,8 +66,7 @@ public class TemplatesResource extends AbstractTemplateServerResource {
 
   @POST
   @Timed
-  public Response createTemplate(@QueryParam(QP_IMPORT_MODE) Optional<Boolean> importMode) throws
-      CedarException {
+  public Response createTemplate(@QueryParam(QP_IMPORT_MODE) Optional<Boolean> importMode) throws CedarException {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_CREATE);
