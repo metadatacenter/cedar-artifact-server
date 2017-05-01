@@ -14,6 +14,7 @@ import org.metadatacenter.cedar.template.TemplateServerApplication;
 import org.metadatacenter.cedar.template.TemplateServerConfiguration;
 import org.metadatacenter.cedar.template.resources.utils.TestConstants;
 import org.metadatacenter.cedar.template.resources.utils.TestUtil;
+import org.metadatacenter.constant.CustomHttpConstants;
 import org.metadatacenter.model.CedarNodeType;
 import org.metadatacenter.util.test.TestUserUtil;
 import org.slf4j.Logger;
@@ -25,6 +26,7 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import static org.metadatacenter.cedar.template.resources.utils.TestConstants.*;
@@ -41,7 +43,7 @@ public abstract class AbstractResourceCrudTest {
   protected static Client testClient;
 
   protected static Map<String, CedarNodeType> createdResources;
-  protected final Logger logger = LoggerFactory.getLogger("Test");
+  protected final static Logger logger = LoggerFactory.getLogger("Test");
 
   static {
     try {
@@ -96,7 +98,7 @@ public abstract class AbstractResourceCrudTest {
   public void tearDown() {
     // Remove all resources created previously
     try {
-      TestUtil.removeResources(createdResources);
+      removeResources(createdResources);
     } catch (IOException e) {
       e.printStackTrace();
     } catch (InstanceNotFoundException e) {
@@ -128,6 +130,14 @@ public abstract class AbstractResourceCrudTest {
     return response.readEntity(JsonNode.class);
   }
 
+  // Count the number of resources of a particular type
+  protected static int countResources(CedarNodeType resourceType) {
+    String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
+    Response findAllResponse = testClient.target(url).request().header("Authorization", authHeader).get();
+    int totalCount = Integer.parseInt(findAllResponse.getHeaderString(CustomHttpConstants.HEADER_TOTAL_COUNT));
+    return totalCount;
+  }
+
   // Creates a template and then creates and instance and sets schema:isBasedOn to the template id
   protected JsonNode setSchemaIsBasedOn(JsonNode template, JsonNode instance, CedarNodeType resourceType) {
     if (resourceType.equals(CedarNodeType.INSTANCE)) {
@@ -142,6 +152,39 @@ public abstract class AbstractResourceCrudTest {
       }
     }
     return instance;
+  }
+
+  /**
+   * Remove resources by id
+   */
+  public static void removeResources(Map<String, CedarNodeType> resourceMap) throws IOException,
+      InstanceNotFoundException {
+    Iterator it = resourceMap.entrySet().iterator();
+    while (it.hasNext()) {
+      Map.Entry pair = (Map.Entry)it.next();
+      String id = (String) pair.getKey();
+      CedarNodeType resourceType = (CedarNodeType) pair.getValue();
+      removeResource(id, resourceType);
+      System.out.println("Resource: " + id + " has been removed correctly");
+    }
+  }
+
+  public static void removeResource(String id, CedarNodeType resourceType) {
+    try {
+      if (resourceType.equals(CedarNodeType.TEMPLATE)) {
+        TestUtil.templateService.deleteTemplate(id);
+      } else if (resourceType.equals(CedarNodeType.ELEMENT)) {
+        TestUtil.templateElementService.deleteTemplateElement(id);
+      } else if (resourceType.equals(CedarNodeType.FIELD)) {
+        TestUtil.templateFieldService.deleteTemplateField(id);
+      } else { // Template instance
+        TestUtil.templateInstanceService.deleteTemplateInstance(id);
+      }
+    } catch (InstanceNotFoundException e) {
+      logger.info("Resource not found. Id = " + id);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 
   /***

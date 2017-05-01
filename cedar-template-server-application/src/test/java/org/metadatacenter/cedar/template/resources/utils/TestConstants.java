@@ -8,9 +8,9 @@ public class TestConstants {
   public static final String TEST_CONFIG_FILE = "test-config.yml";
   public static final String TEST_CLIENT_NAME = "TestClient";
   public static final String[] PROV_FIELDS = {"pav:createdOn", "pav:createdBy", "pav:lastUpdatedOn", "oslc:modifiedBy"};
+  public static final String LAST_UPDATED_ON_FIELD = "pav:lastUpdatedOn";
   public static final String ID_FIELD = "@id";
   public static final String NON_EXISTENT_API_KEY = "11111111-2222-3333-4444-555555555555";
-  public static final String CONTENT_TYPE_HEADER = "application/json; charset=utf-8";
   public static final String INVALID_JSON = "{sometext}";
   public static final String INVALID_ID = "invalid-id";
   public static final String TEST_NAME_PATTERN = "[{index}] {method}";

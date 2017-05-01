@@ -112,7 +112,7 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_READ);
-
+    
     OutputFormatType formatType = OutputFormatTypeDetector.detectFormat(format);
     Optional<JsonNode> templateInstance = getTemplateInstance(id);
 

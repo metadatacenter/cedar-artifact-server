@@ -66,34 +66,6 @@ public class TestUtil {
     return JsonMapper.MAPPER.readTree(TestUtil.class.getClassLoader().getResourceAsStream(path));
   }
 
-  /**
-   * Remove resources by id
-   */
-  public static void removeResources(Map<String, CedarNodeType> resourceMap) throws IOException,
-      InstanceNotFoundException {
-    Iterator it = resourceMap.entrySet().iterator();
-    while (it.hasNext()) {
-      Map.Entry pair = (Map.Entry)it.next();
-      String id = (String) pair.getKey();
-      CedarNodeType resourceType = (CedarNodeType) pair.getValue();
-      removeResource(id, resourceType);
-      System.out.println("Resource: " + id + " has been removed correctly");
-    }
-  }
-
-  public static void removeResource(String id, CedarNodeType resourceType) throws IOException,
-      InstanceNotFoundException {
-    if (resourceType.equals(CedarNodeType.TEMPLATE)) {
-      templateService.deleteTemplate(id);
-    } else if (resourceType.equals(CedarNodeType.ELEMENT)) {
-      templateElementService.deleteTemplateElement(id);
-    } else if (resourceType.equals(CedarNodeType.FIELD)) {
-      templateFieldService.deleteTemplateField(id);
-    } else { // Template instance
-      templateInstanceService.deleteTemplateInstance(id);
-    }
-  }
-
   public static String getResourceUrlRoute(String baseTestUrl, CedarNodeType resourceType) {
     String url = baseTestUrl + "/";
     if (resourceType.equals(CedarNodeType.TEMPLATE)) {
