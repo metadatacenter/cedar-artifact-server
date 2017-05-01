@@ -39,6 +39,7 @@ import java.util.*;
 import static org.metadatacenter.constant.CedarPathParameters.PP_ID;
 import static org.metadatacenter.constant.CedarQueryParameters.*;
 import static org.metadatacenter.rest.assertion.GenericAssertions.LoggedIn;
+import static org.metadatacenter.rest.assertion.GenericAssertions.NonEmpty;
 
 @Path("/templates")
 @Produces(MediaType.APPLICATION_JSON)
@@ -65,14 +66,13 @@ public class TemplatesResource extends AbstractTemplateServerResource {
 
   @POST
   @Timed
-  public Response createTemplate(@QueryParam(QP_IMPORT_MODE) Optional<Boolean> importMode) throws
-      CedarException {
+  public Response createTemplate(@QueryParam(QP_IMPORT_MODE) Optional<Boolean> importMode) throws CedarException {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_CREATE);
-
-    //TODO: test if it is not empty
+    // TODO: the non-empty check is not working
     //c.must(c.request().getRequestBody()).be(NonEmpty);
+
     JsonNode template = c.request().getRequestBody().asJson();
     ValidationReport validationReport = validateTemplate(template);
     ReportUtils.outputLogger(logger, validationReport, true);

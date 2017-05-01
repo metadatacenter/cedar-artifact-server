@@ -44,6 +44,7 @@ import java.util.*;
 import static org.metadatacenter.constant.CedarPathParameters.PP_ID;
 import static org.metadatacenter.constant.CedarQueryParameters.*;
 import static org.metadatacenter.rest.assertion.GenericAssertions.LoggedIn;
+import static org.metadatacenter.rest.assertion.GenericAssertions.NonEmpty;
 
 @Path("/template-instances")
 @Produces(MediaType.APPLICATION_JSON)
@@ -72,9 +73,9 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_CREATE);
-
-    //TODO: test if it is not empty
+    // TODO: the non-empty check is not working
     //c.must(c.request().getRequestBody()).be(NonEmpty);
+
     JsonNode templateInstance = c.request().getRequestBody().asJson();
     ValidationReport validationReport = validateTemplateInstance(templateInstance);
     ReportUtils.outputLogger(logger, validationReport, true);
@@ -112,19 +113,29 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_READ);
 
-    OutputFormatType formatType = OutputFormatTypeDetector.detectFormat(format);
-    Optional<JsonNode> templateInstance = getTemplateInstance(id);
-
-    Response response = null;
-    if (templateInstance.isPresent()) {
-      JsonNode templateInstanceObject = templateInstance.get();
-      MongoUtils.removeIdField(templateInstanceObject);
-      response = sendFormattedTemplateInstance(templateInstanceObject, formatType);
-    } else {
-      String message = String.format("The template instance can not be found by id: %s", id);
-      response = templateInstanceNotFoundResponse(message);
+    JsonNode templateInstance = null;
+    try {
+      templateInstance = templateInstanceService.findTemplateInstance(id);
+    } catch (IOException e) {
+      return CedarResponse.internalServerError()
+          .id(id)
+          .errorKey(CedarErrorKey.TEMPLATE_INSTANCE_NOT_FOUND)
+          .errorMessage("The template instance can not be found by id:" + id)
+          .exception(e)
+          .build();
     }
-    return response;
+    if (templateInstance == null) {
+      return CedarResponse.notFound()
+          .id(id)
+          .errorKey(CedarErrorKey.TEMPLATE_INSTANCE_NOT_FOUND)
+          .errorMessage("The template instance can not be found by id:" + id)
+          .build();
+    } else {
+      OutputFormatType formatType = OutputFormatTypeDetector.detectFormat(format);
+      MongoUtils.removeIdField(templateInstance);
+      Response response = sendFormattedTemplateInstance(templateInstance, formatType);
+      return response;
+    }
   }
 
   @GET
@@ -248,25 +259,7 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
     return CedarResponse.noContent().build();
   }
 
-  private Optional<JsonNode> getTemplateInstance(String id) throws CedarException {
-    try {
-      return Optional.of(templateInstanceService.findTemplateInstance(id));
-    } catch (IOException e) {
-      CedarErrorPack errorPack = new CedarErrorPack()
-          .errorKey(CedarErrorKey.TEMPLATE_INSTANCE_NOT_FOUND)
-          .message("The template instance can not be found by id:" + id)
-          .sourceException(e);
-      throw new CedarException(errorPack) {
-      };
-    }
-  }
 
-  private Response templateInstanceNotFoundResponse(String message) {
-    CedarResponse.CedarResponseBuilder builder = CedarResponse.notFound();
-    return builder.errorKey(CedarErrorKey.TEMPLATE_INSTANCE_NOT_FOUND)
-        .errorMessage(message)
-        .build();
-  }
 
   private Response sendFormattedTemplateInstance(JsonNode templateInstance, OutputFormatType formatType) throws
       CedarException {

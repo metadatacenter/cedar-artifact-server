@@ -9,6 +9,7 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.metadatacenter.cedar.template.TemplateServerApplication;
 import org.metadatacenter.cedar.template.TemplateServerConfiguration;
+import org.metadatacenter.cedar.template.resources.utils.TestUtil;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.config.environment.CedarEnvironmentVariableProvider;
 import org.metadatacenter.model.SystemComponent;
@@ -36,16 +37,14 @@ public abstract class BaseTemplateResourceTest {
 
   @BeforeClass
   public static void fetchAuthHeader() {
-    SystemComponent systemComponent = SystemComponent.SERVER_TEMPLATE;
-    Map<String, String> environment = CedarEnvironmentVariableProvider.getFor(systemComponent);
-    authHeaderValue = TestUserUtil.getTestUser1AuthHeader(CedarConfig.getInstance(environment));
+    authHeaderValue = TestUserUtil.getTestUser1AuthHeader(TestUtil.getCedarConfig());
   }
 
   @BeforeClass
   public static void createTestClient() {
     testClient = new JerseyClientBuilder(SERVER_APPLICATION.getEnvironment()).build("TestClient");
     testClient.property(ClientProperties.READ_TIMEOUT, 3000); // 3s
-    testClient.property(ClientProperties.CONNECT_TIMEOUT, 3000); // 3s
+    testClient.property(ClientProperties.CONNECT_TIMEOUT, 3000);
   }
 
   @AfterClass
