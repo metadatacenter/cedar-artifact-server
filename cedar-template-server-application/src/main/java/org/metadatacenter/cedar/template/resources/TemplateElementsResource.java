@@ -70,12 +70,11 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
     //c.must(c.request().getRequestBody()).be(NonEmpty);
 
     JsonNode templateElement = c.request().getRequestBody().asJson();
-    ValidationReport validationReport = validateTemplateElement(templateElement);
-    ReportUtils.outputLogger(logger, validationReport, true);
-
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     checkImportModeSetProvenanceAndId(CedarNodeType.ELEMENT, templateElement, pi, importMode);
 
+    ValidationReport validationReport = validateTemplateElement(templateElement);
+    ReportUtils.outputLogger(logger, validationReport, true);
     JsonNode createdTemplateElement = null;
     try {
       templateFieldService.saveNewFieldsAndReplaceIds(templateElement, pi, provenanceUtil, linkedDataUtil);
@@ -192,11 +191,11 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
     c.must(c.user()).have(CedarPermission.TEMPLATE_ELEMENT_UPDATE);
 
     JsonNode newElement = c.request().getRequestBody().asJson();
-    ValidationReport validationReport = validateTemplateElement(newElement);
-    ReportUtils.outputLogger(logger, validationReport, true);
-
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     provenanceUtil.patchProvenanceInfo(newElement, pi);
+
+    ValidationReport validationReport = validateTemplateElement(newElement);
+    ReportUtils.outputLogger(logger, validationReport, true);
     JsonNode updatedTemplateElement = null;
     try {
       templateFieldService.saveNewFieldsAndReplaceIds(newElement, pi, provenanceUtil, linkedDataUtil);
