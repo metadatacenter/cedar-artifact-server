@@ -53,8 +53,12 @@ public class AbstractTemplateServerResource extends CedarMicroserviceResource {
         throw new IllegalArgumentException("Specifying @id for new objects is not allowed");
       }
       provenanceUtil.addProvenanceInfo(element, pi);
+
       String id = linkedDataUtil.buildNewLinkedDataId(cedarNodeType);
       ((ObjectNode) element).put("@id", id);
+
+      // add template-element-instance ids (only for instances)
+      linkedDataUtil.addElementInstanceIds(element, cedarNodeType);
     }
   }
 
