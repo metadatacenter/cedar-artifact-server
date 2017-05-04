@@ -207,6 +207,9 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     provenanceUtil.patchProvenanceInfo(newInstance, pi);
+    // add template-element-instance ids if needed. For instance, this may be needed if new items are added to an array
+    // of template-element instances
+    linkedDataUtil.addElementInstanceIds(newInstance, CedarNodeType.INSTANCE);
     JsonNode updatedTemplateInstance = null;
     try {
       updatedTemplateInstance = templateInstanceService.updateTemplateInstance(id, newInstance);
