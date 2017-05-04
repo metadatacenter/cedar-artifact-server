@@ -9,7 +9,10 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.metadatacenter.cedar.template.TemplateServerApplication;
 import org.metadatacenter.cedar.template.TemplateServerConfiguration;
+import org.metadatacenter.cedar.template.resources.utils.TestUtil;
 import org.metadatacenter.config.CedarConfig;
+import org.metadatacenter.config.environment.CedarEnvironmentVariableProvider;
+import org.metadatacenter.model.SystemComponent;
 import org.metadatacenter.util.test.TestUserUtil;
 
 import javax.annotation.Nonnull;
@@ -17,9 +20,11 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
 
+import java.util.Map;
+
 import static org.metadatacenter.constant.HttpConstants.HTTP_HEADER_AUTHORIZATION;
 
-public class BaseTemplateResourceTest {
+public abstract class BaseTemplateResourceTest {
 
   private static String authHeaderValue;
 
@@ -32,14 +37,14 @@ public class BaseTemplateResourceTest {
 
   @BeforeClass
   public static void fetchAuthHeader() {
-    authHeaderValue = TestUserUtil.getTestUser1AuthHeader(CedarConfig.getInstance());
+    authHeaderValue = TestUserUtil.getTestUser1AuthHeader(TestUtil.getCedarConfig());
   }
 
   @BeforeClass
   public static void createTestClient() {
     testClient = new JerseyClientBuilder(SERVER_APPLICATION.getEnvironment()).build("TestClient");
     testClient.property(ClientProperties.READ_TIMEOUT, 3000); // 3s
-    testClient.property(ClientProperties.CONNECT_TIMEOUT, 3000); // 3s
+    testClient.property(ClientProperties.CONNECT_TIMEOUT, 3000);
   }
 
   @AfterClass

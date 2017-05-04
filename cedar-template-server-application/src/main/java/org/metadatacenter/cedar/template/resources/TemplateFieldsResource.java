@@ -9,6 +9,8 @@ import org.metadatacenter.constant.HttpConstants;
 import org.metadatacenter.error.CedarErrorKey;
 import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.model.validation.report.ReportUtils;
+import org.metadatacenter.model.validation.report.ValidationReport;
 import org.metadatacenter.rest.context.CedarRequestContext;
 import org.metadatacenter.rest.context.CedarRequestContextFactory;
 import org.metadatacenter.server.model.provenance.ProvenanceInfo;
@@ -20,6 +22,8 @@ import org.metadatacenter.util.http.CedarUrlUtil;
 import org.metadatacenter.util.http.LinkHeaderUtil;
 import org.metadatacenter.util.http.PagedQuery;
 import org.metadatacenter.util.mongo.MongoUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.management.InstanceNotFoundException;
 import javax.ws.rs.*;
@@ -32,10 +36,13 @@ import java.util.*;
 import static org.metadatacenter.constant.CedarPathParameters.PP_ID;
 import static org.metadatacenter.constant.CedarQueryParameters.*;
 import static org.metadatacenter.rest.assertion.GenericAssertions.LoggedIn;
+import static org.metadatacenter.rest.assertion.GenericAssertions.NonEmpty;
 
 @Path("/template-fields")
 @Produces(MediaType.APPLICATION_JSON)
 public class TemplateFieldsResource extends AbstractTemplateServerResource {
+
+  private static final Logger logger = LoggerFactory.getLogger(TemplateFieldsResource.class);
 
   private final TemplateFieldService<String, JsonNode> templateFieldService;
 
@@ -56,14 +63,15 @@ public class TemplateFieldsResource extends AbstractTemplateServerResource {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_FIELD_CREATE);
-
-    //TODO: test if it is not empty
+    // TODO: the non-empty check is not working
     //c.must(c.request().getRequestBody()).be(NonEmpty);
-    JsonNode templateField = c.request().getRequestBody().asJson();
 
+    JsonNode templateField = c.request().getRequestBody().asJson();
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     checkImportModeSetProvenanceAndId(CedarNodeType.FIELD, templateField, pi, importMode);
 
+    ValidationReport validationReport = validateTemplateField(templateField);
+    ReportUtils.outputLogger(logger, validationReport, true);
     JsonNode createdTemplateField = null;
     try {
       createdTemplateField = templateFieldService.createTemplateField(templateField);
@@ -178,6 +186,9 @@ public class TemplateFieldsResource extends AbstractTemplateServerResource {
     JsonNode newField = c.request().getRequestBody().asJson();
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     provenanceUtil.patchProvenanceInfo(newField, pi);
+
+    ValidationReport validationReport = validateTemplateField(newField);
+    ReportUtils.outputLogger(logger, validationReport, true);
     JsonNode updatedTemplateField = null;
     try {
       updatedTemplateField = templateFieldService.updateTemplateField(id, newField);
@@ -227,5 +238,4 @@ public class TemplateFieldsResource extends AbstractTemplateServerResource {
     }
     return CedarResponse.noContent().build();
   }
-
 }

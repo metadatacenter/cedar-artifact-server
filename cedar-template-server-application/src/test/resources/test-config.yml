@@ -1,11 +1,15 @@
+testPort: 9091
 server:
   applicationConnectors:
   - type: http
-    port: 9091
   adminConnectors:
   - type: http
-    port: 9191
 logging:
   level: INFO
   loggers:
     org.metadatacenter: DEBUG
+  appenders:
+    - type: console
+      threshold: ALL
+      timeZone: UTC
+      target: stdout
