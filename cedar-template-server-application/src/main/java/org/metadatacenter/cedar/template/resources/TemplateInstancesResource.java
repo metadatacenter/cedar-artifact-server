@@ -77,12 +77,11 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
     //c.must(c.request().getRequestBody()).be(NonEmpty);
 
     JsonNode templateInstance = c.request().getRequestBody().asJson();
-    ValidationReport validationReport = validateTemplateInstance(templateInstance);
-    ReportUtils.outputLogger(logger, validationReport, true);
-
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     checkImportModeSetProvenanceAndId(CedarNodeType.INSTANCE, templateInstance, pi, importMode);
 
+    ValidationReport validationReport = validateTemplateInstance(templateInstance);
+    ReportUtils.outputLogger(logger, validationReport, true);
     JsonNode createdTemplateInstance = null;
     try {
       createdTemplateInstance = templateInstanceService.createTemplateInstance(templateInstance);
@@ -202,14 +201,16 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
     c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_UPDATE);
 
     JsonNode newInstance = c.request().getRequestBody().asJson();
-    ValidationReport validationReport = validateTemplateInstance(newInstance);
-    ReportUtils.outputLogger(logger, validationReport, true);
-
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     provenanceUtil.patchProvenanceInfo(newInstance, pi);
+
     // add template-element-instance ids if needed. For instance, this may be needed if new items are added to an array
     // of template-element instances
     linkedDataUtil.addElementInstanceIds(newInstance, CedarNodeType.INSTANCE);
+
+    ValidationReport validationReport = validateTemplateInstance(newInstance);
+    ReportUtils.outputLogger(logger, validationReport, true);
+
     JsonNode updatedTemplateInstance = null;
     try {
       updatedTemplateInstance = templateInstanceService.updateTemplateInstance(id, newInstance);
