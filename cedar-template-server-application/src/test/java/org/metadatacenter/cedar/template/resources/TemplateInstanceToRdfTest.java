@@ -15,7 +15,7 @@ import static javax.ws.rs.core.Response.Status.Family;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-public class TemplateInstanceToRdfTest extends BaseTemplateResourceTest {
+public class TemplateInstanceToRdfTest extends BaseServerTest {
 
   private String templateExampleId;
   private String instanceExampleId;
