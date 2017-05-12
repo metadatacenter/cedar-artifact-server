@@ -26,8 +26,8 @@ public class TemplateInstanceToJsonTest extends BaseServerTest {
 
   @BeforeClass
   public static void loadTestPayload() {
-    templateExample = TestResourcesUtils.getStringContent("templates/nested-element-template.json");
-    instanceExample = TestResourcesUtils.getStringContent("instances/nested-element-instance.jsonld");
+    templateExample = TestResourcesUtils.getStringContent("instances/usecase-template.json");
+    instanceExample = TestResourcesUtils.getStringContent("instances/usecase-instance.jsonld");
   }
 
   @Before
