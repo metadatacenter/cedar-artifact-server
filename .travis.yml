@@ -29,6 +29,8 @@ env:
   - CEDAR_KEYCLOAK_CLIENT_ID=cedar-angular-app
   - CEDAR_MONGO_APP_USER_NAME=cedarUser
   - CEDAR_MONGO_APP_USER_PASSWORD=password
+  - CEDAR_MONGO_HOST=localhost
+  - CEDAR_MONGO_PORT=27017
   - CEDAR_PORT_TEMPLATE=9001
   - CEDAR_LD_USER_BASE=https://metadatacenter.org/users/
   - CEDAR_TEST_USER1_ID=https://metadatacenter.org/users/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee
