@@ -10,7 +10,6 @@ import org.metadatacenter.error.CedarErrorPack;
 import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.exception.CedarProcessingException;
 import org.metadatacenter.model.CedarNodeType;
-import org.metadatacenter.model.validation.CEDARModelValidator;
 import org.metadatacenter.model.validation.CedarValidator;
 import org.metadatacenter.model.validation.ModelValidator;
 import org.metadatacenter.model.validation.report.ValidationReport;

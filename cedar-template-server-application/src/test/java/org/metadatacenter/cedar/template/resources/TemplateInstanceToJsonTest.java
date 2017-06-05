@@ -16,7 +16,7 @@ import static javax.ws.rs.core.Response.Status.Family;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-public class TemplateInstanceToJsonTest extends BaseTemplateResourceTest {
+public class TemplateInstanceToJsonTest extends BaseServerTest {
 
   private String templateExampleId;
   private String instanceExampleId;
@@ -26,8 +26,8 @@ public class TemplateInstanceToJsonTest extends BaseTemplateResourceTest {
 
   @BeforeClass
   public static void loadTestPayload() {
-    templateExample = TestResourcesUtils.getStringContent("templates/nested-element-template.json");
-    instanceExample = TestResourcesUtils.getStringContent("instances/nested-element-instance.jsonld");
+    templateExample = TestResourcesUtils.getStringContent("instances/usecase-template.json");
+    instanceExample = TestResourcesUtils.getStringContent("instances/usecase-instance.jsonld");
   }
 
   @Before

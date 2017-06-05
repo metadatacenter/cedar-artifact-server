@@ -1,5 +1,7 @@
 package org.metadatacenter.cedar.template.resources;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Sets;
 import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.testing.ResourceHelpers;
 import io.dropwizard.testing.junit.DropwizardAppRule;
@@ -10,21 +12,20 @@ import org.junit.ClassRule;
 import org.metadatacenter.cedar.template.TemplateServerApplication;
 import org.metadatacenter.cedar.template.TemplateServerConfiguration;
 import org.metadatacenter.cedar.template.resources.utils.TestUtil;
-import org.metadatacenter.config.CedarConfig;
-import org.metadatacenter.config.environment.CedarEnvironmentVariableProvider;
-import org.metadatacenter.model.SystemComponent;
 import org.metadatacenter.util.test.TestUserUtil;
 
 import javax.annotation.Nonnull;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
+import java.util.Iterator;
+import java.util.Set;
 
-import java.util.Map;
-
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.metadatacenter.constant.HttpConstants.HTTP_HEADER_AUTHORIZATION;
 
-public abstract class BaseTemplateResourceTest {
+public abstract class BaseServerTest {
 
   private static String authHeaderValue;
 
@@ -80,5 +81,25 @@ public abstract class BaseTemplateResourceTest {
         .header(HTTP_HEADER_AUTHORIZATION, authHeaderValue)
         .delete();
     return response;
+  }
+
+  protected void assertValidationMessage(JsonNode responseMessage, String expectedValue) {
+    Set<String> errorMessages = Sets.newHashSet();
+    Iterator<JsonNode> iter = responseMessage.get("errors").elements();
+    while (iter.hasNext()) {
+      JsonNode errorItem = iter.next();
+      String errorMessage = errorItem.get("message").asText();
+      errorMessages.add(errorMessage);
+    }
+    assertThat(printReason(responseMessage), errorMessages.contains(expectedValue));
+  }
+
+  protected void assertValidationStatus(JsonNode responseMessage, String expectedValue) {
+    String statusMessage = responseMessage.get("validates").asText();
+    assertThat(printReason(responseMessage), statusMessage, is(expectedValue));
+  }
+
+  protected String printReason(JsonNode responseMessage) {
+    return "The server is returning a different validation report.\n(application/json): " + responseMessage.toString();
   }
 }
