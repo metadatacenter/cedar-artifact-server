@@ -21,6 +21,8 @@ public class CedarConfigTemplateTest {
 
     env.put(CedarEnvironmentVariable.CEDAR_HOST.getName(), "metadatacenter.orgx");
 
+    env.put(CedarEnvironmentVariable.CEDAR_NET_GATEWAY.getName(), "127.0.0.1");
+
     CedarEnvironmentUtil.copy(CedarEnvironmentVariable.CEDAR_MONGO_APP_USER_NAME, env);
     CedarEnvironmentUtil.copy(CedarEnvironmentVariable.CEDAR_MONGO_APP_USER_PASSWORD, env);
     env.put(CedarEnvironmentVariable.CEDAR_MONGO_HOST.getName(), "localhost");
@@ -29,6 +31,8 @@ public class CedarConfigTemplateTest {
     env.put(CedarEnvironmentVariable.CEDAR_TEMPLATE_HTTP_PORT.getName(), "9001");
     env.put(CedarEnvironmentVariable.CEDAR_TEMPLATE_ADMIN_PORT.getName(), "9101");
     env.put(CedarEnvironmentVariable.CEDAR_TEMPLATE_STOP_PORT.getName(), "9201");
+
+    env.put(CedarEnvironmentVariable.CEDAR_USER_HTTP_PORT.getName(), "9005");
 
     CedarEnvironmentUtil.copy(CedarEnvironmentVariable.CEDAR_TEST_USER1_ID, env);
 
