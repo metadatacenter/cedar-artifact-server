@@ -8,7 +8,6 @@ import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.constant.CustomHttpConstants;
 import org.metadatacenter.constant.HttpConstants;
 import org.metadatacenter.error.CedarErrorKey;
-import org.metadatacenter.error.CedarErrorPack;
 import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.exception.CedarProcessingException;
 import org.metadatacenter.model.CedarNodeType;
@@ -44,7 +43,6 @@ import java.util.*;
 import static org.metadatacenter.constant.CedarPathParameters.PP_ID;
 import static org.metadatacenter.constant.CedarQueryParameters.*;
 import static org.metadatacenter.rest.assertion.GenericAssertions.LoggedIn;
-import static org.metadatacenter.rest.assertion.GenericAssertions.NonEmpty;
 
 @Path("/template-instances")
 @Produces(MediaType.APPLICATION_JSON)
@@ -262,7 +260,6 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
     }
     return CedarResponse.noContent().build();
   }
-
 
 
   private Response sendFormattedTemplateInstance(JsonNode templateInstance, OutputFormatType formatType) throws

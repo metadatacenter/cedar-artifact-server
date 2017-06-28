@@ -37,7 +37,6 @@ import java.util.*;
 import static org.metadatacenter.constant.CedarPathParameters.PP_ID;
 import static org.metadatacenter.constant.CedarQueryParameters.*;
 import static org.metadatacenter.rest.assertion.GenericAssertions.LoggedIn;
-import static org.metadatacenter.rest.assertion.GenericAssertions.NonEmpty;
 
 @Path("/template-elements")
 @Produces(MediaType.APPLICATION_JSON)
