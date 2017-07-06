@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.metadatacenter</groupId>
     <artifactId>cedar-template-server</artifactId>
-    <version>1.2.2</version>
+    <version>1.3.0</version>
   </parent>
 
   <groupId>org.metadatacenter</groupId>
@@ -48,7 +48,7 @@
 
     <dependency>
       <groupId>org.metadatacenter</groupId>
-      <artifactId>cedar-folder-operations</artifactId>
+      <artifactId>cedar-workspace-operations</artifactId>
     </dependency>
 
     <dependency>
