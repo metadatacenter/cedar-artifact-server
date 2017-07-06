@@ -48,7 +48,7 @@
 
     <dependency>
       <groupId>org.metadatacenter</groupId>
-      <artifactId>cedar-folder-operations</artifactId>
+      <artifactId>cedar-workspace-operations</artifactId>
     </dependency>
 
     <dependency>
