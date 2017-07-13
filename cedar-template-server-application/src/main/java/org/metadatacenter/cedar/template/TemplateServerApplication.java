@@ -2,6 +2,7 @@ package org.metadatacenter.cedar.template;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.MongoClient;
+import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import org.metadatacenter.bridge.CedarDataServices;
 import org.metadatacenter.cedar.template.health.TemplateServerHealthCheck;
@@ -33,6 +34,10 @@ public class TemplateServerApplication extends CedarMicroserviceApplication<Temp
   @Override
   protected ServerName getServerName() {
     return ServerName.TEMPLATE;
+  }
+
+  @Override
+  protected void initializeWithBootsrap(Bootstrap<TemplateServerConfiguration> bootstrap) {
   }
 
   @Override
