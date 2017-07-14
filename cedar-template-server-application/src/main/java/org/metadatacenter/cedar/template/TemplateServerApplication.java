@@ -37,7 +37,7 @@ public class TemplateServerApplication extends CedarMicroserviceApplication<Temp
   }
 
   @Override
-  protected void initializeWithBootsrap(Bootstrap<TemplateServerConfiguration> bootstrap) {
+  protected void initializeWithBootstrap(Bootstrap<TemplateServerConfiguration> bootstrap) {
   }
 
   @Override
