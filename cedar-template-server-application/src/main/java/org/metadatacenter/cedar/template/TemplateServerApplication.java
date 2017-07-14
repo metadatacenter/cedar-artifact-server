@@ -8,6 +8,7 @@ import org.metadatacenter.bridge.CedarDataServices;
 import org.metadatacenter.cedar.template.health.TemplateServerHealthCheck;
 import org.metadatacenter.cedar.template.resources.*;
 import org.metadatacenter.cedar.util.dw.CedarMicroserviceApplication;
+import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.config.MongoConfig;
 import org.metadatacenter.model.CedarNodeType;
 import org.metadatacenter.model.ServerName;
@@ -37,8 +38,10 @@ public class TemplateServerApplication extends CedarMicroserviceApplication<Temp
   }
 
   @Override
-  protected void initializeWithBootstrap(Bootstrap<TemplateServerConfiguration> bootstrap) {
+  protected void initializeWithBootstrap(Bootstrap<TemplateServerConfiguration> bootstrap, CedarConfig cedarConfig) {
+
   }
+
 
   @Override
   public void initializeApp() {
