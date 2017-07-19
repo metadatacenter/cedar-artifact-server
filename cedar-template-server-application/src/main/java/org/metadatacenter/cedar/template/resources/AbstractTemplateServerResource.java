@@ -28,14 +28,10 @@ import static com.fasterxml.jackson.databind.node.JsonNodeType.NULL;
 
 public class AbstractTemplateServerResource extends CedarMicroserviceResource {
 
-  protected final LinkedDataUtil linkedDataUtil;
-  protected final ProvenanceUtil provenanceUtil;
   protected static List<String> FIELD_NAMES_EXCLUSION_LIST;
 
   protected AbstractTemplateServerResource(CedarConfig cedarConfig) {
     super(cedarConfig);
-    this.linkedDataUtil = cedarConfig.getLinkedDataUtil();
-    this.provenanceUtil = new ProvenanceUtil();
     FIELD_NAMES_EXCLUSION_LIST = new ArrayList<>();
     FIELD_NAMES_EXCLUSION_LIST.addAll(cedarConfig.getTemplateRESTAPI().getExcludedFields());
   }
