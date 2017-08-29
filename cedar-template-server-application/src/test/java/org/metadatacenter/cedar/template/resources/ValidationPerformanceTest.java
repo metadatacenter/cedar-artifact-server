@@ -27,7 +27,7 @@ public class ValidationPerformanceTest extends BaseServerTest {
 
   private JsonNode runValidation(String payload) {
     Response response = sendPostRequest(
-        RequestUrls.forValidatingTemplate(getPortNumber()),
+        TestRequestUrls.forValidatingTemplate(getPortNumber()),
         payload);
     checkStatusOk(response);
     JsonNode responseMessage = getJsonResponseMessage(response);

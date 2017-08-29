@@ -15,12 +15,13 @@ import org.metadatacenter.cedar.template.TemplateServerConfiguration;
 import org.metadatacenter.cedar.template.resources.utils.TestConstants;
 import org.metadatacenter.cedar.template.resources.utils.TestUtil;
 import org.metadatacenter.constant.CustomHttpConstants;
+import org.metadatacenter.constant.LinkedData;
+import org.metadatacenter.exception.TemplateServerResourceNotFoundException;
 import org.metadatacenter.model.CedarNodeType;
 import org.metadatacenter.util.test.TestUserUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.management.InstanceNotFoundException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
@@ -30,7 +31,6 @@ import java.util.Iterator;
 import java.util.Map;
 
 import static org.metadatacenter.cedar.template.resources.utils.TestConstants.*;
-import static org.metadatacenter.cedar.template.resources.utils.TestConstants.BASED_ON_FIELD;
 
 public abstract class AbstractResourceCrudTest {
 
@@ -101,7 +101,7 @@ public abstract class AbstractResourceCrudTest {
       removeResources(createdResources);
     } catch (IOException e) {
       e.printStackTrace();
-    } catch (InstanceNotFoundException e) {
+    } catch (TemplateServerResourceNotFoundException e) {
       e.printStackTrace();
     }
   }
@@ -143,7 +143,7 @@ public abstract class AbstractResourceCrudTest {
     if (resourceType.equals(CedarNodeType.INSTANCE)) {
       try {
         JsonNode createdTemplate = createResource(template, CedarNodeType.TEMPLATE);
-        String createdTemplateId = createdTemplate.get(ID_FIELD).asText();
+        String createdTemplateId = createdTemplate.get(LinkedData.ID).asText();
         createdResources.put(createdTemplateId, CedarNodeType.TEMPLATE);
         ((ObjectNode)instance).put(BASED_ON_FIELD, createdTemplateId);
         return instance;
@@ -158,7 +158,7 @@ public abstract class AbstractResourceCrudTest {
    * Remove resources by id
    */
   public static void removeResources(Map<String, CedarNodeType> resourceMap) throws IOException,
-      InstanceNotFoundException {
+      TemplateServerResourceNotFoundException {
     Iterator it = resourceMap.entrySet().iterator();
     while (it.hasNext()) {
       Map.Entry pair = (Map.Entry)it.next();
@@ -180,7 +180,7 @@ public abstract class AbstractResourceCrudTest {
       } else { // Template instance
         TestUtil.templateInstanceService.deleteTemplateInstance(id);
       }
-    } catch (InstanceNotFoundException e) {
+    } catch (TemplateServerResourceNotFoundException e) {
       logger.info("Resource not found. Id = " + id);
     } catch (IOException e) {
       e.printStackTrace();

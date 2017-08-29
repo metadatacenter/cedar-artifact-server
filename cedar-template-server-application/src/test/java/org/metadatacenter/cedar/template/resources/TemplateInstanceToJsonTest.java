@@ -45,7 +45,7 @@ public class TemplateInstanceToJsonTest extends BaseServerTest {
   @Test
   public void shouldGetJsonOutput() {
     Response response = sendGetRequest(
-        RequestUrls.forFindingInstance(getPortNumber(), instanceExampleId,
+        TestRequestUrls.forFindingInstance(getPortNumber(), instanceExampleId,
             OutputFormatType.JSON.getValue()));
     checkStatusOk(response);
     // Assert header
@@ -57,7 +57,7 @@ public class TemplateInstanceToJsonTest extends BaseServerTest {
 
   private String uploadTemplate(String templateDocument) {
     Response response = sendPostRequest(
-        RequestUrls.forCreatingTemplate(getPortNumber(), "true"),
+        TestRequestUrls.forCreatingTemplate(getPortNumber()),
         templateDocument);
     checkStatusOk(response);
     return extractId(response);
@@ -65,7 +65,7 @@ public class TemplateInstanceToJsonTest extends BaseServerTest {
 
   private String uploadInstance(String instanceDocument) {
     Response response = sendPostRequest(
-        RequestUrls.forCreatingInstances(getPortNumber(), "true"),
+        TestRequestUrls.forCreatingInstances(getPortNumber()),
         instanceDocument);
     checkStatusOk(response);
     return extractId(response);
@@ -73,13 +73,13 @@ public class TemplateInstanceToJsonTest extends BaseServerTest {
 
   private void removeTemplate(String templateId) {
     Response response = sendDeleteRequest(
-        RequestUrls.forDeletingTemplate(getPortNumber(), templateId));
+        TestRequestUrls.forDeletingTemplate(getPortNumber(), templateId));
     checkStatusOk(response);
   }
 
   private void removeInstance(String instanceId) {
     Response response = sendDeleteRequest(
-        RequestUrls.forDeletingInstance(getPortNumber(), instanceId));
+        TestRequestUrls.forDeletingInstance(getPortNumber(), instanceId));
     checkStatusOk(response);
   }
 

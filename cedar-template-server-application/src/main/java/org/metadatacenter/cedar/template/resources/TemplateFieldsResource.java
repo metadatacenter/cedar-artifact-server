@@ -1,46 +1,17 @@
 package org.metadatacenter.cedar.template.resources;
 
-import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import org.metadatacenter.config.CedarConfig;
-import org.metadatacenter.constant.CustomHttpConstants;
-import org.metadatacenter.constant.HttpConstants;
-import org.metadatacenter.error.CedarErrorKey;
-import org.metadatacenter.exception.CedarException;
-import org.metadatacenter.model.CedarNodeType;
-import org.metadatacenter.model.validation.report.ReportUtils;
-import org.metadatacenter.model.validation.report.ValidationReport;
-import org.metadatacenter.rest.context.CedarRequestContext;
-import org.metadatacenter.rest.context.CedarRequestContextFactory;
-import org.metadatacenter.server.model.provenance.ProvenanceInfo;
-import org.metadatacenter.server.security.model.auth.CedarPermission;
-import org.metadatacenter.server.service.FieldNameInEx;
 import org.metadatacenter.server.service.TemplateFieldService;
-import org.metadatacenter.util.http.CedarResponse;
-import org.metadatacenter.util.http.CedarUrlUtil;
-import org.metadatacenter.util.http.LinkHeaderUtil;
-import org.metadatacenter.util.http.PagedQuery;
-import org.metadatacenter.util.mongo.MongoUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.management.InstanceNotFoundException;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.io.IOException;
-import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
-import static org.metadatacenter.constant.CedarPathParameters.PP_ID;
-import static org.metadatacenter.constant.CedarQueryParameters.*;
-import static org.metadatacenter.rest.assertion.GenericAssertions.LoggedIn;
-
-@Path("/template-fields")
-@Produces(MediaType.APPLICATION_JSON)
+//@Path("/template-fields")
+//@Produces(MediaType.APPLICATION_JSON)
 public class TemplateFieldsResource extends AbstractTemplateServerResource {
-
   private static final Logger logger = LoggerFactory.getLogger(TemplateFieldsResource.class);
 
   private final TemplateFieldService<String, JsonNode> templateFieldService;
@@ -54,20 +25,19 @@ public class TemplateFieldsResource extends AbstractTemplateServerResource {
     FIELD_NAMES_SUMMARY_LIST = new ArrayList<>();
     FIELD_NAMES_SUMMARY_LIST.addAll(cedarConfig.getTemplateRESTAPI().getSummaries().getField().getFields());
   }
-
+/*
   @POST
   @Timed
-  public Response createTemplateField(@QueryParam(QP_IMPORT_MODE) Optional<Boolean> importMode) throws
+  public Response createTemplateField() throws
       CedarException {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_FIELD_CREATE);
-    // TODO: the non-empty check is not working
-    //c.must(c.request().getRequestBody()).be(NonEmpty);
+    c.must(c.request().getRequestBody()).be(NonEmpty);
 
     JsonNode templateField = c.request().getRequestBody().asJson();
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
-    checkImportModeSetProvenanceAndId(CedarNodeType.FIELD, templateField, pi, importMode);
+    setProvenanceAndId(CedarNodeType.FIELD, templateField, pi);
 
     ValidationReport validationReport = validateTemplateField(templateField);
     ReportUtils.outputLogger(logger, validationReport, true);
@@ -181,6 +151,7 @@ public class TemplateFieldsResource extends AbstractTemplateServerResource {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_FIELD_UPDATE);
+    c.must(c.request().getRequestBody()).be(NonEmpty);
 
     JsonNode newField = c.request().getRequestBody().asJson();
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
@@ -191,7 +162,7 @@ public class TemplateFieldsResource extends AbstractTemplateServerResource {
     JsonNode updatedTemplateField = null;
     try {
       updatedTemplateField = templateFieldService.updateTemplateField(id, newField);
-    } catch (InstanceNotFoundException e) {
+    } catch (TemplateServerResourceNotFoundException e) {
       return CedarResponse.notFound()
           .id(id)
           .errorKey(CedarErrorKey.TEMPLATE_FIELD_NOT_FOUND)
@@ -220,7 +191,7 @@ public class TemplateFieldsResource extends AbstractTemplateServerResource {
 
     try {
       templateFieldService.deleteTemplateField(id);
-    } catch (InstanceNotFoundException e) {
+    } catch (TemplateServerResourceNotFoundException e) {
       return CedarResponse.notFound()
           .id(id)
           .errorKey(CedarErrorKey.TEMPLATE_FIELD_NOT_FOUND)
@@ -237,4 +208,5 @@ public class TemplateFieldsResource extends AbstractTemplateServerResource {
     }
     return CedarResponse.noContent().build();
   }
+  */
 }

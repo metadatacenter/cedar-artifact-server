@@ -2,23 +2,30 @@ package org.metadatacenter.cedar.template.resources;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import org.jetbrains.annotations.NotNull;
 import org.metadatacenter.cedar.util.dw.CedarMicroserviceResource;
 import org.metadatacenter.config.CedarConfig;
+import org.metadatacenter.constant.LinkedData;
 import org.metadatacenter.error.CedarErrorKey;
 import org.metadatacenter.error.CedarErrorPack;
+import org.metadatacenter.exception.CedarBadRequestException;
 import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.exception.CedarProcessingException;
+import org.metadatacenter.exception.CedarRequestBodyMissingFieldException;
 import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.model.core.CedarModelVocabulary;
 import org.metadatacenter.model.validation.CedarValidator;
 import org.metadatacenter.model.validation.ModelValidator;
 import org.metadatacenter.model.validation.report.ValidationReport;
 import org.metadatacenter.rest.exception.CedarAssertionException;
-import org.metadatacenter.server.jsonld.LinkedDataUtil;
 import org.metadatacenter.server.model.provenance.ProvenanceInfo;
-import org.metadatacenter.util.provenance.ProvenanceUtil;
+import org.metadatacenter.server.service.TemplateService;
+import org.metadatacenter.util.JsonPointerValuePair;
+import org.metadatacenter.util.ModelUtil;
+import org.metadatacenter.util.mongo.MongoUtils;
 
-import javax.ws.rs.core.Response;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -36,25 +43,17 @@ public class AbstractTemplateServerResource extends CedarMicroserviceResource {
     FIELD_NAMES_EXCLUSION_LIST.addAll(cedarConfig.getTemplateRESTAPI().getExcludedFields());
   }
 
-  protected void checkImportModeSetProvenanceAndId(CedarNodeType cedarNodeType, JsonNode element,
-                                                   ProvenanceInfo pi, Optional<Boolean> importMode) {
-    boolean im = (importMode != null && importMode.isPresent() && importMode.get());
-    if (im) {
-      if ((element.get("@id") == null) || (NULL.equals(element.get("@id").getNodeType()))) {
-        throw new IllegalArgumentException("You must specify @id when importing data");
-      }
-    } else {
-      if ((element.get("@id") != null) && (!NULL.equals(element.get("@id").getNodeType()))) {
-        throw new IllegalArgumentException("Specifying @id for new objects is not allowed");
-      }
-      provenanceUtil.addProvenanceInfo(element, pi);
-
-      String id = linkedDataUtil.buildNewLinkedDataId(cedarNodeType);
-      ((ObjectNode) element).put("@id", id);
-
-      // add template-element-instance ids (only for instances)
-      linkedDataUtil.addElementInstanceIds(element, cedarNodeType);
+  protected void setProvenanceAndId(CedarNodeType cedarNodeType, JsonNode element, ProvenanceInfo pi) {
+    if ((element.get("@id") != null) && (!NULL.equals(element.get("@id").getNodeType()))) {
+      throw new IllegalArgumentException("Specifying @id for new objects is not allowed");
     }
+    provenanceUtil.addProvenanceInfo(element, pi);
+
+    String id = linkedDataUtil.buildNewLinkedDataId(cedarNodeType);
+    ((ObjectNode) element).put("@id", id);
+
+    // add template-element-instance ids (only for instances)
+    linkedDataUtil.addElementInstanceIds(element, cedarNodeType);
   }
 
   protected Boolean ensureSummary(Optional<Boolean> summary) {
@@ -126,14 +125,83 @@ public class AbstractTemplateServerResource extends CedarMicroserviceResource {
   }
 
   protected static CedarException newCedarException(String message) {
-    return new CedarException(message) {};
+    return new CedarException(message) {
+    };
   }
 
-  protected static CedarException newBadRequestException(String message) {
-    CedarErrorPack errorPack = new CedarErrorPack()
-        .status(Response.Status.BAD_REQUEST)
-        .errorKey(CedarErrorKey.INVALID_INPUT)
-        .message(message);
-    return new CedarException(errorPack){};
+  protected void enforceMandatoryNullOrMissingId(JsonNode jsonObject, CedarNodeType nodeType, CedarErrorKey errorKey)
+      throws CedarBadRequestException {
+    JsonNode idInRequestNode = jsonObject.get(LinkedData.ID);
+    if (idInRequestNode != null && !idInRequestNode.isNull()) {
+      String idInRequest = idInRequestNode.asText();
+      if (idInRequest != null) {
+        CedarErrorPack errorPack = new CedarErrorPack()
+            .message("The " + nodeType.getValue() + " must not contain a non-null '" + LinkedData.ID + "' field!")
+            .errorKey(errorKey)
+            .parameter(LinkedData.ID, idInRequest);
+        throw new CedarBadRequestException(errorPack);
+      }
+    }
   }
+
+  protected void enforceMandatoryNameAndDescription(JsonNode jsonObject, CedarNodeType nodeType, CedarErrorKey errorKey)
+      throws CedarBadRequestException {
+    JsonPointerValuePair namePair = ModelUtil.extractNameFromResource(nodeType, jsonObject);
+    if (namePair.hasEmptyValue()) {
+      throw new CedarRequestBodyMissingFieldException(namePair.getPointer(), errorKey);
+    }
+    JsonPointerValuePair descriptionPair = ModelUtil.extractDescriptionFromResource(nodeType, jsonObject);
+    if (descriptionPair.hasEmptyValue()) {
+      throw new CedarRequestBodyMissingFieldException(descriptionPair.getPointer(), errorKey);
+    }
+  }
+
+  protected void enforceMandatoryFieldsInPut(String id, JsonNode jsonObject, CedarNodeType nodeType, CedarErrorKey
+      errorKey) throws CedarBadRequestException {
+    JsonNode idInRequestNode = jsonObject.get(LinkedData.ID);
+    String idInRequest = null;
+    if (idInRequestNode != null && !idInRequestNode.isNull()) {
+      idInRequest = idInRequestNode.asText();
+    }
+    if (idInRequest == null) {
+      CedarErrorPack errorPack = new CedarErrorPack()
+          .message("The " + nodeType.getValue() + " must contain a non-null '" + LinkedData.ID + "' field!")
+          .errorKey(errorKey);
+      throw new CedarBadRequestException(errorPack);
+    }
+    if (!idInRequest.equals(id)) {
+      CedarErrorPack errorPack = new CedarErrorPack()
+          .message("The @id in the body must match the id in the URL!")
+          .errorKey(errorKey);
+      throw new CedarBadRequestException(errorPack);
+    }
+  }
+
+
+  protected static JsonNode getSchemaSource(TemplateService<String, JsonNode> templateService, JsonNode
+      templateInstance) throws IOException, ProcessingException, CedarException {
+    checkInstanceSchemaExists(templateInstance);
+    String templateRefId = templateInstance.get(CedarModelVocabulary.SCHEMA_IS_BASED_ON).asText();
+    JsonNode template = templateService.findTemplate(templateRefId);
+    if (template == null) {
+      throw new CedarBadRequestException(
+          new CedarErrorPack()
+              .message("The template that this instance is based on can not be found.")
+              .parameter(CedarModelVocabulary.SCHEMA_IS_BASED_ON, templateRefId)
+              .errorKey(CedarErrorKey.INVALID_INPUT)
+      );
+    }
+    MongoUtils.removeIdField(template);
+    return template;
+  }
+
+  protected static JsonNode checkInstanceSchemaExists(JsonNode templateInstance) throws CedarException {
+    JsonNode isBasedOnNode = templateInstance.path(CedarModelVocabulary.SCHEMA_IS_BASED_ON);
+    if (isBasedOnNode.isMissingNode()) {
+      throw new CedarRequestBodyMissingFieldException(CedarModelVocabulary.SCHEMA_IS_BASED_ON, CedarErrorKey
+          .INVALID_INPUT);
+    }
+    return templateInstance;
+  }
+
 }

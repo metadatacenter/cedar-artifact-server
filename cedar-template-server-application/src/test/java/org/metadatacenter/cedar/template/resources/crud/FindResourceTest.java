@@ -12,6 +12,7 @@ import org.metadatacenter.cedar.template.resources.utils.TestParameterUtil;
 import org.metadatacenter.cedar.template.resources.utils.TestUtil;
 import org.metadatacenter.constant.CustomHttpConstants;
 import org.metadatacenter.constant.HttpConstants;
+import org.metadatacenter.constant.LinkedData;
 import org.metadatacenter.model.CedarNodeType;
 
 import javax.ws.rs.client.Entity;
@@ -44,9 +45,9 @@ public class FindResourceTest extends AbstractResourceCrudTest {
     // Create a resource
     Response response = testClient.target(url).request().header("Authorization", authHeader).post(Entity.json(sampleResource));
     JsonNode expected = response.readEntity(JsonNode.class);
-    createdResources.put(expected.get(ID_FIELD).asText(), resourceType);
+    createdResources.put(expected.get(LinkedData.ID).asText(), resourceType);
     // Use generated id to retrieve the resource
-    String id = expected.get(ID_FIELD).asText();
+    String id = expected.get(LinkedData.ID).asText();
     String findUrl = null;
     try {
       findUrl = url + "/" + URLEncoder.encode(id, "UTF-8");
@@ -119,9 +120,9 @@ public class FindResourceTest extends AbstractResourceCrudTest {
     // Create a resource
     Response response = testClient.target(url).request().header("Authorization", authHeader).post(Entity.json(sampleResource));
     JsonNode expected = response.readEntity(JsonNode.class);
-    createdResources.put(expected.get(ID_FIELD).asText(), resourceType);
+    createdResources.put(expected.get(LinkedData.ID).asText(), resourceType);
     // Use generated id to retrieve the resource
-    String id = expected.get(ID_FIELD).asText();
+    String id = expected.get(LinkedData.ID).asText();
     String findUrl = null;
     try {
       findUrl = url + "/" + URLEncoder.encode(id, "UTF-8");
@@ -145,9 +146,9 @@ public class FindResourceTest extends AbstractResourceCrudTest {
     // Create a resource
     Response response = testClient.target(url).request().header("Authorization", authHeader).post(Entity.json(sampleResource));
     JsonNode expected = response.readEntity(JsonNode.class);
-    createdResources.put(expected.get(ID_FIELD).asText(), resourceType);
+    createdResources.put(expected.get(LinkedData.ID).asText(), resourceType);
     // Use generated id to retrieve the resource
-    String id = expected.get(ID_FIELD).asText();
+    String id = expected.get(LinkedData.ID).asText();
     String findUrl = null;
     try {
       findUrl = url + "/" + URLEncoder.encode(id, "UTF-8");
@@ -185,7 +186,7 @@ public class FindResourceTest extends AbstractResourceCrudTest {
       } catch (IOException e) {
         e.printStackTrace();
       }
-      createdResources.put(createdResource.get(ID_FIELD).asText(), resourceType);
+      createdResources.put(createdResource.get(LinkedData.ID).asText(), resourceType);
       resources.add(createdResource);
     }
     // find All

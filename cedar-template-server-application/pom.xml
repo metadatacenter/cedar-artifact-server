@@ -28,6 +28,11 @@
 
     <dependency>
       <groupId>org.metadatacenter</groupId>
+      <artifactId>cedar-server-globals</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.metadatacenter</groupId>
       <artifactId>cedar-server-utils-core</artifactId>
     </dependency>
 
