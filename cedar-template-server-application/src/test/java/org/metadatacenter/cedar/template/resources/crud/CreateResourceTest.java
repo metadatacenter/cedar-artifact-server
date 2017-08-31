@@ -26,7 +26,7 @@ public class CreateResourceTest extends AbstractResourceCrudTest {
    */
 
   @Test
-  @TestCaseName(TEST_NAME_PATTERN)
+  @TestCaseName(TEST_NAME_PATTERN_INDEX_METHOD)
   @Parameters(method = "getCommonParams1")
   public void createResourceTest(JsonNode sampleResource, CedarNodeType resourceType) {
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
@@ -62,7 +62,7 @@ public class CreateResourceTest extends AbstractResourceCrudTest {
 
   // TODO: Fix the following test
 //  @Test
-//  @TestCaseName(TEST_NAME_PATTERN)
+//  @TestCaseName(TEST_NAME_PATTERN_INDEX_METHOD)
 //  @Parameters(method = "getCommonParams2")
 //  public void createResourceMalformedBodyTest(CedarNodeType resourceType) {
 //    String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
@@ -79,7 +79,7 @@ public class CreateResourceTest extends AbstractResourceCrudTest {
 
 
   @Test
-  @TestCaseName(TEST_NAME_PATTERN)
+  @TestCaseName(TEST_NAME_PATTERN_INDEX_METHOD)
   @Parameters(method = "getCommonParams1")
   public void createResourceMissingAuthorizationHeaderTest(JsonNode sampleResource, CedarNodeType resourceType) {
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
@@ -90,7 +90,7 @@ public class CreateResourceTest extends AbstractResourceCrudTest {
   }
 
   @Test
-  @TestCaseName(TEST_NAME_PATTERN)
+  @TestCaseName(TEST_NAME_PATTERN_INDEX_METHOD)
   @Parameters(method = "getCommonParams1")
   public void createResourceUnauthorizedKeyTest(JsonNode sampleResource, CedarNodeType resourceType) {
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);

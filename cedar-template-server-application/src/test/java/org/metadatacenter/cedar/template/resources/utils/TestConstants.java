@@ -12,7 +12,8 @@ public class TestConstants {
   public static final String NON_EXISTENT_API_KEY = "ae0b7242-dcb3-479f-abe2-4afaa531480a";
   public static final String INVALID_JSON = "{sometext}";
   public static final String INVALID_ID = "invalid-id";
-  public static final String TEST_NAME_PATTERN = "[{index}] {method}";
+  public static final String TEST_NAME_PATTERN_INDEX_METHOD = "[{index}] {method}";
+  public static final String TEST_NAME_PATTERN_METHOD_PARAMS = "[{index}]{method}({params})";
 
   /* Templates */
   public static final String TEMPLATE_ROUTE = "templates";
@@ -31,7 +32,6 @@ public class TestConstants {
   public static final String SAMPLE_INSTANCE_PATH = "crud/SampleTemplateInstance.json";
   public static final String NON_EXISTENT_INSTANCE_ID =
       "https://repo.metadatacenter.net/template-instances/11111111-2222-3333-4444-555555555555";
-  public static final String BASED_ON_FIELD = "schema:isBasedOn";
 
   // PRIVATE //
 

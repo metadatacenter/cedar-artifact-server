@@ -2,6 +2,8 @@ package org.metadatacenter.cedar.template.resources.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.MongoClient;
+import org.apache.commons.io.Charsets;
+import org.apache.commons.io.IOUtils;
 import org.metadatacenter.bridge.CedarDataServices;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.config.environment.CedarEnvironmentVariableProvider;
@@ -17,6 +19,8 @@ import org.metadatacenter.server.service.mongodb.TemplateServiceMongoDB;
 import org.metadatacenter.util.json.JsonMapper;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
 import java.util.Map;
 
 import static org.metadatacenter.cedar.template.resources.utils.TestConstants.*;
@@ -61,6 +65,13 @@ public class TestUtil {
 
   public static JsonNode readFileAsJson(String path) throws IOException {
     return JsonMapper.MAPPER.readTree(TestUtil.class.getClassLoader().getResourceAsStream(path));
+  }
+
+  public static String readFileAsString(String path) throws IOException {
+    InputStream is = TestUtil.class.getClassLoader().getResourceAsStream(path);
+    StringWriter writer = new StringWriter();
+    IOUtils.copy(is, writer, Charsets.UTF_8);
+    return writer.toString();
   }
 
   public static String getResourceUrlRoute(String baseTestUrl, CedarNodeType resourceType) {

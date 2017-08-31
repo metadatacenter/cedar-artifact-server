@@ -1,0 +1,5 @@
+{
+  "schema:name": "Minimal instance name",
+  "schema:description": "Minimal instance description",
+  "schema:isBasedOn": "https://repo.metadatacenter.orgx/template/something-missing"
+}

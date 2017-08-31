@@ -15,7 +15,7 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.net.URLEncoder;
 
-import static org.metadatacenter.cedar.template.resources.utils.TestConstants.TEST_NAME_PATTERN;
+import static org.metadatacenter.cedar.template.resources.utils.TestConstants.TEST_NAME_PATTERN_INDEX_METHOD;
 
 @RunWith(JUnitParamsRunner.class)
 public class DeleteResourceTest extends AbstractResourceCrudTest {
@@ -25,7 +25,7 @@ public class DeleteResourceTest extends AbstractResourceCrudTest {
    */
 
   @Test
-  @TestCaseName(TEST_NAME_PATTERN)
+  @TestCaseName(TEST_NAME_PATTERN_INDEX_METHOD)
   @Parameters(method = "getCommonParams1")
   public void deleteResourceTest(JsonNode sampleResource, CedarNodeType resourceType) {
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);

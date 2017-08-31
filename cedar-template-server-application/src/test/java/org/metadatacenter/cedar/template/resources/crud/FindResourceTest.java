@@ -35,7 +35,7 @@ public class FindResourceTest extends AbstractResourceCrudTest {
    */
 
   @Test
-  @TestCaseName(TEST_NAME_PATTERN)
+  @TestCaseName(TEST_NAME_PATTERN_INDEX_METHOD)
   @Parameters(method = "getCommonParams1")
   public void findResourceTest(JsonNode sampleResource, CedarNodeType resourceType) {
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
@@ -64,7 +64,7 @@ public class FindResourceTest extends AbstractResourceCrudTest {
   }
 
   @Test
-  @TestCaseName(TEST_NAME_PATTERN)
+  @TestCaseName(TEST_NAME_PATTERN_INDEX_METHOD)
   @Parameters
   public void findNonExistentResourceTest(CedarNodeType resourceType, String nonExistentResourceId) {
     String findUrl = null;
@@ -87,7 +87,7 @@ public class FindResourceTest extends AbstractResourceCrudTest {
   }
 
   @Test
-  @TestCaseName(TEST_NAME_PATTERN)
+  @TestCaseName(TEST_NAME_PATTERN_INDEX_METHOD)
   @Parameters
   public void findInvalidIdTest(CedarNodeType resourceType, String invalidId) {
     String findUrl = null;
@@ -110,7 +110,7 @@ public class FindResourceTest extends AbstractResourceCrudTest {
   }
 
   @Test
-  @TestCaseName(TEST_NAME_PATTERN)
+  @TestCaseName(TEST_NAME_PATTERN_INDEX_METHOD)
   @Parameters(method = "getCommonParams1")
   public void findResourceMissingAuthorizationHeaderTest(JsonNode sampleResource, CedarNodeType resourceType) {
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
@@ -136,7 +136,7 @@ public class FindResourceTest extends AbstractResourceCrudTest {
   }
 
   @Test
-  @TestCaseName(TEST_NAME_PATTERN)
+  @TestCaseName(TEST_NAME_PATTERN_INDEX_METHOD)
   @Parameters(method = "getCommonParams1")
   public void findResourceUnauthorizedKeyTest(JsonNode sampleResource, CedarNodeType resourceType) {
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
@@ -167,7 +167,7 @@ public class FindResourceTest extends AbstractResourceCrudTest {
    */
 
   @Test
-  @TestCaseName(TEST_NAME_PATTERN + " limit={2}, offset={3}, summary={4}")
+  @TestCaseName(TEST_NAME_PATTERN_INDEX_METHOD + " limit={2}, offset={3}, summary={4}")
   @Parameters
   public void findAllResourcesTest(CedarNodeType resourceType, JsonNode sampleResource, String limit, String offset, String summary) {
     int initialCount = countResources(resourceType);
@@ -203,7 +203,7 @@ public class FindResourceTest extends AbstractResourceCrudTest {
         b.addParameter("summary", summary);
       }
       String findAllUrl = b.build().toString();
-      logger.info("URL: " + url);
+      log.info("URL: " + url);
       Response findAllResponse = testClient.target(findAllUrl).request().header("Authorization", authHeader).get();
       // Check response is OK
       Assert.assertEquals(Response.Status.OK.getStatusCode(), findAllResponse.getStatus());
