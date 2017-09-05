@@ -15,6 +15,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.metadatacenter.constant.HttpConstants.HTTP_AUTH_HEADER_APIKEY_PREFIX;
+
 public abstract class AbstractRestTest extends AbstractResourceTest {
 
   protected static Map<String, CedarNodeType> createdResources;
@@ -87,5 +89,18 @@ public abstract class AbstractRestTest extends AbstractResourceTest {
     }
     return null;
   }
+
+  protected String getAuthHeader(AuthHeaderSelector authSelector) {
+    String authHeaderValue = null;
+    if (authSelector == AuthHeaderSelector.TEST_USER_1) {
+      authHeaderValue = authHeaderTestUser1;
+    } else if (authSelector == AuthHeaderSelector.GIBBERISH_FULL) {
+      authHeaderValue = "gibberish";
+    } else if (authSelector == AuthHeaderSelector.GIBBERISH_KEY) {
+      authHeaderValue = HTTP_AUTH_HEADER_APIKEY_PREFIX + "gibberish";
+    }
+    return authHeaderValue;
+  }
+
 
 }

@@ -272,6 +272,13 @@ public class TemplatesResource extends AbstractTemplateServerResource {
 
     try {
       templateService.deleteTemplate(id);
+    } catch (TemplateServerResourceNotFoundException e) {
+      return CedarResponse.notFound()
+          .id(id)
+          .errorKey(CedarErrorKey.TEMPLATE_NOT_FOUND)
+          .errorMessage("The template can not be found by id:" + id)
+          .exception(e)
+          .build();
     } catch (IOException e) {
       return CedarResponse.internalServerError()
           .id(id)
@@ -279,8 +286,6 @@ public class TemplatesResource extends AbstractTemplateServerResource {
           .errorMessage("The template can not be deleted by id:" + id)
           .exception(e)
           .build();
-    } catch (org.metadatacenter.exception.TemplateServerResourceNotFoundException e) {
-      e.printStackTrace();
     }
     return CedarResponse.noContent().build();
   }

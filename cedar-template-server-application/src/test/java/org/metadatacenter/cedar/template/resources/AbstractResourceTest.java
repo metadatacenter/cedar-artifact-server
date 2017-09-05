@@ -28,6 +28,7 @@ import java.util.Map;
 
 import static javax.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static org.metadatacenter.cedar.template.resources.utils.TestConstants.*;
+import static org.metadatacenter.constant.HttpConstants.CREATED;
 
 public abstract class AbstractResourceTest {
 
@@ -73,7 +74,9 @@ public abstract class AbstractResourceTest {
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
     Response response =
         testClient.target(url).request().header(AUTHORIZATION, authHeaderTestUser1).post(Entity.json(resource));
-    ;
+    if (response.getStatus() != CREATED ) {
+      throw new IllegalStateException("The resource was not created! The test can not continue this way.");
+    }
     return response.readEntity(JsonNode.class);
   }
 

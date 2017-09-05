@@ -36,14 +36,7 @@ public class CreateResourcePostTest extends AbstractRestTest {
   public void createResourcePostTest(String jsonFileName, CedarNodeType resourceType, AuthHeaderSelector
       authSelector, int status) throws IOException {
     String originalFileContent = getFileContentAsString(jsonFileName);
-    String authHeaderValue = null;
-    if (authSelector == AuthHeaderSelector.TEST_USER_1) {
-      authHeaderValue = authHeaderTestUser1;
-    } else if (authSelector == AuthHeaderSelector.GIBBERISH_FULL) {
-      authHeaderValue = "gibberish";
-    } else if (authSelector == AuthHeaderSelector.GIBBERISH_KEY) {
-      authHeaderValue = HTTP_AUTH_HEADER_APIKEY_PREFIX + "gibberish";
-    }
+    String authHeaderValue = getAuthHeader(authSelector);;
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
     log.info("Test URL     :" + url);
     log.info("Authorization:" + authHeaderValue);
