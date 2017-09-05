@@ -25,7 +25,6 @@ import static org.metadatacenter.cedar.template.resources.utils.TestConstants.PR
 import static org.metadatacenter.cedar.template.resources.utils.TestConstants.TEST_NAME_PATTERN_METHOD_PARAMS;
 import static org.metadatacenter.constant.CedarConstants.SCHEMA_IS_BASED_ON;
 import static org.metadatacenter.constant.HttpConstants.CREATED;
-import static org.metadatacenter.constant.HttpConstants.HTTP_AUTH_HEADER_APIKEY_PREFIX;
 
 @RunWith(JUnitParamsRunner.class)
 public class CreateResourcePostTest extends AbstractRestTest {
@@ -116,6 +115,7 @@ public class CreateResourcePostTest extends AbstractRestTest {
         new Object[]{"minimal-element-with-id", CedarNodeType.ELEMENT, AuthHeaderSelector.TEST_USER_1,
             HttpConstants.BAD_REQUEST},
         new Object[]{"minimal-element", CedarNodeType.ELEMENT, AuthHeaderSelector.TEST_USER_1, HttpConstants.CREATED},
+
         // Template
         new Object[]{null, CedarNodeType.TEMPLATE, AuthHeaderSelector.NULL, HttpConstants.FORBIDDEN},
         new Object[]{null, CedarNodeType.TEMPLATE, AuthHeaderSelector.GIBBERISH_FULL, HttpConstants.FORBIDDEN},
@@ -131,6 +131,7 @@ public class CreateResourcePostTest extends AbstractRestTest {
             HttpConstants.BAD_REQUEST},
         new Object[]{"minimal-template", CedarNodeType.TEMPLATE, AuthHeaderSelector.TEST_USER_1, HttpConstants
             .CREATED},
+
         // Instance
         new Object[]{null, CedarNodeType.INSTANCE, AuthHeaderSelector.NULL, HttpConstants.FORBIDDEN},
         new Object[]{null, CedarNodeType.INSTANCE, AuthHeaderSelector.GIBBERISH_FULL, HttpConstants.FORBIDDEN},

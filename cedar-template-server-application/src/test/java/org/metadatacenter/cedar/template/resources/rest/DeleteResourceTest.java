@@ -1,6 +1,7 @@
 package org.metadatacenter.cedar.template.resources.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import junitparams.naming.TestCaseName;
@@ -19,6 +20,7 @@ import java.net.URLEncoder;
 
 import static javax.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static org.metadatacenter.cedar.template.resources.utils.TestConstants.TEST_NAME_PATTERN_METHOD_PARAMS;
+import static org.metadatacenter.constant.CedarConstants.SCHEMA_IS_BASED_ON;
 
 @RunWith(JUnitParamsRunner.class)
 public class DeleteResourceTest extends AbstractRestTest {
@@ -28,8 +30,25 @@ public class DeleteResourceTest extends AbstractRestTest {
   @Parameters(method = "getParamsDeleteResource")
   public void createResourcePostTest(String jsonFileName, CedarNodeType resourceType, AuthHeaderSelector
       authSelector, IdMatchingSelector idSelector, int statusDelete, int statusFind) throws IOException {
+
+    String createdTemplateId = null;
+
+    // if we test the deletion of an instance, we need a template that this instance is based on
+    if (resourceType == CedarNodeType.INSTANCE) {
+      JsonNode minimalTemplate = getFileContentAsJson("minimal-template");
+      JsonNode createdTemplate = createResource(minimalTemplate, CedarNodeType.TEMPLATE);
+      createdTemplateId = createdTemplate.get(LinkedData.ID).asText();
+      createdResources.put(createdTemplateId, CedarNodeType.TEMPLATE);
+    }
+
     // Create the document first
     JsonNode jsonFromFile = getFileContentAsJson(jsonFileName);
+
+    // if we test the deletion of an instance, we set the is based on
+    if (resourceType == CedarNodeType.INSTANCE) {
+      ((ObjectNode) jsonFromFile).put(SCHEMA_IS_BASED_ON, createdTemplateId);
+    }
+
     JsonNode createdResourceJson = createResource(jsonFromFile, resourceType);
     String createdResourceId = createdResourceJson.get(LinkedData.ID).asText();
     createdResources.put(createdResourceId, resourceType);
@@ -124,26 +143,35 @@ public class DeleteResourceTest extends AbstractRestTest {
         new Object[]{"minimal-template", CedarNodeType.TEMPLATE, AuthHeaderSelector.TEST_USER_1,
             IdMatchingSelector.FROM_JSON, HttpConstants.NO_CONTENT, HttpConstants.NOT_FOUND},
 
-        /*
         // Instance
-        new Object[]{null, CedarNodeType.INSTANCE, AuthHeaderSelector.NULL, HttpConstants.FORBIDDEN},
-        new Object[]{null, CedarNodeType.INSTANCE, AuthHeaderSelector.GIBBERISH_FULL, HttpConstants.FORBIDDEN},
-        new Object[]{null, CedarNodeType.INSTANCE, AuthHeaderSelector.GIBBERISH_KEY, HttpConstants.FORBIDDEN},
-        new Object[]{null, CedarNodeType.INSTANCE, AuthHeaderSelector.TEST_USER_1, HttpConstants.BAD_REQUEST},
-        new Object[]{"non-json", CedarNodeType.INSTANCE, AuthHeaderSelector.TEST_USER_1, HttpConstants.BAD_REQUEST},
-        new Object[]{"bad-json", CedarNodeType.INSTANCE, AuthHeaderSelector.TEST_USER_1, HttpConstants.BAD_REQUEST},
-        new Object[]{"empty-json", CedarNodeType.INSTANCE, AuthHeaderSelector.TEST_USER_1, HttpConstants.BAD_REQUEST},
-        new Object[]{"schema-name", CedarNodeType.INSTANCE, AuthHeaderSelector.TEST_USER_1, HttpConstants.BAD_REQUEST},
-        new Object[]{"schema-description", CedarNodeType.INSTANCE, AuthHeaderSelector.TEST_USER_1, HttpConstants
-            .BAD_REQUEST},
-        new Object[]{"schema-name-description", CedarNodeType.INSTANCE, AuthHeaderSelector.TEST_USER_1, HttpConstants
-            .BAD_REQUEST},
-        new Object[]{"minimal-instance-with-id", CedarNodeType.INSTANCE, AuthHeaderSelector.TEST_USER_1,
-            HttpConstants.BAD_REQUEST},
-        new Object[]{"minimal-instance-no-template", CedarNodeType.INSTANCE, AuthHeaderSelector.TEST_USER_1,
-            HttpConstants.BAD_REQUEST},
-        new Object[]{"minimal-instance", CedarNodeType.INSTANCE, AuthHeaderSelector.TEST_USER_1, HttpConstants.CREATED},
-*/
+        new Object[]{"minimal-instance", CedarNodeType.INSTANCE, AuthHeaderSelector.NULL,
+            IdMatchingSelector.NULL, HttpConstants.METHOD_NOT_ALLOWED, HttpConstants.OK},
+        new Object[]{"minimal-instance", CedarNodeType.INSTANCE, AuthHeaderSelector.NULL,
+            IdMatchingSelector.GIBBERISH, HttpConstants.FORBIDDEN, HttpConstants.OK},
+        new Object[]{"minimal-instance", CedarNodeType.INSTANCE, AuthHeaderSelector.NULL,
+            IdMatchingSelector.FROM_JSON, HttpConstants.FORBIDDEN, HttpConstants.OK},
+
+        new Object[]{"minimal-instance", CedarNodeType.INSTANCE, AuthHeaderSelector.GIBBERISH_FULL,
+            IdMatchingSelector.NULL, HttpConstants.METHOD_NOT_ALLOWED, HttpConstants.OK},
+        new Object[]{"minimal-instance", CedarNodeType.INSTANCE, AuthHeaderSelector.GIBBERISH_FULL,
+            IdMatchingSelector.GIBBERISH, HttpConstants.FORBIDDEN, HttpConstants.OK},
+        new Object[]{"minimal-instance", CedarNodeType.INSTANCE, AuthHeaderSelector.GIBBERISH_FULL,
+            IdMatchingSelector.FROM_JSON, HttpConstants.FORBIDDEN, HttpConstants.OK},
+
+        new Object[]{"minimal-instance", CedarNodeType.INSTANCE, AuthHeaderSelector.GIBBERISH_KEY,
+            IdMatchingSelector.NULL, HttpConstants.METHOD_NOT_ALLOWED, HttpConstants.OK},
+        new Object[]{"minimal-instance", CedarNodeType.INSTANCE, AuthHeaderSelector.GIBBERISH_KEY,
+            IdMatchingSelector.GIBBERISH, HttpConstants.FORBIDDEN, HttpConstants.OK},
+        new Object[]{"minimal-instance", CedarNodeType.INSTANCE, AuthHeaderSelector.GIBBERISH_KEY,
+            IdMatchingSelector.FROM_JSON, HttpConstants.FORBIDDEN, HttpConstants.OK},
+
+        new Object[]{"minimal-instance", CedarNodeType.INSTANCE, AuthHeaderSelector.TEST_USER_1,
+            IdMatchingSelector.NULL, HttpConstants.METHOD_NOT_ALLOWED, HttpConstants.OK},
+        new Object[]{"minimal-instance", CedarNodeType.INSTANCE, AuthHeaderSelector.TEST_USER_1,
+            IdMatchingSelector.GIBBERISH, HttpConstants.NOT_FOUND, HttpConstants.OK},
+        new Object[]{"minimal-instance", CedarNodeType.INSTANCE, AuthHeaderSelector.TEST_USER_1,
+            IdMatchingSelector.FROM_JSON, HttpConstants.NO_CONTENT, HttpConstants.NOT_FOUND},
+
     };
   }
 
