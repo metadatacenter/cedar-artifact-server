@@ -12,6 +12,8 @@ import org.metadatacenter.model.CedarNodeType;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,6 +24,9 @@ public abstract class AbstractRestTest extends AbstractResourceTest {
   protected static Map<String, CedarNodeType> createdResources;
 
   private static final String FILE_BASE_PATH = "rest/";
+
+  protected static final String MINIMAL_ELEMENT = "minimal-element";
+  protected static final String MINIMAL_TEMPLATE = "minimal-template";
 
   static {
     log = LoggerFactory.getLogger("REST Test");
@@ -102,5 +107,17 @@ public abstract class AbstractRestTest extends AbstractResourceTest {
     return authHeaderValue;
   }
 
+  protected String getUrlWithId(String url, IdMatchingSelector idSelector, String resourceId) throws
+      UnsupportedEncodingException {
+    String urlWithId = null;
+    if (idSelector == IdMatchingSelector.NULL) {
+      urlWithId = url;
+    } else if (idSelector == IdMatchingSelector.GIBBERISH) {
+      urlWithId = url + "/" + URLEncoder.encode("gibberish", "UTF-8");
+    } else if (idSelector == IdMatchingSelector.FROM_JSON) {
+      urlWithId = url + "/" + URLEncoder.encode(resourceId, "UTF-8");
+    }
+    return urlWithId;
+  }
 
 }

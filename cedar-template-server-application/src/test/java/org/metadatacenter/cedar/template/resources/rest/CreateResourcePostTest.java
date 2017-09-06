@@ -114,7 +114,7 @@ public class CreateResourcePostTest extends AbstractRestTest {
             .BAD_REQUEST},
         new Object[]{"minimal-element-with-id", CedarNodeType.ELEMENT, AuthHeaderSelector.TEST_USER_1,
             HttpConstants.BAD_REQUEST},
-        new Object[]{"minimal-element", CedarNodeType.ELEMENT, AuthHeaderSelector.TEST_USER_1, HttpConstants.CREATED},
+        new Object[]{MINIMAL_ELEMENT, CedarNodeType.ELEMENT, AuthHeaderSelector.TEST_USER_1, HttpConstants.CREATED},
 
         // Template
         new Object[]{null, CedarNodeType.TEMPLATE, AuthHeaderSelector.NULL, HttpConstants.FORBIDDEN},
@@ -129,7 +129,7 @@ public class CreateResourcePostTest extends AbstractRestTest {
             .BAD_REQUEST},
         new Object[]{"minimal-template-with-id", CedarNodeType.TEMPLATE, AuthHeaderSelector.TEST_USER_1,
             HttpConstants.BAD_REQUEST},
-        new Object[]{"minimal-template", CedarNodeType.TEMPLATE, AuthHeaderSelector.TEST_USER_1, HttpConstants
+        new Object[]{MINIMAL_TEMPLATE, CedarNodeType.TEMPLATE, AuthHeaderSelector.TEST_USER_1, HttpConstants
             .CREATED},
 
         // Instance
