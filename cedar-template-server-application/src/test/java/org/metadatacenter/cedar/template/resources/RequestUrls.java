@@ -5,6 +5,7 @@ import javax.annotation.Nonnull;
 import java.net.URI;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.metadatacenter.constant.CedarQueryParameters.QP_IMPORT_MODE;
 
 public class RequestUrls {
 
@@ -12,7 +13,7 @@ public class RequestUrls {
 
   public static String forCreatingTemplate(int portNumber, @Nonnull String importMode) {
     checkNotNull(importMode);
-    return String.format("%s:%d/templates?import_mode=%s", SERVICE_BASE_URL, portNumber, importMode);
+    return String.format("%s:%d/templates?%s=%s", SERVICE_BASE_URL, portNumber, QP_IMPORT_MODE, importMode);
   }
 
   public static String forDeletingTemplate(int portNumber, @Nonnull String templateId) {
@@ -27,7 +28,7 @@ public class RequestUrls {
 
   public static String forCreatingInstances(int portNumber, @Nonnull String importMode) {
     checkNotNull(importMode);
-    return String.format("%s:%d/template-instances?import_mode=%s", SERVICE_BASE_URL, portNumber, importMode);
+    return String.format("%s:%d/template-instances?%s=%s", SERVICE_BASE_URL, portNumber, QP_IMPORT_MODE, importMode);
   }
 
   public static String forDeletingInstance(int portNumber, @Nonnull String instanceId) {
