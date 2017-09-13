@@ -45,8 +45,8 @@ public class CreateResourcePostTest extends AbstractRestTest {
     }
 
     // if we really want to create this instance, we need to set the schema:isBasedOn to something real
-    if ("minimal-instance".equals(jsonFileName) && status == CREATED) {
-      JsonNode minimalTemplate = getFileContentAsJson("minimal-template");
+    if (MINIMAL_INSTANCE.equals(jsonFileName) && status == CREATED) {
+      JsonNode minimalTemplate = getFileContentAsJson(MINIMAL_TEMPLATE);
       JsonNode createdTemplate = createResource(minimalTemplate, CedarNodeType.TEMPLATE);
       JsonNode instance = JsonMapper.MAPPER.readTree(originalFileContent);
       String createdTemplateId = createdTemplate.get(LinkedData.ID).asText();
@@ -102,7 +102,7 @@ public class CreateResourcePostTest extends AbstractRestTest {
   private Object getParamsCreateResource() {
     return new Object[]{
         // Element
-        new Object[]{null, CedarNodeType.ELEMENT, AuthHeaderSelector.NULL, HttpConstants.FORBIDDEN},
+        new Object[]{null, CedarNodeType.ELEMENT, AuthHeaderSelector.NULL_AUTH, HttpConstants.FORBIDDEN},
         new Object[]{null, CedarNodeType.ELEMENT, AuthHeaderSelector.GIBBERISH_FULL, HttpConstants.FORBIDDEN},
         new Object[]{null, CedarNodeType.ELEMENT, AuthHeaderSelector.GIBBERISH_KEY, HttpConstants.FORBIDDEN},
         new Object[]{null, CedarNodeType.ELEMENT, AuthHeaderSelector.TEST_USER_1, HttpConstants.BAD_REQUEST},
@@ -117,7 +117,7 @@ public class CreateResourcePostTest extends AbstractRestTest {
         new Object[]{MINIMAL_ELEMENT, CedarNodeType.ELEMENT, AuthHeaderSelector.TEST_USER_1, HttpConstants.CREATED},
 
         // Template
-        new Object[]{null, CedarNodeType.TEMPLATE, AuthHeaderSelector.NULL, HttpConstants.FORBIDDEN},
+        new Object[]{null, CedarNodeType.TEMPLATE, AuthHeaderSelector.NULL_AUTH, HttpConstants.FORBIDDEN},
         new Object[]{null, CedarNodeType.TEMPLATE, AuthHeaderSelector.GIBBERISH_FULL, HttpConstants.FORBIDDEN},
         new Object[]{null, CedarNodeType.TEMPLATE, AuthHeaderSelector.GIBBERISH_KEY, HttpConstants.FORBIDDEN},
         new Object[]{null, CedarNodeType.TEMPLATE, AuthHeaderSelector.TEST_USER_1, HttpConstants.BAD_REQUEST},
@@ -133,7 +133,7 @@ public class CreateResourcePostTest extends AbstractRestTest {
             .CREATED},
 
         // Instance
-        new Object[]{null, CedarNodeType.INSTANCE, AuthHeaderSelector.NULL, HttpConstants.FORBIDDEN},
+        new Object[]{null, CedarNodeType.INSTANCE, AuthHeaderSelector.NULL_AUTH, HttpConstants.FORBIDDEN},
         new Object[]{null, CedarNodeType.INSTANCE, AuthHeaderSelector.GIBBERISH_FULL, HttpConstants.FORBIDDEN},
         new Object[]{null, CedarNodeType.INSTANCE, AuthHeaderSelector.GIBBERISH_KEY, HttpConstants.FORBIDDEN},
         new Object[]{null, CedarNodeType.INSTANCE, AuthHeaderSelector.TEST_USER_1, HttpConstants.BAD_REQUEST},
@@ -149,7 +149,7 @@ public class CreateResourcePostTest extends AbstractRestTest {
             HttpConstants.BAD_REQUEST},
         new Object[]{"minimal-instance-no-template", CedarNodeType.INSTANCE, AuthHeaderSelector.TEST_USER_1,
             HttpConstants.BAD_REQUEST},
-        new Object[]{"minimal-instance", CedarNodeType.INSTANCE, AuthHeaderSelector.TEST_USER_1, HttpConstants.CREATED},
+        new Object[]{MINIMAL_INSTANCE, CedarNodeType.INSTANCE, AuthHeaderSelector.TEST_USER_1, HttpConstants.CREATED},
 
     };
   }

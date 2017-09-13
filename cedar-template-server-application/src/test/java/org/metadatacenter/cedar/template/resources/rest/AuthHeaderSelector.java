@@ -1,7 +1,7 @@
 package org.metadatacenter.cedar.template.resources.rest;
 
 public enum AuthHeaderSelector {
-  NULL(null),
+  NULL_AUTH(null),
   GIBBERISH_FULL("gibberishFull"),
   GIBBERISH_KEY("gibberishKey"),
   TEST_USER_1("testUser1");

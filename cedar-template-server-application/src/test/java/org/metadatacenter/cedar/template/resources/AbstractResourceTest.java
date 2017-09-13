@@ -4,18 +4,22 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.testing.ResourceHelpers;
 import io.dropwizard.testing.junit.DropwizardAppRule;
+import junitparams.JUnitParamsRunner;
 import org.glassfish.jersey.client.ClientProperties;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.rules.TestRule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
+import org.junit.runner.RunWith;
 import org.metadatacenter.cedar.template.TemplateServerApplication;
 import org.metadatacenter.cedar.template.TemplateServerConfiguration;
 import org.metadatacenter.cedar.template.resources.utils.TestConstants;
 import org.metadatacenter.cedar.template.resources.utils.TestUtil;
+import org.metadatacenter.cedar.test.util.TestDataGenerationContext;
 import org.metadatacenter.exception.TemplateServerResourceNotFoundException;
 import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.server.jsonld.LinkedDataUtil;
 import org.metadatacenter.util.test.TestUserUtil;
 import org.slf4j.Logger;
 
@@ -37,6 +41,9 @@ public abstract class AbstractResourceTest {
   protected static String baseTestUrl;
   protected static String authHeaderTestUser1;
   protected static Client testClient;
+  protected static LinkedDataUtil linkedDataUtil;
+  protected static TestDataGenerationContext tdctx;
+
 
   /**
    * Prints the class name and test name before running the test
@@ -67,6 +74,14 @@ public abstract class AbstractResourceTest {
     testClient = new JerseyClientBuilder(SERVER_APPLICATION.getEnvironment()).build(TEST_CLIENT_NAME);
     testClient.property(ClientProperties.READ_TIMEOUT, DEFAULT_TIMEOUT);
     testClient.property(ClientProperties.CONNECT_TIMEOUT, DEFAULT_TIMEOUT);
+
+    linkedDataUtil = new LinkedDataUtil(TestUtil.getCedarConfig().getLinkedDataConfig());
+
+    tdctx = new TestDataGenerationContext();
+    tdctx.setAuthHeaderTestUser1(authHeaderTestUser1);
+    tdctx.setBaseTestUrl(baseTestUrl);
+    tdctx.setLinkedDataUtil(linkedDataUtil);
+
   }
 
   // Create a resource

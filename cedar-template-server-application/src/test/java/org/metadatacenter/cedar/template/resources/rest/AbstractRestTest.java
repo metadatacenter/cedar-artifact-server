@@ -1,10 +1,12 @@
 package org.metadatacenter.cedar.template.resources.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import junitparams.JUnitParamsRunner;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.runner.RunWith;
 import org.metadatacenter.cedar.template.resources.AbstractResourceTest;
 import org.metadatacenter.cedar.template.resources.utils.TestUtil;
 import org.metadatacenter.exception.TemplateServerResourceNotFoundException;
@@ -19,6 +21,7 @@ import java.util.Map;
 
 import static org.metadatacenter.constant.HttpConstants.HTTP_AUTH_HEADER_APIKEY_PREFIX;
 
+@RunWith(JUnitParamsRunner.class)
 public abstract class AbstractRestTest extends AbstractResourceTest {
 
   protected static Map<String, CedarNodeType> createdResources;
@@ -27,6 +30,7 @@ public abstract class AbstractRestTest extends AbstractResourceTest {
 
   protected static final String MINIMAL_ELEMENT = "minimal-element";
   protected static final String MINIMAL_TEMPLATE = "minimal-template";
+  protected static final String MINIMAL_INSTANCE = "minimal-instance";
 
   static {
     log = LoggerFactory.getLogger("REST Test");
@@ -107,17 +111,34 @@ public abstract class AbstractRestTest extends AbstractResourceTest {
     return authHeaderValue;
   }
 
-  protected String getUrlWithId(String url, IdMatchingSelector idSelector, String resourceId) throws
+  protected String getUrlWithId(String url, CedarNodeType nodeType, IdMatchingSelector idSelector) throws
       UnsupportedEncodingException {
+    return getUrlWithId(url, nodeType, idSelector, null);
+  }
+
+  protected String getUrlWithId(String url, CedarNodeType nodeType, IdMatchingSelector idSelector, String resourceId)
+      throws UnsupportedEncodingException {
     String urlWithId = null;
-    if (idSelector == IdMatchingSelector.NULL) {
+    if (idSelector == IdMatchingSelector.NULL_ID) {
       urlWithId = url;
     } else if (idSelector == IdMatchingSelector.GIBBERISH) {
       urlWithId = url + "/" + URLEncoder.encode("gibberish", "UTF-8");
+    } else if (idSelector == IdMatchingSelector.RANDOM_ID) {
+      String uuid = linkedDataUtil.buildNewLinkedDataId(nodeType);
+      urlWithId = url + "/" + URLEncoder.encode(uuid, "UTF-8");
     } else if (idSelector == IdMatchingSelector.FROM_JSON) {
       urlWithId = url + "/" + URLEncoder.encode(resourceId, "UTF-8");
     }
     return urlWithId;
+  }
+
+  protected String getUrlWithId(String url, CedarNodeType nodeType, String resourceId)
+      throws UnsupportedEncodingException {
+    url += "/" + nodeType.getPrefix();
+    if (resourceId != null) {
+      url += "/" + URLEncoder.encode(resourceId, "UTF-8");
+    }
+    return url;
   }
 
 }
