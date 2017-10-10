@@ -219,9 +219,12 @@ public class FindResourceTest extends AbstractResourceCrudTest {
       for (JsonNode r : findAllJsonResponse) {
         actual.add(r);
       }
-      int expectedSize = expectedCount;
+      int expectedSize;
       if (limit.length() > 0) {
         expectedSize = Math.min(expectedCount, Integer.parseInt(limit));
+      }
+      else {
+        expectedSize = Math.min(expectedCount, TestUtil.cedarConfig.getTemplateRESTAPI().getPagination().getDefaultPageSize());
       }
       Assert.assertEquals(expectedSize, actual.size());
       // Check the elements retrieved. This check is currently limited to the first page of results, and it is done
