@@ -2,7 +2,6 @@ package org.metadatacenter.cedar.template.resources;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.jetbrains.annotations.NotNull;
 import org.metadatacenter.cedar.util.dw.CedarMicroserviceResource;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.error.CedarErrorKey;
@@ -14,9 +13,7 @@ import org.metadatacenter.model.validation.CedarValidator;
 import org.metadatacenter.model.validation.ModelValidator;
 import org.metadatacenter.model.validation.report.ValidationReport;
 import org.metadatacenter.rest.exception.CedarAssertionException;
-import org.metadatacenter.server.jsonld.LinkedDataUtil;
 import org.metadatacenter.server.model.provenance.ProvenanceInfo;
-import org.metadatacenter.util.provenance.ProvenanceUtil;
 
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
@@ -120,7 +117,6 @@ public class AbstractTemplateServerResource extends CedarMicroserviceResource {
     }
   }
 
-  @NotNull
   private static ModelValidator newModelValidator() {
     return new CedarValidator();
   }
