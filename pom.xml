@@ -20,7 +20,6 @@
     <connection>scm:git:git@github.com:metadatacenter/cedar-template-server.git</connection>
     <developerConnection>scm:git:git@github.com:metadatacenter/cedar-template-server.git</developerConnection>
     <url>https://github.com/metadatacenter/cedar-template-server</url>
-    <tag>HEAD</tag>
   </scm>
 
   <modules>

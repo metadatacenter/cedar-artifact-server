@@ -18,7 +18,6 @@ import org.metadatacenter.util.mongo.MongoUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -39,7 +38,7 @@ public class CommandResource extends AbstractTemplateServerResource {
 
   private final TemplateService<String, JsonNode> templateService;
 
-  public CommandResource(@Nonnull CedarConfig cedarConfig, @Nonnull TemplateService<String, JsonNode> templateService) {
+  public CommandResource(CedarConfig cedarConfig, TemplateService<String, JsonNode> templateService) {
     super(cedarConfig);
     this.templateService = checkNotNull(templateService);
   }
@@ -72,7 +71,8 @@ public class CommandResource extends AbstractTemplateServerResource {
       CedarErrorPack errorPack = new CedarErrorPack()
           .errorKey(CedarErrorKey.METHOD_NOT_IMPLEMENTED)
           .message("Validation method for type " + type + " is not implemented yet");
-      throw new CedarException(errorPack){};
+      throw new CedarException(errorPack) {
+      };
     }
     return validationReport;
   }

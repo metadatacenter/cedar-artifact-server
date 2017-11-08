@@ -6,7 +6,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.metadatacenter.model.request.OutputFormatType;
 
-import javax.annotation.Nonnull;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 
@@ -87,7 +86,7 @@ public class TemplateInstanceToRdfTest extends BaseServerTest {
     return urlString.substring(urlString.lastIndexOf("/") + 1);
   }
 
-  private static void checkStatusOk(@Nonnull Response response) {
+  private static void checkStatusOk(Response response) {
     checkNotNull(response);
     int responseCode = response.getStatus();
     if (Family.familyOf(responseCode) == Family.CLIENT_ERROR) {
