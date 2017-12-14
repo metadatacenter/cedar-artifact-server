@@ -122,10 +122,17 @@ public class CommandResource extends AbstractTemplateServerResource {
 
   private JsonNode getSchemaObject(JsonNode templateInstance) throws IOException, ProcessingException, CedarException {
     checkInstanceSchemaExists(templateInstance);
+    String instanceId = templateInstance.get("@id").asText();
     String templateRefId = templateInstance.get(CedarModelVocabulary.SCHEMA_IS_BASED_ON).asText();
-    JsonNode template = templateService.findTemplate(templateRefId);
-    MongoUtils.removeIdField(template);
-    return template;
+    try {
+      JsonNode template = templateService.findTemplate(templateRefId);
+      MongoUtils.removeIdField(template);
+      return template;
+    } catch (Exception e) {
+      String message = String.format("Template not found (%s) when processing instance (%s)",
+          templateRefId, instanceId);
+      throw new ProcessingException(message);
+    }
   }
 
   private static JsonNode checkInstanceSchemaExists(JsonNode templateInstance) throws CedarException {
