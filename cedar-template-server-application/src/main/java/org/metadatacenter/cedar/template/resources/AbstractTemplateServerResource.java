@@ -3,7 +3,6 @@ package org.metadatacenter.cedar.template.resources;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
-import org.jetbrains.annotations.NotNull;
 import org.metadatacenter.cedar.util.dw.CedarMicroserviceResource;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.constant.LinkedData;
@@ -119,7 +118,6 @@ public class AbstractTemplateServerResource extends CedarMicroserviceResource {
     }
   }
 
-  @NotNull
   private static ModelValidator newModelValidator() {
     return new CedarValidator();
   }

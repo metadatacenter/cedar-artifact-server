@@ -6,12 +6,9 @@ import org.junit.Test;
 
 import javax.annotation.Nonnull;
 import javax.ws.rs.core.Response;
-
 import java.io.IOException;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 public class ValidationPerformanceTest extends BaseServerTest {
 
