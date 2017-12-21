@@ -40,6 +40,7 @@ import static org.metadatacenter.constant.CedarPathParameters.PP_ID;
 import static org.metadatacenter.constant.CedarQueryParameters.*;
 import static org.metadatacenter.rest.assertion.GenericAssertions.LoggedIn;
 import static org.metadatacenter.rest.assertion.GenericAssertions.NonEmpty;
+import static org.metadatacenter.rest.assertion.GenericAssertions.ValidId;
 
 @Path("/template-elements")
 @Produces(MediaType.APPLICATION_JSON)
@@ -110,6 +111,7 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_ELEMENT_READ);
+    c.must(id).be(ValidId);
 
     JsonNode templateElement = null;
     try {
@@ -195,6 +197,7 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_ELEMENT_UPDATE);
+    c.must(id).be(ValidId);
     c.must(c.request().getRequestBody()).be(NonEmpty);
 
     JsonNode newElement = c.request().getRequestBody().asJson();
@@ -256,6 +259,7 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_ELEMENT_DELETE);
+    c.must(id).be(ValidId);
 
     try {
       templateElementService.deleteTemplateElement(id);

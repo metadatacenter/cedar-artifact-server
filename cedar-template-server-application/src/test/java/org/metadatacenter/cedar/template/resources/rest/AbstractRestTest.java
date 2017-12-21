@@ -28,7 +28,7 @@ public abstract class AbstractRestTest extends AbstractResourceTest {
 
   private static final String FILE_BASE_PATH = "rest/";
 
-  protected static final String MINIMAL_ELEMENT = "minimal-element";
+  protected static final String MINIMAL_ELEMENT_WITH_ID = "minimal-element-with-id";
   protected static final String MINIMAL_TEMPLATE = "minimal-template";
   protected static final String MINIMAL_INSTANCE = "minimal-instance";
 

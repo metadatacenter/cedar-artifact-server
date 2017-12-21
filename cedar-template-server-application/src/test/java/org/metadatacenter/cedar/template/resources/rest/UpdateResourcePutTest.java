@@ -27,8 +27,6 @@ import static org.metadatacenter.cedar.template.resources.utils.TestConstants.TE
 import static org.metadatacenter.constant.CedarConstants.SCHEMA_IS_BASED_ON;
 import static org.metadatacenter.constant.HttpConstants.*;
 import static org.metadatacenter.model.CedarNodeType.*;
-import static org.metadatacenter.model.ModelPaths.UI;
-import static org.metadatacenter.model.ModelPaths.UI_DESCRIPTION;
 
 @RunWith(JUnitParamsRunner.class)
 public class UpdateResourcePutTest extends AbstractRestTest {
@@ -76,16 +74,8 @@ public class UpdateResourcePutTest extends AbstractRestTest {
 
     String updatedDescription = UPDATED_DESCRIPTION + " " + new Random().nextInt();
     String pointerToCheck = null;
-    if (resourceType == ELEMENT || resourceType == TEMPLATE) {
-      JsonNode uiNode = createdResourceJson.at(UI);
-      if (uiNode != null && !uiNode.isMissingNode()) {
-        ((ObjectNode) uiNode).put(ModelNodeNames.DESCRIPTION, updatedDescription);
-        pointerToCheck = ModelPaths.UI_DESCRIPTION;
-      }
-    } else if (resourceType == INSTANCE) {
-      ((ObjectNode) createdResourceJson).put(ModelNodeNames.SCHEMA_DESCRIPTION, updatedDescription);
-      pointerToCheck = ModelPaths.SCHEMA_DESCRIPTION;
-    }
+    ((ObjectNode) createdResourceJson).put(ModelNodeNames.SCHEMA_DESCRIPTION, updatedDescription);
+    pointerToCheck = ModelPaths.SCHEMA_DESCRIPTION;
     Response responsePut = request.put(Entity.json(createdResourceJson));
     int responsePutStatus = responsePut.getStatus();
     Assert.assertEquals(statusPut, responsePutStatus);
@@ -98,23 +88,23 @@ public class UpdateResourcePutTest extends AbstractRestTest {
     return new Object[]{
         // Element
 
-        new Object[]{MINIMAL_ELEMENT, ELEMENT, NULL_AUTH, NULL_ID, FROM_JSON, METHOD_NOT_ALLOWED},
-        new Object[]{MINIMAL_ELEMENT, ELEMENT, NULL_AUTH, GIBBERISH, FROM_JSON, FORBIDDEN},
-        new Object[]{MINIMAL_ELEMENT, ELEMENT, NULL_AUTH, FROM_JSON, FROM_JSON, FORBIDDEN},
+        new Object[]{MINIMAL_ELEMENT_WITH_ID, ELEMENT, NULL_AUTH, NULL_ID, FROM_JSON, METHOD_NOT_ALLOWED},
+        new Object[]{MINIMAL_ELEMENT_WITH_ID, ELEMENT, NULL_AUTH, GIBBERISH, FROM_JSON, FORBIDDEN},
+        new Object[]{MINIMAL_ELEMENT_WITH_ID, ELEMENT, NULL_AUTH, FROM_JSON, FROM_JSON, FORBIDDEN},
 
-        new Object[]{MINIMAL_ELEMENT, ELEMENT, GIBBERISH_FULL, NULL_ID, FROM_JSON, METHOD_NOT_ALLOWED},
-        new Object[]{MINIMAL_ELEMENT, ELEMENT, GIBBERISH_FULL, GIBBERISH, FROM_JSON, FORBIDDEN},
-        new Object[]{MINIMAL_ELEMENT, ELEMENT, GIBBERISH_FULL, FROM_JSON, FROM_JSON, FORBIDDEN},
+        new Object[]{MINIMAL_ELEMENT_WITH_ID, ELEMENT, GIBBERISH_FULL, NULL_ID, FROM_JSON, METHOD_NOT_ALLOWED},
+        new Object[]{MINIMAL_ELEMENT_WITH_ID, ELEMENT, GIBBERISH_FULL, GIBBERISH, FROM_JSON, FORBIDDEN},
+        new Object[]{MINIMAL_ELEMENT_WITH_ID, ELEMENT, GIBBERISH_FULL, FROM_JSON, FROM_JSON, FORBIDDEN},
 
-        new Object[]{MINIMAL_ELEMENT, ELEMENT, GIBBERISH_KEY, NULL_ID, FROM_JSON, METHOD_NOT_ALLOWED},
-        new Object[]{MINIMAL_ELEMENT, ELEMENT, GIBBERISH_KEY, GIBBERISH, FROM_JSON, FORBIDDEN},
-        new Object[]{MINIMAL_ELEMENT, ELEMENT, GIBBERISH_KEY, FROM_JSON, FROM_JSON, FORBIDDEN},
+        new Object[]{MINIMAL_ELEMENT_WITH_ID, ELEMENT, GIBBERISH_KEY, NULL_ID, FROM_JSON, METHOD_NOT_ALLOWED},
+        new Object[]{MINIMAL_ELEMENT_WITH_ID, ELEMENT, GIBBERISH_KEY, GIBBERISH, FROM_JSON, FORBIDDEN},
+        new Object[]{MINIMAL_ELEMENT_WITH_ID, ELEMENT, GIBBERISH_KEY, FROM_JSON, FROM_JSON, FORBIDDEN},
 
-        new Object[]{MINIMAL_ELEMENT, ELEMENT, TEST_USER_1, NULL_ID, FROM_JSON, METHOD_NOT_ALLOWED},
-        new Object[]{MINIMAL_ELEMENT, ELEMENT, TEST_USER_1, GIBBERISH, FROM_JSON, BAD_REQUEST},
-        new Object[]{MINIMAL_ELEMENT, ELEMENT, TEST_USER_1, FROM_JSON, GIBBERISH, BAD_REQUEST},
+        new Object[]{MINIMAL_ELEMENT_WITH_ID, ELEMENT, TEST_USER_1, NULL_ID, FROM_JSON, METHOD_NOT_ALLOWED},
+        new Object[]{MINIMAL_ELEMENT_WITH_ID, ELEMENT, TEST_USER_1, GIBBERISH, FROM_JSON, BAD_REQUEST},
+        new Object[]{MINIMAL_ELEMENT_WITH_ID, ELEMENT, TEST_USER_1, FROM_JSON, GIBBERISH, BAD_REQUEST},
 
-        new Object[]{MINIMAL_ELEMENT, ELEMENT, TEST_USER_1, FROM_JSON, FROM_JSON, OK},
+        new Object[]{MINIMAL_ELEMENT_WITH_ID, ELEMENT, TEST_USER_1, FROM_JSON, FROM_JSON, OK},
 
         // Template
         new Object[]{MINIMAL_TEMPLATE, TEMPLATE, NULL_AUTH, NULL_ID, FROM_JSON, METHOD_NOT_ALLOWED},

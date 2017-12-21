@@ -1,7 +1,5 @@
 {
   "@id": "https://repo.metadatacenter.orgx/templates/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
-  "_ui": {
-    "title": "Minimal Template title",
-    "description": "Minimal Template description"
-  }
+  "schema:name": "Minimal Template title",
+  "schema:description": "Minimal Template description"
 }

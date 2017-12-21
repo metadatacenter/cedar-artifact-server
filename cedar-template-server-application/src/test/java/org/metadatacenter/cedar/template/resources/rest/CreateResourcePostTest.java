@@ -35,7 +35,7 @@ public class CreateResourcePostTest extends AbstractRestTest {
   public void createResourcePostTest(String jsonFileName, CedarNodeType resourceType, AuthHeaderSelector
       authSelector, int status) throws IOException {
     String originalFileContent = getFileContentAsString(jsonFileName);
-    String authHeaderValue = getAuthHeader(authSelector);;
+    String authHeaderValue = getAuthHeader(authSelector);
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
     log.info("Test URL     :" + url);
     log.info("Authorization:" + authHeaderValue);
@@ -109,12 +109,12 @@ public class CreateResourcePostTest extends AbstractRestTest {
         new Object[]{"non-json", CedarNodeType.ELEMENT, AuthHeaderSelector.TEST_USER_1, HttpConstants.BAD_REQUEST},
         new Object[]{"bad-json", CedarNodeType.ELEMENT, AuthHeaderSelector.TEST_USER_1, HttpConstants.BAD_REQUEST},
         new Object[]{"empty-json", CedarNodeType.ELEMENT, AuthHeaderSelector.TEST_USER_1, HttpConstants.BAD_REQUEST},
-        new Object[]{"ui-title", CedarNodeType.ELEMENT, AuthHeaderSelector.TEST_USER_1, HttpConstants.BAD_REQUEST},
-        new Object[]{"ui-description", CedarNodeType.ELEMENT, AuthHeaderSelector.TEST_USER_1, HttpConstants
+        new Object[]{"schema-name", CedarNodeType.ELEMENT, AuthHeaderSelector.TEST_USER_1, HttpConstants.BAD_REQUEST},
+        new Object[]{"schema-description", CedarNodeType.ELEMENT, AuthHeaderSelector.TEST_USER_1, HttpConstants
             .BAD_REQUEST},
         new Object[]{"minimal-element-with-id", CedarNodeType.ELEMENT, AuthHeaderSelector.TEST_USER_1,
             HttpConstants.BAD_REQUEST},
-        new Object[]{MINIMAL_ELEMENT, CedarNodeType.ELEMENT, AuthHeaderSelector.TEST_USER_1, HttpConstants.CREATED},
+        new Object[]{MINIMAL_ELEMENT_WITH_ID, CedarNodeType.ELEMENT, AuthHeaderSelector.TEST_USER_1, HttpConstants.CREATED},
 
         // Template
         new Object[]{null, CedarNodeType.TEMPLATE, AuthHeaderSelector.NULL_AUTH, HttpConstants.FORBIDDEN},
@@ -124,8 +124,8 @@ public class CreateResourcePostTest extends AbstractRestTest {
         new Object[]{"non-json", CedarNodeType.TEMPLATE, AuthHeaderSelector.TEST_USER_1, HttpConstants.BAD_REQUEST},
         new Object[]{"bad-json", CedarNodeType.TEMPLATE, AuthHeaderSelector.TEST_USER_1, HttpConstants.BAD_REQUEST},
         new Object[]{"empty-json", CedarNodeType.TEMPLATE, AuthHeaderSelector.TEST_USER_1, HttpConstants.BAD_REQUEST},
-        new Object[]{"ui-title", CedarNodeType.TEMPLATE, AuthHeaderSelector.TEST_USER_1, HttpConstants.BAD_REQUEST},
-        new Object[]{"ui-description", CedarNodeType.TEMPLATE, AuthHeaderSelector.TEST_USER_1, HttpConstants
+        new Object[]{"schema-name", CedarNodeType.TEMPLATE, AuthHeaderSelector.TEST_USER_1, HttpConstants.BAD_REQUEST},
+        new Object[]{"schema-description", CedarNodeType.TEMPLATE, AuthHeaderSelector.TEST_USER_1, HttpConstants
             .BAD_REQUEST},
         new Object[]{"minimal-template-with-id", CedarNodeType.TEMPLATE, AuthHeaderSelector.TEST_USER_1,
             HttpConstants.BAD_REQUEST},

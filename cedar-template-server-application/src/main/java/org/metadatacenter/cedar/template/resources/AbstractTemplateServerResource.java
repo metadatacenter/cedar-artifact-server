@@ -170,6 +170,8 @@ public class AbstractTemplateServerResource extends CedarMicroserviceResource {
     if (!idInRequest.equals(id)) {
       CedarErrorPack errorPack = new CedarErrorPack()
           .message("The @id in the body must match the id in the URL!")
+          .parameter("idInURL", id)
+          .parameter("idInBody", idInRequest)
           .errorKey(errorKey);
       throw new CedarBadRequestException(errorPack);
     }

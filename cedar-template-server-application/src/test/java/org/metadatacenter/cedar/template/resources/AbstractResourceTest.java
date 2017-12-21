@@ -74,6 +74,7 @@ public abstract class AbstractResourceTest {
     testClient = new JerseyClientBuilder(SERVER_APPLICATION.getEnvironment()).build(TEST_CLIENT_NAME);
     testClient.property(ClientProperties.READ_TIMEOUT, DEFAULT_TIMEOUT);
     testClient.property(ClientProperties.CONNECT_TIMEOUT, DEFAULT_TIMEOUT);
+    testClient.property(ClientProperties.SUPPRESS_HTTP_COMPLIANCE_VALIDATION, true);
 
     linkedDataUtil = new LinkedDataUtil(TestUtil.getCedarConfig().getLinkedDataConfig());
 

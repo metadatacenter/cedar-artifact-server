@@ -51,6 +51,10 @@ public class TestValueResourceIdGenerator extends AbstractTestValueGenerator<Str
     }
   }
 
+  public IdMatchingSelector getIdMatchingSelector() {
+    return idMatchingSelector;
+  }
+
   @Override
   public String getValue() {
     return value;

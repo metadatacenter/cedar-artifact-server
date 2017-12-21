@@ -1,5 +1,6 @@
 package org.metadatacenter.cedar.template.resources.rest;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import junitparams.JUnitParamsRunner;
@@ -8,11 +9,7 @@ import junitparams.naming.TestCaseName;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.metadatacenter.cedar.template.resources.utils.TestUtil;
-import org.metadatacenter.cedar.test.util.TestParameterArrayGenerator;
-import org.metadatacenter.cedar.test.util.TestParameterArrayGeneratorGenerator;
-import org.metadatacenter.cedar.test.util.TestParameterValueGenerator;
-import org.metadatacenter.cedar.test.util.TestValueResourceIdGenerator;
+import org.metadatacenter.cedar.test.util.*;
 import org.metadatacenter.constant.LinkedData;
 import org.metadatacenter.model.CedarNodeType;
 import org.metadatacenter.util.json.JsonMapper;
@@ -27,19 +24,17 @@ import java.util.List;
 import java.util.Set;
 
 import static javax.ws.rs.core.HttpHeaders.AUTHORIZATION;
-import static javax.ws.rs.core.HttpHeaders.LOCATION;
 import static org.metadatacenter.cedar.template.resources.rest.AuthHeaderSelector.*;
 import static org.metadatacenter.cedar.template.resources.rest.IdMatchingSelector.*;
-import static org.metadatacenter.cedar.template.resources.utils.TestConstants.PROV_FIELDS;
 import static org.metadatacenter.cedar.template.resources.utils.TestConstants.TEST_NAME_PATTERN_METHOD_PARAMS;
 import static org.metadatacenter.cedar.test.util.TestValueCopyFromValueGenerator.copyFrom;
 import static org.metadatacenter.cedar.test.util.TestValueResourceIdGenerator.ids;
-import static org.metadatacenter.constant.HttpConstants.CREATED;
 import static org.metadatacenter.model.CedarNodeType.ELEMENT;
-import static org.metadatacenter.model.CedarNodeType.TEMPLATE;
 
 @RunWith(JUnitParamsRunner.class)
-public class CreateResourcePutTest extends AbstractRestTest {
+public class CreateElementPutTest extends AbstractRestTest {
+
+  private static int index = -1;
 
   @Test
   @TestCaseName(TEST_NAME_PATTERN_METHOD_PARAMS)
@@ -50,6 +45,7 @@ public class CreateResourcePutTest extends AbstractRestTest {
                                     TestParameterValueGenerator<String> auth,
                                     TestValueResourceIdGenerator idInURLGenerator,
                                     TestParameterValueGenerator<String> idInBodyGenerator) throws IOException {
+    index++;
     TestParameterArrayGenerator arrayGenerator = generator.getValue();
     String jsonFileName = js.getValue();
     CedarNodeType resourceType = rt.getValue();
@@ -64,66 +60,104 @@ public class CreateResourcePutTest extends AbstractRestTest {
     System.out.println(jsonFileName + "\n" + resourceType + "\n" + authHeaderValue + "\n" + idInURL + "\n" + idInBody);
 
     String originalFileContent = getFileContentAsString(jsonFileName);
-    log.info("Test PUT URL :" + putUrl);
-    log.info("Authorization:" + authHeaderValue);
+    System.out.println("Test PUT URL :" + putUrl);
+    System.out.println("Authorization:" + authHeaderValue);
+    System.out.println("Index:" + index);
     Invocation.Builder request = testClient.target(putUrl).request();
     if (authHeaderValue != null) {
       request.header(AUTHORIZATION, authHeaderValue);
     }
+    // if the in body id policy is copy from URL
+    // and the content can be translated into json
+    // and the json contains an id
+    // then copy from URL
+    if (idInBodyGenerator instanceof TestValueCopyFromValueGenerator) {
+      if (originalFileContent != null) {
+        JsonNode element = null;
+        try {
+          element = JsonMapper.MAPPER.readTree(originalFileContent);
+        } catch (JsonParseException e) {
+          // do nothing, the json can be invalid intentionally
+        }
+        if (element != null) {
+          JsonNode idNode = element.get(LinkedData.ID);
+          if (idNode != null) {
+            String elementId = idNode.asText();
+            if (elementId != null) {
+              ((ObjectNode) element).put(LinkedData.ID, idInBody);
+              originalFileContent = JsonMapper.MAPPER.writeValueAsString(element);
+            }
+          }
+        }
+      }
+    }
 
-    // if we really want to create this instance, we need to set the schema:isBasedOn to something real
-    /*if (MINIMAL_INSTANCE.equals(jsonFileName) && status == CREATED) {
-      JsonNode minimalTemplate = getFileContentAsJson(MINIMAL_TEMPLATE);
-      JsonNode createdTemplate = createResource(minimalTemplate, TEMPLATE);
-      JsonNode instance = JsonMapper.MAPPER.readTree(originalFileContent);
-      String createdTemplateId = createdTemplate.get(LinkedData.ID).asText();
-      createdResources.put(createdTemplateId, TEMPLATE);
-      ((ObjectNode) instance).put(SCHEMA_IS_BASED_ON, createdTemplateId);
-      originalFileContent = JsonMapper.MAPPER.writeValueAsString(instance);
-    }*/
-/*
     Response response;
     if (originalFileContent != null) {
-      response = request.post(Entity.json(originalFileContent));
+      response = request.put(Entity.json(originalFileContent));
     } else {
-      response = request.post(null);
+      response = request.put(null);
     }
 
     int responseStatus = response.getStatus();
-    Assert.assertEquals(status, responseStatus);
-    // if it was created, perform other tests as well
-    if (responseStatus == Response.Status.CREATED.getStatusCode()) {
-      JsonNode responseJson = response.readEntity(JsonNode.class);
-      // Store the resource, in order to be removed later
-      createdResources.put(responseJson.get(LinkedData.ID).asText(), resourceType);
+    int expectedResponseStatus = getExpectedResponseStatus(generator, js, rt, auth, idInURLGenerator,
+        idInBodyGenerator);
+    Assert.assertEquals(expectedResponseStatus, responseStatus);
+  }
 
-      // Retrieve the resource created
-      String location = response.getHeaderString(LOCATION);
-      Response readBackResponse = testClient.target(location).request().header(AUTHORIZATION, authHeaderValue).get();
-      JsonNode readBackJson = readBackResponse.readEntity(JsonNode.class);
+  private int getExpectedResponseStatus(TestParameterArrayGeneratorGenerator generator,
+                                        TestParameterValueGenerator<String> js,
+                                        TestParameterValueGenerator<CedarNodeType> rt,
+                                        TestParameterValueGenerator<String> auth,
+                                        TestValueResourceIdGenerator idInURLGenerator,
+                                        TestParameterValueGenerator<String> idInBodyGenerator) {
 
-      // Check that the @id was generated
-      Assert.assertNotEquals(readBackJson.get(LinkedData.ID), null);
 
-      // Check that the provenance fields were generated
-      for (String provField : PROV_FIELDS) {
-        Assert.assertNotEquals(readBackJson.get(provField), null);
+    TestValueAuthStringGenerator authGenerator = new TestValueAuthStringGenerator(TEST_USER_1);
+    authGenerator.generateValue(tdctx, null);
+    if (!authGenerator.getValue().equals(auth.getValue())) {
+      return Response.Status.UNAUTHORIZED.getStatusCode();
+    }
+    if (js.getValue() == null) {
+      return Response.Status.BAD_REQUEST.getStatusCode();
+    } else if ("non-json".equals(js.getValue())) {
+      return Response.Status.BAD_REQUEST.getStatusCode();
+    } else if ("bad-json".equals(js.getValue())) {
+      return Response.Status.BAD_REQUEST.getStatusCode();
+    } else if ("empty-json".equals(js.getValue())) {
+      return Response.Status.BAD_REQUEST.getStatusCode();
+    } else if ("schema-name".equals(js.getValue())) {
+      return Response.Status.BAD_REQUEST.getStatusCode();
+    } else if ("schema-description".equals(js.getValue())) {
+      return Response.Status.BAD_REQUEST.getStatusCode();
+    } else if ("minimal-element-no-id".equals(js.getValue())) {
+      return Response.Status.BAD_REQUEST.getStatusCode();
+    }
+
+    if (idInURLGenerator.getIdMatchingSelector() == NULL_ID) {
+      return Response.Status.BAD_REQUEST.getStatusCode();
+    } else if (idInURLGenerator.getIdMatchingSelector() == GIBBERISH) {
+      return Response.Status.BAD_REQUEST.getStatusCode();
+    }
+
+    if (idInBodyGenerator instanceof TestValueResourceIdGenerator) {
+      TestValueResourceIdGenerator idInBG = (TestValueResourceIdGenerator) idInBodyGenerator;
+      if (idInBG.getIdMatchingSelector() == NULL_ID) {
+        return Response.Status.BAD_REQUEST.getStatusCode();
+      } else if (idInBG.getIdMatchingSelector() == GIBBERISH) {
+        return Response.Status.BAD_REQUEST.getStatusCode();
+      } else if (idInBG.getIdMatchingSelector() == RANDOM_ID) {
+        return Response.Status.BAD_REQUEST.getStatusCode();
       }
+    }
 
-      JsonNode originalJson = JsonMapper.MAPPER.readTree(originalFileContent);
-
-      // Check that all the other fields contain the expected values
-      ((ObjectNode) readBackJson).remove(LinkedData.ID);
-      ((ObjectNode) originalJson).remove(LinkedData.ID);
-      for (String provField : PROV_FIELDS) {
-        ((ObjectNode) readBackJson).remove(provField);
-        ((ObjectNode) originalJson).remove(provField);
+    if (idInBodyGenerator instanceof TestValueCopyFromValueGenerator) {
+      if (MINIMAL_ELEMENT_WITH_ID.equals(js.getValue()) ||
+          "full-element".equals(js.getValue())) {
+        return Response.Status.CREATED.getStatusCode();
       }
-      Assert.assertEquals(originalJson, readBackJson);
-    } else {
-      JsonNode responseJson = response.readEntity(JsonNode.class);
-      log.info(responseJson.asText());
-    }*/
+    }
+    return 0;
   }
 
   private Object getParamsCreatePutResource() {
@@ -132,10 +166,11 @@ public class CreateResourcePutTest extends AbstractRestTest {
     jsonFileName.add("non-json");
     jsonFileName.add("bad-json");
     jsonFileName.add("empty-json");
-    jsonFileName.add("ui-title");
-    jsonFileName.add("ui-description");
-    jsonFileName.add("minimal-element-with-id");
-    jsonFileName.add(MINIMAL_ELEMENT);
+    jsonFileName.add("schema-name");
+    jsonFileName.add("schema-description");
+    jsonFileName.add("minimal-element-no-id");
+    jsonFileName.add(MINIMAL_ELEMENT_WITH_ID);
+    jsonFileName.add("full-element");
 
     Set<AuthHeaderSelector> authHeader = new LinkedHashSet<>();
     authHeader.add(NULL_AUTH);

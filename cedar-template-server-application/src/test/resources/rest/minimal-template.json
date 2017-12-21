@@ -1,6 +1,4 @@
 {
-  "_ui": {
-    "title": "Minimal Template title",
-    "description": "Minimal Template description"
-  }
+  "schema:name": "Minimal Template title",
+  "schema:description": "Minimal Template description"
 }
