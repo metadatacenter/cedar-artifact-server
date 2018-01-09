@@ -27,43 +27,39 @@ import static javax.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static org.metadatacenter.cedar.template.resources.rest.AuthHeaderSelector.*;
 import static org.metadatacenter.cedar.template.resources.rest.IdMatchingSelector.*;
 import static org.metadatacenter.cedar.template.resources.utils.TestConstants.TEST_NAME_PATTERN_METHOD_PARAMS;
-import static org.metadatacenter.cedar.test.util.TestValueCopyFromValueGenerator.copyFrom;
 import static org.metadatacenter.cedar.test.util.TestValueResourceIdGenerator.ids;
 import static org.metadatacenter.model.CedarNodeType.ELEMENT;
 
 @RunWith(JUnitParamsRunner.class)
-public class CreateElementPutTest extends AbstractRestTest {
+public class CreateElementPostTest extends AbstractRestTest {
 
   private static int index = -1;
 
   @Test
   @TestCaseName(TEST_NAME_PATTERN_METHOD_PARAMS)
-  @Parameters(method = "getParamsCreateElementPut")
-  public void createElementPutTest(TestParameterArrayGeneratorGenerator generator,
-                                   TestParameterValueGenerator<String> js,
-                                   TestParameterValueGenerator<CedarNodeType> rt,
-                                   TestParameterValueGenerator<String> auth,
-                                   TestValueResourceIdGenerator idInURLGenerator,
-                                   TestParameterValueGenerator<String> idInBodyGenerator) throws IOException {
+  @Parameters(method = "getParamsCreateElementPost")
+  public void createElementPostTest(TestParameterArrayGeneratorGenerator generator,
+                                    TestParameterValueGenerator<String> js,
+                                    TestParameterValueGenerator<CedarNodeType> rt,
+                                    TestParameterValueGenerator<String> auth,
+                                    TestParameterValueGenerator<String> idInBodyGenerator) throws IOException {
     index++;
     TestParameterArrayGenerator arrayGenerator = generator.getValue();
     String jsonFileName = js.getValue();
     CedarNodeType resourceType = rt.getValue();
     auth.generateValue(tdctx, arrayGenerator);
     String authHeaderValue = auth.getValue();
-    idInURLGenerator.generateValue(tdctx, arrayGenerator);
-    String idInURL = idInURLGenerator.getValue();
-    String putUrl = getUrlWithId(baseTestUrl, resourceType, idInURL);
+    String postUrl = getUrlWithId(baseTestUrl, resourceType, (String) null);
     idInBodyGenerator.generateValue(tdctx, arrayGenerator);
     String idInBody = idInBodyGenerator.getValue();
     System.out.println("--------------------------------------------------------");
-    System.out.println(jsonFileName + "\n" + resourceType + "\n" + authHeaderValue + "\n" + idInURL + "\n" + idInBody);
+    System.out.println(jsonFileName + "\n" + resourceType + "\n" + authHeaderValue + "\n" + "\n" + idInBody);
 
     String originalFileContent = getFileContentAsString(jsonFileName);
-    System.out.println("Test PUT URL :" + putUrl);
+    System.out.println("Test POST URL :" + postUrl);
     System.out.println("Authorization:" + authHeaderValue);
     System.out.println("Index:" + index);
-    Invocation.Builder request = testClient.target(putUrl).request();
+    Invocation.Builder request = testClient.target(postUrl).request();
     if (authHeaderValue != null) {
       request.header(AUTHORIZATION, authHeaderValue);
     }
@@ -94,14 +90,13 @@ public class CreateElementPutTest extends AbstractRestTest {
 
     Response response;
     if (originalFileContent != null) {
-      response = request.put(Entity.json(originalFileContent));
+      response = request.post(Entity.json(originalFileContent));
     } else {
-      response = request.put(null);
+      response = request.post(null);
     }
 
     int responseStatus = response.getStatus();
-    int expectedResponseStatus = getExpectedResponseStatus(generator, js, rt, auth, idInURLGenerator,
-        idInBodyGenerator);
+    int expectedResponseStatus = getExpectedResponseStatus(generator, js, rt, auth, idInBodyGenerator);
     Assert.assertEquals(expectedResponseStatus, responseStatus);
   }
 
@@ -109,7 +104,6 @@ public class CreateElementPutTest extends AbstractRestTest {
                                         TestParameterValueGenerator<String> js,
                                         TestParameterValueGenerator<CedarNodeType> rt,
                                         TestParameterValueGenerator<String> auth,
-                                        TestValueResourceIdGenerator idInURLGenerator,
                                         TestParameterValueGenerator<String> idInBodyGenerator) {
 
 
@@ -130,37 +124,18 @@ public class CreateElementPutTest extends AbstractRestTest {
       return Response.Status.BAD_REQUEST.getStatusCode();
     } else if (SCHEMA_DESCRIPTION.equals(js.getValue())) {
       return Response.Status.BAD_REQUEST.getStatusCode();
+    } else if (MINIMAL_ELEMENT_WITH_ID.equals(js.getValue())) {
+      return Response.Status.BAD_REQUEST.getStatusCode();
+    } else if (FULL_ELEMENT.equals(js.getValue())) {
+      return Response.Status.BAD_REQUEST.getStatusCode();
     } else if (MINIMAL_ELEMENT_NO_ID.equals(js.getValue())) {
-      return Response.Status.BAD_REQUEST.getStatusCode();
+      return Response.Status.CREATED.getStatusCode();
     }
 
-    if (idInURLGenerator.getIdMatchingSelector() == NULL_ID) {
-      return Response.Status.BAD_REQUEST.getStatusCode();
-    } else if (idInURLGenerator.getIdMatchingSelector() == GIBBERISH) {
-      return Response.Status.BAD_REQUEST.getStatusCode();
-    }
-
-    if (idInBodyGenerator instanceof TestValueResourceIdGenerator) {
-      TestValueResourceIdGenerator idInBG = (TestValueResourceIdGenerator) idInBodyGenerator;
-      if (idInBG.getIdMatchingSelector() == NULL_ID) {
-        return Response.Status.BAD_REQUEST.getStatusCode();
-      } else if (idInBG.getIdMatchingSelector() == GIBBERISH) {
-        return Response.Status.BAD_REQUEST.getStatusCode();
-      } else if (idInBG.getIdMatchingSelector() == RANDOM_ID) {
-        return Response.Status.BAD_REQUEST.getStatusCode();
-      }
-    }
-
-    if (idInBodyGenerator instanceof TestValueCopyFromValueGenerator) {
-      if (MINIMAL_ELEMENT_WITH_ID.equals(js.getValue()) ||
-          FULL_ELEMENT.equals(js.getValue())) {
-        return Response.Status.CREATED.getStatusCode();
-      }
-    }
     return 0;
   }
 
-  private Object getParamsCreateElementPut() {
+  private Object getParamsCreateElementPost() {
     Set<String> jsonFileName = new LinkedHashSet<>();
     jsonFileName.add(null);
     jsonFileName.add(NON_JSON);
@@ -178,11 +153,6 @@ public class CreateElementPutTest extends AbstractRestTest {
     authHeader.add(GIBBERISH_KEY);
     authHeader.add(TEST_USER_1);
 
-    Set<IdMatchingSelector> idInURL = new LinkedHashSet<>();
-    idInURL.add(NULL_ID);
-    idInURL.add(GIBBERISH);
-    idInURL.add(RANDOM_ID);
-
     Set<IdMatchingSelector> idInBody = new LinkedHashSet<>();
     idInBody.add(NULL_ID);
     idInBody.add(GIBBERISH);
@@ -192,9 +162,7 @@ public class CreateElementPutTest extends AbstractRestTest {
     generatorForElement.registerParameter(1, jsonFileName, "jsonFileName");
     generatorForElement.addParameterValue(2, ELEMENT, "nodeType");
     generatorForElement.registerParameter(3, authHeader, "authHeader");
-    generatorForElement.registerParameter(4, ids(idInURL, "nodeType"), "idInURL");
-    generatorForElement.registerParameter(5, ids(idInBody, "nodeType"), "idInBody");
-    generatorForElement.addParameterValue(5, copyFrom("idInURL"));
+    generatorForElement.registerParameter(4, ids(idInBody, "nodeType"), "idInBody");
 
     List<TestParameterValueGenerator[]> testCases = new ArrayList<>();
 
