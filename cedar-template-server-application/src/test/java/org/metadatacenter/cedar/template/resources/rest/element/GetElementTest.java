@@ -14,6 +14,7 @@ import org.metadatacenter.cedar.template.resources.rest.IdMatchingSelector;
 import org.metadatacenter.cedar.test.util.*;
 import org.metadatacenter.constant.LinkedData;
 import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.model.core.CedarModelVocabulary;
 import org.metadatacenter.util.json.JsonMapper;
 
 import javax.ws.rs.client.Entity;
@@ -34,17 +35,17 @@ import static org.metadatacenter.cedar.test.util.TestValueResourceIdGenerator.id
 import static org.metadatacenter.model.CedarNodeType.ELEMENT;
 
 @RunWith(JUnitParamsRunner.class)
-public class DeleteElementTest extends AbstractRestTest {
+public class GetElementTest extends AbstractRestTest {
 
   private static int index = -1;
 
   @Test
   @TestCaseName(TEST_NAME_PATTERN_METHOD_PARAMS)
-  @Parameters(method = "getParamsDeleteElement")
-  public void deleteElementTest(TestParameterArrayGeneratorGenerator generator,
-                                TestParameterValueGenerator<CedarNodeType> rt,
-                                TestParameterValueGenerator<String> auth,
-                                TestParameterValueGenerator<String> idInUrlGenerator) throws IOException {
+  @Parameters(method = "getParamsGetElement")
+  public void getElementTest(TestParameterArrayGeneratorGenerator generator,
+                             TestParameterValueGenerator<CedarNodeType> rt,
+                             TestParameterValueGenerator<String> auth,
+                             TestParameterValueGenerator<String> idInUrlGenerator) throws IOException {
     index++;
     TestParameterArrayGenerator arrayGenerator = generator.getValue();
     String jsonFileName = MINIMAL_ELEMENT_NO_ID;
@@ -103,29 +104,43 @@ public class DeleteElementTest extends AbstractRestTest {
       idInUrl = createdId;
     }
 
-    String deleteUrl = getUrlWithId(baseTestUrl, resourceType, idInUrl);
+    String getUrl = getUrlWithId(baseTestUrl, resourceType, idInUrl);
 
-    divider("DELETE BLOCK");
+    divider("GET BLOCK");
     testParam("resourceType", resourceType);
     testParam("deleteAuth", ((TestValueAuthStringGenerator) auth).getAuthSelector());
     testParam("idInUrlPolicy", ((TestValueResourceIdGenerator) idInUrlGenerator).getIdMatchingSelector());
     pair("idInUrl", idInUrl);
-    pair("Test DELETE URL", deleteUrl);
+    pair("Test GET URL", getUrl);
     pair("Authorization", authHeaderValue);
     pair("Index", index);
     divider();
 
-    Invocation.Builder deleteRequest = testClient.target(deleteUrl).request();
+    Invocation.Builder getRequest = testClient.target(getUrl).request();
     if (authHeaderValue != null) {
-      deleteRequest.header(AUTHORIZATION, authHeaderValue);
+      getRequest.header(AUTHORIZATION, authHeaderValue);
     }
 
-    Response deleteResponse = deleteRequest.delete();
+    Response getResponse = getRequest.get();
 
-    int deleteResponseStatus = deleteResponse.getStatus();
-    pair("Delete response status", deleteResponseStatus);
+    int getResponseStatus = getResponse.getStatus();
+    pair("Get response status", getResponseStatus);
     int expectedResponseStatus = getExpectedResponseStatus(generator, rt, auth, idInUrlGenerator);
-    Assert.assertEquals(expectedResponseStatus, deleteResponseStatus);
+    Assert.assertEquals(expectedResponseStatus, getResponseStatus);
+
+    if (expectedResponseStatus == Response.Status.OK.getStatusCode()) {
+      String getBody = getResponse.readEntity(String.class);
+      JsonNode getElement = null;
+      try {
+        getElement = JsonMapper.MAPPER.readTree(createdBody);
+      } catch (JsonParseException e) {
+        // do nothing, the json can be invalid intentionally
+      }
+      JsonNode descriptionNode = element.get(CedarModelVocabulary.SCHEMA_DESCRIPTION);
+      String description = descriptionNode.asText();
+      pair("Created description", description);
+      Assert.assertNotNull(description);
+    }
   }
 
   private int getExpectedResponseStatus(TestParameterArrayGeneratorGenerator generator,
@@ -133,17 +148,13 @@ public class DeleteElementTest extends AbstractRestTest {
                                         TestParameterValueGenerator<String> auth,
                                         TestParameterValueGenerator<String> idInUrlGenerator) {
 
-    if (((TestValueResourceIdGenerator)idInUrlGenerator).getIdMatchingSelector() == NULL_FULL) {
-      return Response.Status.METHOD_NOT_ALLOWED.getStatusCode();
-    }
-
     TestValueAuthStringGenerator authGenerator = new TestValueAuthStringGenerator(TEST_USER_1);
     authGenerator.generateValue(tdctx, null);
     if (!authGenerator.getValue().equals(auth.getValue())) {
       return Response.Status.UNAUTHORIZED.getStatusCode();
     }
 
-    if (((TestValueResourceIdGenerator)idInUrlGenerator).getIdMatchingSelector() == NULL_ID) {
+    if (((TestValueResourceIdGenerator) idInUrlGenerator).getIdMatchingSelector() == NULL_ID) {
       return Response.Status.BAD_REQUEST.getStatusCode();
     }
 
@@ -152,13 +163,13 @@ public class DeleteElementTest extends AbstractRestTest {
     } else if (((TestValueResourceIdGenerator) idInUrlGenerator).getIdMatchingSelector() == RANDOM_ID) {
       return Response.Status.NOT_FOUND.getStatusCode();
     } else if (((TestValueResourceIdGenerator) idInUrlGenerator).getIdMatchingSelector() == PREVIOUSLY_CREATED) {
-      return Response.Status.NO_CONTENT.getStatusCode();
+      return Response.Status.OK.getStatusCode();
     }
 
     return 0;
   }
 
-  private Object getParamsDeleteElement() {
+  private Object getParamsGetElement() {
     Set<AuthHeaderSelector> authHeader = new LinkedHashSet<>();
     authHeader.add(NULL_AUTH);
     authHeader.add(GIBBERISH_FULL);
@@ -166,7 +177,6 @@ public class DeleteElementTest extends AbstractRestTest {
     authHeader.add(TEST_USER_1);
 
     Set<IdMatchingSelector> idInUrl = new LinkedHashSet<>();
-    idInUrl.add(NULL_FULL);
     idInUrl.add(NULL_ID);
     idInUrl.add(GIBBERISH);
     idInUrl.add(RANDOM_ID);
