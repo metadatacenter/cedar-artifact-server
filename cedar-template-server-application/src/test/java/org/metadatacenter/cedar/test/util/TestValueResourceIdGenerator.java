@@ -5,8 +5,6 @@ import org.metadatacenter.cedar.template.resources.utils.TestUtil;
 import org.metadatacenter.model.CedarNodeType;
 import org.metadatacenter.server.jsonld.LinkedDataUtil;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -42,7 +40,9 @@ public class TestValueResourceIdGenerator extends AbstractTestValueGenerator<Str
     String baseTestUrl = tdctx.getBaseTestUrl();
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, nodeType);
     LinkedDataUtil linkedDataUtil = tdctx.getLinkedDataUtil();
-    if (idMatchingSelector == IdMatchingSelector.NULL_ID) {
+    if (idMatchingSelector == IdMatchingSelector.NULL_FULL) {
+      value = "";
+    } else if (idMatchingSelector == IdMatchingSelector.NULL_ID) {
       value = url;
     } else if (idMatchingSelector == IdMatchingSelector.GIBBERISH) {
       value = "gibberish";

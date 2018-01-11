@@ -36,4 +36,8 @@ public class TestValueAuthStringGenerator extends AbstractTestValueGenerator<Str
     TestValueAuthStringGenerator c = new TestValueAuthStringGenerator(this.authSelector);
     return c;
   }
+
+  public AuthHeaderSelector getAuthSelector() {
+    return authSelector;
+  }
 }

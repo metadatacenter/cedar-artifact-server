@@ -1,14 +1,20 @@
 package org.metadatacenter.cedar.template.resources.rest;
 
 public enum IdMatchingSelector {
-  NULL_ID(null),
+  NULL_FULL(null),
+  NULL_ID("nullId"),
   GIBBERISH("gibberish"),
   RANDOM_ID("random"),
-  FROM_JSON("fromJson");
+  FROM_JSON("fromJson"),
+  PREVIOUSLY_CREATED("previouslyCreated");
 
   private final String value;
 
   IdMatchingSelector(String value) {
     this.value = value;
+  }
+
+  public String getValue() {
+    return value;
   }
 }

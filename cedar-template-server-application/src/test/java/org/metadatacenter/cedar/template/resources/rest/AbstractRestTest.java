@@ -28,6 +28,10 @@ public abstract class AbstractRestTest extends AbstractResourceTest {
 
   private static final String FILE_BASE_PATH = "rest/";
 
+  private final static String SPACES = "                                        ";
+  private final static String DIVIDER = "-----------------------------------------------------------------------------";
+  private final static int PARAM_NAME_OFFSET = 20;
+
   protected static final String MINIMAL_ELEMENT_WITH_ID = "minimal-element-with-id";
   protected static final String MINIMAL_ELEMENT_NO_ID = "minimal-element-no-id";
   protected static final String MINIMAL_TEMPLATE = "minimal-template";
@@ -146,6 +150,38 @@ public abstract class AbstractRestTest extends AbstractResourceTest {
       url += "/" + URLEncoder.encode(resourceId, "UTF-8");
     }
     return url;
+  }
+
+  protected void divider(String message) {
+    int l = (DIVIDER.length() - message.length() - 2 ) / 2;
+    System.out.print(DIVIDER.substring(0, l));
+    System.out.print(" ");
+    System.out.print(message);
+    System.out.print(" ");
+    System.out.print(DIVIDER.substring(0, l));
+    if (l * 2 + message.length() + 2 < DIVIDER.length()) {
+      System.out.print(DIVIDER.substring(0, 1));
+    }
+    System.out.println();
+  }
+
+  protected void divider() {
+    System.out.println(DIVIDER);
+  }
+
+  protected void testParam(String paramName, Object paramValue) {
+    pair(paramName, paramValue);
+  }
+
+  protected void pair(String name, Object value) {
+    int len = PARAM_NAME_OFFSET - name.length();
+    if (len < 0) {
+      len = 0;
+    }
+    System.out.print(name);
+    System.out.print(": ");
+    System.out.print(SPACES.substring(0, len));
+    System.out.println(value);
   }
 
 }

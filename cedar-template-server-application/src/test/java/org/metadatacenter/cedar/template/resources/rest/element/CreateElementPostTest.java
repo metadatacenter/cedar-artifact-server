@@ -1,4 +1,4 @@
-package org.metadatacenter.cedar.template.resources.rest;
+package org.metadatacenter.cedar.template.resources.rest.element;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -9,6 +9,9 @@ import junitparams.naming.TestCaseName;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.metadatacenter.cedar.template.resources.rest.AbstractRestTest;
+import org.metadatacenter.cedar.template.resources.rest.AuthHeaderSelector;
+import org.metadatacenter.cedar.template.resources.rest.IdMatchingSelector;
 import org.metadatacenter.cedar.test.util.*;
 import org.metadatacenter.constant.LinkedData;
 import org.metadatacenter.model.CedarNodeType;
@@ -94,6 +97,8 @@ public class CreateElementPostTest extends AbstractRestTest {
     } else {
       response = request.post(null);
     }
+
+    createdResources.put(idInBody, CedarNodeType.ELEMENT);
 
     int responseStatus = response.getStatus();
     int expectedResponseStatus = getExpectedResponseStatus(generator, js, rt, auth, idInBodyGenerator);
