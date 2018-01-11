@@ -55,13 +55,18 @@ public class CreateElementPostTest extends AbstractRestTest {
     String postUrl = getUrlWithId(baseTestUrl, resourceType, (String) null);
     idInBodyGenerator.generateValue(tdctx, arrayGenerator);
     String idInBody = idInBodyGenerator.getValue();
-    System.out.println("--------------------------------------------------------");
-    System.out.println(jsonFileName + "\n" + resourceType + "\n" + authHeaderValue + "\n" + "\n" + idInBody);
+    divider("POST BLOCK");
+    testParam("jsonFileName", jsonFileName);
+    testParam("resourceType", resourceType);
+    testParam("putAuth", ((TestValueAuthStringGenerator) auth).getAuthSelector());
+    testParam("idInBodyPolicy", ((TestValueResourceIdGenerator) idInBodyGenerator).getIdMatchingSelector());
+    pair("idInBody", idInBody);
+    pair("Test POST URL", postUrl);
+    pair("Authorization", authHeaderValue);
+    pair("Index", index);
+    divider();
 
     String originalFileContent = getFileContentAsString(jsonFileName);
-    System.out.println("Test POST URL :" + postUrl);
-    System.out.println("Authorization:" + authHeaderValue);
-    System.out.println("Index:" + index);
     Invocation.Builder request = testClient.target(postUrl).request();
     if (authHeaderValue != null) {
       request.header(AUTHORIZATION, authHeaderValue);
