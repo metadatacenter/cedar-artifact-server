@@ -2,6 +2,7 @@ package org.metadatacenter.cedar.template.resources.rest.element;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import junitparams.naming.TestCaseName;
@@ -35,17 +36,18 @@ import static org.metadatacenter.cedar.test.util.TestValueResourceIdGenerator.id
 import static org.metadatacenter.model.CedarNodeType.ELEMENT;
 
 @RunWith(JUnitParamsRunner.class)
-public class GetElementTest extends AbstractRestTest {
+public class UpdateElementTest extends AbstractRestTest {
 
+  private static final String TEST_DESCRIPTION_VALUE = "New description";
   private static int index = -1;
 
   @Test
   @TestCaseName(TEST_NAME_PATTERN_METHOD_PARAMS)
-  @Parameters(method = "getParamsGetElement")
-  public void getElementTest(TestParameterArrayGeneratorGenerator generator,
-                             TestParameterValueGenerator<CedarNodeType> rt,
-                             TestParameterValueGenerator<String> auth,
-                             TestParameterValueGenerator<String> idInUrlGenerator) throws IOException {
+  @Parameters(method = "getParamsUpdateElementPut")
+  public void updateElementTest(TestParameterArrayGeneratorGenerator generator,
+                                TestParameterValueGenerator<CedarNodeType> rt,
+                                TestParameterValueGenerator<String> auth,
+                                TestParameterValueGenerator<String> idInUrlGenerator) throws IOException {
     index++;
     TestParameterArrayGenerator arrayGenerator = generator.getValue();
     String jsonFileName = MINIMAL_ELEMENT_NO_ID;
@@ -94,7 +96,7 @@ public class GetElementTest extends AbstractRestTest {
 
     createdResources.put(createdId, CedarNodeType.ELEMENT);
 
-    // Do the actual testing
+    // Do the actual testing - update
 
     auth.generateValue(tdctx, arrayGenerator);
     String authHeaderValue = auth.getValue();
@@ -104,42 +106,65 @@ public class GetElementTest extends AbstractRestTest {
       idInUrl = createdId;
     }
 
-    String getUrl = getUrlWithId(baseTestUrl, resourceType, idInUrl);
+    String putUrl = getUrlWithId(baseTestUrl, resourceType, idInUrl);
 
-    divider("GET BLOCK");
+    divider("PUT BLOCK");
     testParam("resourceType", resourceType);
-    testParam("getAuth", ((TestValueAuthStringGenerator) auth).getAuthSelector());
+    testParam("deleteAuth", ((TestValueAuthStringGenerator) auth).getAuthSelector());
     testParam("idInUrlPolicy", ((TestValueResourceIdGenerator) idInUrlGenerator).getIdMatchingSelector());
     pair("idInUrl", idInUrl);
-    pair("Test GET URL", getUrl);
+    pair("Test PUT URL", putUrl);
     pair("Authorization", authHeaderValue);
     pair("Index", index);
     divider();
 
-    Invocation.Builder getRequest = testClient.target(getUrl).request();
+    Invocation.Builder putRequest = testClient.target(putUrl).request();
     if (authHeaderValue != null) {
-      getRequest.header(AUTHORIZATION, authHeaderValue);
+      putRequest.header(AUTHORIZATION, authHeaderValue);
     }
 
-    Response getResponse = getRequest.get();
+    ((ObjectNode) element).put(CedarModelVocabulary.SCHEMA_DESCRIPTION, TEST_DESCRIPTION_VALUE);
+    String modifiedContent = JsonMapper.MAPPER.writeValueAsString(element);
+    Response putResponse = putRequest.put(Entity.json(modifiedContent));
 
-    int getResponseStatus = getResponse.getStatus();
-    pair("Get response status", getResponseStatus);
+    int putResponseStatus = putResponse.getStatus();
+    pair("Put response status", putResponseStatus);
     int expectedResponseStatus = getExpectedResponseStatus(generator, rt, auth, idInUrlGenerator);
-    Assert.assertEquals(expectedResponseStatus, getResponseStatus);
+    Assert.assertEquals(expectedResponseStatus, putResponseStatus);
 
+    // Do the actual testing - verify the changed description field value
     if (expectedResponseStatus == Response.Status.OK.getStatusCode()) {
+      String getUrl = getUrlWithId(baseTestUrl, resourceType, createdId);
+
+      divider("GET BLOCK");
+      testParam("resourceType", resourceType);
+      testParam("createAuth", createAuth);
+      pair("createdId", createdId);
+      pair("Test GET URL", getUrl);
+      pair("Authorization", createAuthHeaderValue);
+      pair("Index", index);
+      divider();
+
+      Invocation.Builder getRequest = testClient.target(getUrl).request();
+      getRequest.header(AUTHORIZATION, createAuthHeaderValue);
+
+      Response getResponse = getRequest.get();
+
+      int getResponseStatus = getResponse.getStatus();
+      pair("Get response status", getResponseStatus);
+      Assert.assertEquals(Response.Status.OK.getStatusCode(), getResponseStatus);
+
       String getBody = getResponse.readEntity(String.class);
       JsonNode getElement = null;
       try {
-        getElement = JsonMapper.MAPPER.readTree(createdBody);
+        getElement = JsonMapper.MAPPER.readTree(getBody);
       } catch (JsonParseException e) {
         // do nothing, the json can be invalid intentionally
       }
-      JsonNode descriptionNode = element.get(CedarModelVocabulary.SCHEMA_DESCRIPTION);
+      JsonNode descriptionNode = getElement.get(CedarModelVocabulary.SCHEMA_DESCRIPTION);
       String description = descriptionNode.asText();
-      pair("Created description", description);
-      Assert.assertNotNull(description);
+      pair("Updated description", description);
+      Assert.assertEquals(TEST_DESCRIPTION_VALUE, description);
     }
   }
 
@@ -147,6 +172,10 @@ public class GetElementTest extends AbstractRestTest {
                                         TestParameterValueGenerator<CedarNodeType> rt,
                                         TestParameterValueGenerator<String> auth,
                                         TestParameterValueGenerator<String> idInUrlGenerator) {
+
+    if (((TestValueResourceIdGenerator) idInUrlGenerator).getIdMatchingSelector() == NULL_FULL) {
+      return Response.Status.METHOD_NOT_ALLOWED.getStatusCode();
+    }
 
     TestValueAuthStringGenerator authGenerator = new TestValueAuthStringGenerator(TEST_USER_1);
     authGenerator.generateValue(tdctx, null);
@@ -161,7 +190,7 @@ public class GetElementTest extends AbstractRestTest {
     if (((TestValueResourceIdGenerator) idInUrlGenerator).getIdMatchingSelector() == GIBBERISH) {
       return Response.Status.BAD_REQUEST.getStatusCode();
     } else if (((TestValueResourceIdGenerator) idInUrlGenerator).getIdMatchingSelector() == RANDOM_ID) {
-      return Response.Status.NOT_FOUND.getStatusCode();
+      return Response.Status.BAD_REQUEST.getStatusCode();
     } else if (((TestValueResourceIdGenerator) idInUrlGenerator).getIdMatchingSelector() == PREVIOUSLY_CREATED) {
       return Response.Status.OK.getStatusCode();
     }
@@ -169,7 +198,7 @@ public class GetElementTest extends AbstractRestTest {
     return 0;
   }
 
-  private Object getParamsGetElement() {
+  private Object getParamsUpdateElementPut() {
     Set<AuthHeaderSelector> authHeader = new LinkedHashSet<>();
     authHeader.add(NULL_AUTH);
     authHeader.add(GIBBERISH_FULL);
@@ -177,6 +206,7 @@ public class GetElementTest extends AbstractRestTest {
     authHeader.add(TEST_USER_1);
 
     Set<IdMatchingSelector> idInUrl = new LinkedHashSet<>();
+    idInUrl.add(NULL_FULL);
     idInUrl.add(NULL_ID);
     idInUrl.add(GIBBERISH);
     idInUrl.add(RANDOM_ID);
