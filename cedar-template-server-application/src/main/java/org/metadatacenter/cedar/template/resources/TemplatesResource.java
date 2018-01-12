@@ -42,6 +42,7 @@ import static org.metadatacenter.constant.CedarPathParameters.PP_ID;
 import static org.metadatacenter.constant.CedarQueryParameters.*;
 import static org.metadatacenter.rest.assertion.GenericAssertions.LoggedIn;
 import static org.metadatacenter.rest.assertion.GenericAssertions.NonEmpty;
+import static org.metadatacenter.rest.assertion.GenericAssertions.ValidId;
 
 @Path("/templates")
 @Produces(MediaType.APPLICATION_JSON)
@@ -196,6 +197,7 @@ public class TemplatesResource extends AbstractTemplateServerResource {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_UPDATE);
+    c.must(id).be(ValidId);
     c.must(c.request().getRequestBody()).be(NonEmpty);
 
     JsonNode newTemplate = c.request().getRequestBody().asJson();

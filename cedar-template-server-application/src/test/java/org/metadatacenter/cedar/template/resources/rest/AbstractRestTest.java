@@ -32,16 +32,23 @@ public abstract class AbstractRestTest extends AbstractResourceTest {
   private final static String DIVIDER = "-----------------------------------------------------------------------------";
   private final static int PARAM_NAME_OFFSET = 20;
 
-  protected static final String MINIMAL_ELEMENT_WITH_ID = "minimal-element-with-id";
-  protected static final String MINIMAL_ELEMENT_NO_ID = "minimal-element-no-id";
-  protected static final String MINIMAL_TEMPLATE = "minimal-template";
-  protected static final String MINIMAL_INSTANCE = "minimal-instance";
   protected static final String SCHEMA_DESCRIPTION = "schema-description";
   protected static final String SCHEMA_NAME = "schema-name";
   protected static final String EMPTY_JSON = "empty-json";
   protected static final String BAD_JSON = "bad-json";
   protected static final String NON_JSON = "non-json";
+
+  protected static final String MINIMAL_ELEMENT_WITH_ID = "minimal-element-with-id";
+  protected static final String MINIMAL_ELEMENT_NO_ID = "minimal-element-no-id";
   protected static final String FULL_ELEMENT = "full-element";
+
+  protected static final String MINIMAL_TEMPLATE_WITH_ID = "minimal-template-with-id";
+  protected static final String MINIMAL_TEMPLATE_NO_ID = "minimal-template-no-id";
+  protected static final String FULL_TEMPLATE = "full-template";
+
+  //TODO: get rid of these two variables.
+  protected static final String MINIMAL_TEMPLATE = "minimal-template";
+  protected static final String MINIMAL_INSTANCE = "minimal-instance";
 
   static {
     log = LoggerFactory.getLogger("REST Test");
