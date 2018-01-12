@@ -102,6 +102,8 @@ public class CreateElementPutTest extends AbstractRestTest {
       response = request.put(null);
     }
 
+    createdResources.put(idInURL, CedarNodeType.ELEMENT);
+
     int responseStatus = response.getStatus();
     int expectedResponseStatus = getExpectedResponseStatus(generator, js, rt, auth, idInURLGenerator,
         idInBodyGenerator);

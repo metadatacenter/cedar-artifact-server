@@ -103,7 +103,23 @@ public class CreateElementPostTest extends AbstractRestTest {
       response = request.post(null);
     }
 
-    createdResources.put(idInBody, CedarNodeType.ELEMENT);
+    // Extract the Id, mark it for deletion
+    String createdId = null;
+    String createdBody = response.readEntity(String.class);
+    JsonNode element = null;
+    try {
+      element = JsonMapper.MAPPER.readTree(createdBody);
+    } catch (JsonParseException e) {
+      // do nothing, the json can be invalid intentionally
+    }
+    JsonNode idNode = element.get(LinkedData.ID);
+    if (idNode != null) {
+      createdId = idNode.asText();
+      pair("Created id", createdId);
+      divider();
+
+      createdResources.put(createdId, CedarNodeType.ELEMENT);
+    }
 
     int responseStatus = response.getStatus();
     int expectedResponseStatus = getExpectedResponseStatus(generator, js, rt, auth, idInBodyGenerator);
