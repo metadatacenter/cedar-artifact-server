@@ -114,6 +114,7 @@ public class TemplatesResource extends AbstractTemplateServerResource {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_READ);
+    c.must(id).be(ValidId);
 
     JsonNode template;
     try {
@@ -259,6 +260,7 @@ public class TemplatesResource extends AbstractTemplateServerResource {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_DELETE);
+    c.must(id).be(ValidId);
 
     long referenceCount = templateInstanceService.countReferencingTemplate(id);
 
