@@ -97,7 +97,6 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
     URI uri = CedarUrlUtil.getIdURI(uriInfo, id);
     return CedarResponse.created(uri)
         .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, validationReport.getValidationStatus())
-        .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_REPORT, validationReport)
         .entity(createdTemplateInstance).build();
   }
 
@@ -230,7 +229,6 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
     MongoUtils.removeIdField(updatedTemplateInstance);
     return CedarResponse.ok()
         .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, validationReport.getValidationStatus())
-        .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_REPORT, validationReport)
         .entity(updatedTemplateInstance).build();
   }
 
