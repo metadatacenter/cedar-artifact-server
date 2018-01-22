@@ -92,7 +92,6 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
     URI createdElementUri = CedarUrlUtil.getIdURI(uriInfo, id);
     return CedarResponse.created(createdElementUri)
         .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, validationReport.getValidationStatus())
-        .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_REPORT, validationReport)
         .entity(createdTemplateElement).build();
   }
 
@@ -217,7 +216,6 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
     MongoUtils.removeIdField(updatedTemplateElement);
     return CedarResponse.ok()
         .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, validationReport.getValidationStatus())
-        .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_REPORT, validationReport)
         .entity(updatedTemplateElement).build();
   }
 

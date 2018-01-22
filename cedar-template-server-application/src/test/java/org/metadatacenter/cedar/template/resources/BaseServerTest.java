@@ -14,7 +14,6 @@ import org.metadatacenter.cedar.template.TemplateServerConfiguration;
 import org.metadatacenter.cedar.template.resources.utils.TestUtil;
 import org.metadatacenter.util.test.TestUserUtil;
 
-import javax.annotation.Nonnull;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
@@ -59,7 +58,7 @@ public abstract class BaseServerTest {
     return SERVER_APPLICATION.getLocalPort();
   }
 
-  protected Response sendGetRequest(@Nonnull String requestUrl) {
+  protected Response sendGetRequest(String requestUrl) {
     Response response = testClient.target(requestUrl)
         .request()
         .header(HTTP_HEADER_AUTHORIZATION, authHeaderValue)
@@ -67,7 +66,7 @@ public abstract class BaseServerTest {
     return response;
   }
 
-  protected Response sendPostRequest(@Nonnull String requestUrl, @Nonnull Object payload) {
+  protected Response sendPostRequest(String requestUrl, Object payload) {
     Response response = testClient.target(requestUrl)
         .request()
         .header(HTTP_HEADER_AUTHORIZATION, authHeaderValue)
@@ -75,7 +74,7 @@ public abstract class BaseServerTest {
     return response;
   }
 
-  protected Response sendDeleteRequest(@Nonnull String requestUrl) {
+  protected Response sendDeleteRequest(String requestUrl) {
     Response response = testClient.target(requestUrl)
         .request()
         .header(HTTP_HEADER_AUTHORIZATION, authHeaderValue)
