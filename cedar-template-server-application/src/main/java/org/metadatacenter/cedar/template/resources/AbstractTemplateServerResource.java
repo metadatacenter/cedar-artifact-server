@@ -142,15 +142,11 @@ public class AbstractTemplateServerResource extends CedarMicroserviceResource {
     }
   }
 
-  protected void enforceMandatoryNameAndDescription(JsonNode jsonObject, CedarNodeType nodeType, CedarErrorKey errorKey)
+  protected void enforceMandatoryName(JsonNode jsonObject, CedarNodeType nodeType, CedarErrorKey errorKey)
       throws CedarBadRequestException {
     JsonPointerValuePair namePair = ModelUtil.extractNameFromResource(nodeType, jsonObject);
     if (namePair.hasEmptyValue()) {
       throw new CedarRequestBodyMissingFieldException(namePair.getPointer(), errorKey);
-    }
-    JsonPointerValuePair descriptionPair = ModelUtil.extractDescriptionFromResource(nodeType, jsonObject);
-    if (descriptionPair.hasEmptyValue()) {
-      throw new CedarRequestBodyMissingFieldException(descriptionPair.getPointer(), errorKey);
     }
   }
 

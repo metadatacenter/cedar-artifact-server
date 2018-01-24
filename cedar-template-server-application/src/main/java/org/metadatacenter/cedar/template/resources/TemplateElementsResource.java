@@ -74,7 +74,7 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
     JsonNode templateElement = c.request().getRequestBody().asJson();
 
     enforceMandatoryNullOrMissingId(templateElement, CedarNodeType.ELEMENT, CedarErrorKey.TEMPLATE_ELEMENT_NOT_CREATED);
-    enforceMandatoryNameAndDescription(templateElement, CedarNodeType.ELEMENT, CedarErrorKey
+    enforceMandatoryName(templateElement, CedarNodeType.ELEMENT, CedarErrorKey
         .TEMPLATE_ELEMENT_NOT_CREATED);
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
@@ -100,7 +100,6 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
     URI createdElementUri = CedarUrlUtil.getIdURI(uriInfo, id);
     return CedarResponse.created(createdElementUri)
         .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, validationReport.getValidationStatus())
-        .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_REPORT, validationReport)
         .entity(createdTemplateElement).build();
   }
 
@@ -203,7 +202,7 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
     JsonNode newElement = c.request().getRequestBody().asJson();
 
     enforceMandatoryFieldsInPut(id, newElement, CedarNodeType.ELEMENT, CedarErrorKey.TEMPLATE_ELEMENT_NOT_UPDATED);
-    enforceMandatoryNameAndDescription(newElement, CedarNodeType.ELEMENT, CedarErrorKey.TEMPLATE_ELEMENT_NOT_UPDATED);
+    enforceMandatoryName(newElement, CedarNodeType.ELEMENT, CedarErrorKey.TEMPLATE_ELEMENT_NOT_UPDATED);
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     provenanceUtil.patchProvenanceInfo(newElement, pi);
@@ -247,7 +246,6 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
     }
     responseBuilder
         .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, validationReport.getValidationStatus())
-        .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_REPORT, validationReport)
         .entity(outputTemplateElement);
     return responseBuilder.build();
   }

@@ -79,7 +79,7 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
 
     enforceMandatoryNullOrMissingId(templateInstance, CedarNodeType.INSTANCE, CedarErrorKey
         .TEMPLATE_INSTANCE_NOT_CREATED);
-    enforceMandatoryNameAndDescription(templateInstance, CedarNodeType.INSTANCE, CedarErrorKey
+    enforceMandatoryName(templateInstance, CedarNodeType.INSTANCE, CedarErrorKey
         .TEMPLATE_INSTANCE_NOT_CREATED);
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
@@ -104,7 +104,6 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
     URI uri = CedarUrlUtil.getIdURI(uriInfo, id);
     return CedarResponse.created(uri)
         .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, validationReport.getValidationStatus())
-        .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_REPORT, validationReport)
         .entity(createdTemplateInstance).build();
   }
 
@@ -209,7 +208,7 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
     JsonNode newInstance = c.request().getRequestBody().asJson();
 
     enforceMandatoryFieldsInPut(id, newInstance, CedarNodeType.INSTANCE, CedarErrorKey.TEMPLATE_INSTANCE_NOT_UPDATED);
-    enforceMandatoryNameAndDescription(newInstance, CedarNodeType.INSTANCE, CedarErrorKey
+    enforceMandatoryName(newInstance, CedarNodeType.INSTANCE, CedarErrorKey
         .TEMPLATE_INSTANCE_NOT_CREATED);
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
@@ -258,7 +257,6 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
     }
     responseBuilder
         .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, validationReport.getValidationStatus())
-        .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_REPORT, validationReport)
         .entity(outputTemplateInstance);
     return responseBuilder.build();
   }

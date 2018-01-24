@@ -40,9 +40,7 @@ import java.util.*;
 
 import static org.metadatacenter.constant.CedarPathParameters.PP_ID;
 import static org.metadatacenter.constant.CedarQueryParameters.*;
-import static org.metadatacenter.rest.assertion.GenericAssertions.LoggedIn;
-import static org.metadatacenter.rest.assertion.GenericAssertions.NonEmpty;
-import static org.metadatacenter.rest.assertion.GenericAssertions.ValidId;
+import static org.metadatacenter.rest.assertion.GenericAssertions.*;
 
 @Path("/templates")
 @Produces(MediaType.APPLICATION_JSON)
@@ -78,7 +76,7 @@ public class TemplatesResource extends AbstractTemplateServerResource {
     JsonNode template = c.request().getRequestBody().asJson();
 
     enforceMandatoryNullOrMissingId(template, CedarNodeType.TEMPLATE, CedarErrorKey.TEMPLATE_NOT_CREATED);
-    enforceMandatoryNameAndDescription(template, CedarNodeType.TEMPLATE, CedarErrorKey.TEMPLATE_NOT_CREATED);
+    enforceMandatoryName(template, CedarNodeType.TEMPLATE, CedarErrorKey.TEMPLATE_NOT_CREATED);
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     setProvenanceAndId(CedarNodeType.TEMPLATE, template, pi);
@@ -103,7 +101,6 @@ public class TemplatesResource extends AbstractTemplateServerResource {
     URI createdTemplateUri = CedarUrlUtil.getIdURI(uriInfo, id);
     return CedarResponse.created(createdTemplateUri)
         .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, validationReport.getValidationStatus())
-        .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_REPORT, validationReport)
         .entity(createdTemplate).build();
   }
 
@@ -204,7 +201,7 @@ public class TemplatesResource extends AbstractTemplateServerResource {
     JsonNode newTemplate = c.request().getRequestBody().asJson();
 
     enforceMandatoryFieldsInPut(id, newTemplate, CedarNodeType.TEMPLATE, CedarErrorKey.TEMPLATE_NOT_UPDATED);
-    enforceMandatoryNameAndDescription(newTemplate, CedarNodeType.TEMPLATE, CedarErrorKey.TEMPLATE_NOT_UPDATED);
+    enforceMandatoryName(newTemplate, CedarNodeType.TEMPLATE, CedarErrorKey.TEMPLATE_NOT_UPDATED);
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     provenanceUtil.patchProvenanceInfo(newTemplate, pi);
@@ -248,7 +245,6 @@ public class TemplatesResource extends AbstractTemplateServerResource {
     }
     responseBuilder
         .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, validationReport.getValidationStatus())
-        .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_REPORT, validationReport)
         .entity(outputTemplate);
     return responseBuilder.build();
   }
