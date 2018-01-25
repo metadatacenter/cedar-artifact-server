@@ -5,12 +5,12 @@
   <parent>
     <groupId>org.metadatacenter</groupId>
     <artifactId>cedar-parent</artifactId>
-    <version>1.6.1-SNAPSHOT</version>
+    <version>1.6.2-SNAPSHOT</version>
   </parent>
 
   <groupId>org.metadatacenter</groupId>
   <artifactId>cedar-template-server</artifactId>
-  <version>1.6.1-SNAPSHOT</version>
+  <version>1.6.2-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>CEDAR Template Server</name>
