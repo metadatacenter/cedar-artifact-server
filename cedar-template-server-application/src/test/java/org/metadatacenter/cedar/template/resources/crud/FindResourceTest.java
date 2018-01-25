@@ -132,7 +132,7 @@ public class FindResourceTest extends AbstractResourceCrudTest {
     // Service invocation - Find by Id - missing Authorization header
     Response findResponse = testClient.target(findUrl).request().get();
     // Check response
-    Assert.assertEquals(Response.Status.FORBIDDEN.getStatusCode(), findResponse.getStatus());
+    Assert.assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(), findResponse.getStatus());
   }
 
   @Test

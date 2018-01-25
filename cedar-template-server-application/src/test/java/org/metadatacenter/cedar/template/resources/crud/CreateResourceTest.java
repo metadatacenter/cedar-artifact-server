@@ -86,7 +86,7 @@ public class CreateResourceTest extends AbstractResourceCrudTest {
     // Service invocation without Authorization header
     Response response = testClient.target(url).request().post(Entity.json(sampleResource));
     // Check HTTP response
-    Assert.assertEquals(Response.Status.FORBIDDEN.getStatusCode(), response.getStatus());
+    Assert.assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(), response.getStatus());
   }
 
   @Test
@@ -99,7 +99,7 @@ public class CreateResourceTest extends AbstractResourceCrudTest {
     Response response = testClient.target(url).request().header("Authorization", newAuthHeader).post(Entity.json
         (sampleResource));
     // Check HTTP response
-    Assert.assertEquals(Response.Status.FORBIDDEN.getStatusCode(), response.getStatus());
+    Assert.assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(), response.getStatus());
   }
 
 }
