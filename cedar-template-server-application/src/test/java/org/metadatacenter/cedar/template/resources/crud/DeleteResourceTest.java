@@ -8,14 +8,14 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.metadatacenter.cedar.template.resources.utils.TestUtil;
+import org.metadatacenter.constant.LinkedData;
 import org.metadatacenter.model.CedarNodeType;
 
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.net.URLEncoder;
 
-import static org.metadatacenter.cedar.template.resources.utils.TestConstants.ID_FIELD;
-import static org.metadatacenter.cedar.template.resources.utils.TestConstants.TEST_NAME_PATTERN;
+import static org.metadatacenter.cedar.template.resources.utils.TestConstants.TEST_NAME_PATTERN_INDEX_METHOD;
 
 @RunWith(JUnitParamsRunner.class)
 public class DeleteResourceTest extends AbstractResourceCrudTest {
@@ -25,7 +25,7 @@ public class DeleteResourceTest extends AbstractResourceCrudTest {
    */
 
   @Test
-  @TestCaseName(TEST_NAME_PATTERN)
+  @TestCaseName(TEST_NAME_PATTERN_INDEX_METHOD)
   @Parameters(method = "getCommonParams1")
   public void deleteResourceTest(JsonNode sampleResource, CedarNodeType resourceType) {
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
@@ -33,7 +33,7 @@ public class DeleteResourceTest extends AbstractResourceCrudTest {
     // Create a resource
     try {
       JsonNode createdResource = createResource(sampleResource, resourceType);
-      createdResources.put(createdResource.get(ID_FIELD).asText(), resourceType);
+      createdResources.put(createdResource.get(LinkedData.ID).asText(), resourceType);
       String createdResourceId = createdResource.get("@id").asText();
       // Service invocation - Delete
       Response responseUpdate = testClient.target(url + "/" + URLEncoder.encode(createdResourceId, "UTF-8")).

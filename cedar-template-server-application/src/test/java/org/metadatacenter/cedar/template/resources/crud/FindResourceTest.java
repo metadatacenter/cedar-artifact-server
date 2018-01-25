@@ -12,6 +12,7 @@ import org.metadatacenter.cedar.template.resources.utils.TestParameterUtil;
 import org.metadatacenter.cedar.template.resources.utils.TestUtil;
 import org.metadatacenter.constant.CustomHttpConstants;
 import org.metadatacenter.constant.HttpConstants;
+import org.metadatacenter.constant.LinkedData;
 import org.metadatacenter.model.CedarNodeType;
 
 import javax.ws.rs.client.Entity;
@@ -34,7 +35,7 @@ public class FindResourceTest extends AbstractResourceCrudTest {
    */
 
   @Test
-  @TestCaseName(TEST_NAME_PATTERN)
+  @TestCaseName(TEST_NAME_PATTERN_INDEX_METHOD)
   @Parameters(method = "getCommonParams1")
   public void findResourceTest(JsonNode sampleResource, CedarNodeType resourceType) {
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
@@ -44,9 +45,9 @@ public class FindResourceTest extends AbstractResourceCrudTest {
     // Create a resource
     Response response = testClient.target(url).request().header("Authorization", authHeader).post(Entity.json(sampleResource));
     JsonNode expected = response.readEntity(JsonNode.class);
-    createdResources.put(expected.get(ID_FIELD).asText(), resourceType);
+    createdResources.put(expected.get(LinkedData.ID).asText(), resourceType);
     // Use generated id to retrieve the resource
-    String id = expected.get(ID_FIELD).asText();
+    String id = expected.get(LinkedData.ID).asText();
     String findUrl = null;
     try {
       findUrl = url + "/" + URLEncoder.encode(id, "UTF-8");
@@ -63,7 +64,7 @@ public class FindResourceTest extends AbstractResourceCrudTest {
   }
 
   @Test
-  @TestCaseName(TEST_NAME_PATTERN)
+  @TestCaseName(TEST_NAME_PATTERN_INDEX_METHOD)
   @Parameters
   public void findNonExistentResourceTest(CedarNodeType resourceType, String nonExistentResourceId) {
     String findUrl = null;
@@ -86,7 +87,7 @@ public class FindResourceTest extends AbstractResourceCrudTest {
   }
 
   @Test
-  @TestCaseName(TEST_NAME_PATTERN)
+  @TestCaseName(TEST_NAME_PATTERN_INDEX_METHOD)
   @Parameters
   public void findInvalidIdTest(CedarNodeType resourceType, String invalidId) {
     String findUrl = null;
@@ -109,7 +110,7 @@ public class FindResourceTest extends AbstractResourceCrudTest {
   }
 
   @Test
-  @TestCaseName(TEST_NAME_PATTERN)
+  @TestCaseName(TEST_NAME_PATTERN_INDEX_METHOD)
   @Parameters(method = "getCommonParams1")
   public void findResourceMissingAuthorizationHeaderTest(JsonNode sampleResource, CedarNodeType resourceType) {
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
@@ -119,9 +120,9 @@ public class FindResourceTest extends AbstractResourceCrudTest {
     // Create a resource
     Response response = testClient.target(url).request().header("Authorization", authHeader).post(Entity.json(sampleResource));
     JsonNode expected = response.readEntity(JsonNode.class);
-    createdResources.put(expected.get(ID_FIELD).asText(), resourceType);
+    createdResources.put(expected.get(LinkedData.ID).asText(), resourceType);
     // Use generated id to retrieve the resource
-    String id = expected.get(ID_FIELD).asText();
+    String id = expected.get(LinkedData.ID).asText();
     String findUrl = null;
     try {
       findUrl = url + "/" + URLEncoder.encode(id, "UTF-8");
@@ -135,7 +136,7 @@ public class FindResourceTest extends AbstractResourceCrudTest {
   }
 
   @Test
-  @TestCaseName(TEST_NAME_PATTERN)
+  @TestCaseName(TEST_NAME_PATTERN_INDEX_METHOD)
   @Parameters(method = "getCommonParams1")
   public void findResourceUnauthorizedKeyTest(JsonNode sampleResource, CedarNodeType resourceType) {
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
@@ -145,9 +146,9 @@ public class FindResourceTest extends AbstractResourceCrudTest {
     // Create a resource
     Response response = testClient.target(url).request().header("Authorization", authHeader).post(Entity.json(sampleResource));
     JsonNode expected = response.readEntity(JsonNode.class);
-    createdResources.put(expected.get(ID_FIELD).asText(), resourceType);
+    createdResources.put(expected.get(LinkedData.ID).asText(), resourceType);
     // Use generated id to retrieve the resource
-    String id = expected.get(ID_FIELD).asText();
+    String id = expected.get(LinkedData.ID).asText();
     String findUrl = null;
     try {
       findUrl = url + "/" + URLEncoder.encode(id, "UTF-8");
@@ -166,7 +167,7 @@ public class FindResourceTest extends AbstractResourceCrudTest {
    */
 
   @Test
-  @TestCaseName(TEST_NAME_PATTERN + " limit={2}, offset={3}, summary={4}")
+  @TestCaseName(TEST_NAME_PATTERN_INDEX_METHOD + " limit={2}, offset={3}, summary={4}")
   @Parameters
   public void findAllResourcesTest(CedarNodeType resourceType, JsonNode sampleResource, String limit, String offset, String summary) {
     int initialCount = countResources(resourceType);
@@ -185,7 +186,7 @@ public class FindResourceTest extends AbstractResourceCrudTest {
       } catch (IOException e) {
         e.printStackTrace();
       }
-      createdResources.put(createdResource.get(ID_FIELD).asText(), resourceType);
+      createdResources.put(createdResource.get(LinkedData.ID).asText(), resourceType);
       resources.add(createdResource);
     }
     // find All
@@ -202,7 +203,7 @@ public class FindResourceTest extends AbstractResourceCrudTest {
         b.addParameter("summary", summary);
       }
       String findAllUrl = b.build().toString();
-      logger.info("URL: " + url);
+      log.info("URL: " + url);
       Response findAllResponse = testClient.target(findAllUrl).request().header("Authorization", authHeader).get();
       // Check response is OK
       Assert.assertEquals(Response.Status.OK.getStatusCode(), findAllResponse.getStatus());

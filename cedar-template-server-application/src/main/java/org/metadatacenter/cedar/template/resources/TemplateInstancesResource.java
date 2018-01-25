@@ -7,11 +7,13 @@ import com.github.jsonldjava.core.JsonLdError;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.constant.CustomHttpConstants;
 import org.metadatacenter.constant.HttpConstants;
+import org.metadatacenter.constant.LinkedData;
 import org.metadatacenter.error.CedarErrorKey;
 import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.exception.CedarProcessingException;
+import org.metadatacenter.exception.TemplateServerResourceNotFoundException;
 import org.metadatacenter.model.CedarNodeType;
-import org.metadatacenter.model.core.CedarModelVocabulary;
+import org.metadatacenter.model.CreateOrUpdate;
 import org.metadatacenter.model.request.OutputFormatType;
 import org.metadatacenter.model.request.OutputFormatTypeDetector;
 import org.metadatacenter.model.trimmer.JsonLdDocument;
@@ -32,7 +34,6 @@ import org.metadatacenter.util.mongo.MongoUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.management.InstanceNotFoundException;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -43,6 +44,7 @@ import java.util.*;
 import static org.metadatacenter.constant.CedarPathParameters.PP_ID;
 import static org.metadatacenter.constant.CedarQueryParameters.*;
 import static org.metadatacenter.rest.assertion.GenericAssertions.LoggedIn;
+import static org.metadatacenter.rest.assertion.GenericAssertions.NonEmpty;
 
 @Path("/template-instances")
 @Produces(MediaType.APPLICATION_JSON)
@@ -66,17 +68,22 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
 
   @POST
   @Timed
-  public Response createTemplateInstance(@QueryParam(QP_IMPORT_MODE) Optional<Boolean> importMode) throws
+  public Response createTemplateInstance() throws
       CedarException {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_CREATE);
-    // TODO: the non-empty check is not working
-    //c.must(c.request().getRequestBody()).be(NonEmpty);
+    c.must(c.request().getRequestBody()).be(NonEmpty);
 
     JsonNode templateInstance = c.request().getRequestBody().asJson();
+
+    enforceMandatoryNullOrMissingId(templateInstance, CedarNodeType.INSTANCE, CedarErrorKey
+        .TEMPLATE_INSTANCE_NOT_CREATED);
+    enforceMandatoryName(templateInstance, CedarNodeType.INSTANCE, CedarErrorKey
+        .TEMPLATE_INSTANCE_NOT_CREATED);
+
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
-    checkImportModeSetProvenanceAndId(CedarNodeType.INSTANCE, templateInstance, pi, importMode);
+    setProvenanceAndId(CedarNodeType.INSTANCE, templateInstance, pi);
 
     ValidationReport validationReport = validateTemplateInstance(templateInstance);
     ReportUtils.outputLogger(logger, validationReport, true);
@@ -92,7 +99,7 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
     }
     MongoUtils.removeIdField(createdTemplateInstance);
 
-    String id = createdTemplateInstance.get("@id").asText();
+    String id = createdTemplateInstance.get(LinkedData.ID).asText();
 
     URI uri = CedarUrlUtil.getIdURI(uriInfo, id);
     return CedarResponse.created(uri)
@@ -196,8 +203,14 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_UPDATE);
+    c.must(c.request().getRequestBody()).be(NonEmpty);
 
     JsonNode newInstance = c.request().getRequestBody().asJson();
+
+    enforceMandatoryFieldsInPut(id, newInstance, CedarNodeType.INSTANCE, CedarErrorKey.TEMPLATE_INSTANCE_NOT_UPDATED);
+    enforceMandatoryName(newInstance, CedarNodeType.INSTANCE, CedarErrorKey
+        .TEMPLATE_INSTANCE_NOT_CREATED);
+
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     provenanceUtil.patchProvenanceInfo(newInstance, pi);
 
@@ -208,28 +221,44 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
     ValidationReport validationReport = validateTemplateInstance(newInstance);
     ReportUtils.outputLogger(logger, validationReport, true);
 
-    JsonNode updatedTemplateInstance = null;
+    JsonNode outputTemplateInstance = null;
+    CreateOrUpdate createOrUpdate = null;
     try {
-      updatedTemplateInstance = templateInstanceService.updateTemplateInstance(id, newInstance);
-    } catch (InstanceNotFoundException e) {
-      return CedarResponse.notFound()
+      JsonNode currentTemplateInstance = templateInstanceService.findTemplateInstance(id);
+      if (currentTemplateInstance != null) {
+        outputTemplateInstance = templateInstanceService.updateTemplateInstance(id, newInstance);
+        createOrUpdate = CreateOrUpdate.UPDATE;
+      } else {
+        outputTemplateInstance = templateInstanceService.createTemplateInstance(newInstance);
+        createOrUpdate = CreateOrUpdate.CREATE;
+      }
+    } catch (IOException | TemplateServerResourceNotFoundException e) {
+      CedarResponse.CedarResponseBuilder responseBuilder = CedarResponse.internalServerError()
           .id(id)
-          .errorKey(CedarErrorKey.TEMPLATE_INSTANCE_NOT_FOUND)
-          .errorMessage("The template instance can not be found by id:" + id)
-          .exception(e)
-          .build();
-    } catch (IOException e) {
-      return CedarResponse.internalServerError()
-          .id(id)
-          .errorKey(CedarErrorKey.TEMPLATE_INSTANCE_NOT_UPDATED)
-          .errorMessage("The template instance can not be updated by id:" + id)
-          .exception(e)
-          .build();
+          .exception(e);
+      if (createOrUpdate == CreateOrUpdate.CREATE) {
+        responseBuilder
+            .errorKey(CedarErrorKey.TEMPLATE_INSTANCE_NOT_CREATED)
+            .errorMessage("The template instance can not be created using id:" + id);
+      } else if (createOrUpdate == CreateOrUpdate.UPDATE) {
+        responseBuilder
+            .errorKey(CedarErrorKey.TEMPLATE_INSTANCE_NOT_UPDATED)
+            .errorMessage("The template instance can not be updated by id:" + id);
+      }
+      return responseBuilder.build();
     }
-    MongoUtils.removeIdField(updatedTemplateInstance);
-    return CedarResponse.ok()
+    MongoUtils.removeIdField(outputTemplateInstance);
+    CedarResponse.CedarResponseBuilder responseBuilder = null;
+    if (createOrUpdate == CreateOrUpdate.UPDATE) {
+      responseBuilder = CedarResponse.ok();
+    } else {
+      URI createdTemplateUri = CedarUrlUtil.getURI(uriInfo);
+      responseBuilder = CedarResponse.created(createdTemplateUri);
+    }
+    responseBuilder
         .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, validationReport.getValidationStatus())
-        .entity(updatedTemplateInstance).build();
+        .entity(outputTemplateInstance);
+    return responseBuilder.build();
   }
 
   @DELETE
@@ -241,7 +270,7 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
     c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_DELETE);
     try {
       templateInstanceService.deleteTemplateInstance(id);
-    } catch (InstanceNotFoundException e) {
+    } catch (TemplateServerResourceNotFoundException e) {
       return CedarResponse.notFound()
           .id(id)
           .errorKey(CedarErrorKey.TEMPLATE_INSTANCE_NOT_FOUND)
@@ -258,7 +287,6 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
     }
     return CedarResponse.noContent().build();
   }
-
 
   private Response sendFormattedTemplateInstance(JsonNode templateInstance, OutputFormatType formatType) throws
       CedarException {
@@ -295,27 +323,11 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
 
   private ValidationReport validateTemplateInstance(JsonNode templateInstance) throws CedarException {
     try {
-      JsonNode instanceSchema = getSchemaSource(templateInstance);
+      JsonNode instanceSchema = getSchemaSource(templateService, templateInstance);
       return validateTemplateInstance(templateInstance, instanceSchema);
     } catch (IOException | ProcessingException e) {
       throw newCedarException(e.getMessage());
     }
   }
 
-  private JsonNode getSchemaSource(JsonNode templateInstance) throws IOException, ProcessingException, CedarException {
-    checkInstanceSchemaExists(templateInstance);
-    String templateRefId = templateInstance.get(CedarModelVocabulary.SCHEMA_IS_BASED_ON).asText();
-    JsonNode template = templateService.findTemplate(templateRefId);
-    MongoUtils.removeIdField(template);
-    return template;
-  }
-
-  private static JsonNode checkInstanceSchemaExists(JsonNode templateInstance) throws CedarException {
-    JsonNode isBasedOnNode = templateInstance.path(CedarModelVocabulary.SCHEMA_IS_BASED_ON);
-    if (isBasedOnNode.isMissingNode()) {
-      throw newBadRequestException(String.format("Template instance has a missing property ('%s')",
-          CedarModelVocabulary.SCHEMA_IS_BASED_ON));
-    }
-    return templateInstance;
-  }
 }
