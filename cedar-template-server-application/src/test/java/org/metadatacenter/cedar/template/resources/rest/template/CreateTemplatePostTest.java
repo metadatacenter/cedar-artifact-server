@@ -147,7 +147,7 @@ public class CreateTemplatePostTest extends AbstractRestTest {
     } else if (EMPTY_JSON.equals(js.getValue())) {
       return Response.Status.BAD_REQUEST.getStatusCode();
     } else if (SCHEMA_NAME.equals(js.getValue())) {
-      return Response.Status.BAD_REQUEST.getStatusCode();
+      return Response.Status.CREATED.getStatusCode();
     } else if (SCHEMA_DESCRIPTION.equals(js.getValue())) {
       return Response.Status.BAD_REQUEST.getStatusCode();
     } else if (MINIMAL_TEMPLATE_WITH_ID.equals(js.getValue())) {
