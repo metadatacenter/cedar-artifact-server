@@ -19,19 +19,19 @@ public class TestConstants {
   public static final String TEMPLATE_ROUTE = "templates";
   public static final String SAMPLE_TEMPLATE_PATH = "crud/SampleTemplate.json";
   public static final String NON_EXISTENT_TEMPLATE_ID =
-      "https://repo.metadatacenter.net/templates/11111111-2222-3333-4444-555555555555";
+      "https://repo.metadatacenter.org/templates/11111111-2222-3333-4444-555555555555";
 
   /* Template Elements */
   public static final String ELEMENT_ROUTE = "template-elements";
   public static final String SAMPLE_ELEMENT_PATH = "crud/SampleTemplateElement.json";
   public static final String NON_EXISTENT_ELEMENT_ID =
-      "https://repo.metadatacenter.net/template-elements/11111111-2222-3333-4444-555555555555";
+      "https://repo.metadatacenter.org/template-elements/11111111-2222-3333-4444-555555555555";
 
   /* Template Instances */
   public static final String INSTANCE_ROUTE = "template-instances";
   public static final String SAMPLE_INSTANCE_PATH = "crud/SampleTemplateInstance.json";
   public static final String NON_EXISTENT_INSTANCE_ID =
-      "https://repo.metadatacenter.net/template-instances/11111111-2222-3333-4444-555555555555";
+      "https://repo.metadatacenter.org/template-instances/11111111-2222-3333-4444-555555555555";
 
   // PRIVATE //
 

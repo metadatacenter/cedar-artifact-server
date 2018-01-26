@@ -76,7 +76,7 @@ public class FindResourceTest extends AbstractResourceCrudTest {
     // Service invocation - Find by Id
     Response findResponse = testClient.target(findUrl).request().header("Authorization", authHeader).get();
     // Check response
-    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(), findResponse.getStatus());
+    Assert.assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), findResponse.getStatus());
   }
   private Object parametersForFindNonExistentResourceTest() {
     return new Object[]{
@@ -99,7 +99,7 @@ public class FindResourceTest extends AbstractResourceCrudTest {
     // Service invocation - Find by Id
     Response findResponse = testClient.target(findUrl).request().header("Authorization", authHeader).get();
     // Check response
-    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(), findResponse.getStatus());
+    Assert.assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), findResponse.getStatus());
   }
   private Object parametersForFindInvalidIdTest() {
     return new Object[]{
@@ -159,7 +159,7 @@ public class FindResourceTest extends AbstractResourceCrudTest {
     String authHeader = "apiKey " + NON_EXISTENT_API_KEY;
     Response findResponse = testClient.target(findUrl).request().header("Authorization", authHeader).get();
     // Check response
-    Assert.assertEquals(Response.Status.FORBIDDEN.getStatusCode(), findResponse.getStatus());
+    Assert.assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(), findResponse.getStatus());
   }
 
   /**

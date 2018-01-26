@@ -45,6 +45,7 @@ import static org.metadatacenter.constant.CedarPathParameters.PP_ID;
 import static org.metadatacenter.constant.CedarQueryParameters.*;
 import static org.metadatacenter.rest.assertion.GenericAssertions.LoggedIn;
 import static org.metadatacenter.rest.assertion.GenericAssertions.NonEmpty;
+import static org.metadatacenter.rest.assertion.GenericAssertions.ValidId;
 
 @Path("/template-instances")
 @Produces(MediaType.APPLICATION_JSON)
@@ -115,6 +116,7 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_READ);
+    c.must(id).be(ValidId);
 
     JsonNode templateInstance = null;
     try {
