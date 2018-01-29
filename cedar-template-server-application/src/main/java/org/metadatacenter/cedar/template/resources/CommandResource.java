@@ -7,14 +7,12 @@ import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.error.CedarErrorKey;
 import org.metadatacenter.error.CedarErrorPack;
 import org.metadatacenter.exception.CedarException;
-import org.metadatacenter.model.core.CedarModelVocabulary;
 import org.metadatacenter.model.request.ResourceType;
 import org.metadatacenter.model.request.ResourceTypeDetector;
 import org.metadatacenter.model.validation.report.ValidationReport;
 import org.metadatacenter.rest.context.CedarRequestContext;
 import org.metadatacenter.rest.context.CedarRequestContextFactory;
 import org.metadatacenter.server.service.TemplateService;
-import org.metadatacenter.util.mongo.MongoUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +47,6 @@ public class CommandResource extends AbstractTemplateServerResource {
   public Response validateResource(@QueryParam(QP_RESOURCE_TYPE) String type) throws CedarException {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
-//    c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_CREATE); // XXX Permission for validation?
 
     ResourceType resourceType = ResourceTypeDetector.detectType(type);
     JsonNode resourceNode = c.request().getRequestBody().asJson();
@@ -108,7 +105,7 @@ public class CommandResource extends AbstractTemplateServerResource {
 
   private ValidationReport validateUsingInstanceSpecifiedSchema(JsonNode instanceObject)
       throws IOException, ProcessingException, CedarException {
-    JsonNode instanceSchema = getSchemaObject(instanceObject);
+    JsonNode instanceSchema = getSchemaSource(templateService, instanceObject);
     return validateTemplateInstance(instanceObject, instanceSchema);
   }
 
@@ -120,27 +117,4 @@ public class CommandResource extends AbstractTemplateServerResource {
     return instanceObject;
   }
 
-  private JsonNode getSchemaObject(JsonNode templateInstance) throws IOException, ProcessingException, CedarException {
-    checkInstanceSchemaExists(templateInstance);
-    String instanceId = templateInstance.get("@id").asText();
-    String templateRefId = templateInstance.get(CedarModelVocabulary.SCHEMA_IS_BASED_ON).asText();
-    try {
-      JsonNode template = templateService.findTemplate(templateRefId);
-      MongoUtils.removeIdField(template);
-      return template;
-    } catch (Exception e) {
-      String message = String.format("Template not found (%s) when processing instance (%s)",
-          templateRefId, instanceId);
-      throw new ProcessingException(message);
-    }
-  }
-
-  private static JsonNode checkInstanceSchemaExists(JsonNode templateInstance) throws CedarException {
-    JsonNode isBasedOnNode = templateInstance.path(CedarModelVocabulary.SCHEMA_IS_BASED_ON);
-    if (isBasedOnNode.isMissingNode()) {
-      throw newBadRequestException(String.format("Template instance has a missing property ('%s')",
-          CedarModelVocabulary.SCHEMA_IS_BASED_ON));
-    }
-    return templateInstance;
-  }
 }

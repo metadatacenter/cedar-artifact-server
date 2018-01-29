@@ -1,0 +1,6 @@
+{
+  "@id": "https://repo.metadatacenter.orgx/template-instance/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+  "schema:name": "Minimal instance name",
+  "schema:description": "Minimal instance description",
+  "schema:isBasedOn": "https://repo.metadatacenter.orgx/template/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+}
