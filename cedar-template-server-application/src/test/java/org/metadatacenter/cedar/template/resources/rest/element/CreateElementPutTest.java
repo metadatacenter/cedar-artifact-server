@@ -59,13 +59,18 @@ public class CreateElementPutTest extends AbstractRestTest {
     String putUrl = getUrlWithId(baseTestUrl, resourceType, idInURL);
     idInBodyGenerator.generateValue(tdctx, arrayGenerator);
     String idInBody = idInBodyGenerator.getValue();
-    System.out.println("--------------------------------------------------------");
-    System.out.println(jsonFileName + "\n" + resourceType + "\n" + authHeaderValue + "\n" + idInURL + "\n" + idInBody);
+    divider("PUT BLOCK");
+    testParam("jsonFileName", jsonFileName);
+    testParam("resourceType", resourceType);
+    testParam("putAuth", ((TestValueAuthStringGenerator) auth).getAuthSelector());
+    testParam("idInURLPolicy", ((TestValueResourceIdGenerator) idInURLGenerator).getIdMatchingSelector());
+    testParam("idInBodyPolicy", ((TestValueCopyFromValueGenerator) idInBodyGenerator).getSourceAlias());
+    pair("idInBody", idInBody);
+    pair("Test PUT URL", putUrl);
+    pair("Authorization", authHeaderValue);
+    pair("Index", index);
 
     String originalFileContent = getFileContentAsString(jsonFileName);
-    System.out.println("Test PUT URL :" + putUrl);
-    System.out.println("Authorization:" + authHeaderValue);
-    System.out.println("Index:" + index);
     Invocation.Builder request = testClient.target(putUrl).request();
     if (authHeaderValue != null) {
       request.header(AUTHORIZATION, authHeaderValue);

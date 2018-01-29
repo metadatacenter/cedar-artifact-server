@@ -33,4 +33,8 @@ public class TestValueCopyFromValueGenerator<T> extends AbstractTestValueGenerat
     TestValueCopyFromValueGenerator c = new TestValueCopyFromValueGenerator(this.sourceAlias);
     return c;
   }
+
+  public String getSourceAlias() {
+    return sourceAlias;
+  }
 }
