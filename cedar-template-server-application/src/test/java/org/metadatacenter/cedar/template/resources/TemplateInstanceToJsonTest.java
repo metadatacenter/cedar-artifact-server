@@ -9,6 +9,8 @@ import org.metadatacenter.model.request.OutputFormatType;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static javax.ws.rs.core.Response.Status.Family;
@@ -55,8 +57,15 @@ public class TemplateInstanceToJsonTest extends BaseServerTest {
   }
 
   private String uploadTemplate(String templateDocument) {
-    Response response = sendPostRequest(
-        TestRequestUrls.forCreatingTemplate(getPortNumber()),
+    String templateId = extractIdFromDocument(templateDocument);
+    String encodedTemplateId = null;
+    try {
+      encodedTemplateId = URLEncoder.encode(templateId, "UTF-8");
+    } catch (UnsupportedEncodingException e) {
+      e.printStackTrace();
+    }
+    Response response = sendPutRequest(
+        TestRequestUrls.forCreatingTemplate(getPortNumber(), encodedTemplateId),
         templateDocument);
     checkStatusOk(response);
     return extractId(response);

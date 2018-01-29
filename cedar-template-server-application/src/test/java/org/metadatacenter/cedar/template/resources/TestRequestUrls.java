@@ -6,8 +6,8 @@ public class TestRequestUrls {
 
   public static final String SERVICE_BASE_URL = "http://localhost";
 
-  public static String forCreatingTemplate(int portNumber) {
-    return String.format("%s:%d/templates", SERVICE_BASE_URL, portNumber);
+  public static String forCreatingTemplate(int portNumber, String templateId) {
+    return String.format("%s:%d/templates/%s", SERVICE_BASE_URL, portNumber, templateId);
   }
 
   public static String forDeletingTemplate(int portNumber, String templateId) {

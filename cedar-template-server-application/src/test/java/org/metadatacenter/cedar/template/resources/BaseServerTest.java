@@ -12,6 +12,8 @@ import org.junit.ClassRule;
 import org.metadatacenter.cedar.template.TemplateServerApplication;
 import org.metadatacenter.cedar.template.TemplateServerConfiguration;
 import org.metadatacenter.cedar.template.resources.utils.TestUtil;
+import org.metadatacenter.constant.LinkedData;
+import org.metadatacenter.util.json.JsonMapper;
 import org.metadatacenter.util.test.TestUserUtil;
 
 import javax.ws.rs.client.Client;
@@ -74,6 +76,14 @@ public abstract class BaseServerTest {
     return response;
   }
 
+  protected Response sendPutRequest(String requestUrl, Object payload) {
+    Response response = testClient.target(requestUrl)
+        .request()
+        .header(HTTP_HEADER_AUTHORIZATION, authHeaderValue)
+        .put(Entity.json(payload));
+    return response;
+  }
+
   protected Response sendDeleteRequest(String requestUrl) {
     Response response = testClient.target(requestUrl)
         .request()
@@ -101,4 +111,19 @@ public abstract class BaseServerTest {
   protected String printReason(JsonNode responseMessage) {
     return "The server is returning a different validation report.\n(application/json): " + responseMessage.toString();
   }
+
+  protected String extractIdFromDocument(String templateDocument) {
+    JsonNode template = null;
+    try {
+      template = JsonMapper.MAPPER.readTree(templateDocument);
+    } catch (java.io.IOException e) {
+      e.printStackTrace();
+    }
+    JsonNode idNode = template.get(LinkedData.ID);
+    if (idNode != null) {
+      return idNode.asText();
+    }
+    return null;
+  }
+
 }

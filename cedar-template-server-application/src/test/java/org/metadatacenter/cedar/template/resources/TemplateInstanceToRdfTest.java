@@ -1,10 +1,13 @@
 package org.metadatacenter.cedar.template.resources;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.metadatacenter.constant.LinkedData;
 import org.metadatacenter.model.request.OutputFormatType;
+import org.metadatacenter.util.json.JsonMapper;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
@@ -54,8 +57,9 @@ public class TemplateInstanceToRdfTest extends BaseServerTest {
   }
 
   private String uploadTemplate(String templateDocument) {
+    String templateId = extractIdFromDocument(templateDocument);
     Response response = sendPostRequest(
-        TestRequestUrls.forCreatingTemplate(getPortNumber()),
+        TestRequestUrls.forCreatingTemplate(getPortNumber(), templateId),
         templateDocument);
     checkStatusOk(response);
     return extractId(response);
