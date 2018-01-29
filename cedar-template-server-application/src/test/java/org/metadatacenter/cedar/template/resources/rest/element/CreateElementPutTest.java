@@ -64,7 +64,11 @@ public class CreateElementPutTest extends AbstractRestTest {
     testParam("resourceType", resourceType);
     testParam("putAuth", ((TestValueAuthStringGenerator) auth).getAuthSelector());
     testParam("idInURLPolicy", ((TestValueResourceIdGenerator) idInURLGenerator).getIdMatchingSelector());
-    testParam("idInBodyPolicy", ((TestValueCopyFromValueGenerator) idInBodyGenerator).getSourceAlias());
+    String policy = null;
+    policy = idInBodyGenerator instanceof TestValueCopyFromValueGenerator
+        ? ((TestValueCopyFromValueGenerator) idInBodyGenerator).getSourceAlias()
+        : ((TestValueResourceIdGenerator) idInBodyGenerator).getIdMatchingSelector().getValue();
+    testParam("idInBodyPolicy", policy);
     pair("idInBody", idInBody);
     pair("Test PUT URL", putUrl);
     pair("Authorization", authHeaderValue);
