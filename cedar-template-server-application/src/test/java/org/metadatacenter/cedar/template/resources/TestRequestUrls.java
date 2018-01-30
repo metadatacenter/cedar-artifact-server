@@ -20,8 +20,8 @@ public class TestRequestUrls {
     return String.format("%s:%d/templates/%s", SERVICE_BASE_URL, portNumber, templateId);
   }
 
-  public static String forCreatingInstances(int portNumber) {
-    return String.format("%s:%d/template-instances", SERVICE_BASE_URL, portNumber);
+  public static String forCreatingInstances(int portNumber, String instanceId) {
+    return String.format("%s:%d/template-instances/%s", SERVICE_BASE_URL, portNumber, instanceId);
   }
 
   public static String forDeletingInstance(int portNumber, String instanceId) {
