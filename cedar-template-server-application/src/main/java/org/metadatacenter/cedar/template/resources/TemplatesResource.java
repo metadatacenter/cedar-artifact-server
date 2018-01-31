@@ -111,7 +111,7 @@ public class TemplatesResource extends AbstractTemplateServerResource {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_READ);
-    // TODO: check for well-formed URI c.must(id).be(ValidId);
+    c.must(id).be(ValidUrl);
 
     JsonNode template;
     try {
@@ -194,6 +194,7 @@ public class TemplatesResource extends AbstractTemplateServerResource {
   public Response updateTemplate(@PathParam(PP_ID) String id) throws CedarException {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
+    c.must(id).be(ValidUrl);
     c.must(c.user()).have(CedarPermission.TEMPLATE_UPDATE);
     c.must(c.request().getRequestBody()).be(NonEmpty);
 
@@ -256,7 +257,7 @@ public class TemplatesResource extends AbstractTemplateServerResource {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_DELETE);
-    // TODO: check for well-formed URI c.must(id).be(ValidId);
+    c.must(id).be(ValidUrl);
 
     long referenceCount = templateInstanceService.countReferencingTemplate(id);
 

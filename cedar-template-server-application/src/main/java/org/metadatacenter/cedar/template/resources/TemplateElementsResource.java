@@ -38,9 +38,7 @@ import java.util.*;
 
 import static org.metadatacenter.constant.CedarPathParameters.PP_ID;
 import static org.metadatacenter.constant.CedarQueryParameters.*;
-import static org.metadatacenter.rest.assertion.GenericAssertions.LoggedIn;
-import static org.metadatacenter.rest.assertion.GenericAssertions.NonEmpty;
-import static org.metadatacenter.rest.assertion.GenericAssertions.ValidId;
+import static org.metadatacenter.rest.assertion.GenericAssertions.*;
 
 @Path("/template-elements")
 @Produces(MediaType.APPLICATION_JSON)
@@ -110,7 +108,7 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_ELEMENT_READ);
-    // TODO: check for well-formed URI c.must(id).be(ValidId);
+    c.must(id).be(ValidUrl);
 
     JsonNode templateElement = null;
     try {
@@ -195,6 +193,7 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
   public Response updateTemplateElement(@PathParam(PP_ID) String id) throws CedarException {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
+    c.must(id).be(ValidUrl);
     c.must(c.user()).have(CedarPermission.TEMPLATE_ELEMENT_UPDATE);
     c.must(c.request().getRequestBody()).be(NonEmpty);
 
@@ -257,7 +256,7 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_ELEMENT_DELETE);
-    // TODO: check for well-formed URI c.must(id).be(ValidId);
+    c.must(id).be(ValidUrl);
 
     try {
       templateElementService.deleteTemplateElement(id);
