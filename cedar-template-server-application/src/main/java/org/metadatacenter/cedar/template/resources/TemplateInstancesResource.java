@@ -116,7 +116,7 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_READ);
-    c.must(id).be(ValidId);
+    // TODO: check for well-formed URI c.must(id).be(ValidId);
 
     JsonNode templateInstance = null;
     try {

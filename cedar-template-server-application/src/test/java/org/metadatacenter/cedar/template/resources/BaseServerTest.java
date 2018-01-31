@@ -12,14 +12,19 @@ import org.junit.ClassRule;
 import org.metadatacenter.cedar.template.TemplateServerApplication;
 import org.metadatacenter.cedar.template.TemplateServerConfiguration;
 import org.metadatacenter.cedar.template.resources.utils.TestUtil;
+import org.metadatacenter.constant.LinkedData;
+import org.metadatacenter.util.json.JsonMapper;
 import org.metadatacenter.util.test.TestUserUtil;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Iterator;
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.metadatacenter.constant.HttpConstants.HTTP_HEADER_AUTHORIZATION;
@@ -58,6 +63,38 @@ public abstract class BaseServerTest {
     return SERVER_APPLICATION.getLocalPort();
   }
 
+  protected String uploadTemplate(String templateDocument) {
+    String templateId = extractIdFromDocument(templateDocument);
+    String encodedTemplateId = encodeUrl(templateId);
+    Response response = sendPutRequest(
+        TestRequestUrls.forCreatingTemplate(getPortNumber(), encodedTemplateId),
+        templateDocument);
+    checkStatusOk(response);
+    return encodedTemplateId;
+  }
+
+  protected String uploadInstance(String instanceDocument) {
+    String instanceId = extractIdFromDocument(instanceDocument);
+    String encodedInstanceId = encodeUrl(instanceId);
+    Response response = sendPutRequest(
+        TestRequestUrls.forCreatingInstances(getPortNumber(), encodedInstanceId),
+        instanceDocument);
+    checkStatusOk(response);
+    return encodedInstanceId;
+  }
+
+  protected void removeTemplate(String templateId) {
+    Response response = sendDeleteRequest(
+        TestRequestUrls.forDeletingTemplate(getPortNumber(), templateId));
+    checkStatusOk(response);
+  }
+
+  protected void removeInstance(String instanceId) {
+    Response response = sendDeleteRequest(
+        TestRequestUrls.forDeletingInstance(getPortNumber(), instanceId));
+    checkStatusOk(response);
+  }
+
   protected Response sendGetRequest(String requestUrl) {
     Response response = testClient.target(requestUrl)
         .request()
@@ -71,6 +108,14 @@ public abstract class BaseServerTest {
         .request()
         .header(HTTP_HEADER_AUTHORIZATION, authHeaderValue)
         .post(Entity.json(payload));
+    return response;
+  }
+
+  protected Response sendPutRequest(String requestUrl, Object payload) {
+    Response response = testClient.target(requestUrl)
+        .request()
+        .header(HTTP_HEADER_AUTHORIZATION, authHeaderValue)
+        .put(Entity.json(payload));
     return response;
   }
 
@@ -100,5 +145,37 @@ public abstract class BaseServerTest {
 
   protected String printReason(JsonNode responseMessage) {
     return "The server is returning a different validation report.\n(application/json): " + responseMessage.toString();
+  }
+
+  protected static String extractIdFromDocument(String templateDocument) {
+    JsonNode template = null;
+    try {
+      template = JsonMapper.MAPPER.readTree(templateDocument);
+    } catch (java.io.IOException e) {
+      e.printStackTrace();
+    }
+    JsonNode idNode = template.get(LinkedData.ID);
+    if (idNode != null) {
+      return idNode.asText();
+    }
+    return null;
+  }
+
+  protected static String encodeUrl(String url) {
+    try {
+      return URLEncoder.encode(url, "UTF-8");
+    } catch (UnsupportedEncodingException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  protected static void checkStatusOk(Response response) {
+    checkNotNull(response);
+    int responseCode = response.getStatus();
+    if (Response.Status.Family.familyOf(responseCode) == Response.Status.Family.CLIENT_ERROR) {
+      throw new RuntimeException("Request contains bad syntax or cannot be fulfilled:\n" + response.toString());
+    } else if (Response.Status.Family.familyOf(responseCode) == Response.Status.Family.SERVER_ERROR) {
+      throw new RuntimeException("Server failed to fulfill the request:\n" + response.toString());
+    }
   }
 }

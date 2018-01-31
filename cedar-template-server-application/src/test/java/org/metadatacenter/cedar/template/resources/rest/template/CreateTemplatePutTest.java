@@ -32,7 +32,6 @@ import static org.metadatacenter.cedar.template.resources.rest.IdMatchingSelecto
 import static org.metadatacenter.cedar.template.resources.utils.TestConstants.TEST_NAME_PATTERN_METHOD_PARAMS;
 import static org.metadatacenter.cedar.test.util.TestValueCopyFromValueGenerator.copyFrom;
 import static org.metadatacenter.cedar.test.util.TestValueResourceIdGenerator.ids;
-import static org.metadatacenter.model.CedarNodeType.ELEMENT;
 import static org.metadatacenter.model.CedarNodeType.TEMPLATE;
 
 @RunWith(JUnitParamsRunner.class)
@@ -44,11 +43,11 @@ public class CreateTemplatePutTest extends AbstractRestTest {
   @TestCaseName(TEST_NAME_PATTERN_METHOD_PARAMS)
   @Parameters(method = "getParamsCreateTemplatePut")
   public void createTemplatePutTest(TestParameterArrayGeneratorGenerator generator,
-                                   TestParameterValueGenerator<String> js,
-                                   TestParameterValueGenerator<CedarNodeType> rt,
-                                   TestParameterValueGenerator<String> auth,
-                                   TestValueResourceIdGenerator idInURLGenerator,
-                                   TestParameterValueGenerator<String> idInBodyGenerator) throws IOException {
+                                    TestParameterValueGenerator<String> js,
+                                    TestParameterValueGenerator<CedarNodeType> rt,
+                                    TestParameterValueGenerator<String> auth,
+                                    TestValueResourceIdGenerator idInURLGenerator,
+                                    TestParameterValueGenerator<String> idInBodyGenerator) throws IOException {
     index++;
     TestParameterArrayGenerator arrayGenerator = generator.getValue();
     String jsonFileName = js.getValue();
@@ -60,13 +59,21 @@ public class CreateTemplatePutTest extends AbstractRestTest {
     String putUrl = getUrlWithId(baseTestUrl, resourceType, idInURL);
     idInBodyGenerator.generateValue(tdctx, arrayGenerator);
     String idInBody = idInBodyGenerator.getValue();
-    System.out.println("--------------------------------------------------------");
-    System.out.println(jsonFileName + "\n" + resourceType + "\n" + authHeaderValue + "\n" + idInURL + "\n" + idInBody);
-
+    divider("PUT BLOCK");
+    testParam("jsonFileName", jsonFileName);
+    testParam("resourceType", resourceType);
+    testParam("putAuth", ((TestValueAuthStringGenerator) auth).getAuthSelector());
+    testParam("idInURLPolicy", ((TestValueResourceIdGenerator) idInURLGenerator).getIdMatchingSelector());
+    String policy = null;
+    policy = idInBodyGenerator instanceof TestValueCopyFromValueGenerator
+        ? ((TestValueCopyFromValueGenerator) idInBodyGenerator).getSourceAlias()
+        : ((TestValueResourceIdGenerator) idInBodyGenerator).getIdMatchingSelector().getValue();
+    testParam("idInBodyPolicy", policy);
+    pair("idInBody", idInBody);
+    pair("Test PUT URL", putUrl);
+    pair("Authorization", authHeaderValue);
+    pair("Index", index);
     String originalFileContent = getFileContentAsString(jsonFileName);
-    System.out.println("Test PUT URL :" + putUrl);
-    System.out.println("Authorization:" + authHeaderValue);
-    System.out.println("Index:" + index);
     Invocation.Builder request = testClient.target(putUrl).request();
     if (authHeaderValue != null) {
       request.header(AUTHORIZATION, authHeaderValue);

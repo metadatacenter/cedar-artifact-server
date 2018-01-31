@@ -110,7 +110,7 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_ELEMENT_READ);
-    c.must(id).be(ValidId);
+    // TODO: check for well-formed URI c.must(id).be(ValidId);
 
     JsonNode templateElement = null;
     try {
@@ -196,7 +196,6 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_ELEMENT_UPDATE);
-    c.must(id).be(ValidId);
     c.must(c.request().getRequestBody()).be(NonEmpty);
 
     JsonNode newElement = c.request().getRequestBody().asJson();
@@ -215,11 +214,12 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
       JsonNode currentTemplateElement = templateElementService.findTemplateElement(id);
       templateFieldService.saveNewFieldsAndReplaceIds(newElement, pi, provenanceUtil, linkedDataUtil);
       if (currentTemplateElement != null) {
-        outputTemplateElement = templateElementService.updateTemplateElement(id, newElement);
         createOrUpdate = CreateOrUpdate.UPDATE;
+        outputTemplateElement = templateElementService.updateTemplateElement(id, newElement);
       } else {
-        outputTemplateElement = templateElementService.createTemplateElement(newElement);
+        c.must(id).be(ValidId);
         createOrUpdate = CreateOrUpdate.CREATE;
+        outputTemplateElement = templateElementService.createTemplateElement(newElement);
       }
     } catch (IOException | ProcessingException | TemplateServerResourceNotFoundException e) {
       CedarResponse.CedarResponseBuilder responseBuilder = CedarResponse.internalServerError()
@@ -257,7 +257,7 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_ELEMENT_DELETE);
-    c.must(id).be(ValidId);
+    // TODO: check for well-formed URI c.must(id).be(ValidId);
 
     try {
       templateElementService.deleteTemplateElement(id);

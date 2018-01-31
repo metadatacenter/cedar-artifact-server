@@ -1,9 +1,13 @@
 {
   "@context": {
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
     "xsd": "http://www.w3.org/2001/XMLSchema#",
     "pav": "http://purl.org/pav/",
     "schema": "http://schema.org/",
     "oslc": "http://open-services.net/ns/core#",
+    "rdfs:label": {
+      "@type": "xsd:string"
+    },
     "schema:isBasedOn": {
       "@type": "@id"
     },
@@ -25,71 +29,47 @@
     "oslc:modifiedBy": {
       "@type": "@id"
     },
-    "companyName": "https://schema.metadatacenter.orgx/properties/companyName",
-    "exportGood": "https://schema.metadatacenter.orgx/properties/exportGood",
-    "importGood": "https://schema.metadatacenter.orgx/properties/importGood"
+    "Company Name": "https://schema.metadatacenter.orgx/properties/7b426039-e270-41e4-b375-ca5aafcca85d",
+    "Export Good": "https://schema.metadatacenter.orgx/properties/de8267a4-eb54-46b8-826c-8c0220c39e15",
+    "Import Good": "https://schema.metadatacenter.orgx/properties/8c6db8e9-0e17-43ac-b155-ab60abd3db6f"
   },
-  "companyName": {
+  "Company Name": {
     "@value": "Cedar Inc."
   },
-  "exportGood": {
+  "Export Good": {
     "@context": {
-      "pav": "http://purl.org/pav/",
-      "oslc": "http://open-services.net/ns/core#",
-      "productName": "https://schema.metadatacenter.orgx/properties/productName",
-      "d5676d68-a765-4c37-b812-6b2735ea7f69": "https://schema.metadatacenter.orgx/properties/d5676d68-a765-4c37-b812-6b2735ea7f69",
-      "quantity": "https://schema.metadatacenter.orgx/properties/quantity"
+      "Product Name": "https://schema.metadatacenter.orgx/properties/7a99894d-401d-4b03-9d9d-beb9588540c5",
+      "Quantity": "https://schema.metadatacenter.orgx/properties/9011c2b2-8388-4b08-ad5a-75632b47ec80"
     },
-    "productName": {
+    "Product Name": {
       "@value": "Redwood plank"
     },
-    "quantity": {
-      "@context": {
-        "pav": "http://purl.org/pav/",
-        "oslc": "http://open-services.net/ns/core#",
-        "value": "https://schema.metadatacenter.orgx/properties/value",
-        "unitOfMeasurement": "https://schema.metadatacenter.orgx/properties/unitOfMeasurement"
-      },
-      "value": {
-        "@value": "100"
-      },
-      "unitOfMeasurement": {
-        "@value": "Tonne"
-      }
-    }
-  },
-  "importGood": {
-    "@context": {
-      "pav": "http://purl.org/pav/",
-      "oslc": "http://open-services.net/ns/core#",
-      "productName": "https://schema.metadatacenter.orgx/properties/productName",
-      "d5676d68-a765-4c37-b812-6b2735ea7f69": "https://schema.metadatacenter.orgx/properties/d5676d68-a765-4c37-b812-6b2735ea7f69",
-      "quantity": "https://schema.metadatacenter.orgx/properties/quantity"
+    "Quantity": {
+      "@value": "100",
+      "@type": "xsd:decimal"
     },
-    "productName": {
+    "@id": "https://repo.metadatacenter.orgx/template-element-instances/da3d1935-b5ba-4f9a-8859-5ec8b92ca2e3"
+  },
+  "Import Good": {
+    "@context": {
+      "Product Name": "https://schema.metadatacenter.orgx/properties/7a99894d-401d-4b03-9d9d-beb9588540c5",
+      "Quantity": "https://schema.metadatacenter.orgx/properties/9011c2b2-8388-4b08-ad5a-75632b47ec80"
+    },
+    "Product Name": {
       "@value": "Redwood"
     },
-    "quantity": {
-      "@context": {
-        "pav": "http://purl.org/pav/",
-        "oslc": "http://open-services.net/ns/core#",
-        "value": "https://schema.metadatacenter.orgx/properties/value",
-        "unitOfMeasurement": "https://schema.metadatacenter.orgx/properties/unitOfMeasurement"
-      },
-      "value": {
-        "@value": "200"
-      },
-      "unitOfMeasurement": {
-        "@value": "Tonne"
-      }
-    }
+    "Quantity": {
+      "@value": "200",
+      "@type": "xsd:decimal"
+    },
+    "@id": "https://repo.metadatacenter.orgx/template-element-instances/7ea6b8eb-2a15-4486-ad86-d8fee97cae51"
   },
-  "schema:isBasedOn": "https://repo.metadatacenter.orgx/templates/02aa679f-3248-44b7-8953-99b507a179ee",
-  "schema:name": "Nested Field Template metadata",
-  "schema:description": "Description",
-  "pav:createdOn": "2017-04-18T09:35:15-0700",
+  "schema:isBasedOn": "https://repo.metadatacenter.orgx/templates/05c16cd5-debb-46d5-9fd8-c32dfff8d777",
+  "schema:name": "Nested Template metadata",
+  "schema:description": "",
+  "pav:createdOn": "2018-01-29T16:19:33-0800",
   "pav:createdBy": "https://metadatacenter.org/users/67a894dc-e9df-42d0-bb6e-5dbb4aa9dd79",
-  "pav:lastUpdatedOn": "2017-04-18T09:35:15-0700",
+  "pav:lastUpdatedOn": "2018-01-29T16:19:33-0800",
   "oslc:modifiedBy": "https://metadatacenter.org/users/67a894dc-e9df-42d0-bb6e-5dbb4aa9dd79",
-  "@id": "https://repo.metadatacenter.orgx/template-instances/0a223162-0b3e-41a4-a92c-50a7a1f27cdc"
+  "@id": "https://repo.metadatacenter.orgx/template-instances/99a260fb-3fd7-4f53-9c9c-7a2831ecad39"
 }

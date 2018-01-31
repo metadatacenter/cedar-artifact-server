@@ -51,9 +51,9 @@ public abstract class AbstractResourceTest {
   @Rule
   public TestRule watcher = new TestWatcher() {
     protected void starting(Description description) {
-      log.info("------------------------------------------------------------------------");
-      log.info(description.toString());
-      log.info("------------------------------------------------------------------------");
+      //log.info("------------------------------------------------------------------------");
+      //log.info(description.toString());
+      //log.info("------------------------------------------------------------------------");
     }
   };
 

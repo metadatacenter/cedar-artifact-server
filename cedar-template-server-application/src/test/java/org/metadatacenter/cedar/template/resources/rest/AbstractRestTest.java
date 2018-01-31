@@ -50,6 +50,8 @@ public abstract class AbstractRestTest extends AbstractResourceTest {
   protected static final String MINIMAL_TEMPLATE = "minimal-template";
   protected static final String MINIMAL_INSTANCE = "minimal-instance";
 
+  protected boolean showTestDebug = false;
+
   static {
     log = LoggerFactory.getLogger("REST Test");
   }
@@ -160,7 +162,10 @@ public abstract class AbstractRestTest extends AbstractResourceTest {
   }
 
   protected void divider(String message) {
-    int l = (DIVIDER.length() - message.length() - 2 ) / 2;
+    if (!showTestDebug) {
+      return;
+    }
+    int l = (DIVIDER.length() - message.length() - 2) / 2;
     System.out.print(DIVIDER.substring(0, l));
     System.out.print(" ");
     System.out.print(message);
@@ -173,6 +178,9 @@ public abstract class AbstractRestTest extends AbstractResourceTest {
   }
 
   protected void divider() {
+    if (!showTestDebug) {
+      return;
+    }
     System.out.println(DIVIDER);
   }
 
@@ -181,6 +189,9 @@ public abstract class AbstractRestTest extends AbstractResourceTest {
   }
 
   protected void pair(String name, Object value) {
+    if (!showTestDebug) {
+      return;
+    }
     int len = PARAM_NAME_OFFSET - name.length();
     if (len < 0) {
       len = 0;
