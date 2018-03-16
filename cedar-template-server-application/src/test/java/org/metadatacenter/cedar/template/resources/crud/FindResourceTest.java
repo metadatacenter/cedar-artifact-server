@@ -76,7 +76,7 @@ public class FindResourceTest extends AbstractResourceCrudTest {
     // Service invocation - Find by Id
     Response findResponse = testClient.target(findUrl).request().header("Authorization", authHeader).get();
     // Check response
-    Assert.assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), findResponse.getStatus());
+    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(), findResponse.getStatus());
   }
   private Object parametersForFindNonExistentResourceTest() {
     return new Object[]{

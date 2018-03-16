@@ -43,9 +43,7 @@ import java.util.*;
 
 import static org.metadatacenter.constant.CedarPathParameters.PP_ID;
 import static org.metadatacenter.constant.CedarQueryParameters.*;
-import static org.metadatacenter.rest.assertion.GenericAssertions.LoggedIn;
-import static org.metadatacenter.rest.assertion.GenericAssertions.NonEmpty;
-import static org.metadatacenter.rest.assertion.GenericAssertions.ValidId;
+import static org.metadatacenter.rest.assertion.GenericAssertions.*;
 
 @Path("/template-instances")
 @Produces(MediaType.APPLICATION_JSON)
@@ -115,8 +113,8 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
       throws CedarException {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
+    c.must(id).be(ValidUrl);
     c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_READ);
-    // TODO: check for well-formed URI c.must(id).be(ValidId);
 
     JsonNode templateInstance = null;
     try {
@@ -204,6 +202,7 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
   public Response updateTemplateInstance(@PathParam(PP_ID) String id) throws CedarException {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
+    c.must(id).be(ValidUrl);
     c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_UPDATE);
     c.must(c.request().getRequestBody()).be(NonEmpty);
 
@@ -231,6 +230,7 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
         outputTemplateInstance = templateInstanceService.updateTemplateInstance(id, newInstance);
         createOrUpdate = CreateOrUpdate.UPDATE;
       } else {
+        c.must(id).be(ValidId);
         outputTemplateInstance = templateInstanceService.createTemplateInstance(newInstance);
         createOrUpdate = CreateOrUpdate.CREATE;
       }
@@ -269,6 +269,7 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
   public Response deleteTemplateInstance(@PathParam(PP_ID) String id) throws CedarException {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
+    c.must(id).be(ValidUrl);
     c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_DELETE);
     try {
       templateInstanceService.deleteTemplateInstance(id);
