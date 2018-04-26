@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.metadatacenter.cedar.template.resources.utils.TestConstants.*;
-import static org.metadatacenter.constant.CedarConstants.SCHEMA_IS_BASED_ON;
+import static org.metadatacenter.model.ModelNodeNames.SCHEMA_IS_BASED_ON;
 
 public abstract class AbstractResourceCrudTest extends AbstractResourceTest {
 

@@ -20,7 +20,6 @@ import org.metadatacenter.rest.context.CedarRequestContextFactory;
 import org.metadatacenter.server.model.provenance.ProvenanceInfo;
 import org.metadatacenter.server.security.model.auth.CedarPermission;
 import org.metadatacenter.server.service.FieldNameInEx;
-import org.metadatacenter.server.service.TemplateFieldService;
 import org.metadatacenter.server.service.TemplateInstanceService;
 import org.metadatacenter.server.service.TemplateService;
 import org.metadatacenter.util.http.CedarResponse;
@@ -49,17 +48,14 @@ public class TemplatesResource extends AbstractTemplateServerResource {
   private static final Logger logger = LoggerFactory.getLogger(TemplatesResource.class);
 
   private final TemplateService<String, JsonNode> templateService;
-  private final TemplateFieldService<String, JsonNode> templateFieldService;
   private final TemplateInstanceService<String, JsonNode> templateInstanceService;
 
   protected static List<String> FIELD_NAMES_SUMMARY_LIST;
 
   public TemplatesResource(CedarConfig cedarConfig, TemplateService<String, JsonNode> templateService,
-                           TemplateFieldService<String, JsonNode> templateFieldService,
                            TemplateInstanceService<String, JsonNode> templateInstanceService) {
     super(cedarConfig);
     this.templateService = templateService;
-    this.templateFieldService = templateFieldService;
     this.templateInstanceService = templateInstanceService;
     FIELD_NAMES_SUMMARY_LIST = new ArrayList<>();
     FIELD_NAMES_SUMMARY_LIST.addAll(cedarConfig.getTemplateRESTAPI().getSummaries().getTemplate().getFields());
@@ -85,7 +81,6 @@ public class TemplatesResource extends AbstractTemplateServerResource {
     ReportUtils.outputLogger(logger, validationReport, true);
     JsonNode createdTemplate = null;
     try {
-      templateFieldService.saveNewFieldsAndReplaceIds(template, pi, provenanceUtil, linkedDataUtil);
       createdTemplate = templateService.createTemplate(template);
     } catch (IOException e) {
       return CedarResponse.internalServerError()
@@ -212,7 +207,6 @@ public class TemplatesResource extends AbstractTemplateServerResource {
     CreateOrUpdate createOrUpdate = null;
     try {
       JsonNode currentTemplate = templateService.findTemplate(id);
-      templateFieldService.saveNewFieldsAndReplaceIds(newTemplate, pi, provenanceUtil, linkedDataUtil);
       if (currentTemplate != null) {
         createOrUpdate = CreateOrUpdate.UPDATE;
         outputTemplate = templateService.updateTemplate(id, newTemplate);
