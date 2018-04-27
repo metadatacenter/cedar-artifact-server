@@ -22,6 +22,7 @@ import org.metadatacenter.server.security.model.auth.CedarPermission;
 import org.metadatacenter.server.service.FieldNameInEx;
 import org.metadatacenter.server.service.TemplateInstanceService;
 import org.metadatacenter.server.service.TemplateService;
+import org.metadatacenter.util.ModelUtil;
 import org.metadatacenter.util.http.CedarResponse;
 import org.metadatacenter.util.http.CedarUrlUtil;
 import org.metadatacenter.util.http.LinkHeaderUtil;
@@ -81,6 +82,7 @@ public class TemplatesResource extends AbstractTemplateServerResource {
     ReportUtils.outputLogger(logger, validationReport, true);
     JsonNode createdTemplate = null;
     try {
+      ModelUtil.ensureFieldIdsRecursively(template, pi, provenanceUtil, linkedDataUtil);
       createdTemplate = templateService.createTemplate(template);
     } catch (IOException e) {
       return CedarResponse.internalServerError()
@@ -207,6 +209,7 @@ public class TemplatesResource extends AbstractTemplateServerResource {
     CreateOrUpdate createOrUpdate = null;
     try {
       JsonNode currentTemplate = templateService.findTemplate(id);
+      ModelUtil.ensureFieldIdsRecursively(newTemplate, pi, provenanceUtil, linkedDataUtil);
       if (currentTemplate != null) {
         createOrUpdate = CreateOrUpdate.UPDATE;
         outputTemplate = templateService.updateTemplate(id, newTemplate);
