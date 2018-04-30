@@ -20,7 +20,7 @@ import org.metadatacenter.server.model.provenance.ProvenanceInfo;
 import org.metadatacenter.server.security.model.auth.CedarPermission;
 import org.metadatacenter.server.service.FieldNameInEx;
 import org.metadatacenter.server.service.TemplateElementService;
-import org.metadatacenter.server.service.TemplateFieldService;
+import org.metadatacenter.util.ModelUtil;
 import org.metadatacenter.util.http.CedarResponse;
 import org.metadatacenter.util.http.CedarUrlUtil;
 import org.metadatacenter.util.http.LinkHeaderUtil;
@@ -47,23 +47,20 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
   private static final Logger logger = LoggerFactory.getLogger(TemplateInstancesResource.class);
 
   private static TemplateElementService<String, JsonNode> templateElementService;
-  private static TemplateFieldService<String, JsonNode> templateFieldService;
 
   protected static List<String> FIELD_NAMES_SUMMARY_LIST;
 
   public TemplateElementsResource(CedarConfig cedarConfig, TemplateElementService<String, JsonNode>
-      templateElementService, TemplateFieldService<String, JsonNode> templateFieldService) {
+      templateElementService) {
     super(cedarConfig);
     TemplateElementsResource.templateElementService = templateElementService;
-    TemplateElementsResource.templateFieldService = templateFieldService;
     FIELD_NAMES_SUMMARY_LIST = new ArrayList<>();
     FIELD_NAMES_SUMMARY_LIST.addAll(cedarConfig.getTemplateRESTAPI().getSummaries().getElement().getFields());
   }
 
   @POST
   @Timed
-  public Response createTemplateElement() throws
-      CedarException {
+  public Response createTemplateElement() throws CedarException {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_ELEMENT_CREATE);
@@ -72,8 +69,7 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
     JsonNode templateElement = c.request().getRequestBody().asJson();
 
     enforceMandatoryNullOrMissingId(templateElement, CedarNodeType.ELEMENT, CedarErrorKey.TEMPLATE_ELEMENT_NOT_CREATED);
-    enforceMandatoryName(templateElement, CedarNodeType.ELEMENT, CedarErrorKey
-        .TEMPLATE_ELEMENT_NOT_CREATED);
+    enforceMandatoryName(templateElement, CedarNodeType.ELEMENT, CedarErrorKey.TEMPLATE_ELEMENT_NOT_CREATED);
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     setProvenanceAndId(CedarNodeType.ELEMENT, templateElement, pi);
@@ -82,7 +78,7 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
     ReportUtils.outputLogger(logger, validationReport, true);
     JsonNode createdTemplateElement = null;
     try {
-      templateFieldService.saveNewFieldsAndReplaceIds(templateElement, pi, provenanceUtil, linkedDataUtil);
+      ModelUtil.ensureFieldIdsRecursively(templateElement, pi, provenanceUtil, linkedDataUtil);
       createdTemplateElement = templateElementService.createTemplateElement(templateElement);
     } catch (IOException e) {
       return CedarResponse.internalServerError()
@@ -211,7 +207,7 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
     CreateOrUpdate createOrUpdate = null;
     try {
       JsonNode currentTemplateElement = templateElementService.findTemplateElement(id);
-      templateFieldService.saveNewFieldsAndReplaceIds(newElement, pi, provenanceUtil, linkedDataUtil);
+      ModelUtil.ensureFieldIdsRecursively(newElement, pi, provenanceUtil, linkedDataUtil);
       if (currentTemplateElement != null) {
         createOrUpdate = CreateOrUpdate.UPDATE;
         outputTemplateElement = templateElementService.updateTemplateElement(id, newElement);
@@ -240,8 +236,8 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
     if (createOrUpdate == CreateOrUpdate.UPDATE) {
       responseBuilder = CedarResponse.ok();
     } else {
-      URI createdTemplateUri = CedarUrlUtil.getURI(uriInfo);
-      responseBuilder = CedarResponse.created(createdTemplateUri);
+      URI createdTemplateElementUri = CedarUrlUtil.getURI(uriInfo);
+      responseBuilder = CedarResponse.created(createdTemplateElementUri);
     }
     responseBuilder
         .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, validationReport.getValidationStatus())

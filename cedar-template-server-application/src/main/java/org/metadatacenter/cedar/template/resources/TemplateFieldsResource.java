@@ -1,41 +1,73 @@
 package org.metadatacenter.cedar.template.resources;
 
+import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import org.metadatacenter.config.CedarConfig;
+import org.metadatacenter.constant.CustomHttpConstants;
+import org.metadatacenter.constant.HttpConstants;
+import org.metadatacenter.error.CedarErrorKey;
+import org.metadatacenter.exception.CedarException;
+import org.metadatacenter.exception.TemplateServerResourceNotFoundException;
+import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.model.CreateOrUpdate;
+import org.metadatacenter.model.validation.report.ReportUtils;
+import org.metadatacenter.model.validation.report.ValidationReport;
+import org.metadatacenter.rest.context.CedarRequestContext;
+import org.metadatacenter.rest.context.CedarRequestContextFactory;
+import org.metadatacenter.server.model.provenance.ProvenanceInfo;
+import org.metadatacenter.server.security.model.auth.CedarPermission;
+import org.metadatacenter.server.service.FieldNameInEx;
 import org.metadatacenter.server.service.TemplateFieldService;
+import org.metadatacenter.util.http.CedarResponse;
+import org.metadatacenter.util.http.CedarUrlUtil;
+import org.metadatacenter.util.http.LinkHeaderUtil;
+import org.metadatacenter.util.http.PagedQuery;
+import org.metadatacenter.util.mongo.MongoUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.net.URI;
+import java.util.*;
 
-//@Path("/template-fields")
-//@Produces(MediaType.APPLICATION_JSON)
+import static org.metadatacenter.constant.CedarPathParameters.PP_ID;
+import static org.metadatacenter.constant.CedarQueryParameters.*;
+import static org.metadatacenter.rest.assertion.GenericAssertions.*;
+
+@Path("/template-fields")
+@Produces(MediaType.APPLICATION_JSON)
 public class TemplateFieldsResource extends AbstractTemplateServerResource {
+
   private static final Logger logger = LoggerFactory.getLogger(TemplateFieldsResource.class);
 
-  private final TemplateFieldService<String, JsonNode> templateFieldService;
+  private static TemplateFieldService<String, JsonNode> templateFieldService;
 
   protected static List<String> FIELD_NAMES_SUMMARY_LIST;
 
-
   public TemplateFieldsResource(CedarConfig cedarConfig, TemplateFieldService<String, JsonNode> templateFieldService) {
     super(cedarConfig);
-    this.templateFieldService = templateFieldService;
+    TemplateFieldsResource.templateFieldService = templateFieldService;
     FIELD_NAMES_SUMMARY_LIST = new ArrayList<>();
     FIELD_NAMES_SUMMARY_LIST.addAll(cedarConfig.getTemplateRESTAPI().getSummaries().getField().getFields());
   }
-/*
+
   @POST
   @Timed
-  public Response createTemplateField() throws
-      CedarException {
+  public Response createTemplateField() throws CedarException {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_FIELD_CREATE);
     c.must(c.request().getRequestBody()).be(NonEmpty);
 
     JsonNode templateField = c.request().getRequestBody().asJson();
+
+    enforceMandatoryNullOrMissingId(templateField, CedarNodeType.FIELD, CedarErrorKey.TEMPLATE_FIELD_NOT_CREATED);
+    enforceMandatoryName(templateField, CedarNodeType.FIELD, CedarErrorKey.TEMPLATE_FIELD_NOT_CREATED);
+
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     setProvenanceAndId(CedarNodeType.FIELD, templateField, pi);
 
@@ -47,7 +79,7 @@ public class TemplateFieldsResource extends AbstractTemplateServerResource {
     } catch (IOException e) {
       return CedarResponse.internalServerError()
           .errorKey(CedarErrorKey.TEMPLATE_FIELD_NOT_CREATED)
-          .errorMessage("The template instance can not be created")
+          .errorMessage("The template field can not be created")
           .exception(e)
           .build();
     }
@@ -55,8 +87,10 @@ public class TemplateFieldsResource extends AbstractTemplateServerResource {
 
     String id = createdTemplateField.get("@id").asText();
 
-    URI uri = CedarUrlUtil.getIdURI(uriInfo, id);
-    return Response.created(uri).entity(createdTemplateField).build();
+    URI createdFieldUri = CedarUrlUtil.getIdURI(uriInfo, id);
+    return CedarResponse.created(createdFieldUri)
+        .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, validationReport.getValidationStatus())
+        .entity(createdTemplateField).build();
   }
 
   @GET
@@ -66,6 +100,7 @@ public class TemplateFieldsResource extends AbstractTemplateServerResource {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_FIELD_READ);
+    c.must(id).be(ValidUrl);
 
     JsonNode templateField = null;
     try {
@@ -150,35 +185,59 @@ public class TemplateFieldsResource extends AbstractTemplateServerResource {
   public Response updateTemplateField(@PathParam(PP_ID) String id) throws CedarException {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
+    c.must(id).be(ValidUrl);
     c.must(c.user()).have(CedarPermission.TEMPLATE_FIELD_UPDATE);
     c.must(c.request().getRequestBody()).be(NonEmpty);
 
     JsonNode newField = c.request().getRequestBody().asJson();
+
+    enforceMandatoryFieldsInPut(id, newField, CedarNodeType.FIELD, CedarErrorKey.TEMPLATE_FIELD_NOT_UPDATED);
+    enforceMandatoryName(newField, CedarNodeType.FIELD, CedarErrorKey.TEMPLATE_FIELD_NOT_UPDATED);
+
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     provenanceUtil.patchProvenanceInfo(newField, pi);
 
     ValidationReport validationReport = validateTemplateField(newField);
     ReportUtils.outputLogger(logger, validationReport, true);
-    JsonNode updatedTemplateField = null;
+    JsonNode outputTemplateField = null;
+    CreateOrUpdate createOrUpdate = null;
     try {
-      updatedTemplateField = templateFieldService.updateTemplateField(id, newField);
-    } catch (TemplateServerResourceNotFoundException e) {
-      return CedarResponse.notFound()
+      JsonNode currentTemplateField = templateFieldService.findTemplateField(id);
+      if (currentTemplateField != null) {
+        createOrUpdate = CreateOrUpdate.UPDATE;
+        outputTemplateField = templateFieldService.updateTemplateField(id, newField);
+      } else {
+        c.must(id).be(ValidId);
+        createOrUpdate = CreateOrUpdate.CREATE;
+        outputTemplateField = templateFieldService.createTemplateField(newField);
+      }
+    } catch (IOException | ProcessingException | TemplateServerResourceNotFoundException e) {
+      CedarResponse.CedarResponseBuilder responseBuilder = CedarResponse.internalServerError()
           .id(id)
-          .errorKey(CedarErrorKey.TEMPLATE_FIELD_NOT_FOUND)
-          .errorMessage("The template field can not be found by id:" + id)
-          .exception(e)
-          .build();
-    } catch (IOException e) {
-      return CedarResponse.internalServerError()
-          .id(id)
-          .errorKey(CedarErrorKey.TEMPLATE_FIELD_NOT_UPDATED)
-          .errorMessage("The template field can not be updated by id:" + id)
-          .exception(e)
-          .build();
+          .exception(e);
+      if (createOrUpdate == CreateOrUpdate.CREATE) {
+        responseBuilder
+            .errorKey(CedarErrorKey.TEMPLATE_FIELD_NOT_CREATED)
+            .errorMessage("The template field can not be created using id:" + id);
+      } else if (createOrUpdate == CreateOrUpdate.UPDATE) {
+        responseBuilder
+            .errorKey(CedarErrorKey.TEMPLATE_FIELD_NOT_UPDATED)
+            .errorMessage("The template field can not be updated by id:" + id);
+      }
+      return responseBuilder.build();
     }
-    MongoUtils.removeIdField(updatedTemplateField);
-    return Response.ok().entity(updatedTemplateField).build();
+    MongoUtils.removeIdField(outputTemplateField);
+    CedarResponse.CedarResponseBuilder responseBuilder = null;
+    if (createOrUpdate == CreateOrUpdate.UPDATE) {
+      responseBuilder = CedarResponse.ok();
+    } else {
+      URI createdTemplateFieldUri = CedarUrlUtil.getURI(uriInfo);
+      responseBuilder = CedarResponse.created(createdTemplateFieldUri);
+    }
+    responseBuilder
+        .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, validationReport.getValidationStatus())
+        .entity(outputTemplateField);
+    return responseBuilder.build();
   }
 
   @DELETE
@@ -188,6 +247,7 @@ public class TemplateFieldsResource extends AbstractTemplateServerResource {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_FIELD_DELETE);
+    c.must(id).be(ValidUrl);
 
     try {
       templateFieldService.deleteTemplateField(id);
@@ -208,5 +268,4 @@ public class TemplateFieldsResource extends AbstractTemplateServerResource {
     }
     return CedarResponse.noContent().build();
   }
-  */
 }
