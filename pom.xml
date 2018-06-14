@@ -10,7 +10,7 @@
 
   <groupId>org.metadatacenter</groupId>
   <artifactId>cedar-template-server</artifactId>
-  <version>1.8.5</version>
+  <version>1.8.6-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>CEDAR Template Server</name>
@@ -20,7 +20,7 @@
     <connection>scm:git:git@github.com:metadatacenter/cedar-template-server.git</connection>
     <developerConnection>scm:git:git@github.com:metadatacenter/cedar-template-server.git</developerConnection>
     <url>https://github.com/metadatacenter/cedar-template-server</url>
-    <tag>release-1.8.5</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <modules>
