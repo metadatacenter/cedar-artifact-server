@@ -2,7 +2,6 @@ package org.metadatacenter.cedar.template.resources;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import org.metadatacenter.cedar.util.dw.CedarMicroserviceResource;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.constant.LinkedData;
@@ -175,7 +174,7 @@ public class AbstractTemplateServerResource extends CedarMicroserviceResource {
 
 
   protected static JsonNode getSchemaSource(TemplateService<String, JsonNode> templateService, JsonNode
-      templateInstance) throws IOException, ProcessingException, CedarException {
+      templateInstance) throws IOException, CedarException {
     checkInstanceSchemaExists(templateInstance);
     String templateRefId = templateInstance.get(CedarModelVocabulary.SCHEMA_IS_BASED_ON).asText();
     JsonNode template = templateService.findTemplate(templateRefId);
