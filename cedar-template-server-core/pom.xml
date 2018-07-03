@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.metadatacenter</groupId>
     <artifactId>cedar-template-server</artifactId>
-    <version>1.8.8</version>
+    <version>1.8.9</version>
   </parent>
 
   <groupId>org.metadatacenter</groupId>
@@ -15,9 +15,6 @@
   <name>CEDAR Template Server Core</name>
 
   <build>
-    <sourceDirectory>src/main/java</sourceDirectory>
-    <testSourceDirectory>src/test/java</testSourceDirectory>
-
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

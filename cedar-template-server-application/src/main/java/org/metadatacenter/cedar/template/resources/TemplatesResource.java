@@ -2,7 +2,6 @@ package org.metadatacenter.cedar.template.resources;
 
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.constant.CustomHttpConstants;
 import org.metadatacenter.constant.HttpConstants;
@@ -113,7 +112,7 @@ public class TemplatesResource extends AbstractTemplateServerResource {
     JsonNode template;
     try {
       template = templateService.findTemplate(id);
-    } catch (IOException | ProcessingException e) {
+    } catch (IOException e) {
       return CedarResponse.internalServerError()
           .id(id)
           .errorKey(CedarErrorKey.TEMPLATE_NOT_FOUND)
@@ -218,7 +217,7 @@ public class TemplatesResource extends AbstractTemplateServerResource {
         createOrUpdate = CreateOrUpdate.CREATE;
         outputTemplate = templateService.createTemplate(newTemplate);
       }
-    } catch (IOException | ProcessingException | TemplateServerResourceNotFoundException e) {
+    } catch (IOException | TemplateServerResourceNotFoundException e) {
       CedarResponse.CedarResponseBuilder responseBuilder = CedarResponse.internalServerError()
           .id(id)
           .exception(e);

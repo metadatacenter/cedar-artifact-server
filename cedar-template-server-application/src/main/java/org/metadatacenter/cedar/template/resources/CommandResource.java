@@ -2,7 +2,6 @@ package org.metadatacenter.cedar.template.resources;
 
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.error.CedarErrorKey;
 import org.metadatacenter.error.CedarErrorPack;
@@ -84,7 +83,7 @@ public class CommandResource extends AbstractTemplateServerResource {
         validationReport = validateUsingInstanceSpecifiedSchema(instanceObject);
       }
       return validationReport;
-    } catch (IOException | ProcessingException e) {
+    } catch (IOException e) {
       throw newCedarException(e.getMessage());
     }
   }
@@ -104,7 +103,7 @@ public class CommandResource extends AbstractTemplateServerResource {
   }
 
   private ValidationReport validateUsingInstanceSpecifiedSchema(JsonNode instanceObject)
-      throws IOException, ProcessingException, CedarException {
+      throws IOException, CedarException {
     JsonNode instanceSchema = getSchemaSource(templateService, instanceObject);
     return validateTemplateInstance(instanceObject, instanceSchema);
   }
