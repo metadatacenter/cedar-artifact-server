@@ -46,10 +46,6 @@ public abstract class AbstractRestTest extends AbstractResourceTest {
   protected static final String MINIMAL_TEMPLATE_NO_ID = "minimal-template-no-id";
   protected static final String FULL_TEMPLATE = "full-template";
 
-  //TODO: get rid of these two variables.
-  protected static final String MINIMAL_TEMPLATE = "minimal-template";
-  protected static final String MINIMAL_INSTANCE = "minimal-instance";
-
   protected boolean showTestDebug = false;
 
   static {
