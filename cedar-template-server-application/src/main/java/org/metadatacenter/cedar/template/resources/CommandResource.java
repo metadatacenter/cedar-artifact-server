@@ -10,7 +10,6 @@ import org.metadatacenter.model.request.ResourceType;
 import org.metadatacenter.model.request.ResourceTypeDetector;
 import org.metadatacenter.model.validation.report.ValidationReport;
 import org.metadatacenter.rest.context.CedarRequestContext;
-import org.metadatacenter.rest.context.CedarRequestContextFactory;
 import org.metadatacenter.server.service.TemplateService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +43,7 @@ public class CommandResource extends AbstractTemplateServerResource {
   @Timed
   @Path("/validate")
   public Response validateResource(@QueryParam(QP_RESOURCE_TYPE) String type) throws CedarException {
-    CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
+    CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
 
     ResourceType resourceType = ResourceTypeDetector.detectType(type);
