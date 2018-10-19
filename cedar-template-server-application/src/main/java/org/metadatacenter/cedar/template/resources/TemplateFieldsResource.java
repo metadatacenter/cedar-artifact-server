@@ -13,7 +13,6 @@ import org.metadatacenter.model.CreateOrUpdate;
 import org.metadatacenter.model.validation.report.ReportUtils;
 import org.metadatacenter.model.validation.report.ValidationReport;
 import org.metadatacenter.rest.context.CedarRequestContext;
-import org.metadatacenter.rest.context.CedarRequestContextFactory;
 import org.metadatacenter.server.model.provenance.ProvenanceInfo;
 import org.metadatacenter.server.security.model.auth.CedarPermission;
 import org.metadatacenter.server.service.FieldNameInEx;
@@ -57,7 +56,7 @@ public class TemplateFieldsResource extends AbstractTemplateServerResource {
   @POST
   @Timed
   public Response createTemplateField() throws CedarException {
-    CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
+    CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_FIELD_CREATE);
     c.must(c.request().getRequestBody()).be(NonEmpty);
@@ -96,7 +95,7 @@ public class TemplateFieldsResource extends AbstractTemplateServerResource {
   @Timed
   @Path("/{id}")
   public Response findTemplateField(@PathParam(PP_ID) String id) throws CedarException {
-    CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
+    CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_FIELD_READ);
     c.must(id).be(ValidUrl);
@@ -132,7 +131,7 @@ public class TemplateFieldsResource extends AbstractTemplateServerResource {
                                         @QueryParam(QP_FIELD_NAMES) Optional<String> fieldNamesParam) throws
       CedarException {
 
-    CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
+    CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_FIELD_READ);
 
@@ -182,7 +181,7 @@ public class TemplateFieldsResource extends AbstractTemplateServerResource {
   @Timed
   @Path("/{id}")
   public Response updateTemplateField(@PathParam(PP_ID) String id) throws CedarException {
-    CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
+    CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
     c.must(id).be(ValidUrl);
     c.must(c.user()).have(CedarPermission.TEMPLATE_FIELD_UPDATE);
@@ -243,7 +242,7 @@ public class TemplateFieldsResource extends AbstractTemplateServerResource {
   @Timed
   @Path("/{id}")
   public Response deleteTemplateField(@PathParam(PP_ID) String id) throws CedarException {
-    CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
+    CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_FIELD_DELETE);
     c.must(id).be(ValidUrl);

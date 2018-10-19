@@ -19,7 +19,6 @@ import org.metadatacenter.model.trimmer.JsonLdDocument;
 import org.metadatacenter.model.validation.report.ReportUtils;
 import org.metadatacenter.model.validation.report.ValidationReport;
 import org.metadatacenter.rest.context.CedarRequestContext;
-import org.metadatacenter.rest.context.CedarRequestContextFactory;
 import org.metadatacenter.server.model.provenance.ProvenanceInfo;
 import org.metadatacenter.server.security.model.auth.CedarPermission;
 import org.metadatacenter.server.service.FieldNameInEx;
@@ -68,7 +67,7 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
   @Timed
   public Response createTemplateInstance() throws
       CedarException {
-    CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
+    CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_CREATE);
     c.must(c.request().getRequestBody()).be(NonEmpty);
@@ -110,7 +109,7 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
   @Path("/{id}")
   public Response findTemplateInstance(@PathParam(PP_ID) String id, @QueryParam(QP_FORMAT) Optional<String> format)
       throws CedarException {
-    CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
+    CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
     c.must(id).be(ValidUrl);
     c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_READ);
@@ -148,7 +147,7 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
                                            @QueryParam(QP_FIELD_NAMES) Optional<String> fieldNamesParam) throws
       CedarException {
 
-    CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
+    CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_READ);
 
@@ -199,7 +198,7 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
   @Timed
   @Path("/{id}")
   public Response updateTemplateInstance(@PathParam(PP_ID) String id) throws CedarException {
-    CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
+    CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
     c.must(id).be(ValidUrl);
     c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_UPDATE);
@@ -266,7 +265,7 @@ public class TemplateInstancesResource extends AbstractTemplateServerResource {
   @Timed
   @Path("/{id}")
   public Response deleteTemplateInstance(@PathParam(PP_ID) String id) throws CedarException {
-    CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
+    CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
     c.must(id).be(ValidUrl);
     c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_DELETE);

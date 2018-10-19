@@ -13,7 +13,7 @@ import java.util.Map;
 @Produces(MediaType.APPLICATION_JSON)
 public class IndexResource {
 
-  private final static Map<String, Object> info;
+  private static final Map<String, Object> info;
 
   static {
     info = new IdentityHashMap<>();
