@@ -28,6 +28,9 @@ public class CedarConfigTemplateTest {
     env.put(CedarEnvironmentVariable.CEDAR_MONGO_HOST.getName(), "localhost");
     env.put(CedarEnvironmentVariable.CEDAR_MONGO_PORT.getName(), "27017");
 
+    env.put(CedarEnvironmentVariable.CEDAR_REDIS_PERSISTENT_HOST.getName(), "127.0.0.1");
+    env.put(CedarEnvironmentVariable.CEDAR_REDIS_PERSISTENT_PORT.getName(), "6379");
+
     env.put(CedarEnvironmentVariable.CEDAR_TEMPLATE_HTTP_PORT.getName(), "9001");
     env.put(CedarEnvironmentVariable.CEDAR_TEMPLATE_ADMIN_PORT.getName(), "9101");
     env.put(CedarEnvironmentVariable.CEDAR_TEMPLATE_STOP_PORT.getName(), "9201");
