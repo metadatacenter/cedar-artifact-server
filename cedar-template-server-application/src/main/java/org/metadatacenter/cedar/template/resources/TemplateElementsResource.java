@@ -14,7 +14,6 @@ import org.metadatacenter.model.CreateOrUpdate;
 import org.metadatacenter.model.validation.report.ReportUtils;
 import org.metadatacenter.model.validation.report.ValidationReport;
 import org.metadatacenter.rest.context.CedarRequestContext;
-import org.metadatacenter.rest.context.CedarRequestContextFactory;
 import org.metadatacenter.server.model.provenance.ProvenanceInfo;
 import org.metadatacenter.server.security.model.auth.CedarPermission;
 import org.metadatacenter.server.service.FieldNameInEx;
@@ -60,7 +59,7 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
   @POST
   @Timed
   public Response createTemplateElement() throws CedarException {
-    CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
+    CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_ELEMENT_CREATE);
     c.must(c.request().getRequestBody()).be(NonEmpty);
@@ -100,7 +99,7 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
   @Timed
   @Path("/{id}")
   public Response findTemplateElement(@PathParam(PP_ID) String id) throws CedarException {
-    CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
+    CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_ELEMENT_READ);
     c.must(id).be(ValidUrl);
@@ -136,7 +135,7 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
                                           @QueryParam(QP_FIELD_NAMES) Optional<String> fieldNamesParam) throws
       CedarException {
 
-    CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
+    CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_ELEMENT_READ);
 
@@ -186,7 +185,7 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
   @Timed
   @Path("/{id}")
   public Response updateTemplateElement(@PathParam(PP_ID) String id) throws CedarException {
-    CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
+    CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
     c.must(id).be(ValidUrl);
     c.must(c.user()).have(CedarPermission.TEMPLATE_ELEMENT_UPDATE);
@@ -248,7 +247,7 @@ public class TemplateElementsResource extends AbstractTemplateServerResource {
   @Timed
   @Path("/{id}")
   public Response deleteTemplateElement(@PathParam(PP_ID) String id) throws CedarException {
-    CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
+    CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_ELEMENT_DELETE);
     c.must(id).be(ValidUrl);

@@ -28,9 +28,9 @@ public abstract class AbstractRestTest extends AbstractResourceTest {
 
   private static final String FILE_BASE_PATH = "rest/";
 
-  private final static String SPACES = "                                        ";
-  private final static String DIVIDER = "-----------------------------------------------------------------------------";
-  private final static int PARAM_NAME_OFFSET = 20;
+  private static final String SPACES = "                                        ";
+  private static final String DIVIDER = "-----------------------------------------------------------------------------";
+  private static final int PARAM_NAME_OFFSET = 20;
 
   protected static final String SCHEMA_DESCRIPTION = "schema-description";
   protected static final String SCHEMA_NAME = "schema-name";
