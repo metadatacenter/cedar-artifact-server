@@ -4,14 +4,14 @@
 
   <parent>
     <groupId>org.metadatacenter</groupId>
-    <artifactId>cedar-template-server</artifactId>
-    <version>2.2.10-SNAPSHOT</version>
+    <artifactId>cedar-artifact-server</artifactId>
+    <version>2.2.10</version>
   </parent>
 
   <groupId>org.metadatacenter</groupId>
-  <artifactId>cedar-template-server-core</artifactId>
+  <artifactId>cedar-artifact-server-core</artifactId>
   <packaging>jar</packaging>
 
-  <name>CEDAR Template Server Core</name>
+  <name>CEDAR Artifact Server Core</name>
 
 </project>

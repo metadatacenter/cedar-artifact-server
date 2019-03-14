@@ -1,6 +1,6 @@
-# cedar-template-server
+# cedar-artifact-server
 
-[![Build Status](https://travis-ci.org/metadatacenter/cedar-template-server.svg?branch=master)](https://travis-ci.org/metadatacenter/cedar-template-server)
+[![Build Status](https://travis-ci.org/metadatacenter/cedar-artifact-server.svg?branch=master)](https://travis-ci.org/metadatacenter/cedar-artifact-server)
 
 CEDAR server to manage templates, template elements, and template instances.
 
@@ -8,8 +8,8 @@ This project is implemented in Java using [Dropwizard](http://www.dropwizard.io/
 
 The project contains two subdirectories:
 
-- cedar-template-server-core: Core server functionality
-- cedar-template-server-application: Dropwizard-based interface to server
+- cedar-artifact-server-core: Core server functionality
+- cedar-artifact-server-application: Dropwizard-based interface to server
 
 ## Versions
 
@@ -20,7 +20,7 @@ The project contains two subdirectories:
 
 Clone the project:
 
-    git clone https://github.com/metadatacenter/cedar-template-server.git
+    git clone https://github.com/metadatacenter/cedar-artifact-server.git
 
 Install MongoDB (using Homebrew):
 

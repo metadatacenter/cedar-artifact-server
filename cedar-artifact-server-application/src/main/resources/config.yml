@@ -1,0 +1,24 @@
+server:
+  applicationConnectors:
+  - type: http 
+  adminConnectors:
+  - type: http
+logging:
+  level: INFO
+  loggers:
+    org.metadatacenter: DEBUG
+    org.metadatacenter.server.neo4j.proxy.AbstractNeo4JProxy: INFO
+    o.m.s.neo4j.proxy.AbstractNeo4JProxy: INFO
+    org.metadatacenter.config: DEBUG
+  appenders:
+    - type: console
+      threshold: ALL
+      timeZone: UTC
+      target: stdout
+    - type: file
+      currentLogFilename: ${CEDAR_HOME}/log/cedar-artifact-server/dropwizard.log
+      threshold: ALL
+      archive: true
+      archivedLogFilenamePattern: ${CEDAR_HOME}/log/cedar-artifact-server/dropwizard-%d.log
+      archivedFileCount: 30
+      timeZone: UTC

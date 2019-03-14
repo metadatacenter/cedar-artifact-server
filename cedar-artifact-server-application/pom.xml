@@ -4,15 +4,15 @@
 
   <parent>
     <groupId>org.metadatacenter</groupId>
-    <artifactId>cedar-template-server</artifactId>
-    <version>2.2.10-SNAPSHOT</version>
+    <artifactId>cedar-artifact-server</artifactId>
+    <version>2.2.10</version>
   </parent>
 
   <groupId>org.metadatacenter</groupId>
-  <artifactId>cedar-template-server-application</artifactId>
+  <artifactId>cedar-artifact-server-application</artifactId>
   <packaging>jar</packaging>
 
-  <name>CEDAR Template Server Dropwizard Application</name>
+  <name>CEDAR Artifact Server Dropwizard Application</name>
 
   <dependencies>
 
@@ -133,7 +133,7 @@
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                  <mainClass>org.metadatacenter.cedar.template.TemplateServerApplication</mainClass>
+                  <mainClass>org.metadatacenter.cedar.artifact.ArtifactServerApplication</mainClass>
                 </transformer>
               </transformers>
             </configuration>

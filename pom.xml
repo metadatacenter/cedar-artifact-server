@@ -5,27 +5,27 @@
   <parent>
     <groupId>org.metadatacenter</groupId>
     <artifactId>cedar-parent</artifactId>
-    <version>2.2.9</version>
+    <version>2.2.10</version>
   </parent>
 
   <groupId>org.metadatacenter</groupId>
-  <artifactId>cedar-template-server</artifactId>
-  <version>2.2.9</version>
+  <artifactId>cedar-artifact-server</artifactId>
+  <version>2.2.10</version>
   <packaging>pom</packaging>
 
-  <name>CEDAR Template Server</name>
+  <name>CEDAR Artifact Server</name>
   <description>CEDAR server to manage Metadata Templates, Template Elements, and Template Instances</description>
 
   <scm>
-    <connection>scm:git:git@github.com:metadatacenter/cedar-template-server.git</connection>
-    <developerConnection>scm:git:git@github.com:metadatacenter/cedar-template-server.git</developerConnection>
-    <url>https://github.com/metadatacenter/cedar-template-server</url>
-    <tag>release-2.2.9</tag>
+    <connection>scm:git:git@github.com:metadatacenter/cedar-artifact-server.git</connection>
+    <developerConnection>scm:git:git@github.com:metadatacenter/cedar-artifact-server.git</developerConnection>
+    <url>https://github.com/metadatacenter/cedar-artifact-server</url>
+    <tag>release-2.2.10</tag>
   </scm>
 
   <modules>
-    <module>cedar-template-server-core</module>
-    <module>cedar-template-server-application</module>
+    <module>cedar-artifact-server-core</module>
+    <module>cedar-artifact-server-application</module>
   </modules>
 
   <build>
