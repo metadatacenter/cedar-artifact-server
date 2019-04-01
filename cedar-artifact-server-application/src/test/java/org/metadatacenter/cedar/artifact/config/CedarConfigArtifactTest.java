@@ -29,7 +29,7 @@ public class CedarConfigArtifactTest {
     env.put(CedarEnvironmentVariable.CEDAR_MONGO_PORT.getName(), "27017");
 
     env.put(CedarEnvironmentVariable.CEDAR_NEO4J_USER_NAME.getName(), "neo4j");
-    env.put(CedarEnvironmentVariable.CEDAR_NEO4J_USER_PASSWORD.getName(), "password");
+    CedarEnvironmentUtil.copy(CedarEnvironmentVariable.CEDAR_NEO4J_USER_PASSWORD, env);
     env.put(CedarEnvironmentVariable.CEDAR_NEO4J_HOST.getName(), "127.0.0.1");
     env.put(CedarEnvironmentVariable.CEDAR_NEO4J_BOLT_PORT.getName(), "7687");
 
