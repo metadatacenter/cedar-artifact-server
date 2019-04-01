@@ -6,6 +6,7 @@ jdk:
 services:
 - mongodb
 - redis-server
+- neo4j
 branches:
   only:
   - develop
