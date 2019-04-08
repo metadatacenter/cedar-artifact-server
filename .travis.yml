@@ -6,6 +6,7 @@ jdk:
 services:
 - mongodb
 - redis-server
+- neo4j
 branches:
   only:
   - develop
@@ -28,6 +29,10 @@ env:
   global:
   - CEDAR_HOST=metadatacenter.orgx
   - CEDAR_NET_GATEWAY=127.0.0.1
+  - CEDAR_NEO4J_HOST=127.0.0.1
+  - CEDAR_NEO4J_BOLT_PORT=7687
+  - CEDAR_NEO4J_USER_NAME=neo4j
+  - CEDAR_NEO4J_USER_PASSWORD=changeme
   - CEDAR_MONGO_APP_USER_NAME=cedarUser
   - CEDAR_MONGO_APP_USER_PASSWORD=password
   - CEDAR_MONGO_HOST=localhost
