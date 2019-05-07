@@ -7,10 +7,11 @@ import org.metadatacenter.constant.CustomHttpConstants;
 import org.metadatacenter.constant.HttpConstants;
 import org.metadatacenter.constant.LinkedData;
 import org.metadatacenter.error.CedarErrorKey;
-import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.exception.ArtifactServerResourceNotFoundException;
+import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.model.CedarNodeType;
 import org.metadatacenter.model.CreateOrUpdate;
+import org.metadatacenter.model.validation.report.CedarValidationReport;
 import org.metadatacenter.model.validation.report.ReportUtils;
 import org.metadatacenter.model.validation.report.ValidationReport;
 import org.metadatacenter.rest.context.CedarRequestContext;
@@ -72,12 +73,34 @@ public class TemplateElementsResource extends AbstractArtifactServerResource {
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     setProvenanceAndId(CedarNodeType.ELEMENT, templateElement, pi);
 
-    ValidationReport validationReport = validateTemplateElement(templateElement);
-    ReportUtils.outputLogger(logger, validationReport, true);
-    JsonNode createdTemplateElement = null;
+    Response response = null;
+    if (cedarConfig.getValidationConfig().isEnabled()) {
+      ValidationReport validationReport = validateTemplateElement(templateElement);
+      ReportUtils.outputLogger(logger, validationReport, true);
+      String validationStatus = validationReport.getValidationStatus();
+      if (validationStatus.equals(CedarValidationReport.IS_VALID)) {
+        response = storeTemplateElementInDatabase(templateElement, pi);
+      } else {
+        response = CedarResponse.badRequest()
+            .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_INVALID)
+            .build();
+      }
+    } else {
+      response = storeTemplateElementInDatabase(templateElement, pi);
+    }
+    return response;
+  }
+
+  private Response storeTemplateElementInDatabase(JsonNode templateElement, ProvenanceInfo pi) {
     try {
       ModelUtil.ensureFieldIdsRecursively(templateElement, pi, provenanceUtil, linkedDataUtil);
-      createdTemplateElement = templateElementService.createTemplateElement(templateElement);
+      JsonNode createdTemplateElement = templateElementService.createTemplateElement(templateElement);
+      MongoUtils.removeIdField(createdTemplateElement);
+      String id = createdTemplateElement.get(LinkedData.ID).asText();
+      URI createdElementUri = CedarUrlUtil.getIdURI(uriInfo, id);
+      return CedarResponse.created(createdElementUri)
+          .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_VALID)
+          .entity(createdTemplateElement).build();
     } catch (IOException e) {
       return CedarResponse.internalServerError()
           .errorKey(CedarErrorKey.TEMPLATE_ELEMENT_NOT_CREATED)
@@ -85,14 +108,6 @@ public class TemplateElementsResource extends AbstractArtifactServerResource {
           .exception(e)
           .build();
     }
-    MongoUtils.removeIdField(createdTemplateElement);
-
-    String id = createdTemplateElement.get(LinkedData.ID).asText();
-
-    URI createdElementUri = CedarUrlUtil.getIdURI(uriInfo, id);
-    return CedarResponse.created(createdElementUri)
-        .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, validationReport.getValidationStatus())
-        .entity(createdTemplateElement).build();
   }
 
   @GET
@@ -199,48 +214,66 @@ public class TemplateElementsResource extends AbstractArtifactServerResource {
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     provenanceUtil.patchProvenanceInfo(newElement, pi);
 
-    ValidationReport validationReport = validateTemplateElement(newElement);
-    ReportUtils.outputLogger(logger, validationReport, true);
+    Response response = null;
+    if (cedarConfig.getValidationConfig().isEnabled()) {
+      ValidationReport validationReport = validateTemplateElement(newElement);
+      ReportUtils.outputLogger(logger, validationReport, true);
+      String validationStatus = validationReport.getValidationStatus();
+      if (validationStatus.equals(CedarValidationReport.IS_VALID)) {
+        response = updateTemplateElementInDatabase(id, newElement, pi, c);
+      } else {
+        response = CedarResponse.badRequest()
+            .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_INVALID)
+            .build();
+      }
+    } else {
+      response = updateTemplateElementInDatabase(id, newElement, pi, c);
+    }
+    return response;
+  }
+
+  private Response updateTemplateElementInDatabase(String elementId, JsonNode updatedElement, ProvenanceInfo pi,
+                                                   CedarRequestContext c) throws CedarException {
     JsonNode outputTemplateElement = null;
     CreateOrUpdate createOrUpdate = null;
     try {
-      JsonNode currentTemplateElement = templateElementService.findTemplateElement(id);
-      ModelUtil.ensureFieldIdsRecursively(newElement, pi, provenanceUtil, linkedDataUtil);
+      JsonNode currentTemplateElement = templateElementService.findTemplateElement(elementId);
+      ModelUtil.ensureFieldIdsRecursively(updatedElement, pi, provenanceUtil, linkedDataUtil);
       if (currentTemplateElement != null) {
         createOrUpdate = CreateOrUpdate.UPDATE;
-        outputTemplateElement = templateElementService.updateTemplateElement(id, newElement);
+        outputTemplateElement = templateElementService.updateTemplateElement(elementId, updatedElement);
       } else {
-        c.must(id).be(ValidId);
+        c.must(elementId).be(ValidId);
         createOrUpdate = CreateOrUpdate.CREATE;
-        outputTemplateElement = templateElementService.createTemplateElement(newElement);
+        outputTemplateElement = templateElementService.createTemplateElement(updatedElement);
       }
+      MongoUtils.removeIdField(outputTemplateElement);
+      CedarResponse.CedarResponseBuilder responseBuilder = null;
+      if (createOrUpdate == CreateOrUpdate.UPDATE) {
+        responseBuilder = CedarResponse.ok();
+      } else {
+        URI createdTemplateElementUri = CedarUrlUtil.getURI(uriInfo);
+        responseBuilder = CedarResponse.created(createdTemplateElementUri);
+      }
+      return responseBuilder
+          .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_VALID)
+          .entity(outputTemplateElement)
+          .build();
     } catch (IOException | ArtifactServerResourceNotFoundException e) {
       CedarResponse.CedarResponseBuilder responseBuilder = CedarResponse.internalServerError()
-          .id(id)
+          .id(elementId)
           .exception(e);
       if (createOrUpdate == CreateOrUpdate.CREATE) {
         responseBuilder
             .errorKey(CedarErrorKey.TEMPLATE_ELEMENT_NOT_CREATED)
-            .errorMessage("The artifact element can not be created using id:" + id);
+            .errorMessage("The artifact element can not be created using id:" + elementId);
       } else if (createOrUpdate == CreateOrUpdate.UPDATE) {
         responseBuilder
             .errorKey(CedarErrorKey.TEMPLATE_ELEMENT_NOT_UPDATED)
-            .errorMessage("The artifact element can not be updated by id:" + id);
+            .errorMessage("The artifact element can not be updated by id:" + elementId);
       }
       return responseBuilder.build();
     }
-    MongoUtils.removeIdField(outputTemplateElement);
-    CedarResponse.CedarResponseBuilder responseBuilder = null;
-    if (createOrUpdate == CreateOrUpdate.UPDATE) {
-      responseBuilder = CedarResponse.ok();
-    } else {
-      URI createdTemplateElementUri = CedarUrlUtil.getURI(uriInfo);
-      responseBuilder = CedarResponse.created(createdTemplateElementUri);
-    }
-    responseBuilder
-        .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, validationReport.getValidationStatus())
-        .entity(outputTemplateElement);
-    return responseBuilder.build();
   }
 
   @DELETE
