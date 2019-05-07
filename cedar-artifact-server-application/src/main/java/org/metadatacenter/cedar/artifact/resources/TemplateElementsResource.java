@@ -9,7 +9,7 @@ import org.metadatacenter.constant.LinkedData;
 import org.metadatacenter.error.CedarErrorKey;
 import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.exception.ArtifactServerResourceNotFoundException;
-import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.model.CedarResourceType;
 import org.metadatacenter.model.CreateOrUpdate;
 import org.metadatacenter.model.validation.report.ReportUtils;
 import org.metadatacenter.model.validation.report.ValidationReport;
@@ -66,11 +66,11 @@ public class TemplateElementsResource extends AbstractArtifactServerResource {
 
     JsonNode templateElement = c.request().getRequestBody().asJson();
 
-    enforceMandatoryNullOrMissingId(templateElement, CedarNodeType.ELEMENT, CedarErrorKey.TEMPLATE_ELEMENT_NOT_CREATED);
-    enforceMandatoryName(templateElement, CedarNodeType.ELEMENT, CedarErrorKey.TEMPLATE_ELEMENT_NOT_CREATED);
+    enforceMandatoryNullOrMissingId(templateElement, CedarResourceType.ELEMENT, CedarErrorKey.TEMPLATE_ELEMENT_NOT_CREATED);
+    enforceMandatoryName(templateElement, CedarResourceType.ELEMENT, CedarErrorKey.TEMPLATE_ELEMENT_NOT_CREATED);
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
-    setProvenanceAndId(CedarNodeType.ELEMENT, templateElement, pi);
+    setProvenanceAndId(CedarResourceType.ELEMENT, templateElement, pi);
 
     ValidationReport validationReport = validateTemplateElement(templateElement);
     ReportUtils.outputLogger(logger, validationReport, true);
@@ -193,8 +193,8 @@ public class TemplateElementsResource extends AbstractArtifactServerResource {
 
     JsonNode newElement = c.request().getRequestBody().asJson();
 
-    enforceMandatoryFieldsInPut(id, newElement, CedarNodeType.ELEMENT, CedarErrorKey.TEMPLATE_ELEMENT_NOT_UPDATED);
-    enforceMandatoryName(newElement, CedarNodeType.ELEMENT, CedarErrorKey.TEMPLATE_ELEMENT_NOT_UPDATED);
+    enforceMandatoryFieldsInPut(id, newElement, CedarResourceType.ELEMENT, CedarErrorKey.TEMPLATE_ELEMENT_NOT_UPDATED);
+    enforceMandatoryName(newElement, CedarResourceType.ELEMENT, CedarErrorKey.TEMPLATE_ELEMENT_NOT_UPDATED);
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     provenanceUtil.patchProvenanceInfo(newElement, pi);

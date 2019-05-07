@@ -9,7 +9,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
 import org.metadatacenter.constant.LinkedData;
-import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.model.CedarResourceType;
 
 import javax.ws.rs.core.Response;
 import java.io.IOException;
@@ -27,7 +27,7 @@ public class DeleteResourceTest extends AbstractResourceCrudTest {
   @Test
   @TestCaseName(TEST_NAME_PATTERN_INDEX_METHOD)
   @Parameters(method = "getCommonParams1")
-  public void deleteResourceTest(JsonNode sampleResource, CedarNodeType resourceType) {
+  public void deleteResourceTest(JsonNode sampleResource, CedarResourceType resourceType) {
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
     sampleResource = setSchemaIsBasedOn(sampleTemplate, sampleResource, resourceType);
     // Create a resource

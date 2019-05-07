@@ -14,7 +14,7 @@ import org.metadatacenter.cedar.artifact.resources.rest.AuthHeaderSelector;
 import org.metadatacenter.cedar.artifact.resources.rest.IdMatchingSelector;
 import org.metadatacenter.cedar.test.util.*;
 import org.metadatacenter.constant.LinkedData;
-import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.model.CedarResourceType;
 import org.metadatacenter.util.json.JsonMapper;
 
 import javax.ws.rs.client.Entity;
@@ -31,7 +31,7 @@ import static org.metadatacenter.cedar.artifact.resources.rest.AuthHeaderSelecto
 import static org.metadatacenter.cedar.artifact.resources.rest.IdMatchingSelector.*;
 import static org.metadatacenter.cedar.artifact.resources.utils.TestConstants.TEST_NAME_PATTERN_METHOD_PARAMS;
 import static org.metadatacenter.cedar.test.util.TestValueResourceIdGenerator.ids;
-import static org.metadatacenter.model.CedarNodeType.TEMPLATE;
+import static org.metadatacenter.model.CedarResourceType.TEMPLATE;
 
 @RunWith(JUnitParamsRunner.class)
 public class CreateTemplatePostTest extends AbstractRestTest {
@@ -43,13 +43,13 @@ public class CreateTemplatePostTest extends AbstractRestTest {
   @Parameters(method = "getParamsCreateTemplatePost")
   public void createTemplatePostTest(TestParameterArrayGeneratorGenerator generator,
                                      TestParameterValueGenerator<String> js,
-                                     TestParameterValueGenerator<CedarNodeType> rt,
+                                     TestParameterValueGenerator<CedarResourceType> rt,
                                      TestParameterValueGenerator<String> auth,
                                      TestParameterValueGenerator<String> idInBodyGenerator) throws IOException {
     index++;
     TestParameterArrayGenerator arrayGenerator = generator.getValue();
     String jsonFileName = js.getValue();
-    CedarNodeType resourceType = rt.getValue();
+    CedarResourceType resourceType = rt.getValue();
     auth.generateValue(tdctx, arrayGenerator);
     String authHeaderValue = auth.getValue();
     String postUrl = getUrlWithId(baseTestUrl, resourceType, (String) null);
@@ -118,7 +118,7 @@ public class CreateTemplatePostTest extends AbstractRestTest {
       pair("Created id", createdId);
       divider();
 
-      createdResources.put(createdId, CedarNodeType.TEMPLATE);
+      createdResources.put(createdId, CedarResourceType.TEMPLATE);
     }
 
     int responseStatus = response.getStatus();
@@ -128,7 +128,7 @@ public class CreateTemplatePostTest extends AbstractRestTest {
 
   private int getExpectedResponseStatus(TestParameterArrayGeneratorGenerator generator,
                                         TestParameterValueGenerator<String> js,
-                                        TestParameterValueGenerator<CedarNodeType> rt,
+                                        TestParameterValueGenerator<CedarResourceType> rt,
                                         TestParameterValueGenerator<String> auth,
                                         TestParameterValueGenerator<String> idInBodyGenerator) {
 
@@ -186,9 +186,9 @@ public class CreateTemplatePostTest extends AbstractRestTest {
 
     TestParameterArrayGenerator generatorForTemplate = new TestParameterArrayGenerator();
     generatorForTemplate.registerParameter(1, jsonFileName, "jsonFileName");
-    generatorForTemplate.addParameterValue(2, TEMPLATE, "nodeType");
+    generatorForTemplate.addParameterValue(2, TEMPLATE, "resourceType");
     generatorForTemplate.registerParameter(3, authHeader, "authHeader");
-    generatorForTemplate.registerParameter(4, ids(idInBody, "nodeType"), "idInBody");
+    generatorForTemplate.registerParameter(4, ids(idInBody, "resourceType"), "idInBody");
 
     List<TestParameterValueGenerator[]> testCases = new ArrayList<>();
 

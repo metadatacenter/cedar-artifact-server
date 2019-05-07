@@ -8,7 +8,7 @@ import org.metadatacenter.constant.HttpConstants;
 import org.metadatacenter.error.CedarErrorKey;
 import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.exception.ArtifactServerResourceNotFoundException;
-import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.model.CedarResourceType;
 import org.metadatacenter.model.CreateOrUpdate;
 import org.metadatacenter.model.validation.report.ReportUtils;
 import org.metadatacenter.model.validation.report.ValidationReport;
@@ -63,11 +63,11 @@ public class TemplateFieldsResource extends AbstractArtifactServerResource {
 
     JsonNode templateField = c.request().getRequestBody().asJson();
 
-    enforceMandatoryNullOrMissingId(templateField, CedarNodeType.FIELD, CedarErrorKey.TEMPLATE_FIELD_NOT_CREATED);
-    enforceMandatoryName(templateField, CedarNodeType.FIELD, CedarErrorKey.TEMPLATE_FIELD_NOT_CREATED);
+    enforceMandatoryNullOrMissingId(templateField, CedarResourceType.FIELD, CedarErrorKey.TEMPLATE_FIELD_NOT_CREATED);
+    enforceMandatoryName(templateField, CedarResourceType.FIELD, CedarErrorKey.TEMPLATE_FIELD_NOT_CREATED);
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
-    setProvenanceAndId(CedarNodeType.FIELD, templateField, pi);
+    setProvenanceAndId(CedarResourceType.FIELD, templateField, pi);
 
     ValidationReport validationReport = validateTemplateField(templateField);
     ReportUtils.outputLogger(logger, validationReport, true);
@@ -189,8 +189,8 @@ public class TemplateFieldsResource extends AbstractArtifactServerResource {
 
     JsonNode newField = c.request().getRequestBody().asJson();
 
-    enforceMandatoryFieldsInPut(id, newField, CedarNodeType.FIELD, CedarErrorKey.TEMPLATE_FIELD_NOT_UPDATED);
-    enforceMandatoryName(newField, CedarNodeType.FIELD, CedarErrorKey.TEMPLATE_FIELD_NOT_UPDATED);
+    enforceMandatoryFieldsInPut(id, newField, CedarResourceType.FIELD, CedarErrorKey.TEMPLATE_FIELD_NOT_UPDATED);
+    enforceMandatoryName(newField, CedarResourceType.FIELD, CedarErrorKey.TEMPLATE_FIELD_NOT_UPDATED);
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     provenanceUtil.patchProvenanceInfo(newField, pi);

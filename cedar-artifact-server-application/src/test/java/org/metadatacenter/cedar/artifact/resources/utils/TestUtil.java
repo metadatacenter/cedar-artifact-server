@@ -7,7 +7,7 @@ import org.apache.commons.io.IOUtils;
 import org.metadatacenter.bridge.CedarDataServices;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.config.environment.CedarEnvironmentVariableProvider;
-import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.model.CedarResourceType;
 import org.metadatacenter.model.SystemComponent;
 import org.metadatacenter.server.service.TemplateElementService;
 import org.metadatacenter.server.service.TemplateFieldService;
@@ -43,17 +43,17 @@ public class TestUtil {
     templateElementService = new TemplateElementServiceMongoDB(
         mongoClientForDocuments,
         cedarConfig.getArtifactServerConfig().getDatabaseName(),
-        cedarConfig.getArtifactServerConfig().getMongoCollectionName(CedarNodeType.ELEMENT));
+        cedarConfig.getArtifactServerConfig().getMongoCollectionName(CedarResourceType.ELEMENT));
 
     templateService = new TemplateServiceMongoDB(
         mongoClientForDocuments,
         cedarConfig.getArtifactServerConfig().getDatabaseName(),
-        cedarConfig.getArtifactServerConfig().getMongoCollectionName(CedarNodeType.TEMPLATE));
+        cedarConfig.getArtifactServerConfig().getMongoCollectionName(CedarResourceType.TEMPLATE));
 
     templateInstanceService = new TemplateInstanceServiceMongoDB(
         mongoClientForDocuments,
         cedarConfig.getArtifactServerConfig().getDatabaseName(),
-        cedarConfig.getArtifactServerConfig().getMongoCollectionName(CedarNodeType.INSTANCE));
+        cedarConfig.getArtifactServerConfig().getMongoCollectionName(CedarResourceType.INSTANCE));
   }
 
   public static CedarConfig getCedarConfig() {
@@ -74,13 +74,13 @@ public class TestUtil {
     return writer.toString();
   }
 
-  public static String getResourceUrlRoute(String baseTestUrl, CedarNodeType resourceType) {
+  public static String getResourceUrlRoute(String baseTestUrl, CedarResourceType resourceType) {
     String url = baseTestUrl + "/";
-    if (resourceType.equals(CedarNodeType.TEMPLATE)) {
+    if (resourceType.equals(CedarResourceType.TEMPLATE)) {
       url += TEMPLATE_ROUTE;
-    } else if (resourceType.equals(CedarNodeType.ELEMENT)) {
+    } else if (resourceType.equals(CedarResourceType.ELEMENT)) {
       url += ELEMENT_ROUTE;
-    } else if (resourceType.equals(CedarNodeType.INSTANCE)) {
+    } else if (resourceType.equals(CedarResourceType.INSTANCE)) {
       url += INSTANCE_ROUTE;
     }
     else {

@@ -11,7 +11,7 @@ import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
 import org.metadatacenter.constant.CustomHttpConstants;
 import org.metadatacenter.constant.LinkedData;
 import org.metadatacenter.exception.ArtifactServerResourceNotFoundException;
-import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.model.CedarResourceType;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.core.Response;
@@ -30,7 +30,7 @@ public abstract class AbstractResourceCrudTest extends AbstractResourceTest {
 
   protected static String authHeader;
 
-  protected static Map<String, CedarNodeType> createdResources;
+  protected static Map<String, CedarResourceType> createdResources;
 
   static {
     log = LoggerFactory.getLogger("Test");
@@ -86,7 +86,7 @@ public abstract class AbstractResourceCrudTest extends AbstractResourceTest {
    */
 
   // Count the number of resources of a particular type
-  protected static int countResources(CedarNodeType resourceType) {
+  protected static int countResources(CedarResourceType resourceType) {
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
     Response findAllResponse = testClient.target(url).request().header("Authorization", authHeaderTestUser1).get();
     int totalCount = Integer.parseInt(findAllResponse.getHeaderString(CustomHttpConstants.HEADER_TOTAL_COUNT));
@@ -94,12 +94,12 @@ public abstract class AbstractResourceCrudTest extends AbstractResourceTest {
   }
 
   // Creates a artifact and then creates and instance and sets schema:isBasedOn to the artifact id
-  protected JsonNode setSchemaIsBasedOn(JsonNode template, JsonNode instance, CedarNodeType resourceType) {
-    if (resourceType.equals(CedarNodeType.INSTANCE)) {
+  protected JsonNode setSchemaIsBasedOn(JsonNode template, JsonNode instance, CedarResourceType resourceType) {
+    if (resourceType.equals(CedarResourceType.INSTANCE)) {
       try {
-        JsonNode createdTemplate = createResource(template, CedarNodeType.TEMPLATE);
+        JsonNode createdTemplate = createResource(template, CedarResourceType.TEMPLATE);
         String createdTemplateId = createdTemplate.get(LinkedData.ID).asText();
-        createdResources.put(createdTemplateId, CedarNodeType.TEMPLATE);
+        createdResources.put(createdTemplateId, CedarResourceType.TEMPLATE);
         ((ObjectNode) instance).put(SCHEMA_IS_BASED_ON, createdTemplateId);
         return instance;
       } catch (IOException e) {
@@ -115,14 +115,14 @@ public abstract class AbstractResourceCrudTest extends AbstractResourceTest {
 
   private Object getCommonParams1() {
     return new Object[]{
-        new Object[]{sampleTemplate, CedarNodeType.TEMPLATE},
-        new Object[]{sampleElement, CedarNodeType.ELEMENT},
-        new Object[]{sampleInstance, CedarNodeType.INSTANCE}
+        new Object[]{sampleTemplate, CedarResourceType.TEMPLATE},
+        new Object[]{sampleElement, CedarResourceType.ELEMENT},
+        new Object[]{sampleInstance, CedarResourceType.INSTANCE}
     };
   }
 
   private Object getCommonParams2() {
-    return new Object[]{CedarNodeType.TEMPLATE, CedarNodeType.ELEMENT, CedarNodeType.INSTANCE};
+    return new Object[]{CedarResourceType.TEMPLATE, CedarResourceType.ELEMENT, CedarResourceType.INSTANCE};
   }
 
 }

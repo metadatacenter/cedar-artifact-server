@@ -10,7 +10,7 @@ import org.metadatacenter.error.CedarErrorKey;
 import org.metadatacenter.error.CedarErrorReasonKey;
 import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.exception.ArtifactServerResourceNotFoundException;
-import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.model.CedarResourceType;
 import org.metadatacenter.model.CreateOrUpdate;
 import org.metadatacenter.model.validation.report.ReportUtils;
 import org.metadatacenter.model.validation.report.ValidationReport;
@@ -70,11 +70,11 @@ public class TemplatesResource extends AbstractArtifactServerResource {
 
     JsonNode template = c.request().getRequestBody().asJson();
 
-    enforceMandatoryNullOrMissingId(template, CedarNodeType.TEMPLATE, CedarErrorKey.TEMPLATE_NOT_CREATED);
-    enforceMandatoryName(template, CedarNodeType.TEMPLATE, CedarErrorKey.TEMPLATE_NOT_CREATED);
+    enforceMandatoryNullOrMissingId(template, CedarResourceType.TEMPLATE, CedarErrorKey.TEMPLATE_NOT_CREATED);
+    enforceMandatoryName(template, CedarResourceType.TEMPLATE, CedarErrorKey.TEMPLATE_NOT_CREATED);
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
-    setProvenanceAndId(CedarNodeType.TEMPLATE, template, pi);
+    setProvenanceAndId(CedarResourceType.TEMPLATE, template, pi);
 
     ValidationReport validationReport = validateTemplate(template);
     ReportUtils.outputLogger(logger, validationReport, true);
@@ -195,8 +195,8 @@ public class TemplatesResource extends AbstractArtifactServerResource {
 
     JsonNode newTemplate = c.request().getRequestBody().asJson();
 
-    enforceMandatoryFieldsInPut(id, newTemplate, CedarNodeType.TEMPLATE, CedarErrorKey.TEMPLATE_NOT_UPDATED);
-    enforceMandatoryName(newTemplate, CedarNodeType.TEMPLATE, CedarErrorKey.TEMPLATE_NOT_UPDATED);
+    enforceMandatoryFieldsInPut(id, newTemplate, CedarResourceType.TEMPLATE, CedarErrorKey.TEMPLATE_NOT_UPDATED);
+    enforceMandatoryName(newTemplate, CedarResourceType.TEMPLATE, CedarErrorKey.TEMPLATE_NOT_UPDATED);
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     provenanceUtil.patchProvenanceInfo(newTemplate, pi);

@@ -11,7 +11,7 @@ import org.metadatacenter.error.CedarErrorKey;
 import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.exception.CedarProcessingException;
 import org.metadatacenter.exception.ArtifactServerResourceNotFoundException;
-import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.model.CedarResourceType;
 import org.metadatacenter.model.CreateOrUpdate;
 import org.metadatacenter.model.request.OutputFormatType;
 import org.metadatacenter.model.request.OutputFormatTypeDetector;
@@ -74,13 +74,13 @@ public class TemplateInstancesResource extends AbstractArtifactServerResource {
 
     JsonNode templateInstance = c.request().getRequestBody().asJson();
 
-    enforceMandatoryNullOrMissingId(templateInstance, CedarNodeType.INSTANCE, CedarErrorKey
+    enforceMandatoryNullOrMissingId(templateInstance, CedarResourceType.INSTANCE, CedarErrorKey
         .TEMPLATE_INSTANCE_NOT_CREATED);
-    enforceMandatoryName(templateInstance, CedarNodeType.INSTANCE, CedarErrorKey
+    enforceMandatoryName(templateInstance, CedarResourceType.INSTANCE, CedarErrorKey
         .TEMPLATE_INSTANCE_NOT_CREATED);
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
-    setProvenanceAndId(CedarNodeType.INSTANCE, templateInstance, pi);
+    setProvenanceAndId(CedarResourceType.INSTANCE, templateInstance, pi);
 
     ValidationReport validationReport = validateTemplateInstance(templateInstance);
     ReportUtils.outputLogger(logger, validationReport, true);
@@ -206,8 +206,8 @@ public class TemplateInstancesResource extends AbstractArtifactServerResource {
 
     JsonNode newInstance = c.request().getRequestBody().asJson();
 
-    enforceMandatoryFieldsInPut(id, newInstance, CedarNodeType.INSTANCE, CedarErrorKey.TEMPLATE_INSTANCE_NOT_UPDATED);
-    enforceMandatoryName(newInstance, CedarNodeType.INSTANCE, CedarErrorKey
+    enforceMandatoryFieldsInPut(id, newInstance, CedarResourceType.INSTANCE, CedarErrorKey.TEMPLATE_INSTANCE_NOT_UPDATED);
+    enforceMandatoryName(newInstance, CedarResourceType.INSTANCE, CedarErrorKey
         .TEMPLATE_INSTANCE_NOT_CREATED);
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
@@ -215,7 +215,7 @@ public class TemplateInstancesResource extends AbstractArtifactServerResource {
 
     // add template-element-instance ids if needed. For instance, this may be needed if new items are added to an array
     // of template-element instances
-    linkedDataUtil.addElementInstanceIds(newInstance, CedarNodeType.INSTANCE);
+    linkedDataUtil.addElementInstanceIds(newInstance, CedarResourceType.INSTANCE);
 
     ValidationReport validationReport = validateTemplateInstance(newInstance);
     ReportUtils.outputLogger(logger, validationReport, true);
