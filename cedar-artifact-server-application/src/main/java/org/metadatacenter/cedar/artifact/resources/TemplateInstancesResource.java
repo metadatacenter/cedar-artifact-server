@@ -8,14 +8,15 @@ import org.metadatacenter.constant.CustomHttpConstants;
 import org.metadatacenter.constant.HttpConstants;
 import org.metadatacenter.constant.LinkedData;
 import org.metadatacenter.error.CedarErrorKey;
+import org.metadatacenter.exception.ArtifactServerResourceNotFoundException;
 import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.exception.CedarProcessingException;
-import org.metadatacenter.exception.ArtifactServerResourceNotFoundException;
 import org.metadatacenter.model.CedarResourceType;
 import org.metadatacenter.model.CreateOrUpdate;
 import org.metadatacenter.model.request.OutputFormatType;
 import org.metadatacenter.model.request.OutputFormatTypeDetector;
 import org.metadatacenter.model.trimmer.JsonLdDocument;
+import org.metadatacenter.model.validation.report.CedarValidationReport;
 import org.metadatacenter.model.validation.report.ReportUtils;
 import org.metadatacenter.model.validation.report.ValidationReport;
 import org.metadatacenter.rest.context.CedarRequestContext;
@@ -82,11 +83,33 @@ public class TemplateInstancesResource extends AbstractArtifactServerResource {
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     setProvenanceAndId(CedarResourceType.INSTANCE, templateInstance, pi);
 
-    ValidationReport validationReport = validateTemplateInstance(templateInstance);
-    ReportUtils.outputLogger(logger, validationReport, true);
-    JsonNode createdTemplateInstance = null;
+    Response response = null;
+    if (cedarConfig.getValidationConfig().isEnabled()) {
+      ValidationReport validationReport = validateTemplateInstance(templateInstance);
+      ReportUtils.outputLogger(logger, validationReport, true);
+      String validationStatus = validationReport.getValidationStatus();
+      if (validationStatus.equals(CedarValidationReport.IS_VALID)) {
+        response = storeTemplateInstanceInDatabase(templateInstance);
+      } else {
+        response = CedarResponse.badRequest()
+            .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_INVALID)
+            .build();
+      }
+    } else {
+      response = storeTemplateInstanceInDatabase(templateInstance);
+    }
+    return response;
+  }
+
+  private Response storeTemplateInstanceInDatabase(JsonNode templateInstance) {
     try {
-      createdTemplateInstance = templateInstanceService.createTemplateInstance(templateInstance);
+      JsonNode createdTemplateInstance = templateInstanceService.createTemplateInstance(templateInstance);
+      MongoUtils.removeIdField(createdTemplateInstance);
+      String id = createdTemplateInstance.get(LinkedData.ID).asText();
+      URI uri = CedarUrlUtil.getIdURI(uriInfo, id);
+      return CedarResponse.created(uri)
+          .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_VALID)
+          .entity(createdTemplateInstance).build();
     } catch (IOException e) {
       return CedarResponse.internalServerError()
           .errorKey(CedarErrorKey.TEMPLATE_INSTANCE_NOT_CREATED)
@@ -94,20 +117,13 @@ public class TemplateInstancesResource extends AbstractArtifactServerResource {
           .exception(e)
           .build();
     }
-    MongoUtils.removeIdField(createdTemplateInstance);
-
-    String id = createdTemplateInstance.get(LinkedData.ID).asText();
-
-    URI uri = CedarUrlUtil.getIdURI(uriInfo, id);
-    return CedarResponse.created(uri)
-        .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, validationReport.getValidationStatus())
-        .entity(createdTemplateInstance).build();
   }
 
   @GET
   @Timed
   @Path("/{id}")
-  public Response findTemplateInstance(@PathParam(PP_ID) String id, @QueryParam(QP_FORMAT) Optional<String> format)
+  public Response findTemplateInstance(@PathParam(PP_ID) String id,
+                                       @QueryParam(QP_FORMAT) Optional<String> format)
       throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
@@ -206,14 +222,16 @@ public class TemplateInstancesResource extends AbstractArtifactServerResource {
 
     JsonNode newInstance = c.request().getRequestBody().asJson();
 
-    enforceMandatoryFieldsInPut(id, newInstance, CedarResourceType.INSTANCE, CedarErrorKey.TEMPLATE_INSTANCE_NOT_UPDATED);
+    enforceMandatoryFieldsInPut(id, newInstance, CedarResourceType.INSTANCE,
+        CedarErrorKey.TEMPLATE_INSTANCE_NOT_UPDATED);
     enforceMandatoryName(newInstance, CedarResourceType.INSTANCE, CedarErrorKey
         .TEMPLATE_INSTANCE_NOT_CREATED);
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     provenanceUtil.patchProvenanceInfo(newInstance, pi);
 
-    // add template-element-instance ids if needed. For instance, this may be needed if new items are added to an array
+    // add template-element-instance ids if needed. For instance, this may be needed if new items are added to an
+    // array
     // of template-element instances
     linkedDataUtil.addElementInstanceIds(newInstance, CedarResourceType.INSTANCE);
 
