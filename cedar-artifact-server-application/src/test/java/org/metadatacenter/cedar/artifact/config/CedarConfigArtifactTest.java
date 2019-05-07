@@ -42,6 +42,8 @@ public class CedarConfigArtifactTest {
 
     env.put(CedarEnvironmentVariable.CEDAR_USER_HTTP_PORT.getName(), "9005");
 
+    env.put(CedarEnvironmentVariable.CEDAR_VALIDATION_ENABLED.getName(), "true");
+
     CedarEnvironmentUtil.copy(CedarEnvironmentVariable.CEDAR_TEST_USER1_ID, env);
 
     TestUtil.setEnv(env);
