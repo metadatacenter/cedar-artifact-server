@@ -112,15 +112,16 @@ public class CreateElementPostTest extends AbstractRestTest {
     } catch (JsonParseException e) {
       // do nothing, the json can be invalid intentionally
     }
-    JsonNode idNode = element.get(LinkedData.ID);
-    if (idNode != null) {
-      createdId = idNode.asText();
-      pair("Created id", createdId);
-      divider();
+    if (element != null) {
+      JsonNode idNode = element.get(LinkedData.ID);
+      if (idNode != null) {
+        createdId = idNode.asText();
+        pair("Created id", createdId);
+        divider();
 
-      createdResources.put(createdId, CedarResourceType.ELEMENT);
+        createdResources.put(createdId, CedarResourceType.ELEMENT);
+      }
     }
-
     int responseStatus = response.getStatus();
     int expectedResponseStatus = getExpectedResponseStatus(generator, js, rt, auth, idInBodyGenerator);
     Assert.assertEquals(expectedResponseStatus, responseStatus);
@@ -147,13 +148,13 @@ public class CreateElementPostTest extends AbstractRestTest {
     } else if (EMPTY_JSON.equals(js.getValue())) {
       return Response.Status.BAD_REQUEST.getStatusCode();
     } else if (SCHEMA_NAME.equals(js.getValue())) {
-      return Response.Status.CREATED.getStatusCode();
+      return Response.Status.BAD_REQUEST.getStatusCode();
     } else if (SCHEMA_DESCRIPTION.equals(js.getValue())) {
       return Response.Status.BAD_REQUEST.getStatusCode();
     } else if (MINIMAL_ELEMENT_WITH_ID.equals(js.getValue())) {
       return Response.Status.BAD_REQUEST.getStatusCode();
     } else if (FULL_ELEMENT.equals(js.getValue())) {
-      return Response.Status.BAD_REQUEST.getStatusCode();
+      return Response.Status.CREATED.getStatusCode();
     } else if (MINIMAL_ELEMENT_NO_ID.equals(js.getValue())) {
       return Response.Status.CREATED.getStatusCode();
     }

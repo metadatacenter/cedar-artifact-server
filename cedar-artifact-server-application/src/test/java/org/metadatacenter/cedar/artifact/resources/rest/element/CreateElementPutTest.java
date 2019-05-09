@@ -49,6 +49,9 @@ public class CreateElementPutTest extends AbstractRestTest {
                                    TestValueResourceIdGenerator idInURLGenerator,
                                    TestParameterValueGenerator<String> idInBodyGenerator) throws IOException {
     index++;
+    if (index >= 324) {
+      System.out.print("");
+    }
     TestParameterArrayGenerator arrayGenerator = generator.getValue();
     String jsonFileName = js.getValue();
     CedarResourceType resourceType = rt.getValue();
@@ -145,7 +148,7 @@ public class CreateElementPutTest extends AbstractRestTest {
     } else if (SCHEMA_DESCRIPTION.equals(js.getValue())) {
       return Response.Status.BAD_REQUEST.getStatusCode();
     } else if (MINIMAL_ELEMENT_NO_ID.equals(js.getValue())) {
-      return Response.Status.BAD_REQUEST.getStatusCode();
+      return Response.Status.CREATED.getStatusCode();
     }
 
     if (idInURLGenerator.getIdMatchingSelector() == NULL_ID) {
@@ -166,8 +169,9 @@ public class CreateElementPutTest extends AbstractRestTest {
     }
 
     if (idInBodyGenerator instanceof TestValueCopyFromValueGenerator) {
-      if (MINIMAL_ELEMENT_WITH_ID.equals(js.getValue()) ||
-          FULL_ELEMENT.equals(js.getValue())) {
+      if (MINIMAL_ELEMENT_WITH_ID.equals(js.getValue())) {
+        return Response.Status.OK.getStatusCode();
+      } else if (FULL_ELEMENT.equals(js.getValue())) {
         return Response.Status.CREATED.getStatusCode();
       }
     }

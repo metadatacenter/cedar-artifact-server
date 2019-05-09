@@ -161,6 +161,7 @@ public class UpdateElementTest extends AbstractRestTest {
       } catch (JsonParseException e) {
         // do nothing, the json can be invalid intentionally
       }
+
       JsonNode descriptionNode = getElement.get(CedarModelVocabulary.SCHEMA_DESCRIPTION);
       String description = descriptionNode.asText();
       pair("Updated description", description);
