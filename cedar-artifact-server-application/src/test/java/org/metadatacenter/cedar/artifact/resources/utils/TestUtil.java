@@ -84,7 +84,7 @@ public class TestUtil {
       url += INSTANCE_ROUTE;
     }
     else {
-      throw new InternalError("Wrong resource type: " + resourceType.name());
+      throw new InternalError("Wrong artifact type: " + resourceType.name());
     }
     return url;
   }

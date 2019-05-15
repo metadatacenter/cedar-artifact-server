@@ -33,12 +33,12 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
   public void updateResourceTest(JsonNode sampleResource, CedarResourceType resourceType) {
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
     sampleResource = setSchemaIsBasedOn(sampleTemplate, sampleResource, resourceType);
-    // Create a resource
+    // Create a artifact
     try {
       JsonNode createdResource = createResource(sampleResource, resourceType);
       createdResources.put(createdResource.get(LinkedData.ID).asText(), resourceType);
       String createdResourceId = createdResource.get(LinkedData.ID).asText();
-      // Update the resource
+      // Update the artifact
       String fieldName = "title";
       String fieldNewValue = "This is a new title";
       JsonNode updatedResource = ((ObjectNode) createdResource).put(fieldName, fieldNewValue);

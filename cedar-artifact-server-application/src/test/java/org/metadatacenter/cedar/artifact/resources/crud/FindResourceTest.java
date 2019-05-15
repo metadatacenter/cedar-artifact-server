@@ -39,14 +39,14 @@ public class FindResourceTest extends AbstractResourceCrudTest {
   @Parameters(method = "getCommonParams1")
   public void findResourceTest(JsonNode sampleResource, CedarResourceType resourceType) {
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
-    // If the resource is an instance, we need to set the schema:isBasedOn property to the id of an existing artifact.
+    // If the artifact is an instance, we need to set the schema:isBasedOn property to the id of an existing artifact.
     // Otherwise we will get a validation error. So, first we create a artifact and then use its id to create the instance
     sampleResource = setSchemaIsBasedOn(sampleTemplate, sampleResource, resourceType);
-    // Create a resource
+    // Create a artifact
     Response response = testClient.target(url).request().header("Authorization", authHeader).post(Entity.json(sampleResource));
     JsonNode expected = response.readEntity(JsonNode.class);
     createdResources.put(expected.get(LinkedData.ID).asText(), resourceType);
-    // Use generated id to retrieve the resource
+    // Use generated id to retrieve the artifact
     String id = expected.get(LinkedData.ID).asText();
     String findUrl = null;
     try {
@@ -114,14 +114,14 @@ public class FindResourceTest extends AbstractResourceCrudTest {
   @Parameters(method = "getCommonParams1")
   public void findResourceMissingAuthorizationHeaderTest(JsonNode sampleResource, CedarResourceType resourceType) {
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
-    // If the resource is an instance, we need to set the schema:isBasedOn property to the id of an existing artifact.
+    // If the artifact is an instance, we need to set the schema:isBasedOn property to the id of an existing artifact.
     // Otherwise we will get a validation error. So, first we create a artifact and then use its id to create the instance
     sampleResource = setSchemaIsBasedOn(sampleTemplate, sampleResource, resourceType);
-    // Create a resource
+    // Create a artifact
     Response response = testClient.target(url).request().header("Authorization", authHeader).post(Entity.json(sampleResource));
     JsonNode expected = response.readEntity(JsonNode.class);
     createdResources.put(expected.get(LinkedData.ID).asText(), resourceType);
-    // Use generated id to retrieve the resource
+    // Use generated id to retrieve the artifact
     String id = expected.get(LinkedData.ID).asText();
     String findUrl = null;
     try {
@@ -140,14 +140,14 @@ public class FindResourceTest extends AbstractResourceCrudTest {
   @Parameters(method = "getCommonParams1")
   public void findResourceUnauthorizedKeyTest(JsonNode sampleResource, CedarResourceType resourceType) {
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
-    // If the resource is an instance, we need to set the schema:isBasedOn property to the id of an existing artifact.
+    // If the artifact is an instance, we need to set the schema:isBasedOn property to the id of an existing artifact.
     // Otherwise we will get a validation error. So, first we create a artifact and then use its id to create the instance
     sampleResource = setSchemaIsBasedOn(sampleTemplate, sampleResource, resourceType);
-    // Create a resource
+    // Create a artifact
     Response response = testClient.target(url).request().header("Authorization", authHeader).post(Entity.json(sampleResource));
     JsonNode expected = response.readEntity(JsonNode.class);
     createdResources.put(expected.get(LinkedData.ID).asText(), resourceType);
-    // Use generated id to retrieve the resource
+    // Use generated id to retrieve the artifact
     String id = expected.get(LinkedData.ID).asText();
     String findUrl = null;
     try {
@@ -175,11 +175,11 @@ public class FindResourceTest extends AbstractResourceCrudTest {
     // create resources
     List<JsonNode> resources = new ArrayList<>();
     for (int i = 0; i < CREATE_RESOURCES_COUNT; i++) {
-      // If the resource is an instance, we need to set the schema:isBasedOn property to the id of an existing artifact.
+      // If the artifact is an instance, we need to set the schema:isBasedOn property to the id of an existing artifact.
       // Otherwise we will get a validation error. So, first we create a artifact and then use its id to create the
       // instance
       sampleResource = setSchemaIsBasedOn(sampleTemplate, sampleResource, resourceType);
-      // Create a resource
+      // Create a artifact
       JsonNode createdResource = null;
       try {
         createdResource = createResource(sampleResource, resourceType);

@@ -17,7 +17,7 @@ public class TestResourcesUtils {
       byte[] bytes = Files.readAllBytes(Paths.get(resourceUrl.toURI()));
       return new String(bytes, StandardCharsets.UTF_8);
     } catch (Exception e) {
-      throw new RuntimeException("Internal testing error: Unable to read resource file " + path, e);
+      throw new RuntimeException("Internal testing error: Unable to read artifact file " + path, e);
     }
   }
 
@@ -29,7 +29,7 @@ public class TestResourcesUtils {
           Paths.get(resourceUrl.toURI()),
           StandardCharsets.UTF_8);
     } catch (Exception e) {
-      throw new RuntimeException("Internal testing error: Unable to read resource file " + path, e);
+      throw new RuntimeException("Internal testing error: Unable to read artifact file " + path, e);
     }
   }
 

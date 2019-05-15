@@ -83,13 +83,13 @@ public abstract class AbstractResourceTest {
 
   }
 
-  // Create a resource
+  // Create a artifact
   protected static JsonNode createResource(JsonNode resource, CedarResourceType resourceType) throws IOException {
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
     Response response =
         testClient.target(url).request().header(AUTHORIZATION, authHeaderTestUser1).post(Entity.json(resource));
     if (response.getStatus() != CREATED) {
-      throw new IllegalStateException("The resource was not created! The test can not continue this way.");
+      throw new IllegalStateException("The artifact was not created! The test can not continue this way.");
     }
     return response.readEntity(JsonNode.class);
   }

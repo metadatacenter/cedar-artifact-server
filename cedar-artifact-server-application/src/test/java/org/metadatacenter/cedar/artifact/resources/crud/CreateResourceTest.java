@@ -30,7 +30,7 @@ public class CreateResourceTest extends AbstractResourceCrudTest {
   @Parameters(method = "getCommonParams1")
   public void createResourceTest(JsonNode sampleResource, CedarResourceType resourceType) {
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
-    // If the resource is an instance, we need to set the schema:isBasedOn property to the id of an existing artifact.
+    // If the artifact is an instance, we need to set the schema:isBasedOn property to the id of an existing artifact.
     // Otherwise we will get a validation error. So, first we create a artifact and then use its id to create the
     // instance
     sampleResource = setSchemaIsBasedOn(sampleTemplate, sampleResource, resourceType);
@@ -40,7 +40,7 @@ public class CreateResourceTest extends AbstractResourceCrudTest {
     // Check HTTP response
     Assert.assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
     createdResources.put(response.readEntity(JsonNode.class).get(LinkedData.ID).asText(), resourceType);
-    // Retrieve the resource created
+    // Retrieve the artifact created
     String location = response.getHeaderString(LOCATION);
     Response findResponse = testClient.target(location).request().header("Authorization", authHeader).get();
     JsonNode expected = sampleResource;
