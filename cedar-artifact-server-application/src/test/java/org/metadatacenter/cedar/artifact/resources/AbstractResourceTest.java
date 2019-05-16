@@ -16,7 +16,7 @@ import org.metadatacenter.cedar.artifact.resources.utils.TestConstants;
 import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
 import org.metadatacenter.cedar.test.util.TestDataGenerationContext;
 import org.metadatacenter.exception.ArtifactServerResourceNotFoundException;
-import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.model.CedarResourceType;
 import org.metadatacenter.server.jsonld.LinkedDataUtil;
 import org.metadatacenter.util.test.TestUserUtil;
 import org.slf4j.Logger;
@@ -83,13 +83,13 @@ public abstract class AbstractResourceTest {
 
   }
 
-  // Create a resource
-  protected static JsonNode createResource(JsonNode resource, CedarNodeType resourceType) throws IOException {
+  // Create a artifact
+  protected static JsonNode createResource(JsonNode resource, CedarResourceType resourceType) throws IOException {
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
     Response response =
         testClient.target(url).request().header(AUTHORIZATION, authHeaderTestUser1).post(Entity.json(resource));
-    if (response.getStatus() != CREATED ) {
-      throw new IllegalStateException("The resource was not created! The test can not continue this way.");
+    if (response.getStatus() != CREATED) {
+      throw new IllegalStateException("The artifact was not created! The test can not continue this way.");
     }
     return response.readEntity(JsonNode.class);
   }
@@ -97,25 +97,25 @@ public abstract class AbstractResourceTest {
   /**
    * Remove resources by id
    */
-  protected static void removeResources(Map<String, CedarNodeType> resourceMap) throws IOException,
+  protected static void removeResources(Map<String, CedarResourceType> resourceMap) throws IOException,
       ArtifactServerResourceNotFoundException {
     Iterator it = resourceMap.entrySet().iterator();
     while (it.hasNext()) {
       Map.Entry pair = (Map.Entry) it.next();
       String id = (String) pair.getKey();
-      CedarNodeType resourceType = (CedarNodeType) pair.getValue();
+      CedarResourceType resourceType = (CedarResourceType) pair.getValue();
       removeResource(id, resourceType);
       System.out.println("Resource: " + id + " has been removed correctly");
     }
   }
 
-  protected static void removeResource(String id, CedarNodeType resourceType) {
+  protected static void removeResource(String id, CedarResourceType resourceType) {
     try {
-      if (resourceType.equals(CedarNodeType.TEMPLATE)) {
+      if (resourceType.equals(CedarResourceType.TEMPLATE)) {
         TestUtil.templateService.deleteTemplate(id);
-      } else if (resourceType.equals(CedarNodeType.ELEMENT)) {
+      } else if (resourceType.equals(CedarResourceType.ELEMENT)) {
         TestUtil.templateElementService.deleteTemplateElement(id);
-      } else if (resourceType.equals(CedarNodeType.FIELD)) {
+      } else if (resourceType.equals(CedarResourceType.FIELD)) {
         TestUtil.templateFieldService.deleteTemplateField(id);
       } else { // Template instance
         TestUtil.templateInstanceService.deleteTemplateInstance(id);

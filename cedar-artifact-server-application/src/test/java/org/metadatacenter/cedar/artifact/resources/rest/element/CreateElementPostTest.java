@@ -14,7 +14,7 @@ import org.metadatacenter.cedar.artifact.resources.rest.AuthHeaderSelector;
 import org.metadatacenter.cedar.artifact.resources.rest.IdMatchingSelector;
 import org.metadatacenter.cedar.test.util.*;
 import org.metadatacenter.constant.LinkedData;
-import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.model.CedarResourceType;
 import org.metadatacenter.util.json.JsonMapper;
 
 import javax.ws.rs.client.Entity;
@@ -31,7 +31,7 @@ import static org.metadatacenter.cedar.artifact.resources.rest.AuthHeaderSelecto
 import static org.metadatacenter.cedar.artifact.resources.rest.IdMatchingSelector.*;
 import static org.metadatacenter.cedar.artifact.resources.utils.TestConstants.TEST_NAME_PATTERN_METHOD_PARAMS;
 import static org.metadatacenter.cedar.test.util.TestValueResourceIdGenerator.ids;
-import static org.metadatacenter.model.CedarNodeType.ELEMENT;
+import static org.metadatacenter.model.CedarResourceType.ELEMENT;
 
 @RunWith(JUnitParamsRunner.class)
 public class CreateElementPostTest extends AbstractRestTest {
@@ -43,13 +43,13 @@ public class CreateElementPostTest extends AbstractRestTest {
   @Parameters(method = "getParamsCreateElementPost")
   public void createElementPostTest(TestParameterArrayGeneratorGenerator generator,
                                     TestParameterValueGenerator<String> js,
-                                    TestParameterValueGenerator<CedarNodeType> rt,
+                                    TestParameterValueGenerator<CedarResourceType> rt,
                                     TestParameterValueGenerator<String> auth,
                                     TestParameterValueGenerator<String> idInBodyGenerator) throws IOException {
     index++;
     TestParameterArrayGenerator arrayGenerator = generator.getValue();
     String jsonFileName = js.getValue();
-    CedarNodeType resourceType = rt.getValue();
+    CedarResourceType resourceType = rt.getValue();
     auth.generateValue(tdctx, arrayGenerator);
     String authHeaderValue = auth.getValue();
     String postUrl = getUrlWithId(baseTestUrl, resourceType, (String) null);
@@ -112,15 +112,16 @@ public class CreateElementPostTest extends AbstractRestTest {
     } catch (JsonParseException e) {
       // do nothing, the json can be invalid intentionally
     }
-    JsonNode idNode = element.get(LinkedData.ID);
-    if (idNode != null) {
-      createdId = idNode.asText();
-      pair("Created id", createdId);
-      divider();
+    if (element != null) {
+      JsonNode idNode = element.get(LinkedData.ID);
+      if (idNode != null) {
+        createdId = idNode.asText();
+        pair("Created id", createdId);
+        divider();
 
-      createdResources.put(createdId, CedarNodeType.ELEMENT);
+        createdResources.put(createdId, CedarResourceType.ELEMENT);
+      }
     }
-
     int responseStatus = response.getStatus();
     int expectedResponseStatus = getExpectedResponseStatus(generator, js, rt, auth, idInBodyGenerator);
     Assert.assertEquals(expectedResponseStatus, responseStatus);
@@ -128,7 +129,7 @@ public class CreateElementPostTest extends AbstractRestTest {
 
   private int getExpectedResponseStatus(TestParameterArrayGeneratorGenerator generator,
                                         TestParameterValueGenerator<String> js,
-                                        TestParameterValueGenerator<CedarNodeType> rt,
+                                        TestParameterValueGenerator<CedarResourceType> rt,
                                         TestParameterValueGenerator<String> auth,
                                         TestParameterValueGenerator<String> idInBodyGenerator) {
 
@@ -147,13 +148,13 @@ public class CreateElementPostTest extends AbstractRestTest {
     } else if (EMPTY_JSON.equals(js.getValue())) {
       return Response.Status.BAD_REQUEST.getStatusCode();
     } else if (SCHEMA_NAME.equals(js.getValue())) {
-      return Response.Status.CREATED.getStatusCode();
+      return Response.Status.BAD_REQUEST.getStatusCode();
     } else if (SCHEMA_DESCRIPTION.equals(js.getValue())) {
       return Response.Status.BAD_REQUEST.getStatusCode();
     } else if (MINIMAL_ELEMENT_WITH_ID.equals(js.getValue())) {
       return Response.Status.BAD_REQUEST.getStatusCode();
     } else if (FULL_ELEMENT.equals(js.getValue())) {
-      return Response.Status.BAD_REQUEST.getStatusCode();
+      return Response.Status.CREATED.getStatusCode();
     } else if (MINIMAL_ELEMENT_NO_ID.equals(js.getValue())) {
       return Response.Status.CREATED.getStatusCode();
     }
@@ -186,9 +187,9 @@ public class CreateElementPostTest extends AbstractRestTest {
 
     TestParameterArrayGenerator generatorForElement = new TestParameterArrayGenerator();
     generatorForElement.registerParameter(1, jsonFileName, "jsonFileName");
-    generatorForElement.addParameterValue(2, ELEMENT, "nodeType");
+    generatorForElement.addParameterValue(2, ELEMENT, "resourceType");
     generatorForElement.registerParameter(3, authHeader, "authHeader");
-    generatorForElement.registerParameter(4, ids(idInBody, "nodeType"), "idInBody");
+    generatorForElement.registerParameter(4, ids(idInBody, "resourceType"), "idInBody");
 
     List<TestParameterValueGenerator[]> testCases = new ArrayList<>();
 

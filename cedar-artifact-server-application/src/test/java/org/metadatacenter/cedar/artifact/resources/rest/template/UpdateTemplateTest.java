@@ -14,7 +14,7 @@ import org.metadatacenter.cedar.artifact.resources.rest.AuthHeaderSelector;
 import org.metadatacenter.cedar.artifact.resources.rest.IdMatchingSelector;
 import org.metadatacenter.cedar.test.util.*;
 import org.metadatacenter.constant.LinkedData;
-import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.model.CedarResourceType;
 import org.metadatacenter.model.core.CedarModelVocabulary;
 import org.metadatacenter.util.json.JsonMapper;
 
@@ -33,7 +33,7 @@ import static org.metadatacenter.cedar.artifact.resources.rest.AuthHeaderSelecto
 import static org.metadatacenter.cedar.artifact.resources.rest.IdMatchingSelector.*;
 import static org.metadatacenter.cedar.artifact.resources.utils.TestConstants.TEST_NAME_PATTERN_METHOD_PARAMS;
 import static org.metadatacenter.cedar.test.util.TestValueResourceIdGenerator.ids;
-import static org.metadatacenter.model.CedarNodeType.TEMPLATE;
+import static org.metadatacenter.model.CedarResourceType.TEMPLATE;
 
 @RunWith(JUnitParamsRunner.class)
 public class UpdateTemplateTest extends AbstractRestTest {
@@ -45,13 +45,13 @@ public class UpdateTemplateTest extends AbstractRestTest {
   @TestCaseName(TEST_NAME_PATTERN_METHOD_PARAMS)
   @Parameters(method = "getParamsUpdateTemplatePut")
   public void updateTemplateTest(TestParameterArrayGeneratorGenerator generator,
-                                 TestParameterValueGenerator<CedarNodeType> rt,
+                                 TestParameterValueGenerator<CedarResourceType> rt,
                                  TestParameterValueGenerator<String> auth,
                                  TestParameterValueGenerator<String> idInUrlGenerator) throws IOException {
     index++;
     TestParameterArrayGenerator arrayGenerator = generator.getValue();
     String jsonFileName = MINIMAL_TEMPLATE_NO_ID;
-    CedarNodeType resourceType = rt.getValue();
+    CedarResourceType resourceType = rt.getValue();
 
     // Create the artifact first
 
@@ -94,7 +94,7 @@ public class UpdateTemplateTest extends AbstractRestTest {
     pair("Created id", createdId);
     divider();
 
-    createdResources.put(createdId, CedarNodeType.TEMPLATE);
+    createdResources.put(createdId, CedarResourceType.TEMPLATE);
 
     // Do the actual testing - update
 
@@ -169,7 +169,7 @@ public class UpdateTemplateTest extends AbstractRestTest {
   }
 
   private int getExpectedResponseStatus(TestParameterArrayGeneratorGenerator generator,
-                                        TestParameterValueGenerator<CedarNodeType> rt,
+                                        TestParameterValueGenerator<CedarResourceType> rt,
                                         TestParameterValueGenerator<String> auth,
                                         TestParameterValueGenerator<String> idInUrlGenerator) {
 
@@ -213,9 +213,9 @@ public class UpdateTemplateTest extends AbstractRestTest {
     idInUrl.add(PREVIOUSLY_CREATED);
 
     TestParameterArrayGenerator generatorForTemplate = new TestParameterArrayGenerator();
-    generatorForTemplate.addParameterValue(1, TEMPLATE, "nodeType");
+    generatorForTemplate.addParameterValue(1, TEMPLATE, "resourceType");
     generatorForTemplate.registerParameter(2, authHeader, "authHeader");
-    generatorForTemplate.registerParameter(3, ids(idInUrl, "nodeType"), "idInUrl");
+    generatorForTemplate.registerParameter(3, ids(idInUrl, "resourceType"), "idInUrl");
 
     List<TestParameterValueGenerator[]> testCases = new ArrayList<>();
 

@@ -11,7 +11,7 @@ import org.metadatacenter.exception.CedarBadRequestException;
 import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.exception.CedarProcessingException;
 import org.metadatacenter.exception.CedarRequestBodyMissingFieldException;
-import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.model.CedarResourceType;
 import org.metadatacenter.model.core.CedarModelVocabulary;
 import org.metadatacenter.model.validation.CedarValidator;
 import org.metadatacenter.model.validation.ModelValidator;
@@ -41,17 +41,17 @@ public class AbstractArtifactServerResource extends CedarMicroserviceResource {
     FIELD_NAMES_EXCLUSION_LIST.addAll(cedarConfig.getArtifactRESTAPI().getExcludedFields());
   }
 
-  protected void setProvenanceAndId(CedarNodeType cedarNodeType, JsonNode element, ProvenanceInfo pi) {
+  protected void setProvenanceAndId(CedarResourceType cedarResourceType, JsonNode element, ProvenanceInfo pi) {
     if ((element.get("@id") != null) && (!NULL.equals(element.get("@id").getNodeType()))) {
       throw new IllegalArgumentException("Specifying @id for new objects is not allowed");
     }
     provenanceUtil.addProvenanceInfo(element, pi);
 
-    String id = linkedDataUtil.buildNewLinkedDataId(cedarNodeType);
+    String id = linkedDataUtil.buildNewLinkedDataId(cedarResourceType);
     ((ObjectNode) element).put("@id", id);
 
     // add template-element-instance ids (only for instances)
-    linkedDataUtil.addElementInstanceIds(element, cedarNodeType);
+    linkedDataUtil.addElementInstanceIds(element, cedarResourceType);
   }
 
   protected Boolean ensureSummary(Optional<Boolean> summary) {
@@ -126,14 +126,14 @@ public class AbstractArtifactServerResource extends CedarMicroserviceResource {
     };
   }
 
-  protected void enforceMandatoryNullOrMissingId(JsonNode jsonObject, CedarNodeType nodeType, CedarErrorKey errorKey)
+  protected void enforceMandatoryNullOrMissingId(JsonNode jsonObject, CedarResourceType resourceType, CedarErrorKey errorKey)
       throws CedarBadRequestException {
     JsonNode idInRequestNode = jsonObject.get(LinkedData.ID);
     if (idInRequestNode != null && !idInRequestNode.isNull()) {
       String idInRequest = idInRequestNode.asText();
       if (idInRequest != null) {
         CedarErrorPack errorPack = new CedarErrorPack()
-            .message("The " + nodeType.getValue() + " must not contain a non-null '" + LinkedData.ID + "' field!")
+            .message("The " + resourceType.getValue() + " must not contain a non-null '" + LinkedData.ID + "' field!")
             .errorKey(errorKey)
             .parameter(LinkedData.ID, idInRequest);
         throw new CedarBadRequestException(errorPack);
@@ -141,15 +141,15 @@ public class AbstractArtifactServerResource extends CedarMicroserviceResource {
     }
   }
 
-  protected void enforceMandatoryName(JsonNode jsonObject, CedarNodeType nodeType, CedarErrorKey errorKey)
+  protected void enforceMandatoryName(JsonNode jsonObject, CedarResourceType resourceType, CedarErrorKey errorKey)
       throws CedarBadRequestException {
-    JsonPointerValuePair namePair = ModelUtil.extractNameFromResource(nodeType, jsonObject);
+    JsonPointerValuePair namePair = ModelUtil.extractNameFromResource(resourceType, jsonObject);
     if (namePair.hasEmptyValue()) {
       throw new CedarRequestBodyMissingFieldException(namePair.getPointer(), errorKey);
     }
   }
 
-  protected void enforceMandatoryFieldsInPut(String id, JsonNode jsonObject, CedarNodeType nodeType, CedarErrorKey
+  protected void enforceMandatoryFieldsInPut(String id, JsonNode jsonObject, CedarResourceType resourceType, CedarErrorKey
       errorKey) throws CedarBadRequestException {
     JsonNode idInRequestNode = jsonObject.get(LinkedData.ID);
     String idInRequest = null;
@@ -158,7 +158,7 @@ public class AbstractArtifactServerResource extends CedarMicroserviceResource {
     }
     if (idInRequest == null) {
       CedarErrorPack errorPack = new CedarErrorPack()
-          .message("The " + nodeType.getValue() + " must contain a non-null '" + LinkedData.ID + "' field!")
+          .message("The " + resourceType.getValue() + " must contain a non-null '" + LinkedData.ID + "' field!")
           .errorKey(errorKey);
       throw new CedarBadRequestException(errorPack);
     }

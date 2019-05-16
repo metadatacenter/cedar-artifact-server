@@ -10,7 +10,7 @@ import org.junit.runner.RunWith;
 import org.metadatacenter.cedar.artifact.resources.AbstractResourceTest;
 import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
 import org.metadatacenter.exception.ArtifactServerResourceNotFoundException;
-import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.model.CedarResourceType;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
@@ -24,7 +24,7 @@ import static org.metadatacenter.constant.HttpConstants.HTTP_AUTH_HEADER_APIKEY_
 @RunWith(JUnitParamsRunner.class)
 public abstract class AbstractRestTest extends AbstractResourceTest {
 
-  protected static Map<String, CedarNodeType> createdResources;
+  protected static Map<String, CedarResourceType> createdResources;
 
   private static final String FILE_BASE_PATH = "rest/";
 
@@ -127,12 +127,12 @@ public abstract class AbstractRestTest extends AbstractResourceTest {
     return authHeaderValue;
   }
 
-  protected String getUrlWithId(String url, CedarNodeType nodeType, IdMatchingSelector idSelector) throws
+  protected String getUrlWithId(String url, CedarResourceType resourceType, IdMatchingSelector idSelector) throws
       UnsupportedEncodingException {
-    return getUrlWithId(url, nodeType, idSelector, null);
+    return getUrlWithId(url, resourceType, idSelector, null);
   }
 
-  protected String getUrlWithId(String url, CedarNodeType nodeType, IdMatchingSelector idSelector, String resourceId)
+  protected String getUrlWithId(String url, CedarResourceType resourceType, IdMatchingSelector idSelector, String resourceId)
       throws UnsupportedEncodingException {
     String urlWithId = null;
     if (idSelector == IdMatchingSelector.NULL_ID) {
@@ -140,7 +140,7 @@ public abstract class AbstractRestTest extends AbstractResourceTest {
     } else if (idSelector == IdMatchingSelector.GIBBERISH) {
       urlWithId = url + "/" + URLEncoder.encode("gibberish", "UTF-8");
     } else if (idSelector == IdMatchingSelector.RANDOM_ID) {
-      String uuid = linkedDataUtil.buildNewLinkedDataId(nodeType);
+      String uuid = linkedDataUtil.buildNewLinkedDataId(resourceType);
       urlWithId = url + "/" + URLEncoder.encode(uuid, "UTF-8");
     } else if (idSelector == IdMatchingSelector.FROM_JSON) {
       urlWithId = url + "/" + URLEncoder.encode(resourceId, "UTF-8");
@@ -148,9 +148,9 @@ public abstract class AbstractRestTest extends AbstractResourceTest {
     return urlWithId;
   }
 
-  protected String getUrlWithId(String url, CedarNodeType nodeType, String resourceId)
+  protected String getUrlWithId(String url, CedarResourceType resourceType, String resourceId)
       throws UnsupportedEncodingException {
-    url += "/" + nodeType.getPrefix();
+    url += "/" + resourceType.getPrefix();
     if (resourceId != null) {
       url += "/" + URLEncoder.encode(resourceId, "UTF-8");
     }

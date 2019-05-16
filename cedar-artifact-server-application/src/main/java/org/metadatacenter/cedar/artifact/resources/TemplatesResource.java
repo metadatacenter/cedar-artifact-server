@@ -8,10 +8,11 @@ import org.metadatacenter.constant.HttpConstants;
 import org.metadatacenter.constant.LinkedData;
 import org.metadatacenter.error.CedarErrorKey;
 import org.metadatacenter.error.CedarErrorReasonKey;
-import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.exception.ArtifactServerResourceNotFoundException;
-import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.model.CedarResourceType;
+import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.model.CreateOrUpdate;
+import org.metadatacenter.model.validation.report.CedarValidationReport;
 import org.metadatacenter.model.validation.report.ReportUtils;
 import org.metadatacenter.model.validation.report.ValidationReport;
 import org.metadatacenter.rest.context.CedarRequestContext;
@@ -70,18 +71,41 @@ public class TemplatesResource extends AbstractArtifactServerResource {
 
     JsonNode template = c.request().getRequestBody().asJson();
 
-    enforceMandatoryNullOrMissingId(template, CedarNodeType.TEMPLATE, CedarErrorKey.TEMPLATE_NOT_CREATED);
-    enforceMandatoryName(template, CedarNodeType.TEMPLATE, CedarErrorKey.TEMPLATE_NOT_CREATED);
+    enforceMandatoryNullOrMissingId(template, CedarResourceType.TEMPLATE, CedarErrorKey.TEMPLATE_NOT_CREATED);
+    enforceMandatoryName(template, CedarResourceType.TEMPLATE, CedarErrorKey.TEMPLATE_NOT_CREATED);
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
-    setProvenanceAndId(CedarNodeType.TEMPLATE, template, pi);
+    setProvenanceAndId(CedarResourceType.TEMPLATE, template, pi);
 
-    ValidationReport validationReport = validateTemplate(template);
-    ReportUtils.outputLogger(logger, validationReport, true);
-    JsonNode createdTemplate = null;
+    Response response = null;
+    if (cedarConfig.getValidationConfig().isEnabled()) {
+      ValidationReport validationReport = validateTemplate(template);
+      ReportUtils.outputLogger(logger, validationReport, true);
+      String validationStatus = validationReport.getValidationStatus();
+      if (validationStatus.equals(CedarValidationReport.IS_VALID)) {
+        response = storeTemplateInDatabase(template, pi);
+      } else {
+        response = CedarResponse.badRequest()
+            .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_INVALID)
+            .build();
+      }
+    } else {
+      response = storeTemplateInDatabase(template, pi);
+    }
+    return response;
+  }
+
+  private Response storeTemplateInDatabase(JsonNode template, ProvenanceInfo pi) {
     try {
       ModelUtil.ensureFieldIdsRecursively(template, pi, provenanceUtil, linkedDataUtil);
-      createdTemplate = templateService.createTemplate(template);
+      JsonNode createdTemplate = templateService.createTemplate(template);
+      MongoUtils.removeIdField(createdTemplate);
+      String id = createdTemplate.get(LinkedData.ID).asText();
+      URI createdTemplateUri = CedarUrlUtil.getIdURI(uriInfo, id);
+      return CedarResponse.created(createdTemplateUri)
+          .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_VALID)
+          .entity(createdTemplate)
+          .build();
     } catch (IOException e) {
       return CedarResponse.internalServerError()
           .errorKey(CedarErrorKey.TEMPLATE_NOT_CREATED)
@@ -89,14 +113,6 @@ public class TemplatesResource extends AbstractArtifactServerResource {
           .exception(e)
           .build();
     }
-    MongoUtils.removeIdField(createdTemplate);
-
-    String id = createdTemplate.get(LinkedData.ID).asText();
-
-    URI createdTemplateUri = CedarUrlUtil.getIdURI(uriInfo, id);
-    return CedarResponse.created(createdTemplateUri)
-        .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, validationReport.getValidationStatus())
-        .entity(createdTemplate).build();
   }
 
   @GET
@@ -195,54 +211,72 @@ public class TemplatesResource extends AbstractArtifactServerResource {
 
     JsonNode newTemplate = c.request().getRequestBody().asJson();
 
-    enforceMandatoryFieldsInPut(id, newTemplate, CedarNodeType.TEMPLATE, CedarErrorKey.TEMPLATE_NOT_UPDATED);
-    enforceMandatoryName(newTemplate, CedarNodeType.TEMPLATE, CedarErrorKey.TEMPLATE_NOT_UPDATED);
+    enforceMandatoryFieldsInPut(id, newTemplate, CedarResourceType.TEMPLATE, CedarErrorKey.TEMPLATE_NOT_UPDATED);
+    enforceMandatoryName(newTemplate, CedarResourceType.TEMPLATE, CedarErrorKey.TEMPLATE_NOT_UPDATED);
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     provenanceUtil.patchProvenanceInfo(newTemplate, pi);
 
-    ValidationReport validationReport = validateTemplate(newTemplate);
-    ReportUtils.outputLogger(logger, validationReport, true);
+    Response response = null;
+    if (cedarConfig.getValidationConfig().isEnabled()) {
+      ValidationReport validationReport = validateTemplate(newTemplate);
+      ReportUtils.outputLogger(logger, validationReport, true);
+      String validationStatus = validationReport.getValidationStatus();
+      if (validationStatus.equals(CedarValidationReport.IS_VALID)) {
+        response = updateTemplateInDatabase(id, newTemplate, pi, c);
+      } else {
+        response = CedarResponse.badRequest()
+            .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_INVALID)
+            .build();
+      }
+    } else {
+      response = updateTemplateInDatabase(id, newTemplate, pi, c);
+    }
+    return response;
+  }
+
+  private Response updateTemplateInDatabase(String templateId, JsonNode updatedTemplate, ProvenanceInfo pi,
+                                            CedarRequestContext c) throws CedarException {
     JsonNode outputTemplate = null;
     CreateOrUpdate createOrUpdate = null;
     try {
-      JsonNode currentTemplate = templateService.findTemplate(id);
-      ModelUtil.ensureFieldIdsRecursively(newTemplate, pi, provenanceUtil, linkedDataUtil);
+      JsonNode currentTemplate = templateService.findTemplate(templateId);
+      ModelUtil.ensureFieldIdsRecursively(updatedTemplate, pi, provenanceUtil, linkedDataUtil);
       if (currentTemplate != null) {
         createOrUpdate = CreateOrUpdate.UPDATE;
-        outputTemplate = templateService.updateTemplate(id, newTemplate);
+        outputTemplate = templateService.updateTemplate(templateId, updatedTemplate);
       } else {
-        c.must(id).be(ValidId);
+        c.must(templateId).be(ValidId);
         createOrUpdate = CreateOrUpdate.CREATE;
-        outputTemplate = templateService.createTemplate(newTemplate);
+        outputTemplate = templateService.createTemplate(updatedTemplate);
       }
+      MongoUtils.removeIdField(outputTemplate);
+      CedarResponse.CedarResponseBuilder responseBuilder = null;
+      if (createOrUpdate == CreateOrUpdate.UPDATE) {
+        responseBuilder = CedarResponse.ok();
+      } else {
+        URI createdTemplateUri = CedarUrlUtil.getURI(uriInfo);
+        responseBuilder = CedarResponse.created(createdTemplateUri);
+      }
+      return responseBuilder
+          .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_VALID)
+          .entity(outputTemplate)
+          .build();
     } catch (IOException | ArtifactServerResourceNotFoundException e) {
       CedarResponse.CedarResponseBuilder responseBuilder = CedarResponse.internalServerError()
-          .id(id)
+          .id(templateId)
           .exception(e);
       if (createOrUpdate == CreateOrUpdate.CREATE) {
         responseBuilder
             .errorKey(CedarErrorKey.TEMPLATE_NOT_CREATED)
-            .errorMessage("The artifact can not be created using id:" + id);
+            .errorMessage("The artifact can not be created using id:" + templateId);
       } else if (createOrUpdate == CreateOrUpdate.UPDATE) {
         responseBuilder
             .errorKey(CedarErrorKey.TEMPLATE_NOT_UPDATED)
-            .errorMessage("The artifact can not be updated by id:" + id);
+            .errorMessage("The artifact can not be updated by id:" + templateId);
       }
       return responseBuilder.build();
     }
-    MongoUtils.removeIdField(outputTemplate);
-    CedarResponse.CedarResponseBuilder responseBuilder = null;
-    if (createOrUpdate == CreateOrUpdate.UPDATE) {
-      responseBuilder = CedarResponse.ok();
-    } else {
-      URI createdTemplateUri = CedarUrlUtil.getURI(uriInfo);
-      responseBuilder = CedarResponse.created(createdTemplateUri);
-    }
-    responseBuilder
-        .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, validationReport.getValidationStatus())
-        .entity(outputTemplate);
-    return responseBuilder.build();
   }
 
   @DELETE

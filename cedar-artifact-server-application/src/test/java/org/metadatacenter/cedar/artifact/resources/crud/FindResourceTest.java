@@ -13,7 +13,7 @@ import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
 import org.metadatacenter.constant.CustomHttpConstants;
 import org.metadatacenter.constant.HttpConstants;
 import org.metadatacenter.constant.LinkedData;
-import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.model.CedarResourceType;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
@@ -37,16 +37,16 @@ public class FindResourceTest extends AbstractResourceCrudTest {
   @Test
   @TestCaseName(TEST_NAME_PATTERN_INDEX_METHOD)
   @Parameters(method = "getCommonParams1")
-  public void findResourceTest(JsonNode sampleResource, CedarNodeType resourceType) {
+  public void findResourceTest(JsonNode sampleResource, CedarResourceType resourceType) {
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
-    // If the resource is an instance, we need to set the schema:isBasedOn property to the id of an existing artifact.
+    // If the artifact is an instance, we need to set the schema:isBasedOn property to the id of an existing artifact.
     // Otherwise we will get a validation error. So, first we create a artifact and then use its id to create the instance
     sampleResource = setSchemaIsBasedOn(sampleTemplate, sampleResource, resourceType);
-    // Create a resource
+    // Create a artifact
     Response response = testClient.target(url).request().header("Authorization", authHeader).post(Entity.json(sampleResource));
     JsonNode expected = response.readEntity(JsonNode.class);
     createdResources.put(expected.get(LinkedData.ID).asText(), resourceType);
-    // Use generated id to retrieve the resource
+    // Use generated id to retrieve the artifact
     String id = expected.get(LinkedData.ID).asText();
     String findUrl = null;
     try {
@@ -66,7 +66,7 @@ public class FindResourceTest extends AbstractResourceCrudTest {
   @Test
   @TestCaseName(TEST_NAME_PATTERN_INDEX_METHOD)
   @Parameters
-  public void findNonExistentResourceTest(CedarNodeType resourceType, String nonExistentResourceId) {
+  public void findNonExistentResourceTest(CedarResourceType resourceType, String nonExistentResourceId) {
     String findUrl = null;
     try {
       findUrl = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType) + "/" + URLEncoder.encode(nonExistentResourceId, "UTF-8");
@@ -80,16 +80,16 @@ public class FindResourceTest extends AbstractResourceCrudTest {
   }
   private Object parametersForFindNonExistentResourceTest() {
     return new Object[]{
-        new Object[]{CedarNodeType.TEMPLATE, NON_EXISTENT_TEMPLATE_ID},
-        new Object[]{CedarNodeType.ELEMENT, NON_EXISTENT_ELEMENT_ID},
-        new Object[]{CedarNodeType.INSTANCE, NON_EXISTENT_INSTANCE_ID}
+        new Object[]{CedarResourceType.TEMPLATE, NON_EXISTENT_TEMPLATE_ID},
+        new Object[]{CedarResourceType.ELEMENT, NON_EXISTENT_ELEMENT_ID},
+        new Object[]{CedarResourceType.INSTANCE, NON_EXISTENT_INSTANCE_ID}
     };
   }
 
   @Test
   @TestCaseName(TEST_NAME_PATTERN_INDEX_METHOD)
   @Parameters
-  public void findInvalidIdTest(CedarNodeType resourceType, String invalidId) {
+  public void findInvalidIdTest(CedarResourceType resourceType, String invalidId) {
     String findUrl = null;
     try {
       findUrl = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType) + "/" + URLEncoder.encode(invalidId, "UTF-8");
@@ -103,25 +103,25 @@ public class FindResourceTest extends AbstractResourceCrudTest {
   }
   private Object parametersForFindInvalidIdTest() {
     return new Object[]{
-        new Object[]{CedarNodeType.TEMPLATE, INVALID_ID},
-        new Object[]{CedarNodeType.ELEMENT, INVALID_ID},
-        new Object[]{CedarNodeType.INSTANCE, INVALID_ID}
+        new Object[]{CedarResourceType.TEMPLATE, INVALID_ID},
+        new Object[]{CedarResourceType.ELEMENT, INVALID_ID},
+        new Object[]{CedarResourceType.INSTANCE, INVALID_ID}
     };
   }
 
   @Test
   @TestCaseName(TEST_NAME_PATTERN_INDEX_METHOD)
   @Parameters(method = "getCommonParams1")
-  public void findResourceMissingAuthorizationHeaderTest(JsonNode sampleResource, CedarNodeType resourceType) {
+  public void findResourceMissingAuthorizationHeaderTest(JsonNode sampleResource, CedarResourceType resourceType) {
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
-    // If the resource is an instance, we need to set the schema:isBasedOn property to the id of an existing artifact.
+    // If the artifact is an instance, we need to set the schema:isBasedOn property to the id of an existing artifact.
     // Otherwise we will get a validation error. So, first we create a artifact and then use its id to create the instance
     sampleResource = setSchemaIsBasedOn(sampleTemplate, sampleResource, resourceType);
-    // Create a resource
+    // Create a artifact
     Response response = testClient.target(url).request().header("Authorization", authHeader).post(Entity.json(sampleResource));
     JsonNode expected = response.readEntity(JsonNode.class);
     createdResources.put(expected.get(LinkedData.ID).asText(), resourceType);
-    // Use generated id to retrieve the resource
+    // Use generated id to retrieve the artifact
     String id = expected.get(LinkedData.ID).asText();
     String findUrl = null;
     try {
@@ -138,16 +138,16 @@ public class FindResourceTest extends AbstractResourceCrudTest {
   @Test
   @TestCaseName(TEST_NAME_PATTERN_INDEX_METHOD)
   @Parameters(method = "getCommonParams1")
-  public void findResourceUnauthorizedKeyTest(JsonNode sampleResource, CedarNodeType resourceType) {
+  public void findResourceUnauthorizedKeyTest(JsonNode sampleResource, CedarResourceType resourceType) {
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
-    // If the resource is an instance, we need to set the schema:isBasedOn property to the id of an existing artifact.
+    // If the artifact is an instance, we need to set the schema:isBasedOn property to the id of an existing artifact.
     // Otherwise we will get a validation error. So, first we create a artifact and then use its id to create the instance
     sampleResource = setSchemaIsBasedOn(sampleTemplate, sampleResource, resourceType);
-    // Create a resource
+    // Create a artifact
     Response response = testClient.target(url).request().header("Authorization", authHeader).post(Entity.json(sampleResource));
     JsonNode expected = response.readEntity(JsonNode.class);
     createdResources.put(expected.get(LinkedData.ID).asText(), resourceType);
-    // Use generated id to retrieve the resource
+    // Use generated id to retrieve the artifact
     String id = expected.get(LinkedData.ID).asText();
     String findUrl = null;
     try {
@@ -169,17 +169,17 @@ public class FindResourceTest extends AbstractResourceCrudTest {
   @Test
   @TestCaseName(TEST_NAME_PATTERN_INDEX_METHOD + " limit={2}, offset={3}, summary={4}")
   @Parameters
-  public void findAllResourcesTest(CedarNodeType resourceType, JsonNode sampleResource, String limit, String offset, String summary) {
+  public void findAllResourcesTest(CedarResourceType resourceType, JsonNode sampleResource, String limit, String offset, String summary) {
     int initialCount = countResources(resourceType);
     final int CREATE_RESOURCES_COUNT = 3; // number of resources to be created
     // create resources
     List<JsonNode> resources = new ArrayList<>();
     for (int i = 0; i < CREATE_RESOURCES_COUNT; i++) {
-      // If the resource is an instance, we need to set the schema:isBasedOn property to the id of an existing artifact.
+      // If the artifact is an instance, we need to set the schema:isBasedOn property to the id of an existing artifact.
       // Otherwise we will get a validation error. So, first we create a artifact and then use its id to create the
       // instance
       sampleResource = setSchemaIsBasedOn(sampleTemplate, sampleResource, resourceType);
-      // Create a resource
+      // Create a artifact
       JsonNode createdResource = null;
       try {
         createdResource = createResource(sampleResource, resourceType);
@@ -244,9 +244,9 @@ public class FindResourceTest extends AbstractResourceCrudTest {
   }
   private Object parametersForFindAllResourcesTest() {
     List<Object> p1p2Values = Arrays.asList(
-        Arrays.asList(CedarNodeType.TEMPLATE, sampleTemplate),
-        Arrays.asList(CedarNodeType.ELEMENT, sampleElement),
-        Arrays.asList(CedarNodeType.INSTANCE, sampleInstance));
+        Arrays.asList(CedarResourceType.TEMPLATE, sampleTemplate),
+        Arrays.asList(CedarResourceType.ELEMENT, sampleElement),
+        Arrays.asList(CedarResourceType.INSTANCE, sampleInstance));
     List<Object> limitValues = Arrays.asList(Arrays.asList(""), Arrays.asList("2"), Arrays.asList("50"));
     List<Object> offsetValues = Arrays.asList(Arrays.asList(""), Arrays.asList("0"));
     List<Object> summaryValues = Arrays.asList(Arrays.asList(""), Arrays.asList("true"), Arrays.asList("false"));

@@ -14,7 +14,7 @@ import org.metadatacenter.cedar.artifact.resources.rest.AuthHeaderSelector;
 import org.metadatacenter.cedar.artifact.resources.rest.IdMatchingSelector;
 import org.metadatacenter.cedar.test.util.*;
 import org.metadatacenter.constant.LinkedData;
-import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.model.CedarResourceType;
 import org.metadatacenter.util.json.JsonMapper;
 
 import javax.ws.rs.client.Entity;
@@ -32,7 +32,7 @@ import static org.metadatacenter.cedar.artifact.resources.rest.IdMatchingSelecto
 import static org.metadatacenter.cedar.artifact.resources.utils.TestConstants.TEST_NAME_PATTERN_METHOD_PARAMS;
 import static org.metadatacenter.cedar.test.util.TestValueCopyFromValueGenerator.copyFrom;
 import static org.metadatacenter.cedar.test.util.TestValueResourceIdGenerator.ids;
-import static org.metadatacenter.model.CedarNodeType.TEMPLATE;
+import static org.metadatacenter.model.CedarResourceType.TEMPLATE;
 
 @RunWith(JUnitParamsRunner.class)
 public class CreateTemplatePutTest extends AbstractRestTest {
@@ -44,14 +44,14 @@ public class CreateTemplatePutTest extends AbstractRestTest {
   @Parameters(method = "getParamsCreateTemplatePut")
   public void createTemplatePutTest(TestParameterArrayGeneratorGenerator generator,
                                     TestParameterValueGenerator<String> js,
-                                    TestParameterValueGenerator<CedarNodeType> rt,
+                                    TestParameterValueGenerator<CedarResourceType> rt,
                                     TestParameterValueGenerator<String> auth,
                                     TestValueResourceIdGenerator idInURLGenerator,
                                     TestParameterValueGenerator<String> idInBodyGenerator) throws IOException {
     index++;
     TestParameterArrayGenerator arrayGenerator = generator.getValue();
     String jsonFileName = js.getValue();
-    CedarNodeType resourceType = rt.getValue();
+    CedarResourceType resourceType = rt.getValue();
     auth.generateValue(tdctx, arrayGenerator);
     String authHeaderValue = auth.getValue();
     idInURLGenerator.generateValue(tdctx, arrayGenerator);
@@ -110,7 +110,7 @@ public class CreateTemplatePutTest extends AbstractRestTest {
       response = request.put(null);
     }
 
-    createdResources.put(idInURL, CedarNodeType.TEMPLATE);
+    createdResources.put(idInURL, CedarResourceType.TEMPLATE);
 
     int responseStatus = response.getStatus();
     int expectedResponseStatus = getExpectedResponseStatus(generator, js, rt, auth, idInURLGenerator,
@@ -120,7 +120,7 @@ public class CreateTemplatePutTest extends AbstractRestTest {
 
   private int getExpectedResponseStatus(TestParameterArrayGeneratorGenerator generator,
                                         TestParameterValueGenerator<String> js,
-                                        TestParameterValueGenerator<CedarNodeType> rt,
+                                        TestParameterValueGenerator<CedarResourceType> rt,
                                         TestParameterValueGenerator<String> auth,
                                         TestValueResourceIdGenerator idInURLGenerator,
                                         TestParameterValueGenerator<String> idInBodyGenerator) {
@@ -203,10 +203,10 @@ public class CreateTemplatePutTest extends AbstractRestTest {
 
     TestParameterArrayGenerator generatorForTemplate = new TestParameterArrayGenerator();
     generatorForTemplate.registerParameter(1, jsonFileName, "jsonFileName");
-    generatorForTemplate.addParameterValue(2, TEMPLATE, "nodeType");
+    generatorForTemplate.addParameterValue(2, TEMPLATE, "resourceType");
     generatorForTemplate.registerParameter(3, authHeader, "authHeader");
-    generatorForTemplate.registerParameter(4, ids(idInURL, "nodeType"), "idInURL");
-    generatorForTemplate.registerParameter(5, ids(idInBody, "nodeType"), "idInBody");
+    generatorForTemplate.registerParameter(4, ids(idInURL, "resourceType"), "idInURL");
+    generatorForTemplate.registerParameter(5, ids(idInBody, "resourceType"), "idInBody");
     generatorForTemplate.addParameterValue(5, copyFrom("idInURL"));
 
     List<TestParameterValueGenerator[]> testCases = new ArrayList<>();

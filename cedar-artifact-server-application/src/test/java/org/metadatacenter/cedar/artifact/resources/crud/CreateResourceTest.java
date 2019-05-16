@@ -10,7 +10,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
 import org.metadatacenter.constant.LinkedData;
-import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.model.CedarResourceType;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
@@ -28,9 +28,9 @@ public class CreateResourceTest extends AbstractResourceCrudTest {
   @Test
   @TestCaseName(TEST_NAME_PATTERN_INDEX_METHOD)
   @Parameters(method = "getCommonParams1")
-  public void createResourceTest(JsonNode sampleResource, CedarNodeType resourceType) {
+  public void createResourceTest(JsonNode sampleResource, CedarResourceType resourceType) {
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
-    // If the resource is an instance, we need to set the schema:isBasedOn property to the id of an existing artifact.
+    // If the artifact is an instance, we need to set the schema:isBasedOn property to the id of an existing artifact.
     // Otherwise we will get a validation error. So, first we create a artifact and then use its id to create the
     // instance
     sampleResource = setSchemaIsBasedOn(sampleTemplate, sampleResource, resourceType);
@@ -40,7 +40,7 @@ public class CreateResourceTest extends AbstractResourceCrudTest {
     // Check HTTP response
     Assert.assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
     createdResources.put(response.readEntity(JsonNode.class).get(LinkedData.ID).asText(), resourceType);
-    // Retrieve the resource created
+    // Retrieve the artifact created
     String location = response.getHeaderString(LOCATION);
     Response findResponse = testClient.target(location).request().header("Authorization", authHeader).get();
     JsonNode expected = sampleResource;
@@ -81,7 +81,7 @@ public class CreateResourceTest extends AbstractResourceCrudTest {
   @Test
   @TestCaseName(TEST_NAME_PATTERN_INDEX_METHOD)
   @Parameters(method = "getCommonParams1")
-  public void createResourceMissingAuthorizationHeaderTest(JsonNode sampleResource, CedarNodeType resourceType) {
+  public void createResourceMissingAuthorizationHeaderTest(JsonNode sampleResource, CedarResourceType resourceType) {
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
     // Service invocation without Authorization header
     Response response = testClient.target(url).request().post(Entity.json(sampleResource));
@@ -92,7 +92,7 @@ public class CreateResourceTest extends AbstractResourceCrudTest {
   @Test
   @TestCaseName(TEST_NAME_PATTERN_INDEX_METHOD)
   @Parameters(method = "getCommonParams1")
-  public void createResourceUnauthorizedKeyTest(JsonNode sampleResource, CedarNodeType resourceType) {
+  public void createResourceUnauthorizedKeyTest(JsonNode sampleResource, CedarResourceType resourceType) {
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
     String newAuthHeader = "apiKey " + NON_EXISTENT_API_KEY;
     // Service invocation without unauthorized api key
