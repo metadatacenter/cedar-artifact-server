@@ -49,8 +49,7 @@ public class TemplateElementsResource extends AbstractArtifactServerResource {
 
   protected static List<String> FIELD_NAMES_SUMMARY_LIST;
 
-  public TemplateElementsResource(CedarConfig cedarConfig, TemplateElementService<String, JsonNode>
-      templateElementService) {
+  public TemplateElementsResource(CedarConfig cedarConfig, TemplateElementService<String, JsonNode> templateElementService) {
     super(cedarConfig);
     TemplateElementsResource.templateElementService = templateElementService;
     FIELD_NAMES_SUMMARY_LIST = new ArrayList<>();
@@ -82,6 +81,7 @@ public class TemplateElementsResource extends AbstractArtifactServerResource {
         response = storeTemplateElementInDatabase(templateElement, pi);
       } else {
         response = CedarResponse.badRequest()
+            .errorMessage(concatenateValidationMessages(validationReport))
             .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_INVALID)
             .build();
       }
@@ -147,8 +147,7 @@ public class TemplateElementsResource extends AbstractArtifactServerResource {
   public Response findAllTemplateElements(@QueryParam(QP_LIMIT) Optional<Integer> limitParam,
                                           @QueryParam(QP_OFFSET) Optional<Integer> offsetParam,
                                           @QueryParam(QP_SUMMARY) Optional<Boolean> summaryParam,
-                                          @QueryParam(QP_FIELD_NAMES) Optional<String> fieldNamesParam) throws
-      CedarException {
+                                          @QueryParam(QP_FIELD_NAMES) Optional<String> fieldNamesParam) throws CedarException {
 
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
@@ -168,13 +167,11 @@ public class TemplateElementsResource extends AbstractArtifactServerResource {
     List<JsonNode> elements = null;
     try {
       if (summary) {
-        elements = templateElementService.findAllTemplateElements(limit, offset, FIELD_NAMES_SUMMARY_LIST, FieldNameInEx
-            .INCLUDE);
+        elements = templateElementService.findAllTemplateElements(limit, offset, FIELD_NAMES_SUMMARY_LIST, FieldNameInEx.INCLUDE);
       } else if (fieldNameList != null) {
         elements = templateElementService.findAllTemplateElements(limit, offset, fieldNameList, FieldNameInEx.INCLUDE);
       } else {
-        elements = templateElementService.findAllTemplateElements(limit, offset, FIELD_NAMES_EXCLUSION_LIST,
-            FieldNameInEx.EXCLUDE);
+        elements = templateElementService.findAllTemplateElements(limit, offset, FIELD_NAMES_EXCLUSION_LIST, FieldNameInEx.EXCLUDE);
       }
     } catch (IOException e) {
       return CedarResponse.internalServerError()
@@ -232,8 +229,7 @@ public class TemplateElementsResource extends AbstractArtifactServerResource {
     return response;
   }
 
-  private Response updateTemplateElementInDatabase(String elementId, JsonNode updatedElement, ProvenanceInfo pi,
-                                                   CedarRequestContext c) throws CedarException {
+  private Response updateTemplateElementInDatabase(String elementId, JsonNode updatedElement, ProvenanceInfo pi, CedarRequestContext c) throws CedarException {
     JsonNode outputTemplateElement = null;
     CreateOrUpdate createOrUpdate = null;
     try {

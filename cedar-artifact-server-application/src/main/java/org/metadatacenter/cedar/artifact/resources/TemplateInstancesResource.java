@@ -17,6 +17,7 @@ import org.metadatacenter.model.request.OutputFormatType;
 import org.metadatacenter.model.request.OutputFormatTypeDetector;
 import org.metadatacenter.model.trimmer.JsonLdDocument;
 import org.metadatacenter.model.validation.report.CedarValidationReport;
+import org.metadatacenter.model.validation.report.ErrorItem;
 import org.metadatacenter.model.validation.report.ReportUtils;
 import org.metadatacenter.model.validation.report.ValidationReport;
 import org.metadatacenter.rest.context.CedarRequestContext;
@@ -55,8 +56,8 @@ public class TemplateInstancesResource extends AbstractArtifactServerResource {
 
   protected static List<String> FIELD_NAMES_SUMMARY_LIST;
 
-  public TemplateInstancesResource(CedarConfig cedarConfig, TemplateInstanceService<String, JsonNode>
-      templateInstanceService, TemplateService<String, JsonNode> templateService) {
+  public TemplateInstancesResource(CedarConfig cedarConfig, TemplateInstanceService<String, JsonNode> templateInstanceService,
+                                   TemplateService<String, JsonNode> templateService) {
     super(cedarConfig);
     this.templateInstanceService = templateInstanceService;
     this.templateService = templateService;
@@ -66,8 +67,7 @@ public class TemplateInstancesResource extends AbstractArtifactServerResource {
 
   @POST
   @Timed
-  public Response createTemplateInstance() throws
-      CedarException {
+  public Response createTemplateInstance() throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_CREATE);
@@ -75,10 +75,8 @@ public class TemplateInstancesResource extends AbstractArtifactServerResource {
 
     JsonNode templateInstance = c.request().getRequestBody().asJson();
 
-    enforceMandatoryNullOrMissingId(templateInstance, CedarResourceType.INSTANCE, CedarErrorKey
-        .TEMPLATE_INSTANCE_NOT_CREATED);
-    enforceMandatoryName(templateInstance, CedarResourceType.INSTANCE, CedarErrorKey
-        .TEMPLATE_INSTANCE_NOT_CREATED);
+    enforceMandatoryNullOrMissingId(templateInstance, CedarResourceType.INSTANCE, CedarErrorKey.TEMPLATE_INSTANCE_NOT_CREATED);
+    enforceMandatoryName(templateInstance, CedarResourceType.INSTANCE, CedarErrorKey.TEMPLATE_INSTANCE_NOT_CREATED);
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     setProvenanceAndId(CedarResourceType.INSTANCE, templateInstance, pi);
@@ -92,6 +90,7 @@ public class TemplateInstancesResource extends AbstractArtifactServerResource {
         response = storeTemplateInstanceInDatabase(templateInstance);
       } else {
         response = CedarResponse.badRequest()
+            .errorMessage(concatenateValidationMessages(validationReport))
             .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_INVALID)
             .build();
       }
@@ -122,9 +121,7 @@ public class TemplateInstancesResource extends AbstractArtifactServerResource {
   @GET
   @Timed
   @Path("/{id}")
-  public Response findTemplateInstance(@PathParam(PP_ID) String id,
-                                       @QueryParam(QP_FORMAT) Optional<String> format)
-      throws CedarException {
+  public Response findTemplateInstance(@PathParam(PP_ID) String id, @QueryParam(QP_FORMAT) Optional<String> format) throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
     c.must(id).be(ValidUrl);
@@ -160,8 +157,7 @@ public class TemplateInstancesResource extends AbstractArtifactServerResource {
   public Response findAllTemplateInstances(@QueryParam(QP_LIMIT) Optional<Integer> limitParam,
                                            @QueryParam(QP_OFFSET) Optional<Integer> offsetParam,
                                            @QueryParam(QP_SUMMARY) Optional<Boolean> summaryParam,
-                                           @QueryParam(QP_FIELD_NAMES) Optional<String> fieldNamesParam) throws
-      CedarException {
+                                           @QueryParam(QP_FIELD_NAMES) Optional<String> fieldNamesParam) throws CedarException {
 
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
@@ -181,14 +177,11 @@ public class TemplateInstancesResource extends AbstractArtifactServerResource {
     List<JsonNode> instances = null;
     try {
       if (summary) {
-        instances = templateInstanceService.findAllTemplateInstances(limit, offset, FIELD_NAMES_SUMMARY_LIST,
-            FieldNameInEx.INCLUDE);
+        instances = templateInstanceService.findAllTemplateInstances(limit, offset, FIELD_NAMES_SUMMARY_LIST, FieldNameInEx.INCLUDE);
       } else if (fieldNameList != null) {
-        instances = templateInstanceService.findAllTemplateInstances(limit, offset, fieldNameList, FieldNameInEx
-            .INCLUDE);
+        instances = templateInstanceService.findAllTemplateInstances(limit, offset, fieldNameList, FieldNameInEx.INCLUDE);
       } else {
-        instances = templateInstanceService.findAllTemplateInstances(limit, offset, FIELD_NAMES_EXCLUSION_LIST,
-            FieldNameInEx.EXCLUDE);
+        instances = templateInstanceService.findAllTemplateInstances(limit, offset, FIELD_NAMES_EXCLUSION_LIST, FieldNameInEx.EXCLUDE);
       }
     } catch (IOException e) {
       return CedarResponse.internalServerError()
@@ -222,10 +215,8 @@ public class TemplateInstancesResource extends AbstractArtifactServerResource {
 
     JsonNode newInstance = c.request().getRequestBody().asJson();
 
-    enforceMandatoryFieldsInPut(id, newInstance, CedarResourceType.INSTANCE,
-        CedarErrorKey.TEMPLATE_INSTANCE_NOT_UPDATED);
-    enforceMandatoryName(newInstance, CedarResourceType.INSTANCE, CedarErrorKey
-        .TEMPLATE_INSTANCE_NOT_CREATED);
+    enforceMandatoryFieldsInPut(id, newInstance, CedarResourceType.INSTANCE, CedarErrorKey.TEMPLATE_INSTANCE_NOT_UPDATED);
+    enforceMandatoryName(newInstance, CedarResourceType.INSTANCE, CedarErrorKey.TEMPLATE_INSTANCE_NOT_CREATED);
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     provenanceUtil.patchProvenanceInfo(newInstance, pi);
@@ -307,8 +298,7 @@ public class TemplateInstancesResource extends AbstractArtifactServerResource {
     return CedarResponse.noContent().build();
   }
 
-  private Response sendFormattedTemplateInstance(JsonNode templateInstance, OutputFormatType formatType) throws
-      CedarException {
+  private Response sendFormattedTemplateInstance(JsonNode templateInstance, OutputFormatType formatType) throws CedarException {
     Object responseObject = null;
     String mediaType = null;
     if (formatType == OutputFormatType.JSONLD) { // The assumption is the formatType is already a valid-and-supported

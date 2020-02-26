@@ -86,6 +86,7 @@ public class TemplatesResource extends AbstractArtifactServerResource {
         response = storeTemplateInDatabase(template, pi);
       } else {
         response = CedarResponse.badRequest()
+            .errorMessage(concatenateValidationMessages(validationReport))
             .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_INVALID)
             .build();
       }
@@ -152,8 +153,7 @@ public class TemplatesResource extends AbstractArtifactServerResource {
   public Response findAllTemplates(@QueryParam(QP_LIMIT) Optional<Integer> limitParam,
                                    @QueryParam(QP_OFFSET) Optional<Integer> offsetParam,
                                    @QueryParam(QP_SUMMARY) Optional<Boolean> summaryParam,
-                                   @QueryParam(QP_FIELD_NAMES) Optional<String> fieldNamesParam) throws
-      CedarException {
+                                   @QueryParam(QP_FIELD_NAMES) Optional<String> fieldNamesParam) throws CedarException {
 
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
@@ -235,8 +235,7 @@ public class TemplatesResource extends AbstractArtifactServerResource {
     return response;
   }
 
-  private Response updateTemplateInDatabase(String templateId, JsonNode updatedTemplate, ProvenanceInfo pi,
-                                            CedarRequestContext c) throws CedarException {
+  private Response updateTemplateInDatabase(String templateId, JsonNode updatedTemplate, ProvenanceInfo pi, CedarRequestContext c) throws CedarException {
     JsonNode outputTemplate = null;
     CreateOrUpdate createOrUpdate = null;
     try {

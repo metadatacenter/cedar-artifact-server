@@ -91,8 +91,7 @@ public class CommandResource extends AbstractArtifactServerResource {
     return !payload.path("schema").isMissingNode() && !payload.path("schema").isNull();
   }
 
-  private ValidationReport validateUsingUserSpecifiedSchema(JsonNode payload, JsonNode instanceObject)
-      throws CedarException {
+  private ValidationReport validateUsingUserSpecifiedSchema(JsonNode payload, JsonNode instanceObject) throws CedarException {
     JsonNode instanceSchema = payload.get("schema");
     ValidationReport schemaValidationReport = validateTemplate(instanceSchema); // validate the input schema
     if (schemaValidationReport.getValidationStatus().equals("false")) {
@@ -101,8 +100,7 @@ public class CommandResource extends AbstractArtifactServerResource {
     return validateTemplateInstance(instanceObject, instanceSchema);
   }
 
-  private ValidationReport validateUsingInstanceSpecifiedSchema(JsonNode instanceObject)
-      throws IOException, CedarException {
+  private ValidationReport validateUsingInstanceSpecifiedSchema(JsonNode instanceObject) throws IOException, CedarException {
     JsonNode instanceSchema = getSchemaSource(templateService, instanceObject);
     return validateTemplateInstance(instanceObject, instanceSchema);
   }

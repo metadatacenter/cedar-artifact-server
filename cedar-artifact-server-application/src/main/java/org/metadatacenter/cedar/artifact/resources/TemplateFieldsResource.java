@@ -79,6 +79,7 @@ public class TemplateFieldsResource extends AbstractArtifactServerResource {
         response = storeTemplateFieldInDatabase(templateField);
       } else {
         response = CedarResponse.badRequest()
+            .errorMessage(concatenateValidationMessages(validationReport))
             .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_INVALID)
             .build();
       }
@@ -143,8 +144,7 @@ public class TemplateFieldsResource extends AbstractArtifactServerResource {
   public Response findAllTemplateFields(@QueryParam(QP_LIMIT) Optional<Integer> limitParam,
                                         @QueryParam(QP_OFFSET) Optional<Integer> offsetParam,
                                         @QueryParam(QP_SUMMARY) Optional<Boolean> summaryParam,
-                                        @QueryParam(QP_FIELD_NAMES) Optional<String> fieldNamesParam) throws
-      CedarException {
+                                        @QueryParam(QP_FIELD_NAMES) Optional<String> fieldNamesParam) throws CedarException {
 
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
@@ -164,13 +164,11 @@ public class TemplateFieldsResource extends AbstractArtifactServerResource {
     List<JsonNode> fields = null;
     try {
       if (summary) {
-        fields = templateFieldService.findAllTemplateFields(limit, offset, FIELD_NAMES_SUMMARY_LIST, FieldNameInEx
-            .INCLUDE);
+        fields = templateFieldService.findAllTemplateFields(limit, offset, FIELD_NAMES_SUMMARY_LIST, FieldNameInEx.INCLUDE);
       } else if (fieldNameList != null) {
         fields = templateFieldService.findAllTemplateFields(limit, offset, fieldNameList, FieldNameInEx.INCLUDE);
       } else {
-        fields = templateFieldService.findAllTemplateFields(limit, offset, FIELD_NAMES_EXCLUSION_LIST, FieldNameInEx
-            .EXCLUDE);
+        fields = templateFieldService.findAllTemplateFields(limit, offset, FIELD_NAMES_EXCLUSION_LIST, FieldNameInEx.EXCLUDE);
       }
     } catch (IOException e) {
       return CedarResponse.internalServerError()
@@ -228,8 +226,7 @@ public class TemplateFieldsResource extends AbstractArtifactServerResource {
     return response;
   }
 
-  private Response updateTemplateFieldInDatabase(String fieldId, JsonNode updatedField, ProvenanceInfo pi,
-                                                 CedarRequestContext c) throws CedarException {
+  private Response updateTemplateFieldInDatabase(String fieldId, JsonNode updatedField, ProvenanceInfo pi, CedarRequestContext c) throws CedarException {
     JsonNode outputTemplateField = null;
     CreateOrUpdate createOrUpdate = null;
     try {

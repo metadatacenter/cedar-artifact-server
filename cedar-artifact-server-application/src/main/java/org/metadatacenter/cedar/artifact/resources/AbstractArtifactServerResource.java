@@ -15,6 +15,7 @@ import org.metadatacenter.model.CedarResourceType;
 import org.metadatacenter.model.core.CedarModelVocabulary;
 import org.metadatacenter.model.validation.CedarValidator;
 import org.metadatacenter.model.validation.ModelValidator;
+import org.metadatacenter.model.validation.report.ErrorItem;
 import org.metadatacenter.model.validation.report.ValidationReport;
 import org.metadatacenter.rest.exception.CedarAssertionException;
 import org.metadatacenter.server.model.provenance.ProvenanceInfo;
@@ -62,8 +63,7 @@ public class AbstractArtifactServerResource extends CedarMicroserviceResource {
     }
   }
 
-  protected static List<String> getAndCheckFieldNames(Optional<String> fieldNames, boolean summary) throws
-      CedarAssertionException {
+  protected static List<String> getAndCheckFieldNames(Optional<String> fieldNames, boolean summary) throws CedarAssertionException {
     if (fieldNames != null && fieldNames.isPresent()) {
       if (summary == true) {
         throw new CedarAssertionException(
@@ -108,8 +108,7 @@ public class AbstractArtifactServerResource extends CedarMicroserviceResource {
     }
   }
 
-  protected ValidationReport validateTemplateInstance(JsonNode templateInstance, JsonNode instanceSchema)
-      throws CedarException {
+  protected ValidationReport validateTemplateInstance(JsonNode templateInstance, JsonNode instanceSchema) throws CedarException {
     try {
       return newModelValidator().validateTemplateInstance(templateInstance, instanceSchema);
     } catch (Exception e) {
@@ -126,8 +125,7 @@ public class AbstractArtifactServerResource extends CedarMicroserviceResource {
     };
   }
 
-  protected void enforceMandatoryNullOrMissingId(JsonNode jsonObject, CedarResourceType resourceType, CedarErrorKey errorKey)
-      throws CedarBadRequestException {
+  protected void enforceMandatoryNullOrMissingId(JsonNode jsonObject, CedarResourceType resourceType, CedarErrorKey errorKey) throws CedarBadRequestException {
     JsonNode idInRequestNode = jsonObject.get(LinkedData.ID);
     if (idInRequestNode != null && !idInRequestNode.isNull()) {
       String idInRequest = idInRequestNode.asText();
@@ -141,16 +139,14 @@ public class AbstractArtifactServerResource extends CedarMicroserviceResource {
     }
   }
 
-  protected void enforceMandatoryName(JsonNode jsonObject, CedarResourceType resourceType, CedarErrorKey errorKey)
-      throws CedarBadRequestException {
+  protected void enforceMandatoryName(JsonNode jsonObject, CedarResourceType resourceType, CedarErrorKey errorKey) throws CedarBadRequestException {
     JsonPointerValuePair namePair = ModelUtil.extractNameFromResource(resourceType, jsonObject);
     if (namePair.hasEmptyValue()) {
       throw new CedarRequestBodyMissingFieldException(namePair.getPointer(), errorKey);
     }
   }
 
-  protected void enforceMandatoryFieldsInPut(String id, JsonNode jsonObject, CedarResourceType resourceType, CedarErrorKey
-      errorKey) throws CedarBadRequestException {
+  protected void enforceMandatoryFieldsInPut(String id, JsonNode jsonObject, CedarResourceType resourceType, CedarErrorKey errorKey) throws CedarBadRequestException {
     JsonNode idInRequestNode = jsonObject.get(LinkedData.ID);
     String idInRequest = null;
     if (idInRequestNode != null && !idInRequestNode.isNull()) {
@@ -172,9 +168,8 @@ public class AbstractArtifactServerResource extends CedarMicroserviceResource {
     }
   }
 
-
-  protected static JsonNode getSchemaSource(TemplateService<String, JsonNode> templateService, JsonNode
-      templateInstance) throws IOException, CedarException {
+  protected static JsonNode getSchemaSource(TemplateService<String, JsonNode> templateService, JsonNode templateInstance) throws IOException,
+      CedarException {
     checkInstanceSchemaExists(templateInstance);
     String templateRefId = templateInstance.get(CedarModelVocabulary.SCHEMA_IS_BASED_ON).asText();
     JsonNode template = templateService.findTemplate(templateRefId);
@@ -199,4 +194,13 @@ public class AbstractArtifactServerResource extends CedarMicroserviceResource {
     return templateInstance;
   }
 
+  protected String concatenateValidationMessages(ValidationReport validationReport) {
+    StringBuilder sb = new StringBuilder();
+    if (!validationReport.getErrors().isEmpty()) {
+      for (ErrorItem ei : validationReport.getErrors()) {
+        sb.append(ei.getMessage()).append("\n");
+      }
+    }
+    return sb.toString();
+  }
 }
