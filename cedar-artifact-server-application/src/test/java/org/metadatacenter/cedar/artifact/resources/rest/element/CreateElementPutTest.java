@@ -49,9 +49,11 @@ public class CreateElementPutTest extends AbstractRestTest {
                                    TestValueResourceIdGenerator idInURLGenerator,
                                    TestParameterValueGenerator<String> idInBodyGenerator) throws IOException {
     index++;
-    if (index >= 324) {
-      System.out.print("");
-    }
+//    if (index != 335) {
+//      return;
+//    } else {
+//      showTestDebug = true;
+//    }
     TestParameterArrayGenerator arrayGenerator = generator.getValue();
     String jsonFileName = js.getValue();
     CedarResourceType resourceType = rt.getValue();
@@ -102,6 +104,9 @@ public class CreateElementPutTest extends AbstractRestTest {
               ((ObjectNode) element).put(LinkedData.ID, idInBody);
               originalFileContent = JsonMapper.MAPPER.writeValueAsString(element);
             }
+          } else {
+            ((ObjectNode) element).put(LinkedData.ID, idInBody);
+            originalFileContent = JsonMapper.MAPPER.writeValueAsString(element);
           }
         }
       }
@@ -135,21 +140,6 @@ public class CreateElementPutTest extends AbstractRestTest {
     if (!authGenerator.getValue().equals(auth.getValue())) {
       return Response.Status.UNAUTHORIZED.getStatusCode();
     }
-    if (js.getValue() == null) {
-      return Response.Status.BAD_REQUEST.getStatusCode();
-    } else if (NON_JSON.equals(js.getValue())) {
-      return Response.Status.BAD_REQUEST.getStatusCode();
-    } else if (BAD_JSON.equals(js.getValue())) {
-      return Response.Status.BAD_REQUEST.getStatusCode();
-    } else if (EMPTY_JSON.equals(js.getValue())) {
-      return Response.Status.BAD_REQUEST.getStatusCode();
-    } else if (SCHEMA_NAME.equals(js.getValue())) {
-      return Response.Status.BAD_REQUEST.getStatusCode();
-    } else if (SCHEMA_DESCRIPTION.equals(js.getValue())) {
-      return Response.Status.BAD_REQUEST.getStatusCode();
-    } else if (MINIMAL_ELEMENT_NO_ID.equals(js.getValue())) {
-      return Response.Status.CREATED.getStatusCode();
-    }
 
     if (idInURLGenerator.getIdMatchingSelector() == NULL_ID) {
       return Response.Status.BAD_REQUEST.getStatusCode();
@@ -170,11 +160,30 @@ public class CreateElementPutTest extends AbstractRestTest {
 
     if (idInBodyGenerator instanceof TestValueCopyFromValueGenerator) {
       if (MINIMAL_ELEMENT_WITH_ID.equals(js.getValue())) {
-        return Response.Status.OK.getStatusCode();
+        return Response.Status.CREATED.getStatusCode();
+      } else if (MINIMAL_ELEMENT_NO_ID.equals(js.getValue())) {
+        return Response.Status.CREATED.getStatusCode();
       } else if (FULL_ELEMENT.equals(js.getValue())) {
         return Response.Status.CREATED.getStatusCode();
       }
     }
+
+    if (js.getValue() == null) {
+      return Response.Status.BAD_REQUEST.getStatusCode();
+    } else if (NON_JSON.equals(js.getValue())) {
+      return Response.Status.BAD_REQUEST.getStatusCode();
+    } else if (BAD_JSON.equals(js.getValue())) {
+      return Response.Status.BAD_REQUEST.getStatusCode();
+    } else if (EMPTY_JSON.equals(js.getValue())) {
+      return Response.Status.BAD_REQUEST.getStatusCode();
+    } else if (SCHEMA_NAME.equals(js.getValue())) {
+      return Response.Status.BAD_REQUEST.getStatusCode();
+    } else if (SCHEMA_DESCRIPTION.equals(js.getValue())) {
+      return Response.Status.BAD_REQUEST.getStatusCode();
+    } else if (MINIMAL_ELEMENT_NO_ID.equals(js.getValue())) {
+      return Response.Status.CREATED.getStatusCode();
+    }
+
     return 0;
   }
 
