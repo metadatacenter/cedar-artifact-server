@@ -6,6 +6,7 @@ import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.constant.CustomHttpConstants;
 import org.metadatacenter.constant.HttpConstants;
 import org.metadatacenter.error.CedarErrorKey;
+import org.metadatacenter.error.CedarErrorReasonKey;
 import org.metadatacenter.exception.ArtifactServerResourceNotFoundException;
 import org.metadatacenter.model.CedarResourceType;
 import org.metadatacenter.exception.CedarException;
@@ -79,8 +80,11 @@ public class TemplateFieldsResource extends AbstractArtifactServerResource {
         response = storeTemplateFieldInDatabase(templateField);
       } else {
         response = CedarResponse.badRequest()
-            .errorMessage(concatenateValidationMessages(validationReport))
             .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_INVALID)
+            .errorKey(CedarErrorKey.INVALID_DATA)
+            .errorReasonKey(CedarErrorReasonKey.VALIDATION_ERROR)
+            .errorMessage(concatenateValidationMessages(validationReport))
+            .object("validationReport", validationReport)
             .build();
       }
     } else {
@@ -218,6 +222,10 @@ public class TemplateFieldsResource extends AbstractArtifactServerResource {
       } else {
         response = CedarResponse.badRequest()
             .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_INVALID)
+            .errorKey(CedarErrorKey.INVALID_DATA)
+            .errorReasonKey(CedarErrorReasonKey.VALIDATION_ERROR)
+            .errorMessage(concatenateValidationMessages(validationReport))
+            .object("validationReport", validationReport)
             .build();
       }
     } else {

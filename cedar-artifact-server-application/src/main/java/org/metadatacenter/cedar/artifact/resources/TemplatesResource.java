@@ -9,8 +9,8 @@ import org.metadatacenter.constant.LinkedData;
 import org.metadatacenter.error.CedarErrorKey;
 import org.metadatacenter.error.CedarErrorReasonKey;
 import org.metadatacenter.exception.ArtifactServerResourceNotFoundException;
-import org.metadatacenter.model.CedarResourceType;
 import org.metadatacenter.exception.CedarException;
+import org.metadatacenter.model.CedarResourceType;
 import org.metadatacenter.model.CreateOrUpdate;
 import org.metadatacenter.model.validation.report.CedarValidationReport;
 import org.metadatacenter.model.validation.report.ReportUtils;
@@ -86,8 +86,11 @@ public class TemplatesResource extends AbstractArtifactServerResource {
         response = storeTemplateInDatabase(template, pi);
       } else {
         response = CedarResponse.badRequest()
-            .errorMessage(concatenateValidationMessages(validationReport))
             .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_INVALID)
+            .errorKey(CedarErrorKey.INVALID_DATA)
+            .errorReasonKey(CedarErrorReasonKey.VALIDATION_ERROR)
+            .errorMessage(concatenateValidationMessages(validationReport))
+            .object("validationReport", validationReport)
             .build();
       }
     } else {
@@ -227,6 +230,10 @@ public class TemplatesResource extends AbstractArtifactServerResource {
       } else {
         response = CedarResponse.badRequest()
             .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_INVALID)
+            .errorKey(CedarErrorKey.INVALID_DATA)
+            .errorReasonKey(CedarErrorReasonKey.VALIDATION_ERROR)
+            .errorMessage("There was an error while validating the artifact")
+            .object("validationReport", validationReport)
             .build();
       }
     } else {
