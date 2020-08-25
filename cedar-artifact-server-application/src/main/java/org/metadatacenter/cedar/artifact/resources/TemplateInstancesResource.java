@@ -8,6 +8,7 @@ import org.metadatacenter.constant.CustomHttpConstants;
 import org.metadatacenter.constant.HttpConstants;
 import org.metadatacenter.constant.LinkedData;
 import org.metadatacenter.error.CedarErrorKey;
+import org.metadatacenter.error.CedarErrorReasonKey;
 import org.metadatacenter.exception.ArtifactServerResourceNotFoundException;
 import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.exception.CedarProcessingException;
@@ -92,6 +93,10 @@ public class TemplateInstancesResource extends AbstractArtifactServerResource {
         response = CedarResponse.badRequest()
             .errorMessage(concatenateValidationMessages(validationReport))
             .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_INVALID)
+            .errorKey(CedarErrorKey.INVALID_DATA)
+            .errorReasonKey(CedarErrorReasonKey.VALIDATION_ERROR)
+            .errorMessage("There was an error while validating the artifact")
+            .object("validationReport", validationReport)
             .build();
       }
     } else {

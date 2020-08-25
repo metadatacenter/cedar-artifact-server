@@ -40,9 +40,7 @@ public class TemplateInstanceToRdfTest extends BaseServerTest {
 
   @Test
   public void shouldGetRdfOutput() {
-    Response response = sendGetRequest(
-        TestRequestUrls.forFindingInstance(getPortNumber(), instanceExampleId,
-            OutputFormatType.RDF_NQUAD.getValue()));
+    Response response = sendGetRequest(TestRequestUrls.forFindingInstance(getPortNumber(), instanceExampleId, OutputFormatType.RDF_NQUAD.getValue()));
     checkStatusOk(response);
     // Assert header
     assertThat(response.getHeaderString(HttpHeaders.CONTENT_TYPE), is("application/n-quads"));

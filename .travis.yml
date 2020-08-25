@@ -5,7 +5,7 @@ jdk:
 - openjdk11
 services:
 - mongodb
-- redis-server
+- redis
 - neo4j
 branches:
   only:
