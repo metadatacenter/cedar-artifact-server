@@ -17,8 +17,8 @@
   <description>CEDAR server to manage Metadata Templates, Template Elements, and Template Instances</description>
 
   <scm>
-    <connection>scm:git:git@github.com:metadatacenter/cedar-artifact-server.git</connection>
-    <developerConnection>scm:git:git@github.com:metadatacenter/cedar-artifact-server.git</developerConnection>
+    <connection>scm:git:https://github.com/metadatacenter/cedar-artifact-server.git</connection>
+    <developerConnection>scm:git:https://github.com/metadatacenter/cedar-artifact-server.git</developerConnection>
     <url>https://github.com/metadatacenter/cedar-artifact-server</url>
     <tag>HEAD</tag>
   </scm>
