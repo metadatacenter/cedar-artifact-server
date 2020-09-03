@@ -1,6 +1,6 @@
 # cedar-artifact-server
 
-[![Build Status](https://travis-ci.org/metadatacenter/cedar-artifact-server.svg?branch=master)](https://travis-ci.org/metadatacenter/cedar-artifact-server)
+[![Build Status](https://travis-ci.com/metadatacenter/cedar-artifact-server.svg?branch=master)](https://travis-ci.com/metadatacenter/cedar-artifact-server)
 
 CEDAR server to manage templates, template elements, and template instances.
 
