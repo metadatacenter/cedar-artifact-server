@@ -6,7 +6,7 @@ jdk:
 services:
 - mongodb
 - redis
-- neo4j
+- docker
 branches:
   only:
   - develop
@@ -21,6 +21,9 @@ before_install:
 - mongoimport --db cedar --collection users --file cedar-artifact-server-application/src/test/resources/test-user.json
 - mongo cedar --eval "db.createUser( { user:'${CEDAR_MONGO_APP_USER_NAME}', pwd:'${CEDAR_MONGO_APP_USER_PASSWORD}',
   roles:['readWrite'] } )"
+- docker pull neo4j:3.5.3
+- docker run --name cedarneo4j -p7687:7687 -d --env NEO4J_AUTH=neo4j/changeme neo4j:3.5.3
+- docker ps -a
 install: '[ ${TRAVIS_PULL_REQUEST} = ''false'' ] && mvn -DskipTests=false clean deploy
   --settings .m2/travis-settings.xml'
 script: '[ ${TRAVIS_PULL_REQUEST} = ''false'' ] && mvn -DskipTests=true clean --settings
