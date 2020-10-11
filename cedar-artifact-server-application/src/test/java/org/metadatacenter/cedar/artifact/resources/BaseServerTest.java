@@ -6,6 +6,7 @@ import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.testing.ResourceHelpers;
 import io.dropwizard.testing.junit.DropwizardAppRule;
 import org.glassfish.jersey.client.ClientProperties;
+import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -47,7 +48,8 @@ public abstract class BaseServerTest {
 
   @BeforeClass
   public static void createTestClient() {
-    testClient = new JerseyClientBuilder(SERVER_APPLICATION.getEnvironment()).build("TestClient");
+    testClient =  new ResteasyClientBuilder().build();
+    //testClient = new JerseyClientBuilder(SERVER_APPLICATION.getEnvironment()).build("TestClient");
     testClient.property(ClientProperties.READ_TIMEOUT, 3000); // 3s
     testClient.property(ClientProperties.CONNECT_TIMEOUT, 3000);
   }

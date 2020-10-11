@@ -5,6 +5,7 @@ import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.testing.ResourceHelpers;
 import io.dropwizard.testing.junit.DropwizardAppRule;
 import org.glassfish.jersey.client.ClientProperties;
+import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.rules.TestRule;
@@ -69,7 +70,8 @@ public abstract class AbstractResourceTest {
     baseTestUrl = TestConstants.BASE_URL + ":" + SERVER_APPLICATION.getLocalPort();
 
     // Set up test client
-    testClient = new JerseyClientBuilder(SERVER_APPLICATION.getEnvironment()).build(TEST_CLIENT_NAME);
+    testClient =  new ResteasyClientBuilder().build();
+    //testClient = new JerseyClientBuilder(SERVER_APPLICATION.getEnvironment()).build(TEST_CLIENT_NAME);
     testClient.property(ClientProperties.READ_TIMEOUT, DEFAULT_TIMEOUT);
     testClient.property(ClientProperties.CONNECT_TIMEOUT, DEFAULT_TIMEOUT);
     testClient.property(ClientProperties.SUPPRESS_HTTP_COMPLIANCE_VALIDATION, true);
