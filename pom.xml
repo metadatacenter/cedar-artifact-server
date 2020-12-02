@@ -5,12 +5,12 @@
   <parent>
     <groupId>org.metadatacenter</groupId>
     <artifactId>cedar-parent</artifactId>
-    <version>2.5.34</version>
+    <version>2.5.35</version>
   </parent>
 
   <groupId>org.metadatacenter</groupId>
   <artifactId>cedar-artifact-server</artifactId>
-  <version>2.5.34</version>
+  <version>2.5.35</version>
   <packaging>pom</packaging>
 
   <name>CEDAR Artifact Server</name>
@@ -20,7 +20,7 @@
     <connection>scm:git:https://github.com/metadatacenter/cedar-artifact-server.git</connection>
     <developerConnection>scm:git:https://github.com/metadatacenter/cedar-artifact-server.git</developerConnection>
     <url>https://github.com/metadatacenter/cedar-artifact-server</url>
-    <tag>release-2.5.34</tag>
+    <tag>release-2.5.35</tag>
   </scm>
 
   <modules>
