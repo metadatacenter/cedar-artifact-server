@@ -1,13 +1,12 @@
 package org.metadatacenter.cedar.artifact.resources;
 
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Response;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.metadatacenter.model.request.OutputFormatType;
-
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -40,7 +39,8 @@ public class TemplateInstanceToRdfTest extends BaseServerTest {
 
   @Test
   public void shouldGetRdfOutput() {
-    Response response = sendGetRequest(TestRequestUrls.forFindingInstance(getPortNumber(), instanceExampleId, OutputFormatType.RDF_NQUAD.getValue()));
+    Response response = sendGetRequest(TestRequestUrls.forFindingInstance(getPortNumber(), instanceExampleId,
+        OutputFormatType.RDF_NQUAD.getValue()));
     checkStatusOk(response);
     // Assert header
     assertThat(response.getHeaderString(HttpHeaders.CONTENT_TYPE), is("application/n-quads"));

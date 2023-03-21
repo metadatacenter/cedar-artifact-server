@@ -2,6 +2,9 @@ package org.metadatacenter.cedar.artifact.resources.rest.element;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonNode;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.client.Invocation;
+import jakarta.ws.rs.core.Response;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import junitparams.naming.TestCaseName;
@@ -16,17 +19,14 @@ import org.metadatacenter.constant.LinkedData;
 import org.metadatacenter.model.CedarResourceType;
 import org.metadatacenter.util.json.JsonMapper;
 
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import static javax.ws.rs.core.HttpHeaders.AUTHORIZATION;
-import static javax.ws.rs.core.HttpHeaders.LOCATION;
+import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
+import static jakarta.ws.rs.core.HttpHeaders.LOCATION;
 import static org.metadatacenter.cedar.artifact.resources.rest.AuthHeaderSelector.*;
 import static org.metadatacenter.cedar.artifact.resources.rest.IdMatchingSelector.*;
 import static org.metadatacenter.cedar.artifact.resources.utils.TestConstants.TEST_NAME_PATTERN_METHOD_PARAMS;
@@ -133,7 +133,7 @@ public class DeleteElementTest extends AbstractRestTest {
                                         TestParameterValueGenerator<String> auth,
                                         TestParameterValueGenerator<String> idInUrlGenerator) {
 
-    if (((TestValueResourceIdGenerator)idInUrlGenerator).getIdMatchingSelector() == NULL_FULL) {
+    if (((TestValueResourceIdGenerator) idInUrlGenerator).getIdMatchingSelector() == NULL_FULL) {
       return Response.Status.METHOD_NOT_ALLOWED.getStatusCode();
     }
 
@@ -143,7 +143,7 @@ public class DeleteElementTest extends AbstractRestTest {
       return Response.Status.UNAUTHORIZED.getStatusCode();
     }
 
-    if (((TestValueResourceIdGenerator)idInUrlGenerator).getIdMatchingSelector() == NULL_ID) {
+    if (((TestValueResourceIdGenerator) idInUrlGenerator).getIdMatchingSelector() == NULL_ID) {
       return Response.Status.BAD_REQUEST.getStatusCode();
     }
 
