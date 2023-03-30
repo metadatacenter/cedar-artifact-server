@@ -2,9 +2,11 @@ package org.metadatacenter.cedar.artifact.resources;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
-import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.testing.ResourceHelpers;
 import io.dropwizard.testing.junit.DropwizardAppRule;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.Response;
 import org.glassfish.jersey.client.ClientProperties;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.junit.AfterClass;
@@ -17,9 +19,6 @@ import org.metadatacenter.constant.LinkedData;
 import org.metadatacenter.util.json.JsonMapper;
 import org.metadatacenter.util.test.TestUserUtil;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Response;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Iterator;
@@ -48,7 +47,7 @@ public abstract class BaseServerTest {
 
   @BeforeClass
   public static void createTestClient() {
-    testClient =  new ResteasyClientBuilder().build();
+    testClient = ResteasyClientBuilder.newBuilder().build();
     //testClient = new JerseyClientBuilder(SERVER_APPLICATION.getEnvironment()).build("TestClient");
     testClient.property(ClientProperties.READ_TIMEOUT, 3000); // 3s
     testClient.property(ClientProperties.CONNECT_TIMEOUT, 3000);

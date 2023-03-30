@@ -1,6 +1,7 @@
 package org.metadatacenter.cedar.artifact.resources.crud;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import jakarta.ws.rs.core.Response;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import junitparams.naming.TestCaseName;
@@ -11,7 +12,6 @@ import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
 import org.metadatacenter.constant.LinkedData;
 import org.metadatacenter.model.CedarResourceType;
 
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.net.URLEncoder;
 

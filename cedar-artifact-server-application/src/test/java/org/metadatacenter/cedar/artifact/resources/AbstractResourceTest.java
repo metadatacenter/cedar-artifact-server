@@ -1,9 +1,11 @@
 package org.metadatacenter.cedar.artifact.resources;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.testing.ResourceHelpers;
 import io.dropwizard.testing.junit.DropwizardAppRule;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.Response;
 import org.glassfish.jersey.client.ClientProperties;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.junit.ClassRule;
@@ -22,15 +24,13 @@ import org.metadatacenter.server.jsonld.LinkedDataUtil;
 import org.metadatacenter.util.test.TestUserUtil;
 import org.slf4j.Logger;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
 
 import static javax.ws.rs.core.HttpHeaders.AUTHORIZATION;
-import static org.metadatacenter.cedar.artifact.resources.utils.TestConstants.*;
+import static org.metadatacenter.cedar.artifact.resources.utils.TestConstants.DEFAULT_TIMEOUT;
+import static org.metadatacenter.cedar.artifact.resources.utils.TestConstants.TEST_CONFIG_FILE;
 import static org.metadatacenter.constant.HttpConstants.CREATED;
 
 public abstract class AbstractResourceTest {
@@ -70,7 +70,7 @@ public abstract class AbstractResourceTest {
     baseTestUrl = TestConstants.BASE_URL + ":" + SERVER_APPLICATION.getLocalPort();
 
     // Set up test client
-    testClient =  new ResteasyClientBuilder().build();
+    testClient = ResteasyClientBuilder.newBuilder().build();
     //testClient = new JerseyClientBuilder(SERVER_APPLICATION.getEnvironment()).build(TEST_CLIENT_NAME);
     testClient.property(ClientProperties.READ_TIMEOUT, DEFAULT_TIMEOUT);
     testClient.property(ClientProperties.CONNECT_TIMEOUT, DEFAULT_TIMEOUT);

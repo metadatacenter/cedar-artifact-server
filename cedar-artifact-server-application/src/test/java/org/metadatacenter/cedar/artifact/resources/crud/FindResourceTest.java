@@ -1,6 +1,8 @@
 package org.metadatacenter.cedar.artifact.resources.crud;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.Response;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import junitparams.naming.TestCaseName;
@@ -15,8 +17,6 @@ import org.metadatacenter.constant.HttpConstants;
 import org.metadatacenter.constant.LinkedData;
 import org.metadatacenter.model.CedarResourceType;
 
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
@@ -40,10 +40,12 @@ public class FindResourceTest extends AbstractResourceCrudTest {
   public void findResourceTest(JsonNode sampleResource, CedarResourceType resourceType) {
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
     // If the artifact is an instance, we need to set the schema:isBasedOn property to the id of an existing artifact.
-    // Otherwise we will get a validation error. So, first we create a artifact and then use its id to create the instance
+    // Otherwise we will get a validation error. So, first we create a artifact and then use its id to create the
+    // instance
     sampleResource = setSchemaIsBasedOn(sampleTemplate, sampleResource, resourceType);
     // Create a artifact
-    Response response = testClient.target(url).request().header("Authorization", authHeader).post(Entity.json(sampleResource));
+    Response response =
+        testClient.target(url).request().header("Authorization", authHeader).post(Entity.json(sampleResource));
     JsonNode expected = response.readEntity(JsonNode.class);
     createdResources.put(expected.get(LinkedData.ID).asText(), resourceType);
     // Use generated id to retrieve the artifact
@@ -53,7 +55,8 @@ public class FindResourceTest extends AbstractResourceCrudTest {
       findUrl = url + "/" + URLEncoder.encode(id, "UTF-8");
     } catch (UnsupportedEncodingException e) {
       e.printStackTrace();
-    };
+    }
+    ;
     // Service invocation - Find by Id
     Response findResponse = testClient.target(findUrl).request().header("Authorization", authHeader).get();
     // Check response is OK
@@ -69,15 +72,19 @@ public class FindResourceTest extends AbstractResourceCrudTest {
   public void findNonExistentResourceTest(CedarResourceType resourceType, String nonExistentResourceId) {
     String findUrl = null;
     try {
-      findUrl = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType) + "/" + URLEncoder.encode(nonExistentResourceId, "UTF-8");
+      findUrl =
+          TestUtil.getResourceUrlRoute(baseTestUrl, resourceType) + "/" + URLEncoder.encode(nonExistentResourceId,
+              "UTF-8");
     } catch (UnsupportedEncodingException e) {
       e.printStackTrace();
-    };
+    }
+    ;
     // Service invocation - Find by Id
     Response findResponse = testClient.target(findUrl).request().header("Authorization", authHeader).get();
     // Check response
     Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(), findResponse.getStatus());
   }
+
   private Object parametersForFindNonExistentResourceTest() {
     return new Object[]{
         new Object[]{CedarResourceType.TEMPLATE, NON_EXISTENT_TEMPLATE_ID},
@@ -95,12 +102,14 @@ public class FindResourceTest extends AbstractResourceCrudTest {
       findUrl = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType) + "/" + URLEncoder.encode(invalidId, "UTF-8");
     } catch (UnsupportedEncodingException e) {
       e.printStackTrace();
-    };
+    }
+    ;
     // Service invocation - Find by Id
     Response findResponse = testClient.target(findUrl).request().header("Authorization", authHeader).get();
     // Check response
     Assert.assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), findResponse.getStatus());
   }
+
   private Object parametersForFindInvalidIdTest() {
     return new Object[]{
         new Object[]{CedarResourceType.TEMPLATE, INVALID_ID},
@@ -115,10 +124,12 @@ public class FindResourceTest extends AbstractResourceCrudTest {
   public void findResourceMissingAuthorizationHeaderTest(JsonNode sampleResource, CedarResourceType resourceType) {
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
     // If the artifact is an instance, we need to set the schema:isBasedOn property to the id of an existing artifact.
-    // Otherwise we will get a validation error. So, first we create a artifact and then use its id to create the instance
+    // Otherwise we will get a validation error. So, first we create a artifact and then use its id to create the
+    // instance
     sampleResource = setSchemaIsBasedOn(sampleTemplate, sampleResource, resourceType);
     // Create a artifact
-    Response response = testClient.target(url).request().header("Authorization", authHeader).post(Entity.json(sampleResource));
+    Response response =
+        testClient.target(url).request().header("Authorization", authHeader).post(Entity.json(sampleResource));
     JsonNode expected = response.readEntity(JsonNode.class);
     createdResources.put(expected.get(LinkedData.ID).asText(), resourceType);
     // Use generated id to retrieve the artifact
@@ -128,7 +139,8 @@ public class FindResourceTest extends AbstractResourceCrudTest {
       findUrl = url + "/" + URLEncoder.encode(id, "UTF-8");
     } catch (UnsupportedEncodingException e) {
       e.printStackTrace();
-    };
+    }
+    ;
     // Service invocation - Find by Id - missing Authorization header
     Response findResponse = testClient.target(findUrl).request().get();
     // Check response
@@ -141,10 +153,12 @@ public class FindResourceTest extends AbstractResourceCrudTest {
   public void findResourceUnauthorizedKeyTest(JsonNode sampleResource, CedarResourceType resourceType) {
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
     // If the artifact is an instance, we need to set the schema:isBasedOn property to the id of an existing artifact.
-    // Otherwise we will get a validation error. So, first we create a artifact and then use its id to create the instance
+    // Otherwise we will get a validation error. So, first we create a artifact and then use its id to create the
+    // instance
     sampleResource = setSchemaIsBasedOn(sampleTemplate, sampleResource, resourceType);
     // Create a artifact
-    Response response = testClient.target(url).request().header("Authorization", authHeader).post(Entity.json(sampleResource));
+    Response response =
+        testClient.target(url).request().header("Authorization", authHeader).post(Entity.json(sampleResource));
     JsonNode expected = response.readEntity(JsonNode.class);
     createdResources.put(expected.get(LinkedData.ID).asText(), resourceType);
     // Use generated id to retrieve the artifact
@@ -154,7 +168,8 @@ public class FindResourceTest extends AbstractResourceCrudTest {
       findUrl = url + "/" + URLEncoder.encode(id, "UTF-8");
     } catch (UnsupportedEncodingException e) {
       e.printStackTrace();
-    };
+    }
+    ;
     // Service invocation - Find by Id - unauthorized user
     String authHeader = "apiKey " + NON_EXISTENT_API_KEY;
     Response findResponse = testClient.target(findUrl).request().header("Authorization", authHeader).get();
@@ -169,7 +184,8 @@ public class FindResourceTest extends AbstractResourceCrudTest {
   @Test
   @TestCaseName(TEST_NAME_PATTERN_INDEX_METHOD + " limit={2}, offset={3}, summary={4}")
   @Parameters
-  public void findAllResourcesTest(CedarResourceType resourceType, JsonNode sampleResource, String limit, String offset, String summary) {
+  public void findAllResourcesTest(CedarResourceType resourceType, JsonNode sampleResource, String limit,
+                                   String offset, String summary) {
     int initialCount = countResources(resourceType);
     final int CREATE_RESOURCES_COUNT = 3; // number of resources to be created
     // create resources
@@ -223,9 +239,9 @@ public class FindResourceTest extends AbstractResourceCrudTest {
       int expectedSize;
       if (limit.length() > 0) {
         expectedSize = Math.min(expectedCount, Integer.parseInt(limit));
-      }
-      else {
-        expectedSize = Math.min(expectedCount, TestUtil.cedarConfig.getArtifactRESTAPI().getPagination().getDefaultPageSize());
+      } else {
+        expectedSize = Math.min(expectedCount,
+            TestUtil.cedarConfig.getArtifactRESTAPI().getPagination().getDefaultPageSize());
       }
       Assert.assertEquals(expectedSize, actual.size());
       // Check the elements retrieved. This check is currently limited to the first page of results, and it is done
@@ -242,6 +258,7 @@ public class FindResourceTest extends AbstractResourceCrudTest {
       e.printStackTrace();
     }
   }
+
   private Object parametersForFindAllResourcesTest() {
     List<Object> p1p2Values = Arrays.asList(
         Arrays.asList(CedarResourceType.TEMPLATE, sampleTemplate),
@@ -252,11 +269,6 @@ public class FindResourceTest extends AbstractResourceCrudTest {
     List<Object> summaryValues = Arrays.asList(Arrays.asList(""), Arrays.asList("true"), Arrays.asList("false"));
     return TestParameterUtil.getParameterPermutations(Arrays.asList(p1p2Values, limitValues, offsetValues, summaryValues));
   }
-
-
-
-
-
 
 
 }
