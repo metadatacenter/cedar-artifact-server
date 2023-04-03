@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.com/metadatacenter/cedar-artifact-server.svg?branch=master)](https://travis-ci.com/metadatacenter/cedar-artifact-server)
 
-CEDAR server to manage templates, template elements, and template instances.
+Server that manages CEDAR artifacts (templates, elements fields, template instances).
 
 This project is implemented in Java using [Dropwizard](http://www.dropwizard.io/).
 
@@ -13,7 +13,7 @@ The project contains two subdirectories:
 
 ## Versions
 
-* Java: 1.8
+* Java: 19
 * MongoDB: 3.0.0
 
 ## Getting started
