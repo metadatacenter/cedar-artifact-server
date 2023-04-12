@@ -18,7 +18,7 @@
 
     <dependency>
       <groupId>org.metadatacenter</groupId>
-      <artifactId>cedar-server-rest</artifactId>
+      <artifactId>cedar-server-rest-library</artifactId>
     </dependency>
 
     <dependency>
@@ -28,22 +28,22 @@
 
     <dependency>
       <groupId>org.metadatacenter</groupId>
-      <artifactId>cedar-server-globals</artifactId>
+      <artifactId>cedar-server-globals-library</artifactId>
     </dependency>
 
     <dependency>
       <groupId>org.metadatacenter</groupId>
-      <artifactId>cedar-server-utils-core</artifactId>
+      <artifactId>cedar-server-utils-core-library</artifactId>
     </dependency>
 
     <dependency>
       <groupId>org.metadatacenter</groupId>
-      <artifactId>cedar-template-operations</artifactId>
+      <artifactId>cedar-template-operations-library</artifactId>
     </dependency>
 
     <dependency>
       <groupId>org.metadatacenter</groupId>
-      <artifactId>cedar-server-utils-dropwizard</artifactId>
+      <artifactId>cedar-server-utils-dropwizard-library</artifactId>
     </dependency>
 
     <dependency>
