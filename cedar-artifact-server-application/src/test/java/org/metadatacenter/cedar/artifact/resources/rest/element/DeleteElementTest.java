@@ -16,6 +16,7 @@ import org.metadatacenter.cedar.artifact.resources.rest.AuthHeaderSelector;
 import org.metadatacenter.cedar.artifact.resources.rest.IdMatchingSelector;
 import org.metadatacenter.cedar.test.util.*;
 import org.metadatacenter.constant.LinkedData;
+import org.metadatacenter.http.CedarResponseStatus;
 import org.metadatacenter.model.CedarResourceType;
 import org.metadatacenter.util.json.JsonMapper;
 
@@ -134,25 +135,25 @@ public class DeleteElementTest extends AbstractRestTest {
                                         TestParameterValueGenerator<String> idInUrlGenerator) {
 
     if (((TestValueResourceIdGenerator) idInUrlGenerator).getIdMatchingSelector() == NULL_FULL) {
-      return Response.Status.METHOD_NOT_ALLOWED.getStatusCode();
+      return CedarResponseStatus.METHOD_NOT_ALLOWED.getStatusCode();
     }
 
     TestValueAuthStringGenerator authGenerator = new TestValueAuthStringGenerator(TEST_USER_1);
     authGenerator.generateValue(tdctx, null);
     if (!authGenerator.getValue().equals(auth.getValue())) {
-      return Response.Status.UNAUTHORIZED.getStatusCode();
+      return CedarResponseStatus.UNAUTHORIZED.getStatusCode();
     }
 
     if (((TestValueResourceIdGenerator) idInUrlGenerator).getIdMatchingSelector() == NULL_ID) {
-      return Response.Status.BAD_REQUEST.getStatusCode();
+      return CedarResponseStatus.BAD_REQUEST.getStatusCode();
     }
 
     if (((TestValueResourceIdGenerator) idInUrlGenerator).getIdMatchingSelector() == GIBBERISH) {
-      return Response.Status.BAD_REQUEST.getStatusCode();
+      return CedarResponseStatus.BAD_REQUEST.getStatusCode();
     } else if (((TestValueResourceIdGenerator) idInUrlGenerator).getIdMatchingSelector() == RANDOM_ID) {
-      return Response.Status.NOT_FOUND.getStatusCode();
+      return CedarResponseStatus.NOT_FOUND.getStatusCode();
     } else if (((TestValueResourceIdGenerator) idInUrlGenerator).getIdMatchingSelector() == PREVIOUSLY_CREATED) {
-      return Response.Status.NO_CONTENT.getStatusCode();
+      return CedarResponseStatus.NO_CONTENT.getStatusCode();
     }
 
     return 0;

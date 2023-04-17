@@ -16,6 +16,7 @@ import org.metadatacenter.cedar.artifact.resources.rest.AuthHeaderSelector;
 import org.metadatacenter.cedar.artifact.resources.rest.IdMatchingSelector;
 import org.metadatacenter.cedar.test.util.*;
 import org.metadatacenter.constant.LinkedData;
+import org.metadatacenter.http.CedarResponseStatus;
 import org.metadatacenter.model.CedarResourceType;
 import org.metadatacenter.model.core.CedarModelVocabulary;
 import org.metadatacenter.util.json.JsonMapper;
@@ -128,7 +129,7 @@ public class GetTemplateTest extends AbstractRestTest {
     int expectedResponseStatus = getExpectedResponseStatus(generator, rt, auth, idInUrlGenerator);
     Assert.assertEquals(expectedResponseStatus, getResponseStatus);
 
-    if (expectedResponseStatus == Response.Status.OK.getStatusCode()) {
+    if (expectedResponseStatus == CedarResponseStatus.OK.getStatusCode()) {
       String getBody = getResponse.readEntity(String.class);
       JsonNode getTemplate = null;
       try {
@@ -151,19 +152,19 @@ public class GetTemplateTest extends AbstractRestTest {
     TestValueAuthStringGenerator authGenerator = new TestValueAuthStringGenerator(TEST_USER_1);
     authGenerator.generateValue(tdctx, null);
     if (!authGenerator.getValue().equals(auth.getValue())) {
-      return Response.Status.UNAUTHORIZED.getStatusCode();
+      return CedarResponseStatus.UNAUTHORIZED.getStatusCode();
     }
 
     if (((TestValueResourceIdGenerator) idInUrlGenerator).getIdMatchingSelector() == NULL_ID) {
-      return Response.Status.BAD_REQUEST.getStatusCode();
+      return CedarResponseStatus.BAD_REQUEST.getStatusCode();
     }
 
     if (((TestValueResourceIdGenerator) idInUrlGenerator).getIdMatchingSelector() == GIBBERISH) {
-      return Response.Status.BAD_REQUEST.getStatusCode();
+      return CedarResponseStatus.BAD_REQUEST.getStatusCode();
     } else if (((TestValueResourceIdGenerator) idInUrlGenerator).getIdMatchingSelector() == RANDOM_ID) {
-      return Response.Status.NOT_FOUND.getStatusCode();
+      return CedarResponseStatus.NOT_FOUND.getStatusCode();
     } else if (((TestValueResourceIdGenerator) idInUrlGenerator).getIdMatchingSelector() == PREVIOUSLY_CREATED) {
-      return Response.Status.OK.getStatusCode();
+      return CedarResponseStatus.OK.getStatusCode();
     }
 
     return 0;

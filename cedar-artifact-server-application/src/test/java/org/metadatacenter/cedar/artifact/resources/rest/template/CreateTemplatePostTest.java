@@ -17,6 +17,7 @@ import org.metadatacenter.cedar.artifact.resources.rest.AuthHeaderSelector;
 import org.metadatacenter.cedar.artifact.resources.rest.IdMatchingSelector;
 import org.metadatacenter.cedar.test.util.*;
 import org.metadatacenter.constant.LinkedData;
+import org.metadatacenter.http.CedarResponseStatus;
 import org.metadatacenter.model.CedarResourceType;
 import org.metadatacenter.util.json.JsonMapper;
 
@@ -136,26 +137,26 @@ public class CreateTemplatePostTest extends AbstractRestTest {
     TestValueAuthStringGenerator authGenerator = new TestValueAuthStringGenerator(TEST_USER_1);
     authGenerator.generateValue(tdctx, null);
     if (!authGenerator.getValue().equals(auth.getValue())) {
-      return Response.Status.UNAUTHORIZED.getStatusCode();
+      return CedarResponseStatus.UNAUTHORIZED.getStatusCode();
     }
     if (js.getValue() == null) {
-      return Response.Status.BAD_REQUEST.getStatusCode();
+      return CedarResponseStatus.BAD_REQUEST.getStatusCode();
     } else if (NON_JSON.equals(js.getValue())) {
-      return Response.Status.BAD_REQUEST.getStatusCode();
+      return CedarResponseStatus.BAD_REQUEST.getStatusCode();
     } else if (BAD_JSON.equals(js.getValue())) {
-      return Response.Status.BAD_REQUEST.getStatusCode();
+      return CedarResponseStatus.BAD_REQUEST.getStatusCode();
     } else if (EMPTY_JSON.equals(js.getValue())) {
-      return Response.Status.BAD_REQUEST.getStatusCode();
+      return CedarResponseStatus.BAD_REQUEST.getStatusCode();
     } else if (SCHEMA_NAME.equals(js.getValue())) {
-      return Response.Status.CREATED.getStatusCode();
+      return CedarResponseStatus.CREATED.getStatusCode();
     } else if (SCHEMA_DESCRIPTION.equals(js.getValue())) {
-      return Response.Status.BAD_REQUEST.getStatusCode();
+      return CedarResponseStatus.BAD_REQUEST.getStatusCode();
     } else if (MINIMAL_TEMPLATE_WITH_ID.equals(js.getValue())) {
-      return Response.Status.BAD_REQUEST.getStatusCode();
+      return CedarResponseStatus.BAD_REQUEST.getStatusCode();
     } else if (FULL_TEMPLATE.equals(js.getValue())) {
-      return Response.Status.BAD_REQUEST.getStatusCode();
+      return CedarResponseStatus.BAD_REQUEST.getStatusCode();
     } else if (MINIMAL_TEMPLATE_NO_ID.equals(js.getValue())) {
-      return Response.Status.CREATED.getStatusCode();
+      return CedarResponseStatus.CREATED.getStatusCode();
     }
 
     return 0;

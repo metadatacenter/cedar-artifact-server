@@ -15,6 +15,7 @@ import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
 import org.metadatacenter.constant.CustomHttpConstants;
 import org.metadatacenter.constant.HttpConstants;
 import org.metadatacenter.constant.LinkedData;
+import org.metadatacenter.http.CedarResponseStatus;
 import org.metadatacenter.model.CedarResourceType;
 
 import java.io.IOException;
@@ -60,7 +61,7 @@ public class FindResourceTest extends AbstractResourceCrudTest {
     // Service invocation - Find by Id
     Response findResponse = testClient.target(findUrl).request().header("Authorization", authHeader).get();
     // Check response is OK
-    Assert.assertEquals(Response.Status.OK.getStatusCode(), findResponse.getStatus());
+    Assert.assertEquals(CedarResponseStatus.OK.getStatusCode(), findResponse.getStatus());
     // Check the element retrieved
     JsonNode actual = findResponse.readEntity(JsonNode.class);
     Assert.assertEquals(expected, actual);
@@ -82,7 +83,7 @@ public class FindResourceTest extends AbstractResourceCrudTest {
     // Service invocation - Find by Id
     Response findResponse = testClient.target(findUrl).request().header("Authorization", authHeader).get();
     // Check response
-    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(), findResponse.getStatus());
+    Assert.assertEquals(CedarResponseStatus.NOT_FOUND.getStatusCode(), findResponse.getStatus());
   }
 
   private Object parametersForFindNonExistentResourceTest() {
@@ -107,7 +108,7 @@ public class FindResourceTest extends AbstractResourceCrudTest {
     // Service invocation - Find by Id
     Response findResponse = testClient.target(findUrl).request().header("Authorization", authHeader).get();
     // Check response
-    Assert.assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), findResponse.getStatus());
+    Assert.assertEquals(CedarResponseStatus.BAD_REQUEST.getStatusCode(), findResponse.getStatus());
   }
 
   private Object parametersForFindInvalidIdTest() {
@@ -144,7 +145,7 @@ public class FindResourceTest extends AbstractResourceCrudTest {
     // Service invocation - Find by Id - missing Authorization header
     Response findResponse = testClient.target(findUrl).request().get();
     // Check response
-    Assert.assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(), findResponse.getStatus());
+    Assert.assertEquals(CedarResponseStatus.UNAUTHORIZED.getStatusCode(), findResponse.getStatus());
   }
 
   @Test
@@ -174,7 +175,7 @@ public class FindResourceTest extends AbstractResourceCrudTest {
     String authHeader = "apiKey " + NON_EXISTENT_API_KEY;
     Response findResponse = testClient.target(findUrl).request().header("Authorization", authHeader).get();
     // Check response
-    Assert.assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(), findResponse.getStatus());
+    Assert.assertEquals(CedarResponseStatus.UNAUTHORIZED.getStatusCode(), findResponse.getStatus());
   }
 
   /**
@@ -222,7 +223,7 @@ public class FindResourceTest extends AbstractResourceCrudTest {
       log.info("URL: " + url);
       Response findAllResponse = testClient.target(findAllUrl).request().header("Authorization", authHeader).get();
       // Check response is OK
-      Assert.assertEquals(Response.Status.OK.getStatusCode(), findAllResponse.getStatus());
+      Assert.assertEquals(CedarResponseStatus.OK.getStatusCode(), findAllResponse.getStatus());
       // Check headers
       Assert.assertNotNull(findAllResponse.getHeaderString(CustomHttpConstants.HEADER_TOTAL_COUNT));
       int currentCount = Integer.parseInt(findAllResponse.getHeaderString(CustomHttpConstants.HEADER_TOTAL_COUNT));

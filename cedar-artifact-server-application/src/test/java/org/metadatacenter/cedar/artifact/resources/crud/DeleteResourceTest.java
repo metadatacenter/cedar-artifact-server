@@ -10,6 +10,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
 import org.metadatacenter.constant.LinkedData;
+import org.metadatacenter.http.CedarResponseStatus;
 import org.metadatacenter.model.CedarResourceType;
 
 import java.io.IOException;
@@ -39,11 +40,11 @@ public class DeleteResourceTest extends AbstractResourceCrudTest {
       Response responseUpdate = testClient.target(url + "/" + URLEncoder.encode(createdResourceId, "UTF-8")).
           request().header("Authorization", authHeader).delete();
       // Check HTTP response
-      Assert.assertEquals(Response.Status.NO_CONTENT.getStatusCode(), responseUpdate.getStatus());
+      Assert.assertEquals(CedarResponseStatus.NO_CONTENT.getStatusCode(), responseUpdate.getStatus());
       // Check that the artifact has been deleted
       Response responseFind = testClient.target(url + "/" + URLEncoder.encode(createdResourceId, "UTF-8")).
           request().header("Authorization", authHeader).get();
-      Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(), responseFind.getStatus());
+      Assert.assertEquals(CedarResponseStatus.NOT_FOUND.getStatusCode(), responseFind.getStatus());
     } catch (IOException e) {
       e.printStackTrace();
     }
