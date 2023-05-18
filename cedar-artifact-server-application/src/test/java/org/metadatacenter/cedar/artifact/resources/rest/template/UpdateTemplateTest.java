@@ -17,6 +17,7 @@ import org.metadatacenter.cedar.artifact.resources.rest.AuthHeaderSelector;
 import org.metadatacenter.cedar.artifact.resources.rest.IdMatchingSelector;
 import org.metadatacenter.cedar.test.util.*;
 import org.metadatacenter.constant.LinkedData;
+import org.metadatacenter.http.CedarResponseStatus;
 import org.metadatacenter.model.CedarResourceType;
 import org.metadatacenter.model.core.CedarModelVocabulary;
 import org.metadatacenter.util.json.JsonMapper;
@@ -133,7 +134,7 @@ public class UpdateTemplateTest extends AbstractRestTest {
     Assert.assertEquals(expectedResponseStatus, putResponseStatus);
 
     // Do the actual testing - verify the changed description field value
-    if (expectedResponseStatus == Response.Status.OK.getStatusCode()) {
+    if (expectedResponseStatus == CedarResponseStatus.OK.getStatusCode()) {
       String getUrl = getUrlWithId(baseTestUrl, resourceType, createdId);
 
       divider("GET BLOCK");
@@ -152,7 +153,7 @@ public class UpdateTemplateTest extends AbstractRestTest {
 
       int getResponseStatus = getResponse.getStatus();
       pair("Get response status", getResponseStatus);
-      Assert.assertEquals(Response.Status.OK.getStatusCode(), getResponseStatus);
+      Assert.assertEquals(CedarResponseStatus.OK.getStatusCode(), getResponseStatus);
 
       String getBody = getResponse.readEntity(String.class);
       JsonNode getTemplate = null;
@@ -174,25 +175,25 @@ public class UpdateTemplateTest extends AbstractRestTest {
                                         TestParameterValueGenerator<String> idInUrlGenerator) {
 
     if (((TestValueResourceIdGenerator) idInUrlGenerator).getIdMatchingSelector() == NULL_FULL) {
-      return Response.Status.METHOD_NOT_ALLOWED.getStatusCode();
+      return CedarResponseStatus.METHOD_NOT_ALLOWED.getStatusCode();
     }
 
     TestValueAuthStringGenerator authGenerator = new TestValueAuthStringGenerator(TEST_USER_1);
     authGenerator.generateValue(tdctx, null);
     if (!authGenerator.getValue().equals(auth.getValue())) {
-      return Response.Status.UNAUTHORIZED.getStatusCode();
+      return CedarResponseStatus.UNAUTHORIZED.getStatusCode();
     }
 
     if (((TestValueResourceIdGenerator) idInUrlGenerator).getIdMatchingSelector() == NULL_ID) {
-      return Response.Status.BAD_REQUEST.getStatusCode();
+      return CedarResponseStatus.BAD_REQUEST.getStatusCode();
     }
 
     if (((TestValueResourceIdGenerator) idInUrlGenerator).getIdMatchingSelector() == GIBBERISH) {
-      return Response.Status.BAD_REQUEST.getStatusCode();
+      return CedarResponseStatus.BAD_REQUEST.getStatusCode();
     } else if (((TestValueResourceIdGenerator) idInUrlGenerator).getIdMatchingSelector() == RANDOM_ID) {
-      return Response.Status.BAD_REQUEST.getStatusCode();
+      return CedarResponseStatus.BAD_REQUEST.getStatusCode();
     } else if (((TestValueResourceIdGenerator) idInUrlGenerator).getIdMatchingSelector() == PREVIOUSLY_CREATED) {
-      return Response.Status.OK.getStatusCode();
+      return CedarResponseStatus.OK.getStatusCode();
     }
 
     return 0;

@@ -12,6 +12,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
 import org.metadatacenter.constant.LinkedData;
+import org.metadatacenter.http.CedarResponseStatus;
 import org.metadatacenter.model.CedarResourceType;
 
 import static jakarta.ws.rs.core.HttpHeaders.LOCATION;
@@ -37,7 +38,7 @@ public class CreateResourceTest extends AbstractResourceCrudTest {
     Response response = testClient.target(url).request().header("Authorization", authHeader).post(Entity.json
         (sampleResource));
     // Check HTTP response
-    Assert.assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
+    Assert.assertEquals(CedarResponseStatus.CREATED.getStatusCode(), response.getStatus());
     createdResources.put(response.readEntity(JsonNode.class).get(LinkedData.ID).asText(), resourceType);
     // Retrieve the artifact created
     String location = response.getHeaderString(LOCATION);
@@ -68,12 +69,12 @@ public class CreateResourceTest extends AbstractResourceCrudTest {
 //    // Post empty json
 //    Response response1 = testClient.target(url).request().header("Authorization", authHeader).post(Entity.json(""));
 //    // Check HTTP response
-//    Assert.assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response1.getStatus());
+//    Assert.assertEquals(CedarResponseStatus.BAD_REQUEST.getStatusCode(), response1.getStatus());
 //    // Post invalid json
 //    Response response2 = testClient.target(url).request().header("Authorization", authHeader).post(Entity.json
 // (INVALID_JSON));
 //    // Check HTTP response
-//    Assert.assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response2.getStatus());
+//    Assert.assertEquals(CedarResponseStatus.BAD_REQUEST.getStatusCode(), response2.getStatus());
 //  }
 
 
@@ -85,7 +86,7 @@ public class CreateResourceTest extends AbstractResourceCrudTest {
     // Service invocation without Authorization header
     Response response = testClient.target(url).request().post(Entity.json(sampleResource));
     // Check HTTP response
-    Assert.assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(), response.getStatus());
+    Assert.assertEquals(CedarResponseStatus.UNAUTHORIZED.getStatusCode(), response.getStatus());
   }
 
   @Test
@@ -98,7 +99,7 @@ public class CreateResourceTest extends AbstractResourceCrudTest {
     Response response = testClient.target(url).request().header("Authorization", newAuthHeader).post(Entity.json
         (sampleResource));
     // Check HTTP response
-    Assert.assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(), response.getStatus());
+    Assert.assertEquals(CedarResponseStatus.UNAUTHORIZED.getStatusCode(), response.getStatus());
   }
 
 }

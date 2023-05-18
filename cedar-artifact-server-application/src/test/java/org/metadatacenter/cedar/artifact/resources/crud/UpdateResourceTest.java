@@ -12,6 +12,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
 import org.metadatacenter.constant.LinkedData;
+import org.metadatacenter.http.CedarResponseStatus;
 import org.metadatacenter.model.CedarResourceType;
 
 import java.io.IOException;
@@ -46,7 +47,7 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
       Response responseUpdate = testClient.target(url + "/" + URLEncoder.encode(createdResourceId, "UTF-8")).
           request().header("Authorization", authHeader).put(Entity.json(updatedResource));
       // Check HTTP response
-      Assert.assertEquals(Response.Status.OK.getStatusCode(), responseUpdate.getStatus());
+      Assert.assertEquals(CedarResponseStatus.OK.getStatusCode(), responseUpdate.getStatus());
       // Retrieve updated element
       Response responseFind = testClient.target(url + "/" + URLEncoder.encode(createdResourceId, "UTF-8")).
           request().header("Authorization", authHeader).get();
