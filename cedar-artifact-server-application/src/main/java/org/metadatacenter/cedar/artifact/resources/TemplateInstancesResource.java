@@ -239,12 +239,12 @@ public class TemplateInstancesResource extends AbstractArtifactServerResource {
     try {
       JsonNode currentTemplateInstance = templateInstanceService.findTemplateInstance(id);
       if (currentTemplateInstance != null) {
-        outputTemplateInstance = templateInstanceService.updateTemplateInstance(id, newInstance);
         createOrUpdate = CreateOrUpdate.UPDATE;
+        outputTemplateInstance = templateInstanceService.updateTemplateInstance(id, newInstance);
       } else {
         c.must(id).be(ValidId);
-        outputTemplateInstance = templateInstanceService.createTemplateInstance(newInstance);
         createOrUpdate = CreateOrUpdate.CREATE;
+        outputTemplateInstance = templateInstanceService.createTemplateInstance(newInstance);
       }
     } catch (IOException | ArtifactServerResourceNotFoundException e) {
       CedarResponse.CedarResponseBuilder responseBuilder = CedarResponse.internalServerError()
