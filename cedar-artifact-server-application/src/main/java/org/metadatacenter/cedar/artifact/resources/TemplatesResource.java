@@ -226,7 +226,7 @@ public class TemplatesResource extends AbstractArtifactServerResource {
       ReportUtils.outputLogger(logger, validationReport, true);
       String validationStatus = validationReport.getValidationStatus();
       if (validationStatus.equals(CedarValidationReport.IS_VALID)) {
-        response = updateTemplateInDatabase(id, newTemplate, pi, c);
+        response = updateOrCreateTemplateInDatabase(id, newTemplate, pi, c);
       } else {
         response = CedarResponse.badRequest()
             .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_INVALID)
@@ -237,12 +237,12 @@ public class TemplatesResource extends AbstractArtifactServerResource {
             .build();
       }
     } else {
-      response = updateTemplateInDatabase(id, newTemplate, pi, c);
+      response = updateOrCreateTemplateInDatabase(id, newTemplate, pi, c);
     }
     return response;
   }
 
-  private Response updateTemplateInDatabase(String templateId, JsonNode updatedTemplate, ProvenanceInfo pi, CedarRequestContext c) throws CedarException {
+  private Response updateOrCreateTemplateInDatabase(String templateId, JsonNode updatedTemplate, ProvenanceInfo pi, CedarRequestContext c) throws CedarException {
     JsonNode outputTemplate = null;
     CreateOrUpdate createOrUpdate = null;
     try {
