@@ -41,9 +41,7 @@ public class TestParameterGenerator {
 
   public List<TestParameterValueGenerator> getAll() {
     List<TestParameterValueGenerator> all = new ArrayList<>();
-    for (TestParameterValueGenerator valueGenerator : valueGenerators) {
-      all.add(valueGenerator);
-    }
+    all.addAll(valueGenerators);
     return all;
   }
 

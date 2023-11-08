@@ -18,10 +18,9 @@ import org.metadatacenter.constant.LinkedData;
 import org.metadatacenter.http.CedarResponseStatus;
 import org.metadatacenter.model.CedarResourceType;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -52,12 +51,7 @@ public class FindResourceTest extends AbstractResourceCrudTest {
     // Use generated id to retrieve the artifact
     String id = expected.get(LinkedData.ID).asText();
     String findUrl = null;
-    try {
-      findUrl = url + "/" + URLEncoder.encode(id, "UTF-8");
-    } catch (UnsupportedEncodingException e) {
-      e.printStackTrace();
-    }
-    ;
+    findUrl = url + "/" + URLEncoder.encode(id, StandardCharsets.UTF_8);
     // Service invocation - Find by Id
     Response findResponse = testClient.target(findUrl).request().header("Authorization", authHeader).get();
     // Check response is OK
@@ -72,14 +66,7 @@ public class FindResourceTest extends AbstractResourceCrudTest {
   @Parameters
   public void findNonExistentResourceTest(CedarResourceType resourceType, String nonExistentResourceId) {
     String findUrl = null;
-    try {
-      findUrl =
-          TestUtil.getResourceUrlRoute(baseTestUrl, resourceType) + "/" + URLEncoder.encode(nonExistentResourceId,
-              "UTF-8");
-    } catch (UnsupportedEncodingException e) {
-      e.printStackTrace();
-    }
-    ;
+    findUrl = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType) + "/" + URLEncoder.encode(nonExistentResourceId, StandardCharsets.UTF_8);
     // Service invocation - Find by Id
     Response findResponse = testClient.target(findUrl).request().header("Authorization", authHeader).get();
     // Check response
@@ -99,12 +86,7 @@ public class FindResourceTest extends AbstractResourceCrudTest {
   @Parameters
   public void findInvalidIdTest(CedarResourceType resourceType, String invalidId) {
     String findUrl = null;
-    try {
-      findUrl = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType) + "/" + URLEncoder.encode(invalidId, "UTF-8");
-    } catch (UnsupportedEncodingException e) {
-      e.printStackTrace();
-    }
-    ;
+    findUrl = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType) + "/" + URLEncoder.encode(invalidId, StandardCharsets.UTF_8);
     // Service invocation - Find by Id
     Response findResponse = testClient.target(findUrl).request().header("Authorization", authHeader).get();
     // Check response
@@ -136,12 +118,7 @@ public class FindResourceTest extends AbstractResourceCrudTest {
     // Use generated id to retrieve the artifact
     String id = expected.get(LinkedData.ID).asText();
     String findUrl = null;
-    try {
-      findUrl = url + "/" + URLEncoder.encode(id, "UTF-8");
-    } catch (UnsupportedEncodingException e) {
-      e.printStackTrace();
-    }
-    ;
+    findUrl = url + "/" + URLEncoder.encode(id, StandardCharsets.UTF_8);
     // Service invocation - Find by Id - missing Authorization header
     Response findResponse = testClient.target(findUrl).request().get();
     // Check response
@@ -165,12 +142,7 @@ public class FindResourceTest extends AbstractResourceCrudTest {
     // Use generated id to retrieve the artifact
     String id = expected.get(LinkedData.ID).asText();
     String findUrl = null;
-    try {
-      findUrl = url + "/" + URLEncoder.encode(id, "UTF-8");
-    } catch (UnsupportedEncodingException e) {
-      e.printStackTrace();
-    }
-    ;
+    findUrl = url + "/" + URLEncoder.encode(id, StandardCharsets.UTF_8);
     // Service invocation - Find by Id - unauthorized user
     String authHeader = "apiKey " + NON_EXISTENT_API_KEY;
     Response findResponse = testClient.target(findUrl).request().header("Authorization", authHeader).get();
@@ -198,11 +170,7 @@ public class FindResourceTest extends AbstractResourceCrudTest {
       sampleResource = setSchemaIsBasedOn(sampleTemplate, sampleResource, resourceType);
       // Create a artifact
       JsonNode createdResource = null;
-      try {
-        createdResource = createResource(sampleResource, resourceType);
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
+      createdResource = createResource(sampleResource, resourceType);
       createdResources.put(createdResource.get(LinkedData.ID).asText(), resourceType);
       resources.add(createdResource);
     }
@@ -210,13 +178,13 @@ public class FindResourceTest extends AbstractResourceCrudTest {
     try {
       String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
       URIBuilder b = new URIBuilder(url);
-      if (limit.length() > 0) {
+      if (!limit.isEmpty()) {
         b.addParameter("limit", limit);
       }
-      if (offset.length() > 0) {
+      if (!offset.isEmpty()) {
         b.addParameter("offset", offset);
       }
-      if (summary.length() > 0) {
+      if (!summary.isEmpty()) {
         b.addParameter("summary", summary);
       }
       String findAllUrl = b.build().toString();
@@ -238,7 +206,7 @@ public class FindResourceTest extends AbstractResourceCrudTest {
         actual.add(r);
       }
       int expectedSize;
-      if (limit.length() > 0) {
+      if (!limit.isEmpty()) {
         expectedSize = Math.min(expectedCount, Integer.parseInt(limit));
       } else {
         expectedSize = Math.min(expectedCount,
@@ -265,9 +233,9 @@ public class FindResourceTest extends AbstractResourceCrudTest {
         Arrays.asList(CedarResourceType.TEMPLATE, sampleTemplate),
         Arrays.asList(CedarResourceType.ELEMENT, sampleElement),
         Arrays.asList(CedarResourceType.INSTANCE, sampleInstance));
-    List<Object> limitValues = Arrays.asList(Arrays.asList(""), Arrays.asList("2"), Arrays.asList("50"));
-    List<Object> offsetValues = Arrays.asList(Arrays.asList(""), Arrays.asList("0"));
-    List<Object> summaryValues = Arrays.asList(Arrays.asList(""), Arrays.asList("true"), Arrays.asList("false"));
+    List<Object> limitValues = Arrays.asList(List.of(""), List.of("2"), List.of("50"));
+    List<Object> offsetValues = Arrays.asList(List.of(""), List.of("0"));
+    List<Object> summaryValues = Arrays.asList(List.of(""), List.of("true"), List.of("false"));
     return TestParameterUtil.getParameterPermutations(Arrays.asList(p1p2Values, limitValues, offsetValues, summaryValues));
   }
 

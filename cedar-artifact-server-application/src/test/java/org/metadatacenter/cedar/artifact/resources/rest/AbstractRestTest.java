@@ -9,7 +9,6 @@ import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.metadatacenter.cedar.artifact.resources.AbstractResourceTest;
 import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
-import org.metadatacenter.exception.ArtifactServerResourceNotFoundException;
 import org.metadatacenter.model.CedarResourceType;
 import org.slf4j.LoggerFactory;
 
@@ -80,13 +79,7 @@ public abstract class AbstractRestTest extends AbstractResourceTest {
   @After
   public void tearDown() {
     // Remove all resources created previously
-    try {
-      removeResources(createdResources);
-    } catch (IOException e) {
-      e.printStackTrace();
-    } catch (ArtifactServerResourceNotFoundException e) {
-      e.printStackTrace();
-    }
+    removeResources(createdResources);
   }
 
   protected JsonNode getFileContentAsJson(String jsonFileName) throws IOException {
@@ -168,7 +161,7 @@ public abstract class AbstractRestTest extends AbstractResourceTest {
     System.out.print(" ");
     System.out.print(DIVIDER.substring(0, l));
     if (l * 2 + message.length() + 2 < DIVIDER.length()) {
-      System.out.print(DIVIDER.substring(0, 1));
+      System.out.print(DIVIDER.charAt(0));
     }
     System.out.println();
   }

@@ -188,9 +188,7 @@ public class GetTemplateTest extends AbstractRestTest {
     generatorForTemplate.registerParameter(2, authHeader, "authHeader");
     generatorForTemplate.registerParameter(3, ids(idInUrl, "resourceType"), "idInUrl");
 
-    List<TestParameterValueGenerator[]> testCases = new ArrayList<>();
-
-    testCases.addAll(generatorForTemplate.generateAllCombinations());
+    List<TestParameterValueGenerator[]> testCases = new ArrayList<>(generatorForTemplate.generateAllCombinations());
 
     return testCases.toArray();
 

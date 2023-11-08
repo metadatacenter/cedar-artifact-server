@@ -25,7 +25,6 @@ import org.metadatacenter.util.test.TestUserUtil;
 import org.slf4j.Logger;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.Map;
 
 import static javax.ws.rs.core.HttpHeaders.AUTHORIZATION;
@@ -86,10 +85,9 @@ public abstract class AbstractResourceTest {
   }
 
   // Create a artifact
-  protected static JsonNode createResource(JsonNode resource, CedarResourceType resourceType) throws IOException {
+  protected static JsonNode createResource(JsonNode resource, CedarResourceType resourceType) {
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
-    Response response =
-        testClient.target(url).request().header(AUTHORIZATION, authHeaderTestUser1).post(Entity.json(resource));
+    Response response = testClient.target(url).request().header(AUTHORIZATION, authHeaderTestUser1).post(Entity.json(resource));
     if (response.getStatus() != CREATED) {
       throw new IllegalStateException("The artifact was not created! The test can not continue this way.");
     }
@@ -99,13 +97,10 @@ public abstract class AbstractResourceTest {
   /**
    * Remove resources by id
    */
-  protected static void removeResources(Map<String, CedarResourceType> resourceMap) throws IOException,
-      ArtifactServerResourceNotFoundException {
-    Iterator it = resourceMap.entrySet().iterator();
-    while (it.hasNext()) {
-      Map.Entry pair = (Map.Entry) it.next();
-      String id = (String) pair.getKey();
-      CedarResourceType resourceType = (CedarResourceType) pair.getValue();
+  protected static void removeResources(Map<String, CedarResourceType> resourceMap) {
+    for (Map.Entry<String, CedarResourceType> pair : resourceMap.entrySet()) {
+      String id = pair.getKey();
+      CedarResourceType resourceType = pair.getValue();
       removeResource(id, resourceType);
       System.out.println("Resource: " + id + " has been removed correctly");
     }
