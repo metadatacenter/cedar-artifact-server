@@ -192,9 +192,7 @@ public class CreateElementPostTest extends AbstractRestTest {
     generatorForElement.registerParameter(3, authHeader, "authHeader");
     generatorForElement.registerParameter(4, ids(idInBody, "resourceType"), "idInBody");
 
-    List<TestParameterValueGenerator[]> testCases = new ArrayList<>();
-
-    testCases.addAll(generatorForElement.generateAllCombinations());
+    List<TestParameterValueGenerator[]> testCases = new ArrayList<>(generatorForElement.generateAllCombinations());
 
     return testCases.toArray();
 

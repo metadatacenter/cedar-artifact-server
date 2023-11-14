@@ -219,9 +219,7 @@ public class UpdateElementTest extends AbstractRestTest {
     generatorForElement.registerParameter(2, authHeader, "authHeader");
     generatorForElement.registerParameter(3, ids(idInUrl, "resourceType"), "idInUrl");
 
-    List<TestParameterValueGenerator[]> testCases = new ArrayList<>();
-
-    testCases.addAll(generatorForElement.generateAllCombinations());
+    List<TestParameterValueGenerator[]> testCases = new ArrayList<>(generatorForElement.generateAllCombinations());
 
     return testCases.toArray();
 

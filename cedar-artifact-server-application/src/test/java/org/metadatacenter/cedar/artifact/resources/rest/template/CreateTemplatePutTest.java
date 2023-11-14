@@ -64,7 +64,7 @@ public class CreateTemplatePutTest extends AbstractRestTest {
     testParam("jsonFileName", jsonFileName);
     testParam("resourceType", resourceType);
     testParam("putAuth", ((TestValueAuthStringGenerator) auth).getAuthSelector());
-    testParam("idInURLPolicy", ((TestValueResourceIdGenerator) idInURLGenerator).getIdMatchingSelector());
+    testParam("idInURLPolicy", (idInURLGenerator).getIdMatchingSelector());
     String policy = null;
     policy = idInBodyGenerator instanceof TestValueCopyFromValueGenerator
         ? ((TestValueCopyFromValueGenerator) idInBodyGenerator).getSourceAlias()
@@ -154,8 +154,7 @@ public class CreateTemplatePutTest extends AbstractRestTest {
       return CedarResponseStatus.BAD_REQUEST.getStatusCode();
     }
 
-    if (idInBodyGenerator instanceof TestValueResourceIdGenerator) {
-      TestValueResourceIdGenerator idInBG = (TestValueResourceIdGenerator) idInBodyGenerator;
+    if (idInBodyGenerator instanceof TestValueResourceIdGenerator idInBG) {
       if (idInBG.getIdMatchingSelector() == NULL_ID) {
         return CedarResponseStatus.BAD_REQUEST.getStatusCode();
       } else if (idInBG.getIdMatchingSelector() == GIBBERISH) {
@@ -210,9 +209,7 @@ public class CreateTemplatePutTest extends AbstractRestTest {
     generatorForTemplate.registerParameter(5, ids(idInBody, "resourceType"), "idInBody");
     generatorForTemplate.addParameterValue(5, copyFrom("idInURL"));
 
-    List<TestParameterValueGenerator[]> testCases = new ArrayList<>();
-
-    testCases.addAll(generatorForTemplate.generateAllCombinations());
+    List<TestParameterValueGenerator[]> testCases = new ArrayList<>(generatorForTemplate.generateAllCombinations());
 
     return testCases.toArray();
 

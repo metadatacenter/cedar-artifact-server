@@ -18,7 +18,6 @@ import org.metadatacenter.model.request.OutputFormatType;
 import org.metadatacenter.model.request.OutputFormatTypeDetector;
 import org.metadatacenter.model.trimmer.JsonLdDocument;
 import org.metadatacenter.model.validation.report.CedarValidationReport;
-import org.metadatacenter.model.validation.report.ErrorItem;
 import org.metadatacenter.model.validation.report.ReportUtils;
 import org.metadatacenter.model.validation.report.ValidationReport;
 import org.metadatacenter.rest.context.CedarRequestContext;

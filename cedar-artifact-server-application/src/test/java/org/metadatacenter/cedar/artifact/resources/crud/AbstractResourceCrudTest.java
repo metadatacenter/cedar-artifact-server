@@ -11,7 +11,6 @@ import org.metadatacenter.cedar.artifact.resources.AbstractResourceTest;
 import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
 import org.metadatacenter.constant.CustomHttpConstants;
 import org.metadatacenter.constant.LinkedData;
-import org.metadatacenter.exception.ArtifactServerResourceNotFoundException;
 import org.metadatacenter.model.CedarResourceType;
 import org.slf4j.LoggerFactory;
 
@@ -72,13 +71,7 @@ public abstract class AbstractResourceCrudTest extends AbstractResourceTest {
   @After
   public void tearDown() {
     // Remove all resources created previously
-    try {
-      removeResources(createdResources);
-    } catch (IOException e) {
-      e.printStackTrace();
-    } catch (ArtifactServerResourceNotFoundException e) {
-      e.printStackTrace();
-    }
+    removeResources(createdResources);
   }
 
   /**
@@ -96,15 +89,11 @@ public abstract class AbstractResourceCrudTest extends AbstractResourceTest {
   // Creates a artifact and then creates and instance and sets schema:isBasedOn to the artifact id
   protected JsonNode setSchemaIsBasedOn(JsonNode template, JsonNode instance, CedarResourceType resourceType) {
     if (resourceType.equals(CedarResourceType.INSTANCE)) {
-      try {
-        JsonNode createdTemplate = createResource(template, CedarResourceType.TEMPLATE);
-        String createdTemplateId = createdTemplate.get(LinkedData.ID).asText();
-        createdResources.put(createdTemplateId, CedarResourceType.TEMPLATE);
-        ((ObjectNode) instance).put(SCHEMA_IS_BASED_ON, createdTemplateId);
-        return instance;
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
+      JsonNode createdTemplate = createResource(template, CedarResourceType.TEMPLATE);
+      String createdTemplateId = createdTemplate.get(LinkedData.ID).asText();
+      createdResources.put(createdTemplateId, CedarResourceType.TEMPLATE);
+      ((ObjectNode) instance).put(SCHEMA_IS_BASED_ON, createdTemplateId);
+      return instance;
     }
     return instance;
   }
