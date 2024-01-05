@@ -1,6 +1,6 @@
 package org.metadatacenter.cedar.artifact;
 
-import com.mongodb.MongoClient;
+import com.mongodb.client.MongoClient;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import org.metadatacenter.bridge.CedarDataServices;

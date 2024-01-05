@@ -1,7 +1,7 @@
 package org.metadatacenter.cedar.artifact.resources.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.mongodb.MongoClient;
+import com.mongodb.client.MongoClient;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.io.IOUtils;
 import org.metadatacenter.bridge.CedarDataServices;
