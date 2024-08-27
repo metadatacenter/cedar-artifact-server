@@ -43,13 +43,13 @@ public class AbstractArtifactServerResource extends CedarMicroserviceResource {
   }
 
   protected void setProvenanceAndId(CedarResourceType cedarResourceType, JsonNode element, ProvenanceInfo pi) {
-    if ((element.get("@id") != null) && (!NULL.equals(element.get("@id").getNodeType()))) {
-      throw new IllegalArgumentException("Specifying @id for new objects is not allowed");
+    if ((element.get(LinkedData.ID) != null) && (!NULL.equals(element.get(LinkedData.ID).getNodeType()))) {
+      throw new IllegalArgumentException("Specifying " + LinkedData.ID + " for new objects is not allowed");
     }
     provenanceUtil.addProvenanceInfo(element, pi);
 
     String id = linkedDataUtil.buildNewLinkedDataId(cedarResourceType);
-    ((ObjectNode) element).put("@id", id);
+    ((ObjectNode) element).put(LinkedData.ID, id);
 
     // add template-element-instance ids (only for instances)
     linkedDataUtil.addElementInstanceIds(element, cedarResourceType);
@@ -160,7 +160,7 @@ public class AbstractArtifactServerResource extends CedarMicroserviceResource {
     }
     if (!idInRequest.equals(id)) {
       CedarErrorPack errorPack = new CedarErrorPack()
-          .message("The @id in the body must match the id in the URL!")
+          .message("The " + LinkedData.ID + " in the body must match the id in the URL!")
           .parameter("idInURL", id)
           .parameter("idInBody", idInRequest)
           .errorKey(errorKey);
