@@ -67,7 +67,7 @@ public class TemplateInstancesResource extends AbstractArtifactServerResource {
 
   @POST
   @Timed
-  public Response createTemplateInstance() throws CedarException {
+  public Response createTemplateInstance(@QueryParam(QP_SKIP_VALIDATION) Optional<Boolean> skipValidation) throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_CREATE);
@@ -81,8 +81,10 @@ public class TemplateInstancesResource extends AbstractArtifactServerResource {
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     setProvenanceAndId(CedarResourceType.INSTANCE, templateInstance, pi);
 
+    boolean doSkipValidation = skipValidation.isPresent() && skipValidation.get();
+
     Response response = null;
-    if (cedarConfig.getValidationConfig().isEnabled()) {
+    if (cedarConfig.getValidationConfig().isEnabled() && !doSkipValidation) {
       ValidationReport validationReport = validateTemplateInstance(templateInstance);
       ReportUtils.outputLogger(logger, validationReport, true);
       String validationStatus = validationReport.getValidationStatus();
