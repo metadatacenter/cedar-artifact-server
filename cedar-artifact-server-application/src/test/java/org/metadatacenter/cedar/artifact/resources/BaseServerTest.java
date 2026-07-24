@@ -14,10 +14,10 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.metadatacenter.cedar.artifact.ArtifactServerApplication;
 import org.metadatacenter.cedar.artifact.ArtifactServerConfiguration;
+import org.metadatacenter.cedar.artifact.resources.utils.TestAuthUtil;
 import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
 import org.metadatacenter.constant.LinkedData;
 import org.metadatacenter.util.json.JsonMapper;
-import org.metadatacenter.util.test.TestUserUtil;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -42,7 +42,10 @@ public abstract class BaseServerTest {
 
   @BeforeClass
   public static void fetchAuthHeader() {
-    authHeaderValue = TestUserUtil.getTestUser1AuthHeader(TestUtil.getCedarConfig());
+    // Replace the Neo4j-backed user service wired at application startup with an in-memory one,
+    // so API-key authentication needs no live Neo4j (and no Keycloak)
+    TestAuthUtil.installInMemoryUserService(TestUtil.getCedarConfig());
+    authHeaderValue = TestAuthUtil.getTestUser1AuthHeader(TestUtil.getCedarConfig());
   }
 
   @BeforeClass

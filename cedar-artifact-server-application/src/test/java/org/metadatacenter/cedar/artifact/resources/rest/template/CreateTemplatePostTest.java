@@ -148,7 +148,8 @@ public class CreateTemplatePostTest extends AbstractRestTest {
     } else if (EMPTY_JSON.equals(js.getValue())) {
       return CedarResponseStatus.BAD_REQUEST.getStatusCode();
     } else if (SCHEMA_NAME.equals(js.getValue())) {
-      return CedarResponseStatus.CREATED.getStatusCode();
+      // A body carrying only schema:name fails model validation
+      return CedarResponseStatus.BAD_REQUEST.getStatusCode();
     } else if (SCHEMA_DESCRIPTION.equals(js.getValue())) {
       return CedarResponseStatus.BAD_REQUEST.getStatusCode();
     } else if (MINIMAL_TEMPLATE_WITH_ID.equals(js.getValue())) {

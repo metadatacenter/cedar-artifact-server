@@ -15,13 +15,13 @@ import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.metadatacenter.cedar.artifact.ArtifactServerApplication;
 import org.metadatacenter.cedar.artifact.ArtifactServerConfiguration;
+import org.metadatacenter.cedar.artifact.resources.utils.TestAuthUtil;
 import org.metadatacenter.cedar.artifact.resources.utils.TestConstants;
 import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
 import org.metadatacenter.cedar.test.util.TestDataGenerationContext;
 import org.metadatacenter.exception.ArtifactServerResourceNotFoundException;
 import org.metadatacenter.model.CedarResourceType;
 import org.metadatacenter.server.jsonld.LinkedDataUtil;
-import org.metadatacenter.util.test.TestUserUtil;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -62,8 +62,12 @@ public abstract class AbstractResourceTest {
 
 
   protected static void performOneTimeSetup() {
+    // Replace the Neo4j-backed user service wired at application startup with an in-memory one,
+    // so API-key authentication needs no live Neo4j (and no Keycloak)
+    TestAuthUtil.installInMemoryUserService(TestUtil.getCedarConfig());
+
     // Get authorization header for TestUser1
-    authHeaderTestUser1 = TestUserUtil.getTestUser1AuthHeader(TestUtil.getCedarConfig());
+    authHeaderTestUser1 = TestAuthUtil.getTestUser1AuthHeader(TestUtil.getCedarConfig());
 
     // Test server url
     baseTestUrl = TestConstants.BASE_URL + ":" + SERVER_APPLICATION.getLocalPort();
