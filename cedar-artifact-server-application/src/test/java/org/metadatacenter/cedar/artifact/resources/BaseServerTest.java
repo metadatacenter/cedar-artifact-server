@@ -17,6 +17,7 @@ import org.metadatacenter.cedar.artifact.ArtifactServerConfiguration;
 import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
 import org.metadatacenter.constant.LinkedData;
 import org.metadatacenter.util.json.JsonMapper;
+import org.metadatacenter.util.test.EmbeddedCedarMongo;
 import org.metadatacenter.util.test.TestAuthUtil;
 
 import java.io.UnsupportedEncodingException;
@@ -30,6 +31,13 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.metadatacenter.constant.HttpConstants.HTTP_HEADER_AUTHORIZATION;
 
 public abstract class BaseServerTest {
+
+  static {
+    // Must run before anything builds the CEDAR configuration: the document store comes from an
+    // in-process MongoDB, and Redis goes to a dead port, since queue writes are best-effort -
+    // the suite needs no live backend at all
+    EmbeddedCedarMongo.startAndRedirectEnvironment(java.util.Map.of("CEDAR_REDIS_PERSISTENT_PORT", "1"));
+  }
 
   private static String authHeaderValue;
 

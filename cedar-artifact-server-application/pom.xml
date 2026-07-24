@@ -16,6 +16,19 @@
 
   <dependencies>
 
+    <!--
+      Declared first on purpose: cedar-model-validation-library is a shaded jar bundling an old
+      commons-io's classes, and the class loader takes the first hit in classpath order. The
+      embedded MongoDB's archive extraction (commons-compress) needs
+      BoundedInputStream.builder(), which arrived in commons-io 2.12.
+    -->
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>2.16.1</version>
+      <scope>test</scope>
+    </dependency>
+
     <dependency>
       <groupId>org.metadatacenter</groupId>
       <artifactId>cedar-server-rest-library</artifactId>
@@ -74,6 +87,14 @@
       <scope>test</scope>
     </dependency>
 
+    <!-- In-process MongoDB and the auth mock come from the test support library -->
+    <dependency>
+      <groupId>org.metadatacenter</groupId>
+      <artifactId>cedar-test-support-library</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+
     <dependency>
       <groupId>pl.pragmatists</groupId>
       <artifactId>JUnitParams</artifactId>
@@ -106,6 +127,23 @@
   <build>
 
     <plugins>
+
+      <!--
+        TestUtil.setEnv redirects the CEDAR Mongo environment variables at the in-process test
+        server via reflection into java.base internals, which JDK 17+ blocks without these opens.
+        Each test class runs in its own JVM (reuseForks false): CedarConfig is a singleton built
+        from the environment on first use, so the redirection must happen before any other test
+        class builds it.
+      -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <argLine>--add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED</argLine>
+          <reuseForks>false</reuseForks>
+        </configuration>
+      </plugin>
+
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

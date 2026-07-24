@@ -21,6 +21,7 @@ import org.metadatacenter.cedar.test.util.TestDataGenerationContext;
 import org.metadatacenter.exception.ArtifactServerResourceNotFoundException;
 import org.metadatacenter.model.CedarResourceType;
 import org.metadatacenter.server.jsonld.LinkedDataUtil;
+import org.metadatacenter.util.test.EmbeddedCedarMongo;
 import org.metadatacenter.util.test.TestAuthUtil;
 import org.slf4j.Logger;
 
@@ -33,6 +34,13 @@ import static org.metadatacenter.cedar.artifact.resources.utils.TestConstants.TE
 import static org.metadatacenter.constant.HttpConstants.CREATED;
 
 public abstract class AbstractResourceTest {
+
+  static {
+    // Must run before anything builds the CEDAR configuration: the document store comes from an
+    // in-process MongoDB, and Redis goes to a dead port, since queue writes are best-effort -
+    // the suite needs no live backend at all
+    EmbeddedCedarMongo.startAndRedirectEnvironment(java.util.Map.of("CEDAR_REDIS_PERSISTENT_PORT", "1"));
+  }
 
   protected static Logger log;
 
