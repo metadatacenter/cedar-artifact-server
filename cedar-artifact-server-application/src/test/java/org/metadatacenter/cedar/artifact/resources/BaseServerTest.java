@@ -14,10 +14,10 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.metadatacenter.cedar.artifact.ArtifactServerApplication;
 import org.metadatacenter.cedar.artifact.ArtifactServerConfiguration;
-import org.metadatacenter.cedar.artifact.resources.utils.TestAuthUtil;
 import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
 import org.metadatacenter.constant.LinkedData;
 import org.metadatacenter.util.json.JsonMapper;
+import org.metadatacenter.util.test.TestAuthUtil;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;

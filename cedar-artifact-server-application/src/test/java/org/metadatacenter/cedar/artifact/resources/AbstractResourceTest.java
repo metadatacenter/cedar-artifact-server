@@ -15,13 +15,13 @@ import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.metadatacenter.cedar.artifact.ArtifactServerApplication;
 import org.metadatacenter.cedar.artifact.ArtifactServerConfiguration;
-import org.metadatacenter.cedar.artifact.resources.utils.TestAuthUtil;
 import org.metadatacenter.cedar.artifact.resources.utils.TestConstants;
 import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
 import org.metadatacenter.cedar.test.util.TestDataGenerationContext;
 import org.metadatacenter.exception.ArtifactServerResourceNotFoundException;
 import org.metadatacenter.model.CedarResourceType;
 import org.metadatacenter.server.jsonld.LinkedDataUtil;
+import org.metadatacenter.util.test.TestAuthUtil;
 import org.slf4j.Logger;
 
 import java.io.IOException;
