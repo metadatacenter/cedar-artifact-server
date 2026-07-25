@@ -5,8 +5,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.github.jsonldjava.core.JsonLdError;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.constant.CustomHttpConstants;
-import org.metadatacenter.constant.HttpConstants;
-import org.metadatacenter.constant.LinkedData;
 import org.metadatacenter.error.CedarErrorKey;
 import org.metadatacenter.error.CedarErrorReasonKey;
 import org.metadatacenter.exception.ArtifactServerResourceNotFoundException;
@@ -28,8 +26,6 @@ import org.metadatacenter.server.service.TemplateInstanceService;
 import org.metadatacenter.server.service.TemplateService;
 import org.metadatacenter.util.http.CedarResponse;
 import org.metadatacenter.util.http.CedarUrlUtil;
-import org.metadatacenter.util.http.LinkHeaderUtil;
-import org.metadatacenter.util.http.PagedQuery;
 import org.metadatacenter.util.mongo.MongoUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +35,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.net.URI;
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 
 import static org.metadatacenter.constant.CedarPathParameters.PP_ID;
 import static org.metadatacenter.constant.CedarQueryParameters.*;
@@ -47,22 +44,19 @@ import static org.metadatacenter.rest.assertion.GenericAssertions.*;
 
 @Path("/template-instances")
 @Produces(MediaType.APPLICATION_JSON)
-public class TemplateInstancesResource extends AbstractArtifactServerResource {
+public class TemplateInstancesResource extends AbstractArtifactCrudResource {
 
   private static final Logger logger = LoggerFactory.getLogger(TemplateInstancesResource.class);
 
   private final TemplateInstanceService<String, JsonNode> templateInstanceService;
   private final TemplateService<String, JsonNode> templateService;
 
-  protected static List<String> FIELD_NAMES_SUMMARY_LIST;
-
   public TemplateInstancesResource(CedarConfig cedarConfig, TemplateInstanceService<String, JsonNode> templateInstanceService,
                                    TemplateService<String, JsonNode> templateService) {
-    super(cedarConfig);
+    super(cedarConfig, logger, "artifact instance", "artifact instances",
+        cedarConfig.getArtifactRESTAPI().getSummaries().getInstance().getFields(), false);
     this.templateInstanceService = templateInstanceService;
     this.templateService = templateService;
-    FIELD_NAMES_SUMMARY_LIST = new ArrayList<>();
-    FIELD_NAMES_SUMMARY_LIST.addAll(cedarConfig.getArtifactRESTAPI().getSummaries().getInstance().getFields());
   }
 
   @POST
@@ -85,11 +79,11 @@ public class TemplateInstancesResource extends AbstractArtifactServerResource {
 
     Response response = null;
     if (cedarConfig.getValidationConfig().isEnabled() && !doSkipValidation) {
-      ValidationReport validationReport = validateTemplateInstance(templateInstance);
+      ValidationReport validationReport = validateArtifact(templateInstance);
       ReportUtils.outputLogger(logger, validationReport, true);
       String validationStatus = validationReport.getValidationStatus();
       if (validationStatus.equals(CedarValidationReport.IS_VALID)) {
-        response = storeTemplateInstanceInDatabase(templateInstance);
+        response = storeArtifactInDatabase(templateInstance, pi, CedarErrorKey.TEMPLATE_INSTANCE_NOT_CREATED);
       } else {
         response = CedarResponse.badRequest()
             .errorMessage(concatenateValidationMessages(validationReport))
@@ -101,27 +95,9 @@ public class TemplateInstancesResource extends AbstractArtifactServerResource {
             .build();
       }
     } else {
-      response = storeTemplateInstanceInDatabase(templateInstance);
+      response = storeArtifactInDatabase(templateInstance, pi, CedarErrorKey.TEMPLATE_INSTANCE_NOT_CREATED);
     }
     return response;
-  }
-
-  private Response storeTemplateInstanceInDatabase(JsonNode templateInstance) {
-    try {
-      JsonNode createdTemplateInstance = templateInstanceService.createTemplateInstance(templateInstance);
-      MongoUtils.removeIdField(createdTemplateInstance);
-      String id = createdTemplateInstance.get(LinkedData.ID).asText();
-      URI uri = CedarUrlUtil.getIdURI(uriInfo, id);
-      return CedarResponse.created(uri)
-          .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_VALID)
-          .entity(createdTemplateInstance).build();
-    } catch (IOException e) {
-      return CedarResponse.internalServerError()
-          .errorKey(CedarErrorKey.TEMPLATE_INSTANCE_NOT_CREATED)
-          .errorMessage("The artifact instance can not be created")
-          .exception(e)
-          .build();
-    }
   }
 
   @GET
@@ -164,49 +140,8 @@ public class TemplateInstancesResource extends AbstractArtifactServerResource {
                                            @QueryParam(QP_OFFSET) Optional<Integer> offsetParam,
                                            @QueryParam(QP_SUMMARY) Optional<Boolean> summaryParam,
                                            @QueryParam(QP_FIELD_NAMES) Optional<String> fieldNamesParam) throws CedarException {
-
-    CedarRequestContext c = buildRequestContext();
-    c.must(c.user()).be(LoggedIn);
-    c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_READ);
-
-    PagedQuery pagedQuery = new PagedQuery(cedarConfig.getArtifactRESTAPI().getPagination())
-        .limit(limitParam)
-        .offset(offsetParam);
-    pagedQuery.validate();
-
-    Integer limit = pagedQuery.getLimit();
-    Integer offset = pagedQuery.getOffset();
-    Boolean summary = ensureSummary(summaryParam);
-
-    List<String> fieldNameList = getAndCheckFieldNames(fieldNamesParam, summary);
-    Map<String, Object> r = new HashMap<>();
-    List<JsonNode> instances = null;
-    try {
-      if (summary) {
-        instances = templateInstanceService.findAllTemplateInstances(limit, offset, FIELD_NAMES_SUMMARY_LIST, FieldNameInEx.INCLUDE);
-      } else if (fieldNameList != null) {
-        instances = templateInstanceService.findAllTemplateInstances(limit, offset, fieldNameList, FieldNameInEx.INCLUDE);
-      } else {
-        instances = templateInstanceService.findAllTemplateInstances(limit, offset, FIELD_NAMES_EXCLUSION_LIST, FieldNameInEx.EXCLUDE);
-      }
-    } catch (IOException e) {
-      return CedarResponse.internalServerError()
-          .errorKey(CedarErrorKey.TEMPLATE_INSTANCES_NOT_LISTED)
-          .errorMessage("The artifact instances can not be listed")
-          .exception(e)
-          .build();
-    }
-    long total = templateInstanceService.count();
-    checkPagingParametersAgainstTotal(offset, total);
-
-    String absoluteUrl = uriInfo.getAbsolutePathBuilder().build().toString();
-    String linkHeader = LinkHeaderUtil.getPagingLinkHeader(absoluteUrl, total, limit, offset);
-    Response.ResponseBuilder responseBuilder = Response.ok().entity(instances);
-    responseBuilder.header(CustomHttpConstants.HEADER_TOTAL_COUNT, String.valueOf(total));
-    if (!linkHeader.isEmpty()) {
-      responseBuilder.header(HttpConstants.HTTP_HEADER_LINK, linkHeader);
-    }
-    return responseBuilder.build();
+    return findAllArtifacts(limitParam, offsetParam, summaryParam, fieldNamesParam,
+        CedarPermission.TEMPLATE_INSTANCE_READ, CedarErrorKey.TEMPLATE_INSTANCES_NOT_LISTED);
   }
 
   @PUT
@@ -232,7 +167,7 @@ public class TemplateInstancesResource extends AbstractArtifactServerResource {
     // of template-element instances
     linkedDataUtil.addElementInstanceIds(newInstance, CedarResourceType.INSTANCE);
 
-    ValidationReport validationReport = validateTemplateInstance(newInstance);
+    ValidationReport validationReport = validateArtifact(newInstance);
     ReportUtils.outputLogger(logger, validationReport, true);
 
     JsonNode outputTemplateInstance = null;
@@ -284,24 +219,50 @@ public class TemplateInstancesResource extends AbstractArtifactServerResource {
     c.must(c.user()).be(LoggedIn);
     c.must(id).be(ValidUrl);
     c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_DELETE);
+    return deleteArtifactFromDatabase(id, CedarErrorKey.TEMPLATE_INSTANCE_NOT_FOUND,
+        CedarErrorKey.TEMPLATE_INSTANCE_NOT_DELETED);
+  }
+
+  @Override
+  protected JsonNode createArtifactInService(JsonNode templateInstance) throws IOException {
+    return templateInstanceService.createTemplateInstance(templateInstance);
+  }
+
+  @Override
+  protected JsonNode findArtifactInService(String id) throws IOException {
+    return templateInstanceService.findTemplateInstance(id);
+  }
+
+  @Override
+  protected JsonNode updateArtifactInService(String id, JsonNode content) throws IOException,
+      ArtifactServerResourceNotFoundException {
+    return templateInstanceService.updateTemplateInstance(id, content);
+  }
+
+  @Override
+  protected void deleteArtifactInService(String id) throws IOException, ArtifactServerResourceNotFoundException {
+    templateInstanceService.deleteTemplateInstance(id);
+  }
+
+  @Override
+  protected List<JsonNode> findAllArtifactsInService(Integer limit, Integer offset, List<String> fieldNames,
+                                                     FieldNameInEx includeExclude) throws IOException {
+    return templateInstanceService.findAllTemplateInstances(limit, offset, fieldNames, includeExclude);
+  }
+
+  @Override
+  protected long countArtifactsInService() {
+    return templateInstanceService.count();
+  }
+
+  @Override
+  protected ValidationReport validateArtifact(JsonNode templateInstance) throws CedarException {
     try {
-      templateInstanceService.deleteTemplateInstance(id);
-    } catch (ArtifactServerResourceNotFoundException e) {
-      return CedarResponse.notFound()
-          .id(id)
-          .errorKey(CedarErrorKey.TEMPLATE_INSTANCE_NOT_FOUND)
-          .errorMessage("The artifact instance can not be found by id:" + id)
-          .exception(e)
-          .build();
+      JsonNode instanceSchema = getSchemaSource(templateService, templateInstance);
+      return validateTemplateInstance(templateInstance, instanceSchema);
     } catch (IOException e) {
-      return CedarResponse.internalServerError()
-          .id(id)
-          .errorKey(CedarErrorKey.TEMPLATE_INSTANCE_NOT_DELETED)
-          .errorMessage("The artifact instance can not be deleted by id:" + id)
-          .exception(e)
-          .build();
+      throw newCedarException(e.getMessage());
     }
-    return CedarResponse.noContent().build();
   }
 
   private Response sendFormattedTemplateInstance(JsonNode templateInstance, OutputFormatType formatType) throws CedarException {
@@ -333,15 +294,6 @@ public class TemplateInstancesResource extends AbstractArtifactServerResource {
       return new JsonLdDocument(templateInstance).asRdf();
     } catch (JsonLdError e) {
       throw new CedarProcessingException("Error while converting the instance to RDF", e);
-    }
-  }
-
-  private ValidationReport validateTemplateInstance(JsonNode templateInstance) throws CedarException {
-    try {
-      JsonNode instanceSchema = getSchemaSource(templateService, templateInstance);
-      return validateTemplateInstance(templateInstance, instanceSchema);
-    } catch (IOException e) {
-      throw newCedarException(e.getMessage());
     }
   }
 
