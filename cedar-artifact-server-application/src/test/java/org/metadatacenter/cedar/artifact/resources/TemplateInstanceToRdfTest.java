@@ -2,10 +2,10 @@ package org.metadatacenter.cedar.artifact.resources;
 
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.metadatacenter.model.request.OutputFormatType;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -19,19 +19,19 @@ public class TemplateInstanceToRdfTest extends BaseServerTest {
   private static String templateExample;
   private static String instanceExample;
 
-  @BeforeClass
+  @BeforeAll
   public static void loadTestPayload() {
     templateExample = TestResourcesUtils.getStringContent("instances/usecase-template.json");
     instanceExample = TestResourcesUtils.getStringContent("instances/usecase-instance.jsonld");
   }
 
-  @Before
+  @BeforeEach
   public void uploadResources() {
     templateExampleId = uploadTemplate(templateExample);
     instanceExampleId = uploadInstance(instanceExample);
   }
 
-  @After
+  @AfterEach
   public void removeResources() {
     removeInstance(instanceExampleId);
     removeTemplate(templateExampleId);

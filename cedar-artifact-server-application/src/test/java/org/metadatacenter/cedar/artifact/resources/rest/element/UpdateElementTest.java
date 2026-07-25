@@ -6,12 +6,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.Invocation;
 import jakarta.ws.rs.core.Response;
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
-import junitparams.naming.TestCaseName;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.metadatacenter.cedar.artifact.resources.rest.AbstractRestTest;
 import org.metadatacenter.cedar.artifact.resources.rest.AuthHeaderSelector;
 import org.metadatacenter.cedar.artifact.resources.rest.IdMatchingSelector;
@@ -32,19 +29,16 @@ import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static jakarta.ws.rs.core.HttpHeaders.LOCATION;
 import static org.metadatacenter.cedar.artifact.resources.rest.AuthHeaderSelector.*;
 import static org.metadatacenter.cedar.artifact.resources.rest.IdMatchingSelector.*;
-import static org.metadatacenter.cedar.artifact.resources.utils.TestConstants.TEST_NAME_PATTERN_METHOD_PARAMS;
 import static org.metadatacenter.cedar.test.util.TestValueResourceIdGenerator.ids;
 import static org.metadatacenter.model.CedarResourceType.ELEMENT;
 
-@RunWith(JUnitParamsRunner.class)
 public class UpdateElementTest extends AbstractRestTest {
 
   private static final String TEST_DESCRIPTION_VALUE = "New description";
   private static int index = -1;
 
-  @Test
-  @TestCaseName(TEST_NAME_PATTERN_METHOD_PARAMS)
-  @Parameters(method = "getParamsUpdateElementPut")
+  @ParameterizedTest
+  @MethodSource("getParamsUpdateElementPut")
   public void updateElementTest(TestParameterArrayGeneratorGenerator generator,
                                 TestParameterValueGenerator<CedarResourceType> rt,
                                 TestParameterValueGenerator<String> auth,
@@ -131,7 +125,7 @@ public class UpdateElementTest extends AbstractRestTest {
     int putResponseStatus = putResponse.getStatus();
     pair("Put response status", putResponseStatus);
     int expectedResponseStatus = getExpectedResponseStatus(generator, rt, auth, idInUrlGenerator);
-    Assert.assertEquals(expectedResponseStatus, putResponseStatus);
+    Assertions.assertEquals(expectedResponseStatus, putResponseStatus);
 
     // Do the actual testing - verify the changed description field value
     if (expectedResponseStatus == CedarResponseStatus.OK.getStatusCode()) {
@@ -153,7 +147,7 @@ public class UpdateElementTest extends AbstractRestTest {
 
       int getResponseStatus = getResponse.getStatus();
       pair("Get response status", getResponseStatus);
-      Assert.assertEquals(CedarResponseStatus.OK.getStatusCode(), getResponseStatus);
+      Assertions.assertEquals(CedarResponseStatus.OK.getStatusCode(), getResponseStatus);
 
       String getBody = getResponse.readEntity(String.class);
       JsonNode getElement = null;
@@ -166,7 +160,7 @@ public class UpdateElementTest extends AbstractRestTest {
       JsonNode descriptionNode = getElement.get(CedarModelVocabulary.SCHEMA_DESCRIPTION);
       String description = descriptionNode.asText();
       pair("Updated description", description);
-      Assert.assertEquals(TEST_DESCRIPTION_VALUE, description);
+      Assertions.assertEquals(TEST_DESCRIPTION_VALUE, description);
     }
   }
 
@@ -200,7 +194,7 @@ public class UpdateElementTest extends AbstractRestTest {
     return 0;
   }
 
-  private Object getParamsUpdateElementPut() {
+  static Object[] getParamsUpdateElementPut() {
     Set<AuthHeaderSelector> authHeader = new LinkedHashSet<>();
     authHeader.add(NULL_AUTH);
     authHeader.add(GIBBERISH_FULL);

@@ -2,16 +2,15 @@ package org.metadatacenter.cedar.artifact.resources;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
+import io.dropwizard.testing.DropwizardTestSupport;
 import io.dropwizard.testing.ResourceHelpers;
-import io.dropwizard.testing.junit.DropwizardAppRule;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import org.glassfish.jersey.client.ClientProperties;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.metadatacenter.cedar.artifact.ArtifactServerApplication;
 import org.metadatacenter.cedar.artifact.ArtifactServerConfiguration;
 import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
@@ -43,32 +42,29 @@ public abstract class BaseServerTest {
 
   private static Client testClient;
 
-  @ClassRule
-  public static final DropwizardAppRule<ArtifactServerConfiguration> SERVER_APPLICATION =
-      new DropwizardAppRule<>(ArtifactServerApplication.class,
+  public static final DropwizardTestSupport<ArtifactServerConfiguration> SERVER_APPLICATION =
+      new DropwizardTestSupport<>(ArtifactServerApplication.class,
           ResourceHelpers.resourceFilePath("test-config.yml"));
 
-  @BeforeClass
-  public static void fetchAuthHeader() {
+  @BeforeAll
+  public static void startServerAndClient() throws Exception {
+    SERVER_APPLICATION.before();
     // Replace the Neo4j-backed user service wired at application startup with an in-memory one,
     // so API-key authentication needs no live Neo4j (and no Keycloak)
     TestAuthUtil.installInMemoryUserService(TestUtil.getCedarConfig());
     authHeaderValue = TestAuthUtil.getTestUser1AuthHeader(TestUtil.getCedarConfig());
-  }
-
-  @BeforeClass
-  public static void createTestClient() {
-    testClient = ResteasyClientBuilder.newBuilder().build();
+    testClient = ((ResteasyClientBuilder) ResteasyClientBuilder.newBuilder()).connectionPoolSize(1024).build();
     //testClient = new JerseyClientBuilder(SERVER_APPLICATION.getEnvironment()).build("TestClient");
     testClient.property(ClientProperties.READ_TIMEOUT, 3000); // 3s
     testClient.property(ClientProperties.CONNECT_TIMEOUT, 3000);
   }
 
-  @AfterClass
-  public static void cleanUp() {
+  @AfterAll
+  public static void stopServerAndClient() {
     if (testClient != null) {
       testClient.close();
     }
+    SERVER_APPLICATION.after();
   }
 
   protected int getPortNumber() {

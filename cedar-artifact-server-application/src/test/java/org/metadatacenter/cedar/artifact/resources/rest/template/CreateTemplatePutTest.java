@@ -6,12 +6,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.Invocation;
 import jakarta.ws.rs.core.Response;
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
-import junitparams.naming.TestCaseName;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.metadatacenter.cedar.artifact.resources.rest.AbstractRestTest;
 import org.metadatacenter.cedar.artifact.resources.rest.AuthHeaderSelector;
 import org.metadatacenter.cedar.artifact.resources.rest.IdMatchingSelector;
@@ -30,19 +27,16 @@ import java.util.Set;
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static org.metadatacenter.cedar.artifact.resources.rest.AuthHeaderSelector.*;
 import static org.metadatacenter.cedar.artifact.resources.rest.IdMatchingSelector.*;
-import static org.metadatacenter.cedar.artifact.resources.utils.TestConstants.TEST_NAME_PATTERN_METHOD_PARAMS;
 import static org.metadatacenter.cedar.test.util.TestValueCopyFromValueGenerator.copyFrom;
 import static org.metadatacenter.cedar.test.util.TestValueResourceIdGenerator.ids;
 import static org.metadatacenter.model.CedarResourceType.TEMPLATE;
 
-@RunWith(JUnitParamsRunner.class)
 public class CreateTemplatePutTest extends AbstractRestTest {
 
   private static int index = -1;
 
-  @Test
-  @TestCaseName(TEST_NAME_PATTERN_METHOD_PARAMS)
-  @Parameters(method = "getParamsCreateTemplatePut")
+  @ParameterizedTest
+  @MethodSource("getParamsCreateTemplatePut")
   public void createTemplatePutTest(TestParameterArrayGeneratorGenerator generator,
                                     TestParameterValueGenerator<String> js,
                                     TestParameterValueGenerator<CedarResourceType> rt,
@@ -116,7 +110,7 @@ public class CreateTemplatePutTest extends AbstractRestTest {
     int responseStatus = response.getStatus();
     int expectedResponseStatus = getExpectedResponseStatus(generator, js, rt, auth, idInURLGenerator,
         idInBodyGenerator);
-    Assert.assertEquals(expectedResponseStatus, responseStatus);
+    Assertions.assertEquals(expectedResponseStatus, responseStatus);
   }
 
   private int getExpectedResponseStatus(TestParameterArrayGeneratorGenerator generator,
@@ -173,7 +167,7 @@ public class CreateTemplatePutTest extends AbstractRestTest {
     return 0;
   }
 
-  private Object getParamsCreateTemplatePut() {
+  static Object[] getParamsCreateTemplatePut() {
     Set<String> jsonFileName = new LinkedHashSet<>();
     jsonFileName.add(null);
     jsonFileName.add(NON_JSON);

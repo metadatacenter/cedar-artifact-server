@@ -1,18 +1,15 @@
 package org.metadatacenter.cedar.artifact.resources;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import io.dropwizard.testing.DropwizardTestSupport;
 import io.dropwizard.testing.ResourceHelpers;
-import io.dropwizard.testing.junit.DropwizardAppRule;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import org.glassfish.jersey.client.ClientProperties;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.rules.TestRule;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.metadatacenter.cedar.artifact.ArtifactServerApplication;
 import org.metadatacenter.cedar.artifact.ArtifactServerConfiguration;
 import org.metadatacenter.cedar.artifact.resources.utils.TestConstants;
@@ -51,22 +48,19 @@ public abstract class AbstractResourceTest {
   protected static TestDataGenerationContext tdctx;
 
 
-  /**
-   * Prints the class name and test name before running the test
-   */
-  @Rule
-  public TestRule watcher = new TestWatcher() {
-    protected void starting(Description description) {
-      //log.info("------------------------------------------------------------------------");
-      //log.info(description.toString());
-      //log.info("------------------------------------------------------------------------");
-    }
-  };
-
-  @ClassRule
-  public static final DropwizardAppRule<ArtifactServerConfiguration> SERVER_APPLICATION =
-      new DropwizardAppRule<>(ArtifactServerApplication.class,
+  public static final DropwizardTestSupport<ArtifactServerConfiguration> SERVER_APPLICATION =
+      new DropwizardTestSupport<>(ArtifactServerApplication.class,
           ResourceHelpers.resourceFilePath(TEST_CONFIG_FILE));
+
+  @BeforeAll
+  public static void startServerApplication() throws Exception {
+    SERVER_APPLICATION.before();
+  }
+
+  @AfterAll
+  public static void stopServerApplication() {
+    SERVER_APPLICATION.after();
+  }
 
 
   protected static void performOneTimeSetup() {
@@ -80,8 +74,11 @@ public abstract class AbstractResourceTest {
     // Test server url
     baseTestUrl = TestConstants.BASE_URL + ":" + SERVER_APPLICATION.getLocalPort();
 
-    // Set up test client
-    testClient = ResteasyClientBuilder.newBuilder().build();
+    // Set up test client. Many tests check only the response status and never read the entity,
+    // which keeps the pooled connection leased until the response is garbage collected; the pool
+    // must outsize the largest parameterized test class (432 runs), or the client deadlocks
+    // waiting for a free connection.
+    testClient = ((ResteasyClientBuilder) ResteasyClientBuilder.newBuilder()).connectionPoolSize(1024).build();
     //testClient = new JerseyClientBuilder(SERVER_APPLICATION.getEnvironment()).build(TEST_CLIENT_NAME);
     testClient.property(ClientProperties.READ_TIMEOUT, DEFAULT_TIMEOUT);
     testClient.property(ClientProperties.CONNECT_TIMEOUT, DEFAULT_TIMEOUT);
