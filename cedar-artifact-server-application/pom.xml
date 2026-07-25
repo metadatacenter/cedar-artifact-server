@@ -121,18 +121,16 @@
     <plugins>
 
       <!--
-        TestUtil.setEnv redirects the CEDAR Mongo environment variables at the in-process test
-        server via reflection into java.base internals, which JDK 17+ blocks without these opens.
-        Each test class runs in its own JVM (reuseForks false): CedarConfig is a singleton built
-        from the environment on first use, so the redirection must happen before any other test
-        class builds it.
+        The tests redirect the CEDAR environment variables (embedded Mongo, alternate server
+        ports) through a CedarEnvironmentSource override instead of reflective environment
+        rewriting, so no add-opens flags are needed and the test classes share a JVM
+        (reuseForks true): CedarConfig.getInstance rebuilds whenever the override changes.
       -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
-          <argLine>--add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED</argLine>
-          <reuseForks>false</reuseForks>
+          <reuseForks>true</reuseForks>
         </configuration>
       </plugin>
 
