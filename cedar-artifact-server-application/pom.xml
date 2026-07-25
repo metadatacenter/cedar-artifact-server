@@ -16,19 +16,6 @@
 
   <dependencies>
 
-    <!--
-      Declared first on purpose: cedar-model-validation-library is a shaded jar bundling an old
-      commons-io's classes, and the class loader takes the first hit in classpath order. The
-      embedded MongoDB's archive extraction (commons-compress) needs
-      BoundedInputStream.builder(), which arrived in commons-io 2.12.
-    -->
-    <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
-      <version>2.16.1</version>
-      <scope>test</scope>
-    </dependency>
-
     <dependency>
       <groupId>org.metadatacenter</groupId>
       <artifactId>cedar-server-rest-library</artifactId>
