@@ -7,8 +7,10 @@ import io.dropwizard.testing.ResourceHelpers;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
+import io.dropwizard.client.JerseyClientBuilder;
+import io.dropwizard.client.JerseyClientConfiguration;
+import io.dropwizard.util.Duration;
 import org.glassfish.jersey.client.ClientProperties;
-import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.metadatacenter.cedar.artifact.ArtifactServerApplication;
@@ -58,8 +60,19 @@ public abstract class BaseServerTest {
     // so API-key authentication needs no live Neo4j (and no Keycloak)
     TestAuthUtil.installInMemoryUserService(TestUtil.getCedarConfig());
     authHeaderValue = TestAuthUtil.getTestUser1AuthHeader(TestUtil.getCedarConfig());
-    testClient = ((ResteasyClientBuilder) ResteasyClientBuilder.newBuilder()).connectionPoolSize(1024).build();
-    //testClient = new JerseyClientBuilder(SERVER_APPLICATION.getEnvironment()).build("TestClient");
+    // Under jakarta ws.rs 3.0 the runtime resolves to Jersey, so build the client through
+    // Dropwizard's JerseyClientBuilder instead of the former RESTEasy client. A large per-route pool
+    // is required because many tests never read the response entity. reuseForks shares one JVM, so
+    // the client name must be unique per build to avoid a metrics-registry collision.
+    JerseyClientConfiguration clientConfig = new JerseyClientConfiguration();
+    clientConfig.setTimeout(Duration.milliseconds(3000));
+    clientConfig.setConnectionTimeout(Duration.milliseconds(3000));
+    clientConfig.setConnectionRequestTimeout(Duration.milliseconds(3000));
+    clientConfig.setMaxConnections(1024);
+    clientConfig.setMaxConnectionsPerRoute(1024);
+    testClient = new JerseyClientBuilder(SERVER_APPLICATION.getEnvironment())
+        .using(clientConfig)
+        .build("artifact-baseserver-test-client-" + System.nanoTime());
     testClient.property(ClientProperties.READ_TIMEOUT, 3000); // 3s
     testClient.property(ClientProperties.CONNECT_TIMEOUT, 3000);
   }
