@@ -100,11 +100,6 @@
     </dependency>
 
     <dependency>
-      <groupId>javax.annotation</groupId>
-      <artifactId>javax.annotation-api</artifactId>
-    </dependency>
-
-    <dependency>
       <groupId>javax.xml.ws</groupId>
       <artifactId>jaxws-api</artifactId>
     </dependency>
