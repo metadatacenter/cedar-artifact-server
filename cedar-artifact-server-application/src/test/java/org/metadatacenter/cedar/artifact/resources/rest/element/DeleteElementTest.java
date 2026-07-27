@@ -5,12 +5,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.Invocation;
 import jakarta.ws.rs.core.Response;
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
-import junitparams.naming.TestCaseName;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.metadatacenter.cedar.artifact.resources.rest.AbstractRestTest;
 import org.metadatacenter.cedar.artifact.resources.rest.AuthHeaderSelector;
 import org.metadatacenter.cedar.artifact.resources.rest.IdMatchingSelector;
@@ -30,18 +27,15 @@ import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static jakarta.ws.rs.core.HttpHeaders.LOCATION;
 import static org.metadatacenter.cedar.artifact.resources.rest.AuthHeaderSelector.*;
 import static org.metadatacenter.cedar.artifact.resources.rest.IdMatchingSelector.*;
-import static org.metadatacenter.cedar.artifact.resources.utils.TestConstants.TEST_NAME_PATTERN_METHOD_PARAMS;
 import static org.metadatacenter.cedar.test.util.TestValueResourceIdGenerator.ids;
 import static org.metadatacenter.model.CedarResourceType.ELEMENT;
 
-@RunWith(JUnitParamsRunner.class)
 public class DeleteElementTest extends AbstractRestTest {
 
   private static int index = -1;
 
-  @Test
-  @TestCaseName(TEST_NAME_PATTERN_METHOD_PARAMS)
-  @Parameters(method = "getParamsDeleteElement")
+  @ParameterizedTest
+  @MethodSource("getParamsDeleteElement")
   public void deleteElementTest(TestParameterArrayGeneratorGenerator generator,
                                 TestParameterValueGenerator<CedarResourceType> rt,
                                 TestParameterValueGenerator<String> auth,
@@ -126,7 +120,7 @@ public class DeleteElementTest extends AbstractRestTest {
     int deleteResponseStatus = deleteResponse.getStatus();
     pair("Delete response status", deleteResponseStatus);
     int expectedResponseStatus = getExpectedResponseStatus(generator, rt, auth, idInUrlGenerator);
-    Assert.assertEquals(expectedResponseStatus, deleteResponseStatus);
+    Assertions.assertEquals(expectedResponseStatus, deleteResponseStatus);
   }
 
   private int getExpectedResponseStatus(TestParameterArrayGeneratorGenerator generator,
@@ -159,7 +153,7 @@ public class DeleteElementTest extends AbstractRestTest {
     return 0;
   }
 
-  private Object getParamsDeleteElement() {
+  static Object[] getParamsDeleteElement() {
     Set<AuthHeaderSelector> authHeader = new LinkedHashSet<>();
     authHeader.add(NULL_AUTH);
     authHeader.add(GIBBERISH_FULL);

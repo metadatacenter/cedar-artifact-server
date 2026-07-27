@@ -1,31 +1,11 @@
 package org.metadatacenter.cedar.artifact.resources;
 
-import com.codahale.metrics.annotation.Timed;
+import org.metadatacenter.cedar.util.dw.CedarMicroserviceIndexResource;
+import org.metadatacenter.config.CedarConfig;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import java.util.IdentityHashMap;
-import java.util.Map;
+public class IndexResource extends CedarMicroserviceIndexResource {
 
-@Path("/")
-@Produces(MediaType.APPLICATION_JSON)
-public class IndexResource {
-
-  private static final Map<String, Object> info;
-
-  static {
-    info = new IdentityHashMap<>();
-    info.put("name", "CEDAR Template Server");
-  }
-
-  public IndexResource() {
-  }
-
-  @GET
-  @Timed
-  public Map<String, Object> showInfo() {
-    return info;
+  public IndexResource(CedarConfig cedarConfig) {
+    super(cedarConfig, "CEDAR Template Server");
   }
 }

@@ -2,22 +2,24 @@ package org.metadatacenter.cedar.artifact.resources;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
+import io.dropwizard.testing.DropwizardTestSupport;
 import io.dropwizard.testing.ResourceHelpers;
-import io.dropwizard.testing.junit.DropwizardAppRule;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
+import io.dropwizard.client.JerseyClientBuilder;
+import io.dropwizard.client.JerseyClientConfiguration;
+import io.dropwizard.util.Duration;
 import org.glassfish.jersey.client.ClientProperties;
-import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.metadatacenter.cedar.artifact.ArtifactServerApplication;
 import org.metadatacenter.cedar.artifact.ArtifactServerConfiguration;
 import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
 import org.metadatacenter.constant.LinkedData;
 import org.metadatacenter.util.json.JsonMapper;
-import org.metadatacenter.util.test.TestUserUtil;
+import org.metadatacenter.util.test.EmbeddedCedarMongo;
+import org.metadatacenter.util.test.TestAuthUtil;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -31,33 +33,56 @@ import static org.metadatacenter.constant.HttpConstants.HTTP_HEADER_AUTHORIZATIO
 
 public abstract class BaseServerTest {
 
+  static {
+    // Must run before anything builds the CEDAR configuration: the document store comes from an
+    // in-process MongoDB, and Redis goes to a dead port, since queue writes are best-effort -
+    // the suite needs no live backend at all. Alternate server ports, so the test instance
+    // never collides with a running dev server.
+    EmbeddedCedarMongo.startAndRedirectEnvironment(java.util.Map.of(
+        "CEDAR_ARTIFACT_HTTP_PORT", "19001",
+        "CEDAR_ARTIFACT_ADMIN_PORT", "19101",
+        "CEDAR_ARTIFACT_STOP_PORT", "19201",
+        "CEDAR_REDIS_PERSISTENT_PORT", "1"));
+  }
+
   private static String authHeaderValue;
 
   private static Client testClient;
 
-  @ClassRule
-  public static final DropwizardAppRule<ArtifactServerConfiguration> SERVER_APPLICATION =
-      new DropwizardAppRule<>(ArtifactServerApplication.class,
+  public static final DropwizardTestSupport<ArtifactServerConfiguration> SERVER_APPLICATION =
+      new DropwizardTestSupport<>(ArtifactServerApplication.class,
           ResourceHelpers.resourceFilePath("test-config.yml"));
 
-  @BeforeClass
-  public static void fetchAuthHeader() {
-    authHeaderValue = TestUserUtil.getTestUser1AuthHeader(TestUtil.getCedarConfig());
-  }
-
-  @BeforeClass
-  public static void createTestClient() {
-    testClient = ResteasyClientBuilder.newBuilder().build();
-    //testClient = new JerseyClientBuilder(SERVER_APPLICATION.getEnvironment()).build("TestClient");
+  @BeforeAll
+  public static void startServerAndClient() throws Exception {
+    SERVER_APPLICATION.before();
+    // Replace the Neo4j-backed user service wired at application startup with an in-memory one,
+    // so API-key authentication needs no live Neo4j (and no Keycloak)
+    TestAuthUtil.installInMemoryUserService(TestUtil.getCedarConfig());
+    authHeaderValue = TestAuthUtil.getTestUser1AuthHeader(TestUtil.getCedarConfig());
+    // Under jakarta ws.rs 3.0 the runtime resolves to Jersey, so build the client through
+    // Dropwizard's JerseyClientBuilder instead of the former RESTEasy client. A large per-route pool
+    // is required because many tests never read the response entity. reuseForks shares one JVM, so
+    // the client name must be unique per build to avoid a metrics-registry collision.
+    JerseyClientConfiguration clientConfig = new JerseyClientConfiguration();
+    clientConfig.setTimeout(Duration.milliseconds(3000));
+    clientConfig.setConnectionTimeout(Duration.milliseconds(3000));
+    clientConfig.setConnectionRequestTimeout(Duration.milliseconds(3000));
+    clientConfig.setMaxConnections(1024);
+    clientConfig.setMaxConnectionsPerRoute(1024);
+    testClient = new JerseyClientBuilder(SERVER_APPLICATION.getEnvironment())
+        .using(clientConfig)
+        .build("artifact-baseserver-test-client-" + System.nanoTime());
     testClient.property(ClientProperties.READ_TIMEOUT, 3000); // 3s
     testClient.property(ClientProperties.CONNECT_TIMEOUT, 3000);
   }
 
-  @AfterClass
-  public static void cleanUp() {
+  @AfterAll
+  public static void stopServerAndClient() {
     if (testClient != null) {
       testClient.close();
     }
+    SERVER_APPLICATION.after();
   }
 
   protected int getPortNumber() {

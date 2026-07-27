@@ -1,11 +1,11 @@
 package org.metadatacenter.cedar.artifact;
 
 import com.mongodb.client.MongoClient;
-import io.dropwizard.setup.Bootstrap;
-import io.dropwizard.setup.Environment;
+import io.dropwizard.core.setup.Bootstrap;
+import io.dropwizard.core.setup.Environment;
 import org.metadatacenter.bridge.CedarDataServices;
-import org.metadatacenter.cedar.artifact.health.ArtifactServerHealthCheck;
 import org.metadatacenter.cedar.artifact.resources.*;
+import org.metadatacenter.cedar.util.dw.CedarDefaultHealthCheck;
 import org.metadatacenter.cedar.util.dw.CedarMicroserviceApplicationWithMongo;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.config.MongoConfig;
@@ -39,7 +39,7 @@ public class ArtifactServerApplication extends CedarMicroserviceApplicationWithM
   @Override
   public void runApp(ArtifactServerConfiguration configuration, Environment environment) {
 
-    final IndexResource index = new IndexResource();
+    final IndexResource index = new IndexResource(cedarConfig);
     environment.jersey().register(index);
 
     final TemplateFieldsResource fields = new TemplateFieldsResource(cedarConfig, templateFieldService);
@@ -58,7 +58,7 @@ public class ArtifactServerApplication extends CedarMicroserviceApplicationWithM
     final CommandResource commands = new CommandResource(cedarConfig, templateService);
     environment.jersey().register(commands);
 
-    final ArtifactServerHealthCheck healthCheck = new ArtifactServerHealthCheck();
+    final CedarDefaultHealthCheck healthCheck = new CedarDefaultHealthCheck();
     environment.healthChecks().register("message", healthCheck);
   }
 }

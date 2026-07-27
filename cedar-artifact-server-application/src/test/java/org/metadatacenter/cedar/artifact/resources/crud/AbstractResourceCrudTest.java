@@ -3,10 +3,10 @@ package org.metadatacenter.cedar.artifact.resources.crud;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.ws.rs.core.Response;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.metadatacenter.cedar.artifact.resources.AbstractResourceTest;
 import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
 import org.metadatacenter.constant.CustomHttpConstants;
@@ -42,13 +42,13 @@ public abstract class AbstractResourceCrudTest extends AbstractResourceTest {
     }
   }
 
-  @BeforeClass
+  @BeforeAll
   public static void oneTimeSetUpAbstract() {
     performOneTimeSetup();
     authHeader = authHeaderTestUser1;
   }
 
-  @AfterClass
+  @AfterAll
   public static void cleanUp() {
     if (testClient != null) {
       testClient.close();
@@ -59,7 +59,7 @@ public abstract class AbstractResourceCrudTest extends AbstractResourceTest {
    * Sets up the test fixture.
    * (Called before every test case method.)
    */
-  @Before
+  @BeforeEach
   public void setUp() {
     createdResources = new HashMap<>();
   }
@@ -68,7 +68,7 @@ public abstract class AbstractResourceCrudTest extends AbstractResourceTest {
    * Tears down the test fixture.
    * (Called after every test case method.)
    */
-  @After
+  @AfterEach
   public void tearDown() {
     // Remove all resources created previously
     removeResources(createdResources);
@@ -102,7 +102,7 @@ public abstract class AbstractResourceCrudTest extends AbstractResourceTest {
    * Common parameters
    */
 
-  private Object getCommonParams1() {
+  protected static Object[] getCommonParams1() {
     return new Object[]{
         new Object[]{sampleTemplate, CedarResourceType.TEMPLATE},
         new Object[]{sampleElement, CedarResourceType.ELEMENT},
@@ -110,7 +110,7 @@ public abstract class AbstractResourceCrudTest extends AbstractResourceTest {
     };
   }
 
-  private Object getCommonParams2() {
+  protected static Object[] getCommonParams2() {
     return new Object[]{CedarResourceType.TEMPLATE, CedarResourceType.ELEMENT, CedarResourceType.INSTANCE};
   }
 

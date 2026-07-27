@@ -1,12 +1,10 @@
 package org.metadatacenter.cedar.artifact.resources.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import junitparams.JUnitParamsRunner;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.metadatacenter.cedar.artifact.resources.AbstractResourceTest;
 import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
 import org.metadatacenter.model.CedarResourceType;
@@ -20,7 +18,6 @@ import java.util.Map;
 
 import static org.metadatacenter.constant.HttpConstants.HTTP_AUTH_HEADER_APIKEY_PREFIX;
 
-@RunWith(JUnitParamsRunner.class)
 public abstract class AbstractRestTest extends AbstractResourceTest {
 
   protected static Map<String, CedarResourceType> createdResources;
@@ -51,12 +48,12 @@ public abstract class AbstractRestTest extends AbstractResourceTest {
     log = LoggerFactory.getLogger("REST Test");
   }
 
-  @BeforeClass
+  @BeforeAll
   public static void oneTimeSetUpAbstract() {
     performOneTimeSetup();
   }
 
-  @AfterClass
+  @AfterAll
   public static void cleanUp() {
     if (testClient != null) {
       testClient.close();
@@ -67,7 +64,7 @@ public abstract class AbstractRestTest extends AbstractResourceTest {
    * Sets up the test fixture.
    * (Called before every test case method.)
    */
-  @Before
+  @BeforeEach
   public void setUp() {
     createdResources = new HashMap<>();
   }
@@ -76,7 +73,7 @@ public abstract class AbstractRestTest extends AbstractResourceTest {
    * Tears down the test fixture.
    * (Called after every test case method.)
    */
-  @After
+  @AfterEach
   public void tearDown() {
     // Remove all resources created previously
     removeResources(createdResources);
