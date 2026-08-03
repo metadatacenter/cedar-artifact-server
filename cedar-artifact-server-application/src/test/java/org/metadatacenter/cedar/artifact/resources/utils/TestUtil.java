@@ -38,7 +38,7 @@ public class TestUtil {
 
     CedarDataServices.initializeMongoClientFactoryForDocuments(
         cedarConfig.getArtifactServerConfig().getMongoConnection());
-    MongoClient mongoClientForDocuments = CedarDataServices.getMongoClientFactoryForDocuments().getClient();
+    MongoClient mongoClientForDocuments = CedarDataServices.getInstance().getMongoClientFactoryForDocuments().getClient();
 
     templateElementService = new TemplateElementServiceMongoDB(
         mongoClientForDocuments,
