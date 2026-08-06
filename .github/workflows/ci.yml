@@ -136,6 +136,25 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v7
 
+      # The embedded MongoDB is the 5.0 line the deployment runs, and its only Linux
+      # build links against OpenSSL 1.1, which Ubuntu 24.04 no longer ships. Without
+      # libcrypto.so.1.1 mongod cannot start and every resource test errors out.
+      - name: Install OpenSSL 1.1 for the embedded MongoDB
+        run: |
+          set -euo pipefail
+          cd "$(mktemp -d)"
+          for url in \
+            http://security.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.24_amd64.deb \
+            http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb; do
+            if curl -fsSL -o libssl1.1.deb "$url"; then
+              sudo dpkg -i libssl1.1.deb
+              ldconfig -p | grep -q libcrypto.so.1.1
+              exit 0
+            fi
+          done
+          echo "Could not obtain libssl1.1; the embedded MongoDB will not start." >&2
+          exit 1
+
       - name: Set up Java 17
         uses: actions/setup-java@v5
         with:
