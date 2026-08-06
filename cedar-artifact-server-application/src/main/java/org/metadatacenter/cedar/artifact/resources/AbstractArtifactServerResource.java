@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.metadatacenter.cedar.util.dw.CedarMicroserviceResource;
 import org.metadatacenter.config.CedarConfig;
+import org.metadatacenter.constant.HttpConstants;
 import org.metadatacenter.constant.LinkedData;
 import org.metadatacenter.error.CedarErrorKey;
 import org.metadatacenter.error.CedarErrorPack;
@@ -17,13 +18,23 @@ import org.metadatacenter.model.validation.CedarValidator;
 import org.metadatacenter.model.validation.ModelValidator;
 import org.metadatacenter.model.validation.report.ErrorItem;
 import org.metadatacenter.model.validation.report.ValidationReport;
+import org.metadatacenter.rest.assertion.noun.CedarRequestBody;
+import org.metadatacenter.rest.context.HttpRequestEmptyBody;
+import org.metadatacenter.rest.context.HttpRequestJsonBody;
 import org.metadatacenter.rest.exception.CedarAssertionException;
 import org.metadatacenter.server.model.provenance.ProvenanceInfo;
 import org.metadatacenter.server.service.TemplateService;
 import org.metadatacenter.util.JsonPointerValuePair;
 import org.metadatacenter.util.ModelUtil;
+import org.metadatacenter.util.artifact.ArtifactYamlTranscoder;
+import org.metadatacenter.util.http.CedarResponse;
+import org.metadatacenter.util.json.JsonMapper;
 import org.metadatacenter.util.mongo.MongoUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,6 +44,8 @@ import java.util.Optional;
 import static com.fasterxml.jackson.databind.node.JsonNodeType.NULL;
 
 public class AbstractArtifactServerResource extends CedarMicroserviceResource {
+
+  private static final Logger log = LoggerFactory.getLogger(AbstractArtifactServerResource.class);
 
   protected static List<String> FIELD_NAMES_EXCLUSION_LIST;
 
@@ -202,5 +215,88 @@ public class AbstractArtifactServerResource extends CedarMicroserviceResource {
       }
     }
     return sb.toString();
+  }
+
+  // YAML content negotiation. Storage is JSON only: YAML is a request and response
+  // representation, transcoded per request by ArtifactYamlTranscoder.
+
+  protected Optional<MediaType> negotiatedArtifactResponseType() {
+    return ArtifactYamlTranscoder.negotiateResponseType(httpHeaders.getAcceptableMediaTypes());
+  }
+
+  protected Response notAcceptableArtifactFormatResponse() {
+    return CedarResponse.notAcceptable()
+        .errorMessage("None of the media types in the Accept header can be produced")
+        .parameter("allowed media types",
+            Arrays.toString(new String[]{MediaType.APPLICATION_JSON, HttpConstants.CONTENT_TYPE_APPLICATION_YAML}))
+        .build();
+  }
+
+  /**
+   * Reads a POST/PUT body into the JSON the storage layer expects. A body sent with Content-Type
+   * application/yaml (or application/x-yaml) is transcoded; any other body is parsed as JSON.
+   * The result is returned as a CedarRequestBody so callers keep asserting NonEmpty on it, with
+   * the same outcome an empty or malformed body produced when the body came off the request
+   * context.
+   */
+  protected CedarRequestBody artifactRequestBody(String requestBody, CedarResourceType resourceType)
+      throws CedarException {
+    if (requestBody == null || requestBody.trim().isEmpty()) {
+      return new HttpRequestEmptyBody();
+    }
+    if (ArtifactYamlTranscoder.isYaml(httpHeaders.getMediaType())) {
+      try {
+        String json = ArtifactYamlTranscoder.yamlToJsonString(requestBody, resourceType);
+        return new HttpRequestJsonBody(JsonMapper.MAPPER.readTree(json));
+      } catch (ArtifactYamlTranscoder.CompactYamlBodyException e) {
+        throw new CedarBadRequestException(e.getMessage(), e);
+      } catch (Exception e) {
+        throw new CedarBadRequestException("There was an error converting the YAML request body to JSON", e);
+      }
+    }
+    try {
+      return new HttpRequestJsonBody(JsonMapper.MAPPER.readTree(requestBody));
+    } catch (Exception e) {
+      throw new CedarBadRequestException("There was an error deserializing the request body", e);
+    }
+  }
+
+  /**
+   * Applies Accept-header negotiation to a write response. When the client asked for YAML and the
+   * response carries the stored artifact, the entity is re-rendered as YAML. Responses whose
+   * entity is not artifact JSON — errors, validation reports — are returned unchanged.
+   */
+  protected Response negotiateArtifactResponse(Response jsonResponse, CedarResourceType resourceType) {
+    Optional<MediaType> responseType = negotiatedArtifactResponseType();
+    if (responseType.isEmpty() || ArtifactYamlTranscoder.isJson(responseType.get())) {
+      return jsonResponse;
+    }
+    if (Response.Status.Family.familyOf(jsonResponse.getStatus()) != Response.Status.Family.SUCCESSFUL
+        || !(jsonResponse.getEntity() instanceof JsonNode artifactNode)) {
+      return jsonResponse;
+    }
+    try {
+      return Response.fromResponse(jsonResponse)
+          .entity(ArtifactYamlTranscoder.jsonToYaml(artifactNode, resourceType, false))
+          .type(responseType.get())
+          .build();
+    } catch (Exception e) {
+      log.warn("The artifact could not be rendered as YAML; returning the JSON response", e);
+      return jsonResponse;
+    }
+  }
+
+  /**
+   * Rejects the compact query parameter on write operations. On a read it selects the lossy
+   * compact YAML rendering; on a write it can only signal a misunderstanding, since write
+   * responses always render the full form and compact bodies are rejected.
+   */
+  protected void rejectCompactOnWriteOperations(Optional<Boolean> compactParam) throws CedarBadRequestException {
+    if (compactParam.isPresent()) {
+      throw new CedarBadRequestException(new CedarErrorPack()
+          .message("The compact parameter is not supported on write operations: write responses always render "
+              + "the full form, and the compact form can not be stored. "
+              + "See https://metadatacenter.readthedocs.io/en/latest/yaml-spec/minimal-and-full/"));
+    }
   }
 }

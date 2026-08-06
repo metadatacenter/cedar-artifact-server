@@ -3,6 +3,7 @@ package org.metadatacenter.cedar.artifact.resources;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.metadatacenter.config.CedarConfig;
+import org.metadatacenter.constant.HttpConstants;
 import org.metadatacenter.error.CedarErrorKey;
 import org.metadatacenter.error.CedarErrorReasonKey;
 import org.metadatacenter.exception.ArtifactServerResourceNotFoundException;
@@ -48,16 +49,22 @@ public class TemplatesResource extends AbstractArtifactCrudResource {
 
   @POST
   @Timed
-  public Response createTemplate() throws CedarException {
+  @Produces({MediaType.APPLICATION_JSON, HttpConstants.CONTENT_TYPE_APPLICATION_YAML, "application/yaml"})
+  @Consumes({MediaType.APPLICATION_JSON, HttpConstants.CONTENT_TYPE_APPLICATION_YAML, "application/yaml"})
+  public Response createTemplate(
+      @QueryParam("compact") Optional<Boolean> compactParam,
+      String requestBody) throws CedarException {
     return createArtifact(CedarPermission.TEMPLATE_CREATE, CedarResourceType.TEMPLATE,
-        CedarErrorKey.TEMPLATE_NOT_CREATED);
+        CedarErrorKey.TEMPLATE_NOT_CREATED, requestBody, compactParam);
   }
 
   @GET
   @Timed
   @Path("/{id}")
-  public Response findTemplate(@PathParam(PP_ID) String id) throws CedarException {
-    return findArtifact(id, CedarPermission.TEMPLATE_READ, CedarErrorKey.TEMPLATE_NOT_FOUND);
+  @Produces({MediaType.APPLICATION_JSON, HttpConstants.CONTENT_TYPE_APPLICATION_YAML, "application/yaml"})
+  public Response findTemplate(@PathParam(PP_ID) String id,
+                             @QueryParam("compact") Optional<Boolean> compactParam) throws CedarException {
+    return findArtifact(id, CedarPermission.TEMPLATE_READ, CedarErrorKey.TEMPLATE_NOT_FOUND, CedarResourceType.TEMPLATE, compactParam);
   }
 
   @GET
@@ -73,9 +80,13 @@ public class TemplatesResource extends AbstractArtifactCrudResource {
   @PUT
   @Timed
   @Path("/{id}")
-  public Response updateTemplate(@PathParam(PP_ID) String id) throws CedarException {
+  @Produces({MediaType.APPLICATION_JSON, HttpConstants.CONTENT_TYPE_APPLICATION_YAML, "application/yaml"})
+  @Consumes({MediaType.APPLICATION_JSON, HttpConstants.CONTENT_TYPE_APPLICATION_YAML, "application/yaml"})
+  public Response updateTemplate(@PathParam(PP_ID) String id,
+                               @QueryParam("compact") Optional<Boolean> compactParam,
+                               String requestBody) throws CedarException {
     return updateArtifact(id, CedarPermission.TEMPLATE_UPDATE, CedarResourceType.TEMPLATE,
-        CedarErrorKey.TEMPLATE_NOT_UPDATED, CedarErrorKey.TEMPLATE_NOT_CREATED);
+        CedarErrorKey.TEMPLATE_NOT_UPDATED, CedarErrorKey.TEMPLATE_NOT_CREATED, requestBody, compactParam);
   }
 
   @DELETE

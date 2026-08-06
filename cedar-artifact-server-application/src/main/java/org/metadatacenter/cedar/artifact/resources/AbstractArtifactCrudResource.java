@@ -14,11 +14,13 @@ import org.metadatacenter.model.CreateOrUpdate;
 import org.metadatacenter.model.validation.report.CedarValidationReport;
 import org.metadatacenter.model.validation.report.ReportUtils;
 import org.metadatacenter.model.validation.report.ValidationReport;
+import org.metadatacenter.rest.assertion.noun.CedarRequestBody;
 import org.metadatacenter.rest.context.CedarRequestContext;
 import org.metadatacenter.server.model.provenance.ProvenanceInfo;
 import org.metadatacenter.server.security.model.auth.CedarPermission;
 import org.metadatacenter.server.service.FieldNameInEx;
 import org.metadatacenter.util.ModelUtil;
+import org.metadatacenter.util.artifact.ArtifactYamlTranscoder;
 import org.metadatacenter.util.http.CedarResponse;
 import org.metadatacenter.util.http.CedarUrlUtil;
 import org.metadatacenter.util.http.LinkHeaderUtil;
@@ -26,6 +28,7 @@ import org.metadatacenter.util.http.PagedQuery;
 import org.metadatacenter.util.mongo.MongoUtils;
 import org.slf4j.Logger;
 
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.io.IOException;
 import java.net.URI;
@@ -77,13 +80,19 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
   }
 
   protected Response createArtifact(CedarPermission createPermission, CedarResourceType resourceType,
-                                    CedarErrorKey notCreatedKey) throws CedarException {
+                                    CedarErrorKey notCreatedKey, String requestBody,
+                                    Optional<Boolean> compactParam) throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(createPermission);
-    c.must(c.request().getRequestBody()).be(NonEmpty);
+    rejectCompactOnWriteOperations(compactParam);
+    if (negotiatedArtifactResponseType().isEmpty()) {
+      return notAcceptableArtifactFormatResponse();
+    }
 
-    JsonNode artifact = c.request().getRequestBody().asJson();
+    CedarRequestBody body = artifactRequestBody(requestBody, resourceType);
+    c.must(body).be(NonEmpty);
+    JsonNode artifact = body.asJson();
 
     enforceMandatoryNullOrMissingId(artifact, resourceType, notCreatedKey);
     enforceMandatoryName(artifact, resourceType, notCreatedKey);
@@ -110,7 +119,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     } else {
       response = storeArtifactInDatabase(artifact, pi, notCreatedKey);
     }
-    return response;
+    return negotiateArtifactResponse(response, resourceType);
   }
 
   protected Response storeArtifactInDatabase(JsonNode artifact, ProvenanceInfo pi, CedarErrorKey notCreatedKey) {
@@ -134,11 +143,17 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     }
   }
 
-  protected Response findArtifact(String id, CedarPermission readPermission, CedarErrorKey notFoundKey) throws CedarException {
+  protected Response findArtifact(String id, CedarPermission readPermission, CedarErrorKey notFoundKey,
+                                  CedarResourceType resourceType, Optional<Boolean> compactParam) throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(readPermission);
     c.must(id).be(ValidUrl);
+
+    Optional<MediaType> responseType = negotiatedArtifactResponseType();
+    if (responseType.isEmpty()) {
+      return notAcceptableArtifactFormatResponse();
+    }
 
     JsonNode artifact = null;
     try {
@@ -159,7 +174,14 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
           .build();
     } else {
       MongoUtils.removeIdField(artifact);
-      return Response.ok().entity(artifact).build();
+      if (ArtifactYamlTranscoder.isJson(responseType.get())) {
+        return Response.ok().entity(artifact).build();
+      }
+      return Response.ok()
+          .entity(ArtifactYamlTranscoder.jsonToYaml(artifact, resourceType,
+              compactParam.isPresent() && compactParam.get()))
+          .type(responseType.get())
+          .build();
     }
   }
 
@@ -210,14 +232,20 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
   }
 
   protected Response updateArtifact(String id, CedarPermission updatePermission, CedarResourceType resourceType,
-                                    CedarErrorKey notUpdatedKey, CedarErrorKey notCreatedKey) throws CedarException {
+                                    CedarErrorKey notUpdatedKey, CedarErrorKey notCreatedKey, String requestBody,
+                                    Optional<Boolean> compactParam) throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
     c.must(id).be(ValidUrl);
     c.must(c.user()).have(updatePermission);
-    c.must(c.request().getRequestBody()).be(NonEmpty);
+    rejectCompactOnWriteOperations(compactParam);
+    if (negotiatedArtifactResponseType().isEmpty()) {
+      return notAcceptableArtifactFormatResponse();
+    }
 
-    JsonNode newArtifact = c.request().getRequestBody().asJson();
+    CedarRequestBody body = artifactRequestBody(requestBody, resourceType);
+    c.must(body).be(NonEmpty);
+    JsonNode newArtifact = body.asJson();
 
     enforceMandatoryFieldsInPut(id, newArtifact, resourceType, notUpdatedKey);
     enforceMandatoryName(newArtifact, resourceType, notUpdatedKey);
@@ -244,7 +272,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     } else {
       response = updateOrCreateArtifactInDatabase(id, newArtifact, pi, c, notCreatedKey, notUpdatedKey);
     }
-    return response;
+    return negotiateArtifactResponse(response, resourceType);
   }
 
   protected Response updateOrCreateArtifactInDatabase(String artifactId, JsonNode updatedArtifact, ProvenanceInfo pi,

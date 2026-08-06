@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.github.jsonldjava.core.JsonLdError;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.constant.CustomHttpConstants;
+import org.metadatacenter.constant.HttpConstants;
 import org.metadatacenter.error.CedarErrorKey;
 import org.metadatacenter.error.CedarErrorReasonKey;
 import org.metadatacenter.exception.ArtifactServerResourceNotFoundException;
@@ -18,12 +19,14 @@ import org.metadatacenter.model.trimmer.JsonLdDocument;
 import org.metadatacenter.model.validation.report.CedarValidationReport;
 import org.metadatacenter.model.validation.report.ReportUtils;
 import org.metadatacenter.model.validation.report.ValidationReport;
+import org.metadatacenter.rest.assertion.noun.CedarRequestBody;
 import org.metadatacenter.rest.context.CedarRequestContext;
 import org.metadatacenter.server.model.provenance.ProvenanceInfo;
 import org.metadatacenter.server.security.model.auth.CedarPermission;
 import org.metadatacenter.server.service.FieldNameInEx;
 import org.metadatacenter.server.service.TemplateInstanceService;
 import org.metadatacenter.server.service.TemplateService;
+import org.metadatacenter.util.artifact.ArtifactYamlTranscoder;
 import org.metadatacenter.util.http.CedarResponse;
 import org.metadatacenter.util.http.CedarUrlUtil;
 import org.metadatacenter.util.mongo.MongoUtils;
@@ -61,13 +64,22 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
 
   @POST
   @Timed
-  public Response createTemplateInstance(@QueryParam(QP_SKIP_VALIDATION) Optional<Boolean> skipValidation) throws CedarException {
+  @Produces({MediaType.APPLICATION_JSON, HttpConstants.CONTENT_TYPE_APPLICATION_YAML, "application/yaml"})
+  @Consumes({MediaType.APPLICATION_JSON, HttpConstants.CONTENT_TYPE_APPLICATION_YAML, "application/yaml"})
+  public Response createTemplateInstance(@QueryParam(QP_SKIP_VALIDATION) Optional<Boolean> skipValidation,
+                                         @QueryParam("compact") Optional<Boolean> compactParam,
+                                         String requestBody) throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_CREATE);
-    c.must(c.request().getRequestBody()).be(NonEmpty);
+    rejectCompactOnWriteOperations(compactParam);
+    if (negotiatedArtifactResponseType().isEmpty()) {
+      return notAcceptableArtifactFormatResponse();
+    }
 
-    JsonNode templateInstance = c.request().getRequestBody().asJson();
+    CedarRequestBody body = artifactRequestBody(requestBody, CedarResourceType.INSTANCE);
+    c.must(body).be(NonEmpty);
+    JsonNode templateInstance = body.asJson();
 
     enforceMandatoryNullOrMissingId(templateInstance, CedarResourceType.INSTANCE, CedarErrorKey.TEMPLATE_INSTANCE_NOT_CREATED);
     enforceMandatoryName(templateInstance, CedarResourceType.INSTANCE, CedarErrorKey.TEMPLATE_INSTANCE_NOT_CREATED);
@@ -97,17 +109,24 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
     } else {
       response = storeArtifactInDatabase(templateInstance, pi, CedarErrorKey.TEMPLATE_INSTANCE_NOT_CREATED);
     }
-    return response;
+    return negotiateArtifactResponse(response, CedarResourceType.INSTANCE);
   }
 
   @GET
   @Timed
   @Path("/{id}")
-  public Response findTemplateInstance(@PathParam(PP_ID) String id, @QueryParam(QP_FORMAT) Optional<String> format) throws CedarException {
+  @Produces({MediaType.APPLICATION_JSON, HttpConstants.CONTENT_TYPE_APPLICATION_YAML, "application/yaml"})
+  public Response findTemplateInstance(@PathParam(PP_ID) String id, @QueryParam(QP_FORMAT) Optional<String> format,
+                                       @QueryParam("compact") Optional<Boolean> compactParam) throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
     c.must(id).be(ValidUrl);
     c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_READ);
+
+    Optional<MediaType> responseType = negotiatedArtifactResponseType();
+    if (responseType.isEmpty()) {
+      return notAcceptableArtifactFormatResponse();
+    }
 
     JsonNode templateInstance = null;
     try {
@@ -127,10 +146,17 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
           .errorMessage("The artifact instance can not be found by id:" + id)
           .build();
     } else {
-      OutputFormatType formatType = OutputFormatTypeDetector.detectFormat(format);
       MongoUtils.removeIdField(templateInstance);
-      Response response = sendFormattedTemplateInstance(templateInstance, formatType);
-      return response;
+      // An explicit format names the representation, so it wins over Accept negotiation.
+      if (format.isEmpty() && !ArtifactYamlTranscoder.isJson(responseType.get())) {
+        return Response.ok()
+            .entity(ArtifactYamlTranscoder.jsonToYaml(templateInstance, CedarResourceType.INSTANCE,
+                compactParam.isPresent() && compactParam.get()))
+            .type(responseType.get())
+            .build();
+      }
+      OutputFormatType formatType = OutputFormatTypeDetector.detectFormat(format);
+      return sendFormattedTemplateInstance(templateInstance, formatType);
     }
   }
 
@@ -147,14 +173,23 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
   @PUT
   @Timed
   @Path("/{id}")
-  public Response updateTemplateInstance(@PathParam(PP_ID) String id) throws CedarException {
+  @Produces({MediaType.APPLICATION_JSON, HttpConstants.CONTENT_TYPE_APPLICATION_YAML, "application/yaml"})
+  @Consumes({MediaType.APPLICATION_JSON, HttpConstants.CONTENT_TYPE_APPLICATION_YAML, "application/yaml"})
+  public Response updateTemplateInstance(@PathParam(PP_ID) String id,
+                                         @QueryParam("compact") Optional<Boolean> compactParam,
+                                         String requestBody) throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
     c.must(id).be(ValidUrl);
     c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_UPDATE);
-    c.must(c.request().getRequestBody()).be(NonEmpty);
+    rejectCompactOnWriteOperations(compactParam);
+    if (negotiatedArtifactResponseType().isEmpty()) {
+      return notAcceptableArtifactFormatResponse();
+    }
 
-    JsonNode newInstance = c.request().getRequestBody().asJson();
+    CedarRequestBody body = artifactRequestBody(requestBody, CedarResourceType.INSTANCE);
+    c.must(body).be(NonEmpty);
+    JsonNode newInstance = body.asJson();
 
     enforceMandatoryFieldsInPut(id, newInstance, CedarResourceType.INSTANCE, CedarErrorKey.TEMPLATE_INSTANCE_NOT_UPDATED);
     enforceMandatoryName(newInstance, CedarResourceType.INSTANCE, CedarErrorKey.TEMPLATE_INSTANCE_NOT_CREATED);
@@ -208,7 +243,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
     responseBuilder
         .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, validationReport.getValidationStatus())
         .entity(outputTemplateInstance);
-    return responseBuilder.build();
+    return negotiateArtifactResponse(responseBuilder.build(), CedarResourceType.INSTANCE);
   }
 
   @DELETE
