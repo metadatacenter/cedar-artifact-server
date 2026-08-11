@@ -84,10 +84,9 @@ public class TemplatesResource extends AbstractArtifactCrudResource {
   @Consumes({MediaType.APPLICATION_JSON, HttpConstants.CONTENT_TYPE_APPLICATION_YAML, "application/yaml"})
   public Response updateTemplate(@PathParam(PP_ID) String id,
                                @QueryParam("compact") Optional<Boolean> compactParam,
-                               @QueryParam(QP_EXPECTED_LAST_UPDATED_ON) Optional<String> expectedLastUpdatedOn,
                                String requestBody) throws CedarException {
     return updateArtifact(id, CedarPermission.TEMPLATE_UPDATE, CedarResourceType.TEMPLATE,
-        CedarErrorKey.TEMPLATE_NOT_UPDATED, CedarErrorKey.TEMPLATE_NOT_CREATED, requestBody, compactParam, expectedLastUpdatedOn);
+        CedarErrorKey.TEMPLATE_NOT_UPDATED, CedarErrorKey.TEMPLATE_NOT_CREATED, requestBody, compactParam);
   }
 
   @DELETE
