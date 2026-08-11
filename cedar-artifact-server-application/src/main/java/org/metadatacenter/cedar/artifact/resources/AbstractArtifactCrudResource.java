@@ -9,6 +9,7 @@ import org.metadatacenter.error.CedarErrorKey;
 import org.metadatacenter.error.CedarErrorReasonKey;
 import org.metadatacenter.exception.ArtifactServerResourceNotFoundException;
 import org.metadatacenter.exception.CedarException;
+import org.metadatacenter.exception.CedarProcessingException;
 import org.metadatacenter.http.CedarResponseStatus;
 import org.metadatacenter.model.CedarResourceType;
 import org.metadatacenter.model.CreateOrUpdate;
@@ -255,6 +256,14 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
   protected Response updateArtifact(String id, CedarPermission updatePermission, CedarResourceType resourceType,
                                     CedarErrorKey notUpdatedKey, CedarErrorKey notCreatedKey, String requestBody,
                                     Optional<Boolean> compactParam) throws CedarException {
+    return updateArtifact(id, updatePermission, resourceType, notUpdatedKey, notCreatedKey, requestBody,
+        compactParam, Optional.empty());
+  }
+
+  protected Response updateArtifact(String id, CedarPermission updatePermission, CedarResourceType resourceType,
+                                    CedarErrorKey notUpdatedKey, CedarErrorKey notCreatedKey, String requestBody,
+                                    Optional<Boolean> compactParam, Optional<Boolean> verbatimParam)
+      throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
     c.must(id).be(ValidUrl);
@@ -264,17 +273,36 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
       return notAcceptableArtifactFormatResponse();
     }
 
+    boolean verbatim = verbatimParam != null && verbatimParam.isPresent() && verbatimParam.get();
+    if (verbatim) {
+      c.must(c.user()).have(CedarPermission.WRITE_ARTIFACT_VERBATIM);
+      Response refusal = refuseVerbatimWriteWeCannotHonour(id, resourceType);
+      if (refusal != null) {
+        return refusal;
+      }
+    }
+
     CedarRequestBody body = artifactRequestBody(requestBody, resourceType);
     c.must(body).be(NonEmpty);
     JsonNode newArtifact = body.asJson();
 
     enforceMandatoryFieldsInPut(id, newArtifact, resourceType, notUpdatedKey);
     enforceMandatoryName(newArtifact, resourceType, notUpdatedKey);
-    enforceChildArtifactTypes(newArtifact, resourceType, notUpdatedKey);
     reportMismatchedChildIdPrefixes(newArtifact, resourceType, id);
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
-    provenanceUtil.patchProvenanceInfo(newArtifact, pi);
+    if (verbatim) {
+      // Nothing is assigned: the document is stored as stated, which is the whole point. Every child
+      // identifier must already be an absolute IRI, since minting one would break that promise and
+      // storing a temporary one would let the value through the single door that does not check.
+      Response refusal = refuseVerbatimChildIdentifiers(newArtifact, resourceType);
+      if (refusal != null) {
+        return refusal;
+      }
+    } else {
+      enforceChildArtifactTypes(newArtifact, resourceType, notUpdatedKey);
+      provenanceUtil.patchProvenanceInfo(newArtifact, pi);
+    }
 
     Response response = null;
     if (cedarConfig.getValidationConfig().isEnabled()) {
@@ -282,7 +310,8 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
       ReportUtils.outputLogger(logger, validationReport, true);
       String validationStatus = validationReport.getValidationStatus();
       if (validationStatus.equals(CedarValidationReport.IS_VALID)) {
-        response = updateOrCreateArtifactInDatabase(id, newArtifact, pi, c, notCreatedKey, notUpdatedKey);
+        response = updateOrCreateArtifactInDatabase(id, newArtifact, pi, c, notCreatedKey, notUpdatedKey,
+            verbatim);
       } else {
         response = CedarResponse.badRequest()
             .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_INVALID)
@@ -293,22 +322,89 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
             .build();
       }
     } else {
-      response = updateOrCreateArtifactInDatabase(id, newArtifact, pi, c, notCreatedKey, notUpdatedKey);
+      response = updateOrCreateArtifactInDatabase(id, newArtifact, pi, c, notCreatedKey, notUpdatedKey,
+          verbatim);
     }
     return negotiateArtifactResponse(response, resourceType);
+  }
+
+  /**
+   * Refuses a verbatim write whose promise cannot be kept. The promise is that the stored document is the
+   * one supplied, so it needs an artifact to replace -- a request naming an identifier that resolves to
+   * nothing would otherwise create, which is a different operation -- and it needs a body this server has
+   * not rewritten, which a YAML request is not: a transcode decides the JSON, so what is stored is the
+   * transcoder's reading rather than the caller's document.
+   */
+  protected Response refuseVerbatimWriteWeCannotHonour(String artifactId, CedarResourceType resourceType)
+      throws CedarException {
+    if (ArtifactYamlTranscoder.isYaml(httpHeaders.getMediaType())) {
+      return CedarResponse.badRequest()
+          .id(artifactId)
+          .errorKey(CedarErrorKey.VERBATIM_WRITE_REFUSED)
+          .errorMessage("A verbatim write needs a JSON body: a YAML body is transcoded, so what would be "
+              + "stored is not what was sent")
+          .build();
+    }
+    JsonNode current;
+    try {
+      current = findArtifactInService(artifactId);
+    } catch (IOException e) {
+      throw new CedarProcessingException(e);
+    }
+    if (current == null) {
+      return CedarResponse.notFound()
+          .id(artifactId)
+          .errorKey(CedarErrorKey.ARTIFACT_NOT_FOUND)
+          .errorMessage("A verbatim write replaces an existing " + artifactLabel + "; this one does not exist")
+          .build();
+    }
+    return null;
+  }
+
+  /**
+   * Refuses a verbatim write carrying a child identifier that is not an absolute IRI. On an ordinary write
+   * such an identifier is minted over; here it cannot be, because nothing may be altered, and it must not
+   * be stored, because a temporary identifier resolves to nothing and no later write will replace it.
+   */
+  protected Response refuseVerbatimChildIdentifiers(JsonNode artifact, CedarResourceType resourceType) {
+    if (resourceType != CedarResourceType.TEMPLATE && resourceType != CedarResourceType.ELEMENT) {
+      return null;
+    }
+    List<String> unusable = new ArrayList<>();
+    ModelUtil.forEachChild(artifact, (name, child) -> {
+      if (!ModelUtil.hasUsableChildId(child)) {
+        unusable.add(name);
+      }
+    });
+    if (unusable.isEmpty()) {
+      return null;
+    }
+    return CedarResponse.badRequest()
+        .errorKey(CedarErrorKey.VERBATIM_WRITE_REFUSED)
+        .errorMessage("A verbatim write alters nothing, so every child identifier must already be an "
+            + "absolute IRI. These are not: " + String.join(", ", unusable))
+        .parameter("children", String.join(", ", unusable))
+        .build();
   }
 
   protected Response updateOrCreateArtifactInDatabase(String artifactId, JsonNode updatedArtifact, ProvenanceInfo pi,
                                                       CedarRequestContext c, CedarErrorKey notCreatedKey,
                                                       CedarErrorKey notUpdatedKey) throws CedarException {
+    return updateOrCreateArtifactInDatabase(artifactId, updatedArtifact, pi, c, notCreatedKey, notUpdatedKey, false);
+  }
+
+  protected Response updateOrCreateArtifactInDatabase(String artifactId, JsonNode updatedArtifact, ProvenanceInfo pi,
+                                                      CedarRequestContext c, CedarErrorKey notCreatedKey,
+                                                      CedarErrorKey notUpdatedKey, boolean verbatim)
+      throws CedarException {
     JsonNode outputArtifact = null;
     CreateOrUpdate createOrUpdate = null;
     try {
       JsonNode currentArtifact = findArtifactInService(artifactId);
-      if (currentArtifact != null) {
+      if (currentArtifact != null && !verbatim) {
         provenanceUtil.preserveCreationProvenance(updatedArtifact, currentArtifact);
       }
-      if (ensureFieldIds) {
+      if (ensureFieldIds && !verbatim) {
         // The stored artifact, so each child's provenance can record what this write did to that child
         // rather than what it did to the parent. Null on the create-by-PUT path, where every child is new.
         logReplacedChildIdentifiers(

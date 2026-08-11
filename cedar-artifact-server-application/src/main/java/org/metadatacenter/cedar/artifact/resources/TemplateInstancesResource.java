@@ -177,6 +177,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
   @Consumes({MediaType.APPLICATION_JSON, HttpConstants.CONTENT_TYPE_APPLICATION_YAML, "application/yaml"})
   public Response updateTemplateInstance(@PathParam(PP_ID) String id,
                                          @QueryParam("compact") Optional<Boolean> compactParam,
+                                         @QueryParam(QP_VERBATIM) Optional<Boolean> verbatimParam,
                                          String requestBody) throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
@@ -187,6 +188,15 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
       return notAcceptableArtifactFormatResponse();
     }
 
+    boolean verbatim = verbatimParam != null && verbatimParam.isPresent() && verbatimParam.get();
+    if (verbatim) {
+      c.must(c.user()).have(CedarPermission.WRITE_ARTIFACT_VERBATIM);
+      Response refusal = refuseVerbatimWriteWeCannotHonour(id, CedarResourceType.INSTANCE);
+      if (refusal != null) {
+        return refusal;
+      }
+    }
+
     CedarRequestBody body = artifactRequestBody(requestBody, CedarResourceType.INSTANCE);
     c.must(body).be(NonEmpty);
     JsonNode newInstance = body.asJson();
@@ -195,12 +205,14 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
     enforceMandatoryName(newInstance, CedarResourceType.INSTANCE, CedarErrorKey.TEMPLATE_INSTANCE_NOT_CREATED);
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
-    provenanceUtil.patchProvenanceInfo(newInstance, pi);
+    if (!verbatim) {
+      provenanceUtil.patchProvenanceInfo(newInstance, pi);
 
-    // add template-element-instance ids if needed. For instance, this may be needed if new items are added to an
-    // array
-    // of template-element instances
-    linkedDataUtil.addElementInstanceIds(newInstance, CedarResourceType.INSTANCE);
+      // add template-element-instance ids if needed. For instance, this may be needed if new items are added to an
+      // array
+      // of template-element instances
+      linkedDataUtil.addElementInstanceIds(newInstance, CedarResourceType.INSTANCE);
+    }
 
     ValidationReport validationReport = validateArtifact(newInstance);
     ReportUtils.outputLogger(logger, validationReport, true);

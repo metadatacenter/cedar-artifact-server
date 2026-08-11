@@ -76,9 +76,10 @@ public class TemplateFieldsResource extends AbstractArtifactCrudResource {
   @Consumes({MediaType.APPLICATION_JSON, HttpConstants.CONTENT_TYPE_APPLICATION_YAML, "application/yaml"})
   public Response updateTemplateField(@PathParam(PP_ID) String id,
                                @QueryParam("compact") Optional<Boolean> compactParam,
+                               @QueryParam(QP_VERBATIM) Optional<Boolean> verbatimParam,
                                String requestBody) throws CedarException {
     return updateArtifact(id, CedarPermission.TEMPLATE_FIELD_UPDATE, CedarResourceType.FIELD,
-        CedarErrorKey.TEMPLATE_FIELD_NOT_UPDATED, CedarErrorKey.TEMPLATE_FIELD_NOT_CREATED, requestBody, compactParam);
+        CedarErrorKey.TEMPLATE_FIELD_NOT_UPDATED, CedarErrorKey.TEMPLATE_FIELD_NOT_CREATED, requestBody, compactParam, verbatimParam);
   }
 
   @DELETE
