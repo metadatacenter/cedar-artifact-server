@@ -128,7 +128,8 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
   protected Response storeArtifactInDatabase(JsonNode artifact, ProvenanceInfo pi, CedarErrorKey notCreatedKey) {
     try {
       if (ensureFieldIds) {
-        ModelUtil.ensureFieldIdsRecursively(artifact, pi, provenanceUtil, linkedDataUtil);
+        logReplacedChildIdentifiers(
+            ModelUtil.ensureFieldIdsRecursively(artifact, pi, provenanceUtil, linkedDataUtil), null);
       }
       JsonNode createdArtifact = createArtifactInService(artifact);
       MongoUtils.removeIdField(createdArtifact);
@@ -143,6 +144,23 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
           .errorMessage("The " + artifactLabel + " can not be created")
           .exception(e)
           .build();
+    }
+  }
+
+  /**
+   * Records each child identifier this write replaced with a minted one. Only a child that arrived holding
+   * a value is reported: replacing something that is not an absolute IRI destroys it, and nothing else in
+   * the stack keeps what it was, so without this a repair pass cannot afterwards say which artifacts it
+   * altered or what they held. A child arriving with no identifier loses nothing and would only add noise,
+   * since that is the ordinary path for a field added in the designer.
+   */
+  private void logReplacedChildIdentifiers(List<ModelUtil.MintedChildId> minted, String artifactId) {
+    for (ModelUtil.MintedChildId mint : minted) {
+      if (mint.destroyedAValue()) {
+        logger.warn("Replaced the identifier of child '{}' in {}: '{}' was not an absolute IRI, minted {}",
+            mint.property(), artifactId == null ? "a new " + artifactLabel : artifactId,
+            mint.replaced(), mint.minted());
+      }
     }
   }
 
@@ -293,7 +311,9 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
       if (ensureFieldIds) {
         // The stored artifact, so each child's provenance can record what this write did to that child
         // rather than what it did to the parent. Null on the create-by-PUT path, where every child is new.
-        ModelUtil.ensureFieldIdsRecursively(updatedArtifact, currentArtifact, pi, provenanceUtil, linkedDataUtil);
+        logReplacedChildIdentifiers(
+            ModelUtil.ensureFieldIdsRecursively(updatedArtifact, currentArtifact, pi, provenanceUtil,
+                linkedDataUtil), artifactId);
       }
       if (currentArtifact != null) {
         createOrUpdate = CreateOrUpdate.UPDATE;
