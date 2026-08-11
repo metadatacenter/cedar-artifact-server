@@ -243,8 +243,21 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
   private Response rejectIfArtifactHasMovedOn(String artifactId, JsonNode currentArtifact,
                                               Optional<String> expectedLastUpdatedOn) {
     if (expectedLastUpdatedOn == null || expectedLastUpdatedOn.isEmpty()
-        || expectedLastUpdatedOn.get().isBlank() || currentArtifact == null) {
+        || expectedLastUpdatedOn.get().isBlank()) {
       return null;
+    }
+    // Naming a version asserts that the artifact exists and was read at that version. A PUT to an
+    // identifier that resolves to nothing creates, which is right for a client choosing its own
+    // identifier and wrong here: the assertion is false, so the request is refused rather than
+    // silently turned into a create. A mistyped identifier in a repair script would otherwise answer
+    // 201 and leave a valid-looking copy of the artifact under an identifier nothing refers to.
+    if (currentArtifact == null) {
+      return CedarResponse.notFound()
+          .id(artifactId)
+          .errorKey(CedarErrorKey.ARTIFACT_NOT_FOUND)
+          .errorMessage("The " + artifactLabel + " named an expected version but does not exist")
+          .parameter("expectedLastUpdatedOn", expectedLastUpdatedOn.get().trim())
+          .build();
     }
     JsonNode storedNode = currentArtifact.get(ProvenanceUtil.PAV_LAST_UPDATED_ON);
     String stored = storedNode == null || !storedNode.isTextual() ? null : storedNode.textValue();
