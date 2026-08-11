@@ -38,7 +38,9 @@ import jakarta.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static com.fasterxml.jackson.databind.node.JsonNodeType.NULL;
@@ -156,6 +158,53 @@ public class AbstractArtifactServerResource extends CedarMicroserviceResource {
     JsonPointerValuePair namePair = ModelUtil.extractNameFromResource(resourceType, jsonObject);
     if (namePair.hasEmptyValue()) {
       throw new CedarRequestBodyMissingFieldException(namePair.getPointer(), errorKey);
+    }
+  }
+
+  /**
+   * A child of a template or element must declare which of the two artifact kinds it is, because the
+   * identifier minted for a child takes its prefix from that declaration. The meta-schemas already require
+   * '@type' on a child, so this rejects the same artifacts validation would; it exists so that the minting
+   * code is never asked to guess, including when validation is switched off. A multi-instance child with no
+   * 'items' object is refused here for the same reason.
+   */
+  protected void enforceChildArtifactTypes(JsonNode jsonObject, CedarResourceType resourceType, CedarErrorKey errorKey)
+      throws CedarBadRequestException {
+    if (resourceType != CedarResourceType.TEMPLATE && resourceType != CedarResourceType.ELEMENT) {
+      return;
+    }
+    JsonNode properties = jsonObject.get("properties");
+    if (properties == null || !properties.isObject()) {
+      return;
+    }
+    Iterator<Map.Entry<String, JsonNode>> it = properties.fields();
+    while (it.hasNext()) {
+      Map.Entry<String, JsonNode> entry = it.next();
+      JsonNode candidate = entry.getValue();
+      if (!candidate.isObject() || candidate.get("type") == null || ModelUtil.isSpecialField(entry.getKey())) {
+        continue;
+      }
+      String type = candidate.get("type").asText();
+      JsonNode child = candidate;
+      if ("array".equals(type)) {
+        child = candidate.get("items");
+        if (child == null || !child.isObject()) {
+          throw new CedarBadRequestException(new CedarErrorPack()
+              .message("The multi-instance child '" + entry.getKey() + "' must contain an 'items' object!")
+              .parameter("property", entry.getKey())
+              .errorKey(errorKey));
+        }
+      } else if (!"object".equals(type)) {
+        continue;
+      }
+      if (!ModelUtil.hasRecognisedChildType(child)) {
+        throw new CedarBadRequestException(new CedarErrorPack()
+            .message("The child '" + entry.getKey() + "' must declare a recognised '" + LinkedData.TYPE + "' of "
+                + CedarResourceType.AtType.FIELD + ", " + CedarResourceType.AtType.STATIC_FIELD + " or "
+                + CedarResourceType.AtType.ELEMENT + "!")
+            .parameter("property", entry.getKey())
+            .errorKey(errorKey));
+      }
     }
   }
 

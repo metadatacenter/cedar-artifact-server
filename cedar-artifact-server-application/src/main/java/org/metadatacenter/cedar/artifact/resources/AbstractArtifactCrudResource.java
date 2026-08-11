@@ -96,6 +96,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
 
     enforceMandatoryNullOrMissingId(artifact, resourceType, notCreatedKey);
     enforceMandatoryName(artifact, resourceType, notCreatedKey);
+    enforceChildArtifactTypes(artifact, resourceType, notCreatedKey);
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     setProvenanceAndId(resourceType, artifact, pi);
@@ -249,6 +250,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
 
     enforceMandatoryFieldsInPut(id, newArtifact, resourceType, notUpdatedKey);
     enforceMandatoryName(newArtifact, resourceType, notUpdatedKey);
+    enforceChildArtifactTypes(newArtifact, resourceType, notUpdatedKey);
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     provenanceUtil.patchProvenanceInfo(newArtifact, pi);
@@ -282,6 +284,9 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     CreateOrUpdate createOrUpdate = null;
     try {
       JsonNode currentArtifact = findArtifactInService(artifactId);
+      if (currentArtifact != null) {
+        provenanceUtil.preserveCreationProvenance(updatedArtifact, currentArtifact);
+      }
       if (ensureFieldIds) {
         ModelUtil.ensureFieldIdsRecursively(updatedArtifact, pi, provenanceUtil, linkedDataUtil);
       }
