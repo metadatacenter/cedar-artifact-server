@@ -208,6 +208,23 @@ public class AbstractArtifactServerResource extends CedarMicroserviceResource {
     }
   }
 
+  /**
+   * Reports children whose identifier prefix contradicts their '@type', which earlier writes produced by
+   * minting every child as a field. The write is not refused: the identifier is what other artifacts
+   * already refer to, so replacing it belongs to a repair pass that can record what it changed. Logged so
+   * that the affected artifacts can be found without reading the whole corpus first.
+   */
+  protected void reportMismatchedChildIdPrefixes(JsonNode jsonObject, CedarResourceType resourceType, String id) {
+    if (resourceType != CedarResourceType.TEMPLATE && resourceType != CedarResourceType.ELEMENT) {
+      return;
+    }
+    List<String> mismatched = ModelUtil.childrenWithMismatchedIdPrefix(jsonObject);
+    if (!mismatched.isEmpty()) {
+      log.warn("Artifact {} has {} child(ren) whose '@id' prefix contradicts their '{}': {}",
+          id, mismatched.size(), LinkedData.TYPE, String.join(", ", mismatched));
+    }
+  }
+
   protected void enforceMandatoryFieldsInPut(String id, JsonNode jsonObject, CedarResourceType resourceType, CedarErrorKey errorKey) throws CedarBadRequestException {
     JsonNode idInRequestNode = jsonObject.get(LinkedData.ID);
     String idInRequest = null;

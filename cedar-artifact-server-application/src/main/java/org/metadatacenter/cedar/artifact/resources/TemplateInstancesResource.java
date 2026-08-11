@@ -177,6 +177,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
   @Consumes({MediaType.APPLICATION_JSON, HttpConstants.CONTENT_TYPE_APPLICATION_YAML, "application/yaml"})
   public Response updateTemplateInstance(@PathParam(PP_ID) String id,
                                          @QueryParam("compact") Optional<Boolean> compactParam,
+                                         @QueryParam(QP_EXPECTED_LAST_UPDATED_ON) Optional<String> expectedLastUpdatedOn,
                                          String requestBody) throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);

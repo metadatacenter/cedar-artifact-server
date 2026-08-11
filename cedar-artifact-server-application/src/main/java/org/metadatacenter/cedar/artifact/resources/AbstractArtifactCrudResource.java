@@ -9,6 +9,7 @@ import org.metadatacenter.error.CedarErrorKey;
 import org.metadatacenter.error.CedarErrorReasonKey;
 import org.metadatacenter.exception.ArtifactServerResourceNotFoundException;
 import org.metadatacenter.exception.CedarException;
+import org.metadatacenter.http.CedarResponseStatus;
 import org.metadatacenter.model.CedarResourceType;
 import org.metadatacenter.model.CreateOrUpdate;
 import org.metadatacenter.model.validation.report.CedarValidationReport;
@@ -20,6 +21,7 @@ import org.metadatacenter.server.model.provenance.ProvenanceInfo;
 import org.metadatacenter.server.security.model.auth.CedarPermission;
 import org.metadatacenter.server.service.FieldNameInEx;
 import org.metadatacenter.util.ModelUtil;
+import org.metadatacenter.util.provenance.ProvenanceUtil;
 import org.metadatacenter.util.artifact.ArtifactYamlTranscoder;
 import org.metadatacenter.util.http.CedarResponse;
 import org.metadatacenter.util.http.CedarUrlUtil;
@@ -232,9 +234,37 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     return responseBuilder.build();
   }
 
+  /**
+   * Refuses an update whose caller named a 'pav:lastUpdatedOn' the artifact no longer carries. The write
+   * replaces the whole document and nothing in the stack compares versions, so without a precondition a
+   * concurrent save is overwritten with no trace. Returns null when the write may proceed: when no
+   * expectation was given, or when the artifact does not exist yet and the request therefore creates it.
+   */
+  private Response rejectIfArtifactHasMovedOn(String artifactId, JsonNode currentArtifact,
+                                              Optional<String> expectedLastUpdatedOn) {
+    if (expectedLastUpdatedOn == null || expectedLastUpdatedOn.isEmpty()
+        || expectedLastUpdatedOn.get().isBlank() || currentArtifact == null) {
+      return null;
+    }
+    JsonNode storedNode = currentArtifact.get(ProvenanceUtil.PAV_LAST_UPDATED_ON);
+    String stored = storedNode == null || !storedNode.isTextual() ? null : storedNode.textValue();
+    String expected = expectedLastUpdatedOn.get().trim();
+    if (expected.equals(stored)) {
+      return null;
+    }
+    return CedarResponse.status(CedarResponseStatus.CONFLICT)
+        .id(artifactId)
+        .errorKey(CedarErrorKey.ARTIFACT_HAS_MOVED_ON)
+        .errorMessage("The " + artifactLabel + " has been updated since it was read")
+        .parameter("expectedLastUpdatedOn", expected)
+        .parameter("storedLastUpdatedOn", stored)
+        .build();
+  }
+
   protected Response updateArtifact(String id, CedarPermission updatePermission, CedarResourceType resourceType,
                                     CedarErrorKey notUpdatedKey, CedarErrorKey notCreatedKey, String requestBody,
-                                    Optional<Boolean> compactParam) throws CedarException {
+                                    Optional<Boolean> compactParam,
+                                    Optional<String> expectedLastUpdatedOn) throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
     c.must(id).be(ValidUrl);
@@ -251,6 +281,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     enforceMandatoryFieldsInPut(id, newArtifact, resourceType, notUpdatedKey);
     enforceMandatoryName(newArtifact, resourceType, notUpdatedKey);
     enforceChildArtifactTypes(newArtifact, resourceType, notUpdatedKey);
+    reportMismatchedChildIdPrefixes(newArtifact, resourceType, id);
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     provenanceUtil.patchProvenanceInfo(newArtifact, pi);
@@ -261,7 +292,8 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
       ReportUtils.outputLogger(logger, validationReport, true);
       String validationStatus = validationReport.getValidationStatus();
       if (validationStatus.equals(CedarValidationReport.IS_VALID)) {
-        response = updateOrCreateArtifactInDatabase(id, newArtifact, pi, c, notCreatedKey, notUpdatedKey);
+        response = updateOrCreateArtifactInDatabase(id, newArtifact, pi, c, notCreatedKey, notUpdatedKey,
+            expectedLastUpdatedOn);
       } else {
         response = CedarResponse.badRequest()
             .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_INVALID)
@@ -272,18 +304,24 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
             .build();
       }
     } else {
-      response = updateOrCreateArtifactInDatabase(id, newArtifact, pi, c, notCreatedKey, notUpdatedKey);
+      response = updateOrCreateArtifactInDatabase(id, newArtifact, pi, c, notCreatedKey, notUpdatedKey,
+            expectedLastUpdatedOn);
     }
     return negotiateArtifactResponse(response, resourceType);
   }
 
   protected Response updateOrCreateArtifactInDatabase(String artifactId, JsonNode updatedArtifact, ProvenanceInfo pi,
                                                       CedarRequestContext c, CedarErrorKey notCreatedKey,
-                                                      CedarErrorKey notUpdatedKey) throws CedarException {
+                                                      CedarErrorKey notUpdatedKey,
+                                                      Optional<String> expectedLastUpdatedOn) throws CedarException {
     JsonNode outputArtifact = null;
     CreateOrUpdate createOrUpdate = null;
     try {
       JsonNode currentArtifact = findArtifactInService(artifactId);
+      Response stale = rejectIfArtifactHasMovedOn(artifactId, currentArtifact, expectedLastUpdatedOn);
+      if (stale != null) {
+        return stale;
+      }
       if (currentArtifact != null) {
         provenanceUtil.preserveCreationProvenance(updatedArtifact, currentArtifact);
       }
