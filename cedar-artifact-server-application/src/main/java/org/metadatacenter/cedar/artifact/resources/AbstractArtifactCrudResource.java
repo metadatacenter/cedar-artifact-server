@@ -326,7 +326,9 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
         provenanceUtil.preserveCreationProvenance(updatedArtifact, currentArtifact);
       }
       if (ensureFieldIds) {
-        ModelUtil.ensureFieldIdsRecursively(updatedArtifact, pi, provenanceUtil, linkedDataUtil);
+        // The stored artifact, so each child's provenance can record what this write did to that child
+        // rather than what it did to the parent. Null on the create-by-PUT path, where every child is new.
+        ModelUtil.ensureFieldIdsRecursively(updatedArtifact, currentArtifact, pi, provenanceUtil, linkedDataUtil);
       }
       if (currentArtifact != null) {
         createOrUpdate = CreateOrUpdate.UPDATE;
