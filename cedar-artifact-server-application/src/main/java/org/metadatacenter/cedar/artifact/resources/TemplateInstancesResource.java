@@ -115,7 +115,8 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
   @GET
   @Timed
   @Path("/{id}")
-  @Produces({MediaType.APPLICATION_JSON, HttpConstants.CONTENT_TYPE_APPLICATION_YAML, "application/yaml"})
+  @Produces({MediaType.APPLICATION_JSON, HttpConstants.CONTENT_TYPE_APPLICATION_YAML, "application/yaml",
+      "application/n-quads"})
   public Response findTemplateInstance(@PathParam(PP_ID) String id, @QueryParam(QP_FORMAT) Optional<String> format,
                                        @QueryParam("compact") Optional<Boolean> compactParam) throws CedarException {
     CedarRequestContext c = buildRequestContext();
@@ -123,9 +124,12 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
     c.must(id).be(ValidUrl);
     c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_READ);
 
-    Optional<MediaType> responseType = negotiatedArtifactResponseType();
-    if (responseType.isEmpty()) {
-      return notAcceptableArtifactFormatResponse();
+    Optional<MediaType> responseType = Optional.empty();
+    if (format.isEmpty()) {
+      responseType = negotiatedArtifactResponseType();
+      if (responseType.isEmpty()) {
+        return notAcceptableArtifactFormatResponse();
+      }
     }
 
     JsonNode templateInstance = null;
@@ -214,8 +218,20 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
       linkedDataUtil.addElementInstanceIds(newInstance, CedarResourceType.INSTANCE);
     }
 
-    ValidationReport validationReport = validateArtifact(newInstance);
-    ReportUtils.outputLogger(logger, validationReport, true);
+    if (cedarConfig.getValidationConfig().isEnabled()) {
+      ValidationReport validationReport = validateArtifact(newInstance);
+      ReportUtils.outputLogger(logger, validationReport, true);
+      if (!CedarValidationReport.IS_VALID.equals(validationReport.getValidationStatus())) {
+        Response response = CedarResponse.badRequest()
+            .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_INVALID)
+            .errorKey(CedarErrorKey.INVALID_DATA)
+            .errorReasonKey(CedarErrorReasonKey.VALIDATION_ERROR)
+            .errorMessage(updateValidationErrorMessage(validationReport))
+            .object("validationReport", validationReport)
+            .build();
+        return negotiateArtifactResponse(response, CedarResourceType.INSTANCE);
+      }
+    }
 
     JsonNode outputTemplateInstance = null;
     CreateOrUpdate createOrUpdate = null;
@@ -253,7 +269,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
       responseBuilder = CedarResponse.created(createdTemplateUri);
     }
     responseBuilder
-        .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, validationReport.getValidationStatus())
+        .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_VALID)
         .entity(outputTemplateInstance);
     return negotiateArtifactResponse(responseBuilder.build(), CedarResourceType.INSTANCE);
   }

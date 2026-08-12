@@ -10,7 +10,6 @@ import org.metadatacenter.error.CedarErrorKey;
 import org.metadatacenter.error.CedarErrorPack;
 import org.metadatacenter.exception.CedarBadRequestException;
 import org.metadatacenter.exception.CedarException;
-import org.metadatacenter.exception.CedarProcessingException;
 import org.metadatacenter.exception.CedarRequestBodyMissingFieldException;
 import org.metadatacenter.model.CedarResourceType;
 import org.metadatacenter.model.core.CedarModelVocabulary;
@@ -92,10 +91,10 @@ public class AbstractArtifactServerResource extends CedarMicroserviceResource {
 
   protected static void checkPagingParametersAgainstTotal(Integer offset, long total) throws CedarException {
     if (offset != 0 && offset > total - 1) {
-      throw new CedarProcessingException(
-          "Parameter 'offset' must be smaller than the total count of objects, which is " + total + "!")
+      throw new CedarBadRequestException(new CedarErrorPack()
+          .message("Parameter 'offset' must be smaller than the total count of objects, which is " + total + "!")
           .parameter("offset", offset)
-          .parameter("total", total);
+          .parameter("total", total));
     }
   }
 

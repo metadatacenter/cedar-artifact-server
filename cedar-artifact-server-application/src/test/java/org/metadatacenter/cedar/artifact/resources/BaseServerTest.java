@@ -45,9 +45,9 @@ public abstract class BaseServerTest {
         "CEDAR_REDIS_PERSISTENT_PORT", "1"));
   }
 
-  private static String authHeaderValue;
+  protected static String authHeaderValue;
 
-  private static Client testClient;
+  protected static Client testClient;
 
   public static final DropwizardTestSupport<ArtifactServerConfiguration> SERVER_APPLICATION =
       new DropwizardTestSupport<>(ArtifactServerApplication.class,
@@ -132,6 +132,13 @@ public abstract class BaseServerTest {
         .header(HTTP_HEADER_AUTHORIZATION, authHeaderValue)
         .get();
     return response;
+  }
+
+  protected Response sendGetRequest(String requestUrl, String acceptedMediaType) {
+    return testClient.target(requestUrl)
+        .request(acceptedMediaType)
+        .header(HTTP_HEADER_AUTHORIZATION, authHeaderValue)
+        .get();
   }
 
   protected Response sendPostRequest(String requestUrl, Object payload) {

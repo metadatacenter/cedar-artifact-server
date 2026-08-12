@@ -46,7 +46,7 @@ public class CommandResource extends AbstractArtifactServerResource {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
 
-    ResourceType resourceType = ResourceTypeDetector.detectType(type);
+    ResourceType resourceType = ResourceTypeDetector.detectType(type == null ? "" : type);
     JsonNode resourceNode = c.request().getRequestBody().asJson();
     ValidationReport validationReport = validateResource(resourceNode, resourceType);
     return Response.ok().entity(validationReport).build();

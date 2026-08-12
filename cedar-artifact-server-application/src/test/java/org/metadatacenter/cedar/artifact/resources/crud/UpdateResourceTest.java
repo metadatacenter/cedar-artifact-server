@@ -34,7 +34,9 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
       createdResources.put(createdResource.get(LinkedData.ID).asText(), resourceType);
       String createdResourceId = createdResource.get(LinkedData.ID).asText();
       // Update the artifact
-      String fieldName = "title";
+      // Template instances are JSON-LD documents constrained by their template schema. Update an
+      // allowed metadata field so this generic CRUD test remains valid when update validation is on.
+      String fieldName = resourceType == CedarResourceType.INSTANCE ? "schema:name" : "title";
       String fieldNewValue = "This is a new title";
       JsonNode updatedResource = ((ObjectNode) createdResource).put(fieldName, fieldNewValue);
       // Service invocation - Update

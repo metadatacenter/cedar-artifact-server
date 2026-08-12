@@ -1,15 +1,25 @@
 package org.metadatacenter.cedar.artifact.resources;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
+import org.metadatacenter.config.ValidationConfig;
 import org.metadatacenter.model.request.OutputFormatType;
+
+import java.lang.reflect.Field;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.metadatacenter.constant.CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS;
 
 public class TemplateInstanceToRdfTest extends BaseServerTest {
 
@@ -47,5 +57,41 @@ public class TemplateInstanceToRdfTest extends BaseServerTest {
     // Assert content
     String responseContent = response.readEntity(String.class);
     System.out.println(responseContent);
+  }
+
+  @Test
+  public void shouldGetRdfOutputWhenNQuadsIsAccepted() {
+    Response response = sendGetRequest(TestRequestUrls.forFindingInstance(getPortNumber(), instanceExampleId,
+        OutputFormatType.RDF_NQUAD.getValue()), "application/n-quads");
+
+    checkStatusOk(response);
+    assertThat(response.getHeaderString(HttpHeaders.CONTENT_TYPE), is("application/n-quads"));
+  }
+
+  @Test
+  public void shouldRejectInvalidInstanceUpdateWhenValidationIsEnabled() throws ReflectiveOperationException {
+    String instanceUrl = TestRequestUrls.forCreatingInstances(getPortNumber(), instanceExampleId);
+    JsonNode storedInstance = sendGetRequest(instanceUrl).readEntity(JsonNode.class);
+    ((ObjectNode) storedInstance).remove("Company Name");
+
+    ValidationConfig validationConfig = TestUtil.getCedarConfig().getValidationConfig();
+    Field enabledField = ValidationConfig.class.getDeclaredField("enabled");
+    enabledField.setAccessible(true);
+    boolean originalValue = validationConfig.isEnabled();
+    Response updateResponse;
+    try {
+      enabledField.setBoolean(validationConfig, true);
+      updateResponse = testClient.target(instanceUrl)
+          .request()
+          .header(HttpHeaders.AUTHORIZATION, authHeaderValue)
+          .put(Entity.json(storedInstance));
+    } finally {
+      enabledField.setBoolean(validationConfig, originalValue);
+    }
+
+    assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), updateResponse.getStatus());
+    assertEquals("false", updateResponse.getHeaderString(HEADER_CEDAR_VALIDATION_STATUS));
+    JsonNode unchangedInstance = sendGetRequest(instanceUrl).readEntity(JsonNode.class);
+    assertNotNull(unchangedInstance.get("Company Name"));
   }
 }
