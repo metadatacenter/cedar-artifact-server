@@ -90,7 +90,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
     boolean doSkipValidation = skipValidation.isPresent() && skipValidation.get();
 
     Response response = null;
-    if (cedarConfig.getValidationConfig().isEnabled() && !doSkipValidation) {
+    if (!doSkipValidation) {
       ValidationReport validationReport = validateArtifact(templateInstance);
       ReportUtils.outputLogger(logger, validationReport, true);
       String validationStatus = validationReport.getValidationStatus();
@@ -106,8 +106,6 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
             .object("validationReport", validationReport)
             .build();
       }
-    } else {
-      response = storeArtifactInDatabase(templateInstance, pi, CedarErrorKey.TEMPLATE_INSTANCE_NOT_CREATED);
     }
     return negotiateArtifactResponse(response, CedarResourceType.INSTANCE);
   }
@@ -220,7 +218,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
       linkedDataUtil.addAttributeValuePropertyIris(newInstance, CedarResourceType.INSTANCE);
     }
 
-    if (cedarConfig.getValidationConfig().isEnabled()) {
+    {
       ValidationReport validationReport = validateArtifact(newInstance);
       ReportUtils.outputLogger(logger, validationReport, true);
       if (!CedarValidationReport.IS_VALID.equals(validationReport.getValidationStatus())) {

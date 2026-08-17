@@ -10,10 +10,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
-import org.metadatacenter.config.ValidationConfig;
 import org.metadatacenter.model.request.OutputFormatType;
 
-import java.lang.reflect.Field;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -68,26 +66,24 @@ public class TemplateInstanceToRdfTest extends BaseServerTest {
     assertThat(response.getHeaderString(HttpHeaders.CONTENT_TYPE), is("application/n-quads"));
   }
 
+  /**
+   * An update that breaks the instance is refused, and the stored artifact is left as it was.
+   *
+   * <p>This used to switch validation on by reflection, because it was switchable —
+   * {@code CEDAR_VALIDATION_ENABLED} — and the test could not assume the environment it ran in had it
+   * on. Validation is unconditional now, so the test says what it always meant to: an artifact the
+   * model rejects does not reach storage.
+   */
   @Test
-  public void shouldRejectInvalidInstanceUpdateWhenValidationIsEnabled() throws ReflectiveOperationException {
+  public void shouldRejectAnUpdateThatBreaksTheInstance() {
     String instanceUrl = TestRequestUrls.forCreatingInstances(getPortNumber(), instanceExampleId);
     JsonNode storedInstance = sendGetRequest(instanceUrl).readEntity(JsonNode.class);
     ((ObjectNode) storedInstance).remove("Company Name");
 
-    ValidationConfig validationConfig = TestUtil.getCedarConfig().getValidationConfig();
-    Field enabledField = ValidationConfig.class.getDeclaredField("enabled");
-    enabledField.setAccessible(true);
-    boolean originalValue = validationConfig.isEnabled();
-    Response updateResponse;
-    try {
-      enabledField.setBoolean(validationConfig, true);
-      updateResponse = testClient.target(instanceUrl)
-          .request()
-          .header(HttpHeaders.AUTHORIZATION, authHeaderValue)
-          .put(Entity.json(storedInstance));
-    } finally {
-      enabledField.setBoolean(validationConfig, originalValue);
-    }
+    Response updateResponse = testClient.target(instanceUrl)
+        .request()
+        .header(HttpHeaders.AUTHORIZATION, authHeaderValue)
+        .put(Entity.json(storedInstance));
 
     assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), updateResponse.getStatus());
     assertEquals("false", updateResponse.getHeaderString(HEADER_CEDAR_VALIDATION_STATUS));

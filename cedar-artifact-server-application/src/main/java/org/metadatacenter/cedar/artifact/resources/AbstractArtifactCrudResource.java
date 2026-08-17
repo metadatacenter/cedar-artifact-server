@@ -105,7 +105,9 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     setProvenanceAndId(resourceType, artifact, pi);
 
     Response response = null;
-    if (cedarConfig.getValidationConfig().isEnabled()) {
+    // Always. Validation used to be switchable, by CEDAR_VALIDATION_ENABLED, and an artifact stored
+    // without it is one nothing has ever checked against the model it claims to follow.
+    {
       ValidationReport validationReport = validateArtifact(artifact);
       ReportUtils.outputLogger(logger, validationReport, true);
       String validationStatus = validationReport.getValidationStatus();
@@ -120,8 +122,6 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
             .object("validationReport", validationReport)
             .build();
       }
-    } else {
-      response = storeArtifactInDatabase(artifact, pi, notCreatedKey);
     }
     return negotiateArtifactResponse(response, resourceType);
   }
@@ -307,7 +307,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     }
 
     Response response = null;
-    if (cedarConfig.getValidationConfig().isEnabled()) {
+    {
       ValidationReport validationReport = validateArtifact(newArtifact);
       ReportUtils.outputLogger(logger, validationReport, true);
       String validationStatus = validationReport.getValidationStatus();
@@ -323,9 +323,6 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
             .object("validationReport", validationReport)
             .build();
       }
-    } else {
-      response = updateOrCreateArtifactInDatabase(id, newArtifact, pi, c, notCreatedKey, notUpdatedKey,
-          verbatim);
     }
     return negotiateArtifactResponse(response, resourceType);
   }

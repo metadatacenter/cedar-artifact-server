@@ -138,10 +138,11 @@ public class CreateTemplatePutTest extends AbstractRestTest {
       return CedarResponseStatus.BAD_REQUEST.getStatusCode();
     } else if (SCHEMA_DESCRIPTION.equals(js.getValue())) {
       return CedarResponseStatus.BAD_REQUEST.getStatusCode();
-    } else if (MINIMAL_TEMPLATE_NO_ID.equals(js.getValue())) {
-      return CedarResponseStatus.BAD_REQUEST.getStatusCode();
     }
 
+    // The identifiers decide before the fixture does, as the element test has always had it: a body
+    // whose `@id` the generator replaces with the one being created names that artifact, whatever the
+    // fixture on disk said.
     if (idInURLGenerator.getIdMatchingSelector() == NULL_ID) {
       return CedarResponseStatus.BAD_REQUEST.getStatusCode();
     } else if (idInURLGenerator.getIdMatchingSelector() == GIBBERISH) {
@@ -160,9 +161,14 @@ public class CreateTemplatePutTest extends AbstractRestTest {
 
     if (idInBodyGenerator instanceof TestValueCopyFromValueGenerator) {
       if (MINIMAL_TEMPLATE_WITH_ID.equals(js.getValue()) ||
+          MINIMAL_TEMPLATE_NULL_ID.equals(js.getValue()) ||
           FULL_TEMPLATE.equals(js.getValue())) {
         return CedarResponseStatus.CREATED.getStatusCode();
       }
+    }
+
+    if (MINIMAL_TEMPLATE_NULL_ID.equals(js.getValue())) {
+      return CedarResponseStatus.CREATED.getStatusCode();
     }
     return 0;
   }
@@ -175,7 +181,7 @@ public class CreateTemplatePutTest extends AbstractRestTest {
     jsonFileName.add(EMPTY_JSON);
     jsonFileName.add(SCHEMA_NAME);
     jsonFileName.add(SCHEMA_DESCRIPTION);
-    jsonFileName.add(MINIMAL_TEMPLATE_NO_ID);
+    jsonFileName.add(MINIMAL_TEMPLATE_NULL_ID);
     jsonFileName.add(MINIMAL_TEMPLATE_WITH_ID);
     jsonFileName.add(FULL_TEMPLATE);
 

@@ -1,4 +1,5 @@
 {
+  "@id": null,
   "$schema": "http://json-schema.org/draft-04/schema#",
   "@type": "https://schema.metadatacenter.org/core/Template",
   "@context": {

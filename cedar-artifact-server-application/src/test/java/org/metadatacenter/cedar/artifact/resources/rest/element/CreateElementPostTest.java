@@ -150,7 +150,7 @@ public class CreateElementPostTest extends AbstractRestTest {
       return CedarResponseStatus.BAD_REQUEST.getStatusCode();
     } else if (FULL_ELEMENT.equals(js.getValue())) {
       return CedarResponseStatus.CREATED.getStatusCode();
-    } else if (MINIMAL_ELEMENT_NO_ID.equals(js.getValue())) {
+    } else if (MINIMAL_ELEMENT_NULL_ID.equals(js.getValue())) {
       return CedarResponseStatus.CREATED.getStatusCode();
     }
 
@@ -165,7 +165,7 @@ public class CreateElementPostTest extends AbstractRestTest {
     jsonFileName.add(EMPTY_JSON);
     jsonFileName.add(SCHEMA_NAME);
     jsonFileName.add(SCHEMA_DESCRIPTION);
-    jsonFileName.add(MINIMAL_ELEMENT_NO_ID);
+    jsonFileName.add(MINIMAL_ELEMENT_NULL_ID);
     jsonFileName.add(MINIMAL_ELEMENT_WITH_ID);
     jsonFileName.add(FULL_ELEMENT);
 

@@ -42,7 +42,7 @@ public class DeleteTemplateTest extends AbstractRestTest {
                                  TestParameterValueGenerator<String> idInUrlGenerator) throws IOException {
     index++;
     TestParameterArrayGenerator arrayGenerator = generator.getValue();
-    String jsonFileName = MINIMAL_TEMPLATE_NO_ID;
+    String jsonFileName = MINIMAL_TEMPLATE_NULL_ID;
     CedarResourceType resourceType = rt.getValue();
 
     // Create the artifact first

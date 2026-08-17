@@ -164,7 +164,7 @@ public class YamlNegotiationTest extends AbstractRestTest {
 
   @Test
   public void aJsonBodyStillWorksWhileTheClientAsksForYamlBack() throws IOException {
-    String json = getFileContentAsString(MINIMAL_TEMPLATE_NO_ID);
+    String json = getFileContentAsString(MINIMAL_TEMPLATE_NULL_ID);
 
     Response response = request(baseTestUrl + "/" + CedarResourceType.TEMPLATE.getPrefix())
         .accept(APPLICATION_YAML)
@@ -232,7 +232,7 @@ public class YamlNegotiationTest extends AbstractRestTest {
   // Helpers
 
   private String createTemplateFromJson() throws IOException {
-    return createTemplateFromJson(MINIMAL_TEMPLATE_NO_ID);
+    return createTemplateFromJson(MINIMAL_TEMPLATE_NULL_ID);
   }
 
   private String createTemplateFromJson(String fixture) throws IOException {

@@ -38,7 +38,11 @@ public class CreateResourceTest extends AbstractResourceCrudTest {
     // Retrieve the artifact created
     String location = response.getHeaderString(LOCATION);
     Response findResponse = testClient.target(location).request().header("Authorization", authHeader).get();
-    JsonNode expected = sampleResource;
+    // A copy: `sampleResource` is the fixture every test in this class shares, and the comparison
+    // below strips keys from what it is given. Stripping them from the fixture itself left the next
+    // create posting a body with no `@id` key at all, which the server refuses — the identifier is how
+    // a client asks for one, so it has to be there.
+    JsonNode expected = sampleResource.deepCopy();
     JsonNode actual = findResponse.readEntity(JsonNode.class);
     // Check that id and provenance information have been generated
     Assertions.assertNotEquals(actual.get(LinkedData.ID), null);
