@@ -69,6 +69,8 @@ public class AbstractArtifactServerResource extends CedarMicroserviceResource {
     linkedDataUtil.addElementInstanceIds(element, cedarResourceType);
     // and a property IRI for every attribute the instance names and has none for
     linkedDataUtil.addAttributeValuePropertyIris(element, cedarResourceType);
+    // and for every child of a template or element that has none
+    linkedDataUtil.addChildPropertyIris(element, cedarResourceType);
   }
 
   protected Boolean ensureSummary(Optional<Boolean> summary) {

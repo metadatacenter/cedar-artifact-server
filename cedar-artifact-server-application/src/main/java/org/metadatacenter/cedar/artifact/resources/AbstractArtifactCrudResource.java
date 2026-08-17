@@ -302,6 +302,8 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     } else {
       enforceChildArtifactTypes(newArtifact, resourceType, notUpdatedKey);
       provenanceUtil.patchProvenanceInfo(newArtifact, pi);
+      // and a property IRI for any child added during the edit
+      linkedDataUtil.addChildPropertyIris(newArtifact, resourceType);
     }
 
     Response response = null;
