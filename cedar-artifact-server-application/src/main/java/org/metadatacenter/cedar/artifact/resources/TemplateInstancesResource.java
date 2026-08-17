@@ -216,6 +216,8 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
       // array
       // of template-element instances
       linkedDataUtil.addElementInstanceIds(newInstance, CedarResourceType.INSTANCE);
+      // and name any attribute added during the edit
+      linkedDataUtil.addAttributeValuePropertyIris(newInstance, CedarResourceType.INSTANCE);
     }
 
     if (cedarConfig.getValidationConfig().isEnabled()) {
