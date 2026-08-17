@@ -18,6 +18,7 @@ import org.metadatacenter.model.validation.report.ReportUtils;
 import org.metadatacenter.model.validation.report.ValidationReport;
 import org.metadatacenter.rest.assertion.noun.CedarRequestBody;
 import org.metadatacenter.rest.context.CedarRequestContext;
+import org.metadatacenter.server.jsonld.LinkedDataUtil;
 import org.metadatacenter.server.model.provenance.ProvenanceInfo;
 import org.metadatacenter.server.security.model.auth.CedarPermission;
 import org.metadatacenter.server.service.FieldNameInEx;
@@ -126,11 +127,16 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     return negotiateArtifactResponse(response, resourceType);
   }
 
-  protected Response storeArtifactInDatabase(JsonNode artifact, ProvenanceInfo pi, CedarErrorKey notCreatedKey) {
+  protected Response storeArtifactInDatabase(JsonNode artifact, ProvenanceInfo pi, CedarErrorKey notCreatedKey)
+      throws CedarException {
     try {
       if (ensureFieldIds) {
         logReplacedChildIdentifiers(
             ModelUtil.ensureFieldIdsRecursively(artifact, pi, provenanceUtil, linkedDataUtil), null);
+        Response refusal = refuseInvalidNormalizedArtifact(artifact);
+        if (refusal != null) {
+          return refusal;
+        }
       }
       JsonNode createdArtifact = createArtifactInService(artifact);
       MongoUtils.removeIdField(createdArtifact);
@@ -162,6 +168,13 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
             mint.property(), artifactId == null ? "a new " + artifactLabel : artifactId,
             mint.replaced(), mint.minted());
       }
+    }
+  }
+
+  protected void logLegacyArtifactRepairs(List<LinkedDataUtil.LegacyArtifactRepair> repairs, String artifactId) {
+    for (LinkedDataUtil.LegacyArtifactRepair repair : repairs) {
+      logger.warn("Repaired inherited defect '{}' at '{}' in {}. Previous value: {}",
+          repair.issue(), repair.path(), artifactId, repair.previousValue());
     }
   }
 
@@ -301,6 +314,16 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
       }
     } else {
       enforceChildArtifactTypes(newArtifact, resourceType, notUpdatedKey);
+      if (resourceType == CedarResourceType.TEMPLATE || resourceType == CedarResourceType.ELEMENT) {
+        JsonNode storedArtifact;
+        try {
+          storedArtifact = findArtifactInService(id);
+        } catch (IOException e) {
+          throw new CedarProcessingException(e);
+        }
+        logLegacyArtifactRepairs(
+            linkedDataUtil.repairInheritedDefects(newArtifact, storedArtifact, null, resourceType), id);
+      }
       provenanceUtil.patchProvenanceInfo(newArtifact, pi);
       // and a property IRI for any child added during the edit
       linkedDataUtil.addChildPropertyIris(newArtifact, resourceType);
@@ -366,7 +389,23 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
    * be stored, because a temporary identifier resolves to nothing and no later write will replace it.
    */
   protected Response refuseVerbatimChildIdentifiers(JsonNode artifact, CedarResourceType resourceType) {
-    if (resourceType != CedarResourceType.TEMPLATE && resourceType != CedarResourceType.ELEMENT) {
+    if (resourceType == CedarResourceType.INSTANCE) {
+      List<String> unusableOccurrences = new ArrayList<>();
+      artifact.fields().forEachRemaining(field -> {
+        if (!LinkedData.CONTEXT.equals(field.getKey())) {
+          collectUnusableElementOccurrenceIds(field.getValue(), "/" + field.getKey(), unusableOccurrences);
+        }
+      });
+      if (unusableOccurrences.isEmpty()) {
+        return null;
+      }
+      return CedarResponse.badRequest()
+          .errorKey(CedarErrorKey.VERBATIM_WRITE_REFUSED)
+          .errorMessage("A verbatim write alters nothing, so every element occurrence identifier must already "
+              + "be an absolute IRI. These are not: " + String.join(", ", unusableOccurrences))
+          .parameter("occurrences", String.join(", ", unusableOccurrences))
+          .build();
+    } else if (resourceType != CedarResourceType.TEMPLATE && resourceType != CedarResourceType.ELEMENT) {
       return null;
     }
     List<String> unusable = new ArrayList<>();
@@ -384,6 +423,29 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
             + "absolute IRI. These are not: " + String.join(", ", unusable))
         .parameter("children", String.join(", ", unusable))
         .build();
+  }
+
+  private void collectUnusableElementOccurrenceIds(JsonNode node, String path, List<String> unusable) {
+    if (node == null) {
+      return;
+    }
+    if (node.isArray()) {
+      for (int index = 0; index < node.size(); index++) {
+        collectUnusableElementOccurrenceIds(node.get(index), path + "/" + index, unusable);
+      }
+      return;
+    }
+    if (!node.isObject()) {
+      return;
+    }
+    if (node.has(LinkedData.CONTEXT) && !ModelUtil.hasUsableChildId(node)) {
+      unusable.add(path);
+    }
+    node.fields().forEachRemaining(field -> {
+      if (!LinkedData.CONTEXT.equals(field.getKey()) && !LinkedData.ID.equals(field.getKey())) {
+        collectUnusableElementOccurrenceIds(field.getValue(), path + "/" + field.getKey(), unusable);
+      }
+    });
   }
 
   protected Response updateOrCreateArtifactInDatabase(String artifactId, JsonNode updatedArtifact, ProvenanceInfo pi,
@@ -409,6 +471,10 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
         logReplacedChildIdentifiers(
             ModelUtil.ensureFieldIdsRecursively(updatedArtifact, currentArtifact, pi, provenanceUtil,
                 linkedDataUtil), artifactId);
+        Response refusal = refuseInvalidNormalizedArtifact(updatedArtifact);
+        if (refusal != null) {
+          return refusal;
+        }
       }
       if (currentArtifact != null) {
         createOrUpdate = CreateOrUpdate.UPDATE;
@@ -445,6 +511,29 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
       }
       return responseBuilder.build();
     }
+  }
+
+  /**
+   * The first validation checks the accepted request shape. Schema writes then
+   * receive server-owned child identifiers and per-child provenance, so this
+   * second gate checks the exact document that is about to cross the storage
+   * boundary. No normalizer is allowed to turn a valid request into an invalid
+   * stored artifact.
+   */
+  private Response refuseInvalidNormalizedArtifact(JsonNode artifact) throws CedarException {
+    ValidationReport validationReport = validateArtifact(artifact);
+    ReportUtils.outputLogger(logger, validationReport, true);
+    if (CedarValidationReport.IS_VALID.equals(validationReport.getValidationStatus())) {
+      return null;
+    }
+    return CedarResponse.badRequest()
+        .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_INVALID)
+        .errorKey(CedarErrorKey.INVALID_DATA)
+        .errorReasonKey(CedarErrorReasonKey.VALIDATION_ERROR)
+        .errorMessage("Server normalization produced an invalid " + artifactLabel + ": "
+            + concatenateValidationMessages(validationReport))
+        .object("validationReport", validationReport)
+        .build();
   }
 
   protected Response deleteArtifact(String id, CedarPermission deletePermission, CedarErrorKey notFoundKey,

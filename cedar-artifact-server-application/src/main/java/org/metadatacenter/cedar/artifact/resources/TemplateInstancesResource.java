@@ -87,25 +87,25 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     setProvenanceAndId(CedarResourceType.INSTANCE, templateInstance, pi);
 
-    boolean doSkipValidation = skipValidation.isPresent() && skipValidation.get();
-
-    Response response = null;
-    if (!doSkipValidation) {
-      ValidationReport validationReport = validateArtifact(templateInstance);
-      ReportUtils.outputLogger(logger, validationReport, true);
-      String validationStatus = validationReport.getValidationStatus();
-      if (validationStatus.equals(CedarValidationReport.IS_VALID)) {
-        response = storeArtifactInDatabase(templateInstance, pi, CedarErrorKey.TEMPLATE_INSTANCE_NOT_CREATED);
-      } else {
-        response = CedarResponse.badRequest()
-            .errorMessage(concatenateValidationMessages(validationReport))
-            .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_INVALID)
-            .errorKey(CedarErrorKey.INVALID_DATA)
-            .errorReasonKey(CedarErrorReasonKey.VALIDATION_ERROR)
-            .errorMessage("There was an error while validating the artifact")
-            .object("validationReport", validationReport)
-            .build();
-      }
+    // Kept in the signature for wire compatibility only. Artifact validation
+    // is unconditional; honoring this legacy switch would reopen a path for an
+    // unchecked instance to enter the repository. It previously also left the
+    // response null when true, so it neither skipped nor stored coherently.
+    ValidationReport validationReport = validateArtifact(templateInstance);
+    ReportUtils.outputLogger(logger, validationReport, true);
+    String validationStatus = validationReport.getValidationStatus();
+    Response response;
+    if (validationStatus.equals(CedarValidationReport.IS_VALID)) {
+      response = storeArtifactInDatabase(templateInstance, pi, CedarErrorKey.TEMPLATE_INSTANCE_NOT_CREATED);
+    } else {
+      response = CedarResponse.badRequest()
+          .errorMessage(concatenateValidationMessages(validationReport))
+          .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_INVALID)
+          .errorKey(CedarErrorKey.INVALID_DATA)
+          .errorReasonKey(CedarErrorReasonKey.VALIDATION_ERROR)
+          .errorMessage("There was an error while validating the artifact")
+          .object("validationReport", validationReport)
+          .build();
     }
     return negotiateArtifactResponse(response, CedarResourceType.INSTANCE);
   }
@@ -206,8 +206,26 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
     enforceMandatoryFieldsInPut(id, newInstance, CedarResourceType.INSTANCE, CedarErrorKey.TEMPLATE_INSTANCE_NOT_UPDATED);
     enforceMandatoryName(newInstance, CedarResourceType.INSTANCE, CedarErrorKey.TEMPLATE_INSTANCE_NOT_CREATED);
 
+    if (verbatim) {
+      Response refusal = refuseVerbatimChildIdentifiers(newInstance, CedarResourceType.INSTANCE);
+      if (refusal != null) {
+        return refusal;
+      }
+    }
+
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     if (!verbatim) {
+      JsonNode currentTemplateInstance;
+      JsonNode instanceSchema;
+      try {
+        currentTemplateInstance = templateInstanceService.findTemplateInstance(id);
+        instanceSchema = getSchemaSource(templateService, newInstance);
+      } catch (IOException e) {
+        throw new CedarProcessingException(e);
+      }
+      logLegacyArtifactRepairs(
+          linkedDataUtil.repairInheritedDefects(newInstance, currentTemplateInstance, instanceSchema,
+              CedarResourceType.INSTANCE), id);
       provenanceUtil.patchProvenanceInfo(newInstance, pi);
 
       // add template-element-instance ids if needed. For instance, this may be needed if new items are added to an

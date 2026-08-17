@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
@@ -20,6 +21,34 @@ public class CreateResourceTest extends AbstractResourceCrudTest {
   /**
    * 'CREATE' TESTS
    */
+
+  @Test
+  public void legacySkipValidationFlagStillCreatesAValidInstance() {
+    JsonNode instance = setSchemaIsBasedOn(sampleTemplate.deepCopy(), sampleInstance.deepCopy(),
+        CedarResourceType.INSTANCE);
+    String url = TestUtil.getResourceUrlRoute(baseTestUrl, CedarResourceType.INSTANCE);
+
+    Response response = testClient.target(url).queryParam("skip_validation", true).request()
+        .header("Authorization", authHeader).post(Entity.json(instance));
+
+    Assertions.assertEquals(CedarResponseStatus.CREATED.getStatusCode(), response.getStatus());
+    JsonNode created = response.readEntity(JsonNode.class);
+    createdResources.put(created.get(LinkedData.ID).asText(), CedarResourceType.INSTANCE);
+  }
+
+  @Test
+  public void legacySkipValidationFlagCannotStoreAnInvalidInstance() {
+    JsonNode instance = setSchemaIsBasedOn(sampleTemplate.deepCopy(), sampleInstance.deepCopy(),
+        CedarResourceType.INSTANCE);
+    ((ObjectNode) instance).remove(LinkedData.CONTEXT);
+    String url = TestUtil.getResourceUrlRoute(baseTestUrl, CedarResourceType.INSTANCE);
+
+    Response response = testClient.target(url).queryParam("skip_validation", true).request()
+        .header("Authorization", authHeader).post(Entity.json(instance));
+
+    Assertions.assertEquals(CedarResponseStatus.BAD_REQUEST.getStatusCode(), response.getStatus());
+    response.close();
+  }
 
   @ParameterizedTest
   @MethodSource("getCommonParams1")
