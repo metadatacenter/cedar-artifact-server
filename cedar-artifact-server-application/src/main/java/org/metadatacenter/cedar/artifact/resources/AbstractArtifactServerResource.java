@@ -141,9 +141,29 @@ public class AbstractArtifactServerResource extends CedarMicroserviceResource {
     };
   }
 
+  /**
+   * The identifier a body must carry to be created: the key, with null in it.
+   *
+   * <p>Only the server assigns an identifier, so a client asks for one rather than inventing one, and
+   * null is how it asks. The key has to be there for the asking to be legible — a body that leaves it
+   * out cannot be told from one that forgot, and the meta-schema agrees, typing {@code @id} as
+   * {@code ["string", "null"]} and marking it required. That is also what makes a body createable and
+   * valid at once: an omitted key was the single shape that created here and failed validation there.
+   *
+   * <p>A real IRI is refused as it always was. It asserts an identity nothing can resolve, and one the
+   * server is about to replace.
+   */
   protected void enforceMandatoryNullOrMissingId(JsonNode jsonObject, CedarResourceType resourceType, CedarErrorKey errorKey) throws CedarBadRequestException {
     JsonNode idInRequestNode = jsonObject.get(LinkedData.ID);
-    if (idInRequestNode != null && !idInRequestNode.isNull()) {
+    if (idInRequestNode == null) {
+      CedarErrorPack errorPack = new CedarErrorPack()
+          .message("The " + resourceType.getValue() + " must contain a '" + LinkedData.ID
+              + "' field, with null in it: the server assigns the identifier, and null is how a client asks for one.")
+          .errorKey(errorKey)
+          .parameter(LinkedData.ID, "missing");
+      throw new CedarBadRequestException(errorPack);
+    }
+    if (!idInRequestNode.isNull()) {
       String idInRequest = idInRequestNode.asText();
       if (idInRequest != null) {
         CedarErrorPack errorPack = new CedarErrorPack()
