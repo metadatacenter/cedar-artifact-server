@@ -318,10 +318,24 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
     return templateInstanceService.count();
   }
 
+  /**
+   * Validates the instance against the template it is based on, and prunes what that template shows to
+   * be dead.
+   *
+   * <p>The prune belongs here because this is where the template is: it is fetched to validate against,
+   * on create and on update alike, and an instance whose template cannot be found is refused by that
+   * fetch rather than stored. Removing a term needs the template — only it tells an attribute nobody
+   * names any more from a child the instance has not filled in — so doing it anywhere else would mean
+   * loading the template twice or reaching for one from a class that has no way to.
+   *
+   * <p>It runs before validation rather than after, because a term for an attribute that no longer
+   * exists is not something the instance should be judged on.
+   */
   @Override
   protected ValidationReport validateArtifact(JsonNode templateInstance) throws CedarException {
     try {
       JsonNode instanceSchema = getSchemaSource(templateService, templateInstance);
+      linkedDataUtil.pruneOrphanPropertyIris(templateInstance, instanceSchema, CedarResourceType.INSTANCE);
       return validateTemplateInstance(templateInstance, instanceSchema);
     } catch (IOException e) {
       throw newCedarException(e.getMessage());
