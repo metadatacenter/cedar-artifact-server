@@ -96,6 +96,31 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
   }
 
   @Test
+  public void ordinaryPutAcceptsAClientThatDropsAnInheritedUnusableTemplatePropertyIri() throws Exception {
+    ObjectNode created = createTemplateWithField();
+    String id = created.get(LinkedData.ID).asText();
+    ObjectNode brokenStored = created.deepCopy();
+    propertyMapping(brokenStored, FIELD_NAME).putArray("enum").add("");
+    TestUtil.templateService.updateTemplate(id, brokenStored.deepCopy());
+
+    // The hardened Designer does not own repository property IRIs. If it
+    // canonicalizes an old unusable mapping by omitting it, the update must
+    // still reach the server's normal minting path rather than strand the
+    // production artifact because the submitted defect is no longer byte-for-
+    // byte identical to the stored one.
+    ObjectNode submitted = brokenStored.deepCopy();
+    ((ObjectNode) submitted.get("properties").get(LinkedData.CONTEXT).get("properties")).remove(FIELD_NAME);
+    submitted.put("schema:name", "Edited old template through a hardened client");
+
+    Response response = put(submitted, id, CedarResourceType.TEMPLATE);
+
+    Assertions.assertEquals(CedarResponseStatus.OK.getStatusCode(), response.getStatus());
+    JsonNode repaired = response.readEntity(JsonNode.class);
+    Assertions.assertTrue(propertyMapping((ObjectNode) repaired, FIELD_NAME).get("enum").get(0).asText()
+        .startsWith(PROPERTY_IRI_PREFIX));
+  }
+
+  @Test
   public void ordinaryPutRejectsANewUnusableTemplatePropertyIri() throws Exception {
     ObjectNode created = createTemplateWithField();
     String id = created.get(LinkedData.ID).asText();
@@ -120,6 +145,31 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
 
     ObjectNode submitted = brokenStored.deepCopy();
     submitted.put("schema:name", "Edited old instance");
+    Response response = put(submitted, id, CedarResourceType.INSTANCE);
+
+    Assertions.assertEquals(CedarResponseStatus.OK.getStatusCode(), response.getStatus());
+    JsonNode repaired = response.readEntity(JsonNode.class);
+    Assertions.assertTrue(repaired.get(ELEMENT_NAME).get(LinkedData.ID).asText()
+        .startsWith(OCCURRENCE_IRI_PREFIX));
+  }
+
+  @Test
+  public void ordinaryPutAcceptsAClientThatCanonicalizesAnInheritedUnusableOccurrenceId() throws Exception {
+    ObjectNode template = createTemplateWithElement();
+    ObjectNode created = createInstanceWithElement(template);
+    String id = created.get(LinkedData.ID).asText();
+    ObjectNode brokenStored = created.deepCopy();
+    ((ObjectNode) brokenStored.get(ELEMENT_NAME)).put(LinkedData.ID, "");
+    TestUtil.templateInstanceService.updateTemplateInstance(id, brokenStored.deepCopy());
+
+    // CEE's compatibility reader opens the legacy empty string and its writer
+    // emits null, the canonical request for server assignment. The differential
+    // repair boundary must allow that safe client-side normalization even
+    // though it no longer equals the stored spelling.
+    ObjectNode submitted = brokenStored.deepCopy();
+    ((ObjectNode) submitted.get(ELEMENT_NAME)).putNull(LinkedData.ID);
+    submitted.put("schema:name", "Edited old instance through a hardened client");
+
     Response response = put(submitted, id, CedarResourceType.INSTANCE);
 
     Assertions.assertEquals(CedarResponseStatus.OK.getStatusCode(), response.getStatus());
