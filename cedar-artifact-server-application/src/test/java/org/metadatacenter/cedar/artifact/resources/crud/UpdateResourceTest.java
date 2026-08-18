@@ -14,6 +14,7 @@ import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
 import org.metadatacenter.constant.LinkedData;
 import org.metadatacenter.http.CedarResponseStatus;
 import org.metadatacenter.model.CedarResourceType;
+import org.metadatacenter.util.test.TestAuthUtil;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -129,6 +130,53 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
     propertyMapping(submitted, FIELD_NAME).putArray("enum").add("");
 
     Response response = put(submitted, id, CedarResourceType.TEMPLATE);
+
+    Assertions.assertEquals(CedarResponseStatus.BAD_REQUEST.getStatusCode(), response.getStatus());
+    response.close();
+  }
+
+  @Test
+  public void ordinaryPutRestoresAnInheritedMissingChildSchema() throws Exception {
+    ObjectNode created = createTemplateWithField();
+    String id = created.get(LinkedData.ID).asText();
+    ObjectNode brokenStored = created.deepCopy();
+    ((ObjectNode) brokenStored.path("properties").path(FIELD_NAME)).remove("$schema");
+    TestUtil.templateService.updateTemplate(id, brokenStored.deepCopy());
+
+    ObjectNode submitted = brokenStored.deepCopy();
+    submitted.put("schema:name", "Edited legacy template");
+    Response response = put(submitted, id, CedarResourceType.TEMPLATE);
+
+    Assertions.assertEquals(CedarResponseStatus.OK.getStatusCode(), response.getStatus());
+    JsonNode repaired = response.readEntity(JsonNode.class);
+    Assertions.assertEquals("http://json-schema.org/draft-04/schema#",
+        repaired.path("properties").path(FIELD_NAME).path("$schema").asText());
+  }
+
+  @Test
+  public void ordinaryPutRejectsANewMissingChildSchema() throws Exception {
+    ObjectNode created = createTemplateWithField();
+    String id = created.get(LinkedData.ID).asText();
+    ObjectNode submitted = created.deepCopy();
+    submitted.put("schema:name", "Removed a required child declaration");
+    ((ObjectNode) submitted.path("properties").path(FIELD_NAME)).remove("$schema");
+
+    Response response = put(submitted, id, CedarResourceType.TEMPLATE);
+
+    Assertions.assertEquals(CedarResponseStatus.BAD_REQUEST.getStatusCode(), response.getStatus());
+    response.close();
+  }
+
+  @Test
+  public void verbatimPutDoesNotRepairAnInheritedMissingChildSchema() throws Exception {
+    ObjectNode created = createTemplateWithField();
+    String id = created.get(LinkedData.ID).asText();
+    ObjectNode brokenStored = created.deepCopy();
+    ((ObjectNode) brokenStored.path("properties").path(FIELD_NAME)).remove("$schema");
+    TestUtil.templateService.updateTemplate(id, brokenStored.deepCopy());
+
+    ObjectNode submitted = brokenStored.deepCopy();
+    Response response = verbatimPut(submitted, id, CedarResourceType.TEMPLATE);
 
     Assertions.assertEquals(CedarResponseStatus.BAD_REQUEST.getStatusCode(), response.getStatus());
     response.close();
@@ -441,6 +489,14 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
     return testClient.target(url + "/" + URLEncoder.encode(id, "UTF-8"))
         .request().header("Authorization", authHeader).put(Entity.json(artifact));
+  }
+
+  private Response verbatimPut(JsonNode artifact, String id, CedarResourceType resourceType) throws IOException {
+    String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
+    String adminAuthHeader = TestAuthUtil.getAdminUserAuthHeader(TestUtil.getCedarConfig());
+    return testClient.target(url + "/" + URLEncoder.encode(id, "UTF-8"))
+        .queryParam("verbatim", true)
+        .request().header("Authorization", adminAuthHeader).put(Entity.json(artifact));
   }
 
 }
