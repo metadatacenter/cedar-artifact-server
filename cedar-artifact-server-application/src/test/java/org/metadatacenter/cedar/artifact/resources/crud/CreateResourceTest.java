@@ -50,6 +50,19 @@ public class CreateResourceTest extends AbstractResourceCrudTest {
     response.close();
   }
 
+  @Test
+  public void createCannotStoreAnEmptyDerivedFromEvenWithLegacySkipValidationFlag() {
+    ObjectNode template = sampleTemplate.deepCopy();
+    template.put("pav:derivedFrom", "");
+    String url = TestUtil.getResourceUrlRoute(baseTestUrl, CedarResourceType.TEMPLATE);
+
+    Response response = testClient.target(url).queryParam("skip_validation", true).request()
+        .header("Authorization", authHeader).post(Entity.json(template));
+
+    Assertions.assertEquals(CedarResponseStatus.BAD_REQUEST.getStatusCode(), response.getStatus());
+    response.close();
+  }
+
   @ParameterizedTest
   @MethodSource("getCommonParams1")
   public void createResourceTest(JsonNode sampleResource, CedarResourceType resourceType) {

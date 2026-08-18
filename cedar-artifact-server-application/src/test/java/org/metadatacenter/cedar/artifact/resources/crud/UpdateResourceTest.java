@@ -135,6 +135,62 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
   }
 
   @Test
+  public void ordinaryPutRepairsInheritedEmptyDerivedFromRecursively() throws Exception {
+    ObjectNode created = createTemplateWithField();
+    String id = created.get(LinkedData.ID).asText();
+    ObjectNode brokenStored = created.deepCopy();
+    brokenStored.put("pav:derivedFrom", "");
+    ((ObjectNode) brokenStored.path("properties").path(FIELD_NAME)).put("pav:derivedFrom", "");
+    TestUtil.templateService.updateTemplate(id, brokenStored.deepCopy());
+
+    ObjectNode submitted = brokenStored.deepCopy();
+    submitted.put("schema:name", "Edited old template provenance");
+    Response response = put(submitted, id, CedarResourceType.TEMPLATE);
+
+    Assertions.assertEquals(CedarResponseStatus.OK.getStatusCode(), response.getStatus());
+    JsonNode repaired = response.readEntity(JsonNode.class);
+    Assertions.assertFalse(repaired.has("pav:derivedFrom"));
+    Assertions.assertFalse(repaired.path("properties").path(FIELD_NAME).has("pav:derivedFrom"));
+  }
+
+  @Test
+  public void ordinaryPutAcceptsAClientThatDropsInheritedEmptyDerivedFrom() throws Exception {
+    ObjectNode created = createTemplateWithField();
+    String id = created.get(LinkedData.ID).asText();
+    ObjectNode brokenStored = created.deepCopy();
+    brokenStored.put("pav:derivedFrom", "");
+    ((ObjectNode) brokenStored.path("properties").path(FIELD_NAME)).put("pav:derivedFrom", "");
+    TestUtil.templateService.updateTemplate(id, brokenStored.deepCopy());
+
+    // The compatibility reader maps the legacy spelling to absence, and its
+    // writer omits the optional key before the ordinary update reaches here.
+    ObjectNode submitted = brokenStored.deepCopy();
+    submitted.remove("pav:derivedFrom");
+    ((ObjectNode) submitted.path("properties").path(FIELD_NAME)).remove("pav:derivedFrom");
+    submitted.put("schema:name", "Edited through compatibility reader");
+    Response response = put(submitted, id, CedarResourceType.TEMPLATE);
+
+    Assertions.assertEquals(CedarResponseStatus.OK.getStatusCode(), response.getStatus());
+    JsonNode repaired = response.readEntity(JsonNode.class);
+    Assertions.assertFalse(repaired.has("pav:derivedFrom"));
+    Assertions.assertFalse(repaired.path("properties").path(FIELD_NAME).has("pav:derivedFrom"));
+  }
+
+  @Test
+  public void ordinaryPutRejectsANewEmptyDerivedFrom() throws Exception {
+    ObjectNode created = createTemplateWithField();
+    String id = created.get(LinkedData.ID).asText();
+    ObjectNode submitted = created.deepCopy();
+    submitted.put("schema:name", "Introduced invalid provenance");
+    submitted.put("pav:derivedFrom", "");
+
+    Response response = put(submitted, id, CedarResourceType.TEMPLATE);
+
+    Assertions.assertEquals(CedarResponseStatus.BAD_REQUEST.getStatusCode(), response.getStatus());
+    response.close();
+  }
+
+  @Test
   public void ordinaryPutRepairsAnInheritedUnusableElementOccurrenceId() throws Exception {
     ObjectNode template = createTemplateWithElement();
     ObjectNode created = createInstanceWithElement(template);
