@@ -330,12 +330,23 @@ public class AbstractArtifactServerResource extends CedarMicroserviceResource {
    */
   protected CedarRequestBody artifactRequestBody(String requestBody, CedarResourceType resourceType)
       throws CedarException {
+    return artifactRequestBody(requestBody, resourceType, null);
+  }
+
+  /**
+   * As above, with the template lookup a YAML instance needs to be completed against. Only the
+   * instance resource passes one; see {@link ArtifactYamlTranscoder#yamlToJsonString} for why the
+   * completion belongs to the YAML path alone.
+   */
+  protected CedarRequestBody artifactRequestBody(String requestBody, CedarResourceType resourceType,
+                                                 ArtifactYamlTranscoder.TemplateResolver templateResolver)
+      throws CedarException {
     if (requestBody == null || requestBody.trim().isEmpty()) {
       return new HttpRequestEmptyBody();
     }
     if (ArtifactYamlTranscoder.isYaml(httpHeaders.getMediaType())) {
       try {
-        String json = ArtifactYamlTranscoder.yamlToJsonString(requestBody, resourceType);
+        String json = ArtifactYamlTranscoder.yamlToJsonString(requestBody, resourceType, templateResolver);
         return new HttpRequestJsonBody(JsonMapper.MAPPER.readTree(json));
       } catch (Exception e) {
         throw new CedarBadRequestException("There was an error converting the YAML request body to JSON", e);
@@ -349,28 +360,13 @@ public class AbstractArtifactServerResource extends CedarMicroserviceResource {
   }
 
   /**
-   * Applies Accept-header negotiation to a write response. When the client asked for YAML and the
-   * response carries the stored artifact, the entity is re-rendered as YAML. Responses whose
-   * entity is not artifact JSON — errors, validation reports — are returned unchanged.
+   * Applies Accept-header negotiation to a write response, as {@link ArtifactYamlTranscoder} defines
+   * it: the artifact's JSON is re-rendered as YAML when the client asked for YAML, and anything that
+   * is not the artifact keeps the JSON it was built as.
    */
   protected Response negotiateArtifactResponse(Response jsonResponse, CedarResourceType resourceType) {
-    Optional<MediaType> responseType = negotiatedArtifactResponseType();
-    if (responseType.isEmpty() || ArtifactYamlTranscoder.isJson(responseType.get())) {
-      return jsonResponse;
-    }
-    if (Response.Status.Family.familyOf(jsonResponse.getStatus()) != Response.Status.Family.SUCCESSFUL
-        || !(jsonResponse.getEntity() instanceof JsonNode artifactNode)) {
-      return jsonResponse;
-    }
-    try {
-      return Response.fromResponse(jsonResponse)
-          .entity(ArtifactYamlTranscoder.jsonToYaml(artifactNode, resourceType, false))
-          .type(responseType.get())
-          .build();
-    } catch (Exception e) {
-      log.warn("The artifact could not be rendered as YAML; returning the JSON response", e);
-      return jsonResponse;
-    }
+    return ArtifactYamlTranscoder.negotiatedArtifactResponse(
+        jsonResponse, resourceType, negotiatedArtifactResponseType());
   }
 
   /**

@@ -77,7 +77,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
       return notAcceptableArtifactFormatResponse();
     }
 
-    CedarRequestBody body = artifactRequestBody(requestBody, CedarResourceType.INSTANCE);
+    CedarRequestBody body = artifactRequestBody(requestBody, CedarResourceType.INSTANCE, templateService::findTemplate);
     c.must(body).be(NonEmpty);
     JsonNode templateInstance = body.asJson();
 
@@ -199,7 +199,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
       }
     }
 
-    CedarRequestBody body = artifactRequestBody(requestBody, CedarResourceType.INSTANCE);
+    CedarRequestBody body = artifactRequestBody(requestBody, CedarResourceType.INSTANCE, templateService::findTemplate);
     c.must(body).be(NonEmpty);
     JsonNode newInstance = body.asJson();
 
