@@ -45,9 +45,9 @@ public abstract class BaseServerTest {
         "CEDAR_REDIS_PERSISTENT_PORT", "1"));
   }
 
-  private static String authHeaderValue;
+  protected static String authHeaderValue;
 
-  private static Client testClient;
+  protected static Client testClient;
 
   public static final DropwizardTestSupport<ArtifactServerConfiguration> SERVER_APPLICATION =
       new DropwizardTestSupport<>(ArtifactServerApplication.class,
@@ -70,6 +70,11 @@ public abstract class BaseServerTest {
     clientConfig.setConnectionRequestTimeout(Duration.milliseconds(3000));
     clientConfig.setMaxConnections(1024);
     clientConfig.setMaxConnectionsPerRoute(1024);
+    // Dropwizard's JerseyClientConfiguration enables gzip on the client by default, which leaves it
+    // trying to gunzip a response body that is not gzip-encoded, so readEntity() fails with
+    // "ZipException: Not in GZIP format". The tests do not need compression; disable it.
+    clientConfig.setGzipEnabled(false);
+    clientConfig.setGzipEnabledForRequests(false);
     testClient = new JerseyClientBuilder(SERVER_APPLICATION.getEnvironment())
         .using(clientConfig)
         .build("artifact-baseserver-test-client-" + System.nanoTime());
@@ -127,6 +132,13 @@ public abstract class BaseServerTest {
         .header(HTTP_HEADER_AUTHORIZATION, authHeaderValue)
         .get();
     return response;
+  }
+
+  protected Response sendGetRequest(String requestUrl, String acceptedMediaType) {
+    return testClient.target(requestUrl)
+        .request(acceptedMediaType)
+        .header(HTTP_HEADER_AUTHORIZATION, authHeaderValue)
+        .get();
   }
 
   protected Response sendPostRequest(String requestUrl, Object payload) {

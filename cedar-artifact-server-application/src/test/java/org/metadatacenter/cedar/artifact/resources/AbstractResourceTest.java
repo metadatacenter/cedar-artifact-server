@@ -97,6 +97,12 @@ public abstract class AbstractResourceTest {
     clientConfig.setConnectionRequestTimeout(Duration.milliseconds(DEFAULT_TIMEOUT));
     clientConfig.setMaxConnections(1024);
     clientConfig.setMaxConnectionsPerRoute(1024);
+    // Dropwizard's JerseyClientConfiguration enables gzip on the client by default. Against this server
+    // that leaves the client trying to gunzip a response body that is not gzip-encoded, so readEntity()
+    // fails with "ZipException: Not in GZIP format" on every response the test actually reads (get,
+    // update, delete, find). The tests do not need compression; disable it so responses are read as-is.
+    clientConfig.setGzipEnabled(false);
+    clientConfig.setGzipEnabledForRequests(false);
     testClient = new JerseyClientBuilder(SERVER_APPLICATION.getEnvironment())
         .using(clientConfig)
         .build("artifact-test-client-" + System.nanoTime());

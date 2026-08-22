@@ -43,7 +43,7 @@ public class GetElementTest extends AbstractRestTest {
                              TestParameterValueGenerator<String> idInUrlGenerator) throws IOException {
     index++;
     TestParameterArrayGenerator arrayGenerator = generator.getValue();
-    String jsonFileName = MINIMAL_ELEMENT_NO_ID;
+    String jsonFileName = MINIMAL_ELEMENT_NULL_ID;
     CedarResourceType resourceType = rt.getValue();
 
     // Create the element first

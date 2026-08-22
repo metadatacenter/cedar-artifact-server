@@ -6,6 +6,8 @@ import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.error.CedarErrorKey;
 import org.metadatacenter.error.CedarErrorPack;
 import org.metadatacenter.exception.CedarException;
+import org.metadatacenter.constant.HttpConstants;
+import org.metadatacenter.model.CedarResourceType;
 import org.metadatacenter.model.request.ResourceType;
 import org.metadatacenter.model.request.ResourceTypeDetector;
 import org.metadatacenter.model.validation.report.ValidationReport;
@@ -14,6 +16,7 @@ import org.metadatacenter.server.service.TemplateService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -39,15 +42,29 @@ public class CommandResource extends AbstractArtifactServerResource {
     this.templateService = checkNotNull(templateService);
   }
 
+  /**
+   * Validates an artifact given in the request body, in either serialization CEDAR speaks.
+   *
+   * <p>YAML is transcoded by the same path create and update use, so a client that authors in YAML can
+   * ask whether its work is valid before sending it. This route was JSON only, and a YAML body reached
+   * Jackson and failed to deserialize — a 500 for what is a client's business, and the one
+   * write-adjacent route that did not negotiate what the write routes accept.
+   *
+   * <p>An instance may also be validated against a template supplied alongside it, as
+   * {@code {"schema": …, "instance": …}}. That composite is a JSON convenience rather than an artifact,
+   * so it has no YAML form: a YAML body is read as the artifact itself.
+   */
   @POST
   @Timed
   @Path("/validate")
-  public Response validateResource(@QueryParam(QP_RESOURCE_TYPE) String type) throws CedarException {
+  @Consumes({MediaType.APPLICATION_JSON, HttpConstants.CONTENT_TYPE_APPLICATION_YAML, "application/yaml"})
+  public Response validateResource(@QueryParam(QP_RESOURCE_TYPE) String type, String requestBody)
+      throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
 
-    ResourceType resourceType = ResourceTypeDetector.detectType(type);
-    JsonNode resourceNode = c.request().getRequestBody().asJson();
+    ResourceType resourceType = ResourceTypeDetector.detectType(type == null ? "" : type);
+    JsonNode resourceNode = artifactRequestBody(requestBody, CedarResourceType.forValue(resourceType.getValue())).asJson();
     ValidationReport validationReport = validateResource(resourceNode, resourceType);
     return Response.ok().entity(validationReport).build();
   }
