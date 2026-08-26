@@ -6,6 +6,7 @@ import io.dropwizard.testing.DropwizardTestSupport;
 import io.dropwizard.testing.ResourceHelpers;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.client.Invocation;
 import jakarta.ws.rs.core.Response;
 import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.client.JerseyClientConfiguration;
@@ -150,11 +151,23 @@ public abstract class BaseServerTest {
   }
 
   protected Response sendPutRequest(String requestUrl, Object payload) {
-    Response response = testClient.target(requestUrl)
+    Invocation.Builder request = testClient.target(requestUrl)
         .request()
-        .header(HTTP_HEADER_AUTHORIZATION, authHeaderValue)
-        .put(Entity.json(payload));
-    return response;
+        .header(HTTP_HEADER_AUTHORIZATION, authHeaderValue);
+    String etag = currentEtag(requestUrl, authHeaderValue);
+    if (etag != null) {
+      request.header("If-Match", etag);
+    }
+    return request.put(Entity.json(payload));
+  }
+
+  protected static String currentEtag(String url, String authorization) {
+    Response response = testClient.target(url).request()
+        .header(HTTP_HEADER_AUTHORIZATION, authorization)
+        .get();
+    String etag = response.getHeaderString("ETag");
+    response.close();
+    return etag;
   }
 
   protected Response sendDeleteRequest(String requestUrl) {

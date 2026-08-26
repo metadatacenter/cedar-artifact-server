@@ -129,6 +129,13 @@ public abstract class AbstractResourceTest {
     return response.readEntity(JsonNode.class);
   }
 
+  protected static String currentEtag(String url, String authorization) {
+    Response response = testClient.target(url).request().header(AUTHORIZATION, authorization).get();
+    String etag = response.getHeaderString("ETag");
+    response.close();
+    return etag;
+  }
+
   /**
    * Remove resources by id
    */

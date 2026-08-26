@@ -191,7 +191,9 @@ public class YamlNegotiationTest extends AbstractRestTest {
     String stored = get(id).accept(APPLICATION_YAML).get().readEntity(String.class);
     String edited = stored.replaceFirst("(?m)^name: .*$", "name: Renamed Through YAML");
 
-    Response response = request(templateUrl(id)).put(Entity.entity(edited, APPLICATION_YAML));
+    String url = templateUrl(id);
+    Response response = request(url).header("If-Match", currentEtag(url, authHeaderTestUser1))
+        .put(Entity.entity(edited, APPLICATION_YAML));
 
     assertEquals(CedarResponseStatus.OK.getStatusCode(), response.getStatus());
     JsonNode reread = JsonMapper.MAPPER.readTree(get(id).get().readEntity(String.class));
@@ -231,7 +233,9 @@ public class YamlNegotiationTest extends AbstractRestTest {
 
     // Read it back as YAML and store that verbatim: the size must survive both directions.
     String rendered = get(id).accept(APPLICATION_YAML).get().readEntity(String.class);
-    Response put = request(templateUrl(id)).put(Entity.entity(rendered, APPLICATION_YAML));
+    String url = templateUrl(id);
+    Response put = request(url).header("If-Match", currentEtag(url, authHeaderTestUser1))
+        .put(Entity.entity(rendered, APPLICATION_YAML));
     assertEquals(CedarResponseStatus.OK.getStatusCode(), put.getStatus());
 
     JsonNode after = JsonMapper.MAPPER.readTree(get(id).get().readEntity(String.class));

@@ -21,6 +21,8 @@ import org.metadatacenter.model.validation.report.ReportUtils;
 import org.metadatacenter.model.validation.report.ValidationReport;
 import org.metadatacenter.rest.assertion.noun.CedarRequestBody;
 import org.metadatacenter.rest.context.CedarRequestContext;
+import org.metadatacenter.server.dao.ArtifactRevisionConflictException;
+import org.metadatacenter.server.dao.ArtifactWithRevision;
 import org.metadatacenter.server.model.provenance.ProvenanceInfo;
 import org.metadatacenter.server.security.model.auth.CedarPermission;
 import org.metadatacenter.server.service.FieldNameInEx;
@@ -34,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.io.IOException;
@@ -130,9 +133,9 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
       }
     }
 
-    JsonNode templateInstance = null;
+    ArtifactWithRevision<JsonNode> snapshot;
     try {
-      templateInstance = templateInstanceService.findTemplateInstance(id);
+      snapshot = findArtifactWithRevisionInService(id);
     } catch (IOException e) {
       return CedarResponse.internalServerError()
           .id(id)
@@ -141,24 +144,29 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
           .exception(e)
           .build();
     }
-    if (templateInstance == null) {
+    if (snapshot == null) {
       return CedarResponse.notFound()
           .id(id)
           .errorKey(CedarErrorKey.TEMPLATE_INSTANCE_NOT_FOUND)
           .errorMessage("The artifact instance can not be found by id:" + id)
           .build();
     } else {
+      JsonNode templateInstance = snapshot.content();
       MongoUtils.removeIdField(templateInstance);
+      long revision = snapshot.revision();
       // An explicit format names the representation, so it wins over Accept negotiation.
       if (format.isEmpty() && !ArtifactYamlTranscoder.isJson(responseType.get())) {
         return Response.ok()
+            .header(HttpHeaders.ETAG, etag(revision))
             .entity(ArtifactYamlTranscoder.jsonToYaml(templateInstance, CedarResourceType.INSTANCE,
                 compactParam.isPresent() && compactParam.get()))
             .type(responseType.get())
             .build();
       }
       OutputFormatType formatType = OutputFormatTypeDetector.detectFormat(format);
-      return sendFormattedTemplateInstance(templateInstance, formatType);
+      return Response.fromResponse(sendFormattedTemplateInstance(templateInstance, formatType))
+          .header(HttpHeaders.ETAG, etag(revision))
+          .build();
     }
   }
 
@@ -184,10 +192,29 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
     c.must(id).be(ValidUrl);
-    c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_UPDATE);
     rejectCompactOnWriteOperations(compactParam);
     if (negotiatedArtifactResponseType().isEmpty()) {
       return notAcceptableArtifactFormatResponse();
+    }
+
+    JsonNode currentTemplateInstance;
+    Long currentRevision = null;
+    try {
+      ArtifactWithRevision<JsonNode> snapshot = findArtifactWithRevisionInService(id);
+      if (snapshot == null) {
+        currentTemplateInstance = null;
+        c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_CREATE);
+      } else {
+        currentTemplateInstance = snapshot.content();
+        c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_UPDATE);
+        currentRevision = snapshot.revision();
+        Response preconditionFailure = enforceIfMatch(c.getIfMatchHeader(), currentRevision, id);
+        if (preconditionFailure != null) {
+          return preconditionFailure;
+        }
+      }
+    } catch (IOException e) {
+      throw new CedarProcessingException(e);
     }
 
     boolean verbatim = verbatimParam != null && verbatimParam.isPresent() && verbatimParam.get();
@@ -215,10 +242,8 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     if (!verbatim) {
-      JsonNode currentTemplateInstance;
       JsonNode instanceSchema;
       try {
-        currentTemplateInstance = templateInstanceService.findTemplateInstance(id);
         instanceSchema = getSchemaSource(templateService, newInstance);
       } catch (IOException e) {
         throw new CedarProcessingException(e);
@@ -254,15 +279,16 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
     JsonNode outputTemplateInstance = null;
     CreateOrUpdate createOrUpdate = null;
     try {
-      JsonNode currentTemplateInstance = templateInstanceService.findTemplateInstance(id);
       if (currentTemplateInstance != null) {
         createOrUpdate = CreateOrUpdate.UPDATE;
-        outputTemplateInstance = templateInstanceService.updateTemplateInstance(id, newInstance);
+        outputTemplateInstance = templateInstanceService.updateTemplateInstance(id, newInstance, currentRevision);
       } else {
         c.must(id).be(ValidId);
         createOrUpdate = CreateOrUpdate.CREATE;
         outputTemplateInstance = templateInstanceService.createTemplateInstance(newInstance);
       }
+    } catch (ArtifactRevisionConflictException e) {
+      return movedOnResponse(id, currentRevision);
     } catch (IOException | ArtifactServerResourceNotFoundException e) {
       CedarResponse.CedarResponseBuilder responseBuilder = CedarResponse.internalServerError()
           .id(id)
@@ -287,6 +313,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
       responseBuilder = CedarResponse.created(createdTemplateUri);
     }
     responseBuilder
+        .header(HttpHeaders.ETAG, etag(createOrUpdate == CreateOrUpdate.UPDATE ? currentRevision + 1L : 1L))
         .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_VALID)
         .entity(outputTemplateInstance);
     return negotiateArtifactResponse(responseBuilder.build(), CedarResourceType.INSTANCE);
@@ -315,9 +342,14 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
   }
 
   @Override
-  protected JsonNode updateArtifactInService(String id, JsonNode content) throws IOException,
+  protected ArtifactWithRevision<JsonNode> findArtifactWithRevisionInService(String id) throws IOException {
+    return templateInstanceService.findTemplateInstanceWithRevision(id);
+  }
+
+  @Override
+  protected JsonNode updateArtifactInService(String id, JsonNode content, long expectedRevision) throws IOException,
       ArtifactServerResourceNotFoundException {
-    return templateInstanceService.updateTemplateInstance(id, content);
+    return templateInstanceService.updateTemplateInstance(id, content, expectedRevision);
   }
 
   @Override
