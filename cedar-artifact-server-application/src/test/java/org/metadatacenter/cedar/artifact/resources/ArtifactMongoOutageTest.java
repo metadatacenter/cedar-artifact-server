@@ -9,9 +9,12 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.metadatacenter.cedar.artifact.ArtifactServerApplication;
 import org.metadatacenter.cedar.artifact.ArtifactServerConfiguration;
-import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
+import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.config.environment.CedarEnvironmentSource;
+import org.metadatacenter.config.environment.CedarEnvironmentVariableProvider;
+import org.metadatacenter.model.SystemComponent;
 import org.metadatacenter.util.json.JsonMapper;
+import org.metadatacenter.util.test.EmbeddedCedarMongo;
 import org.metadatacenter.util.test.TestAuthUtil;
 
 import java.net.URI;
@@ -53,13 +56,22 @@ class ArtifactMongoOutageTest {
   @BeforeAll
   static void startServer() throws Exception {
     SERVER.before();
-    TestAuthUtil.installInMemoryUserService(TestUtil.getCedarConfig());
-    authorization = TestAuthUtil.getTestUser1AuthHeader(TestUtil.getCedarConfig());
+    CedarConfig cedarConfig = CedarConfig.getInstance(
+        CedarEnvironmentVariableProvider.getFor(SystemComponent.SERVER_ARTIFACT));
+    TestAuthUtil.installInMemoryUserService(cedarConfig);
+    authorization = TestAuthUtil.getTestUser1AuthHeader(cedarConfig);
   }
 
   @AfterAll
   static void stopServer() {
     SERVER.after();
+    // This suite reuses one JVM. Restore the ordinary embedded-store environment so a class which
+    // boots after this one cannot inherit the deliberately dead client configuration.
+    EmbeddedCedarMongo.startAndRedirectEnvironment(Map.of(
+        "CEDAR_ARTIFACT_HTTP_PORT", "19001",
+        "CEDAR_ARTIFACT_ADMIN_PORT", "19101",
+        "CEDAR_ARTIFACT_STOP_PORT", "19201",
+        "CEDAR_REDIS_PERSISTENT_PORT", "1"));
   }
 
   @Test
