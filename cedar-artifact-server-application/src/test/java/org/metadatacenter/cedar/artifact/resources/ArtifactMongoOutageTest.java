@@ -79,7 +79,7 @@ class ArtifactMongoOutageTest {
     String id = URLEncoder.encode("https://example.org/templates/mongo-outage", StandardCharsets.UTF_8);
     HttpRequest request = HttpRequest.newBuilder()
         .uri(URI.create("http://localhost:" + SERVER.getLocalPort() + "/templates/" + id))
-        .timeout(Duration.ofSeconds(40))
+        .timeout(Duration.ofSeconds(5))
         .header("Authorization", authorization)
         .GET()
         .build();
