@@ -27,6 +27,9 @@ public class TestConstants {
   public static final String NON_EXISTENT_ELEMENT_ID =
       "https://repo.metadatacenter.org/template-elements/11111111-2222-3333-4444-555555555555";
 
+  /* Template Fields */
+  public static final String FIELD_ROUTE = "template-fields";
+
   /* Template Instances */
   public static final String INSTANCE_ROUTE = "template-instances";
   public static final String SAMPLE_INSTANCE_PATH = "crud/SampleTemplateInstance.json";
