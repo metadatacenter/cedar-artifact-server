@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import org.glassfish.jersey.client.ClientProperties;
 import org.junit.jupiter.api.Assertions;
@@ -14,10 +15,15 @@ import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
 import org.metadatacenter.constant.LinkedData;
 import org.metadatacenter.http.CedarResponseStatus;
 import org.metadatacenter.model.CedarResourceType;
+import org.metadatacenter.server.security.model.auth.CedarPermission;
+import org.metadatacenter.server.security.model.user.CedarUser;
+import org.metadatacenter.server.dao.ArtifactRevisionConflictException;
 import org.metadatacenter.util.test.TestAuthUtil;
 
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.util.List;
+import java.util.UUID;
 
 import static org.metadatacenter.cedar.artifact.resources.utils.TestConstants.LAST_UPDATED_ON_FIELD;
 import static org.metadatacenter.model.ModelNodeNames.SCHEMA_IS_BASED_ON;
@@ -55,7 +61,9 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
       JsonNode updatedResource = ((ObjectNode) createdResource).put(fieldName, fieldNewValue);
       // Service invocation - Update
       Response responseUpdate = testClient.target(url + "/" + URLEncoder.encode(createdResourceId, "UTF-8")).
-          request().header("Authorization", authHeader).put(Entity.json(updatedResource));
+          request().header("Authorization", authHeader)
+          .header("If-Match", currentEtag(url + "/" + URLEncoder.encode(createdResourceId, "UTF-8"), authHeader))
+          .put(Entity.json(updatedResource));
       // Check HTTP response
       Assertions.assertEquals(CedarResponseStatus.OK.getStatusCode(), responseUpdate.getStatus());
       // Retrieve updated element
@@ -77,6 +85,87 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
     }
   }
 
+  @ParameterizedTest
+  @MethodSource("getCommonParams1")
+  public void updateRequiresIfMatch(JsonNode sampleResource, CedarResourceType resourceType) throws Exception {
+    JsonNode prepared = setSchemaIsBasedOn(sampleTemplate.deepCopy(), sampleResource.deepCopy(), resourceType);
+    JsonNode created = createResource(prepared, resourceType);
+    String id = created.get(LinkedData.ID).asText();
+    createdResources.put(id, resourceType);
+    String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType) + "/" + URLEncoder.encode(id, "UTF-8");
+
+    Response response = testClient.target(url).request().header(HttpHeaders.AUTHORIZATION, authHeader)
+        .put(Entity.json(created));
+
+    Assertions.assertEquals(CedarResponseStatus.PRECONDITION_REQUIRED.getStatusCode(), response.getStatus());
+  }
+
+  @ParameterizedTest
+  @MethodSource("getCommonParams1")
+  public void staleConcurrentUpdateIsRejected(JsonNode sampleResource, CedarResourceType resourceType) throws Exception {
+    JsonNode prepared = setSchemaIsBasedOn(sampleTemplate.deepCopy(), sampleResource.deepCopy(), resourceType);
+    ObjectNode created = (ObjectNode) createResource(prepared, resourceType);
+    String id = created.get(LinkedData.ID).asText();
+    createdResources.put(id, resourceType);
+    String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType) + "/" + URLEncoder.encode(id, "UTF-8");
+    String originalEtag = currentEtag(url, authHeader);
+    String editableName = resourceType == CedarResourceType.INSTANCE ? "schema:name" : "title";
+
+    ObjectNode firstEditor = created.deepCopy().put(editableName, "first editor");
+    ObjectNode secondEditor = created.deepCopy().put(editableName, "second editor");
+    Response firstResponse = testClient.target(url).request().header(HttpHeaders.AUTHORIZATION, authHeader)
+        .header(HttpHeaders.IF_MATCH, originalEtag).put(Entity.json(firstEditor));
+    Assertions.assertEquals(CedarResponseStatus.OK.getStatusCode(), firstResponse.getStatus());
+    Assertions.assertNotEquals(originalEtag, firstResponse.getHeaderString(HttpHeaders.ETAG));
+
+    Response staleResponse = testClient.target(url).request().header(HttpHeaders.AUTHORIZATION, authHeader)
+        .header(HttpHeaders.IF_MATCH, originalEtag).put(Entity.json(secondEditor));
+    Assertions.assertEquals(CedarResponseStatus.PRECONDITION_FAILED.getStatusCode(), staleResponse.getStatus());
+
+    JsonNode stored = testClient.target(url).request().header(HttpHeaders.AUTHORIZATION, authHeader)
+        .get().readEntity(JsonNode.class);
+    Assertions.assertEquals("first editor", stored.get(editableName).asText());
+  }
+
+  @Test
+  public void mongoCompareAndSwapRejectsAStaleRevision() throws Exception {
+    ObjectNode created = (ObjectNode) createResource(sampleTemplate.deepCopy(), CedarResourceType.TEMPLATE);
+    String id = created.get(LinkedData.ID).asText();
+    createdResources.put(id, CedarResourceType.TEMPLATE);
+    long originalRevision = TestUtil.templateService.getTemplateRevision(id);
+
+    ObjectNode firstEditor = created.deepCopy().put("schema:name", "first editor");
+    ObjectNode secondEditor = created.deepCopy().put("schema:name", "second editor");
+    TestUtil.templateService.updateTemplate(id, firstEditor, originalRevision);
+
+    Assertions.assertThrows(ArtifactRevisionConflictException.class,
+        () -> TestUtil.templateService.updateTemplate(id, secondEditor, originalRevision));
+    Assertions.assertEquals("first editor", TestUtil.templateService.findTemplate(id).get("schema:name").asText());
+  }
+
+  @ParameterizedTest
+  @MethodSource("getCommonParams1")
+  public void updateOnlyPermissionCannotCreateByPut(JsonNode sampleResource, CedarResourceType resourceType)
+      throws Exception {
+    JsonNode prepared = setSchemaIsBasedOn(sampleTemplate.deepCopy(), sampleResource.deepCopy(), resourceType);
+    String id = "https://repo.metadatacenter.org/artifacts/" + UUID.randomUUID();
+    ((ObjectNode) prepared).put(LinkedData.ID, id);
+    String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType) + "/" + URLEncoder.encode(id, "UTF-8");
+    CedarUser updateOnlyUser = TestAuthUtil.getTestUser2(TestUtil.getCedarConfig());
+    List<String> originalPermissions = List.copyOf(updateOnlyUser.getPermissions());
+    CedarPermission updatePermission = CedarPermission.getUpdateForArtifactType(resourceType);
+    updateOnlyUser.setPermissions(List.of(CedarPermission.LOGGED_IN.getPermissionName(),
+        updatePermission.getPermissionName()));
+    try {
+      Response response = testClient.target(url).request()
+          .header(HttpHeaders.AUTHORIZATION, TestAuthUtil.getTestUser2AuthHeader(TestUtil.getCedarConfig()))
+          .put(Entity.json(prepared));
+      Assertions.assertEquals(CedarResponseStatus.FORBIDDEN.getStatusCode(), response.getStatus());
+    } finally {
+      updateOnlyUser.setPermissions(originalPermissions);
+    }
+  }
+
   @Test
   public void ordinaryPutRepairsAnInheritedUnusableTemplatePropertyIri() throws Exception {
     ObjectNode created = createTemplateWithField();
@@ -84,7 +173,7 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
     ObjectNode brokenStored = created.deepCopy();
     propertyMapping(brokenStored, FIELD_NAME).putArray("enum").add("");
     // The Mongo DAO escapes '$' keys in-place; isolate that storage-only mutation from the HTTP body.
-    TestUtil.templateService.updateTemplate(id, brokenStored.deepCopy());
+    TestUtil.templateService.updateTemplate(id, brokenStored.deepCopy(), TestUtil.templateService.getTemplateRevision(id));
 
     ObjectNode submitted = brokenStored.deepCopy();
     submitted.put("schema:name", "Edited old template");
@@ -102,7 +191,7 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
     String id = created.get(LinkedData.ID).asText();
     ObjectNode brokenStored = created.deepCopy();
     propertyMapping(brokenStored, FIELD_NAME).putArray("enum").add("");
-    TestUtil.templateService.updateTemplate(id, brokenStored.deepCopy());
+    TestUtil.templateService.updateTemplate(id, brokenStored.deepCopy(), TestUtil.templateService.getTemplateRevision(id));
 
     // The hardened Designer does not own repository property IRIs. If it
     // canonicalizes an old unusable mapping by omitting it, the update must
@@ -141,7 +230,7 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
     String id = created.get(LinkedData.ID).asText();
     ObjectNode brokenStored = created.deepCopy();
     ((ObjectNode) brokenStored.path("properties").path(FIELD_NAME)).remove("$schema");
-    TestUtil.templateService.updateTemplate(id, brokenStored.deepCopy());
+    TestUtil.templateService.updateTemplate(id, brokenStored.deepCopy(), TestUtil.templateService.getTemplateRevision(id));
 
     ObjectNode submitted = brokenStored.deepCopy();
     submitted.put("schema:name", "Edited legacy template");
@@ -173,7 +262,7 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
     String id = created.get(LinkedData.ID).asText();
     ObjectNode brokenStored = created.deepCopy();
     ((ObjectNode) brokenStored.path("properties").path(FIELD_NAME)).remove("$schema");
-    TestUtil.templateService.updateTemplate(id, brokenStored.deepCopy());
+    TestUtil.templateService.updateTemplate(id, brokenStored.deepCopy(), TestUtil.templateService.getTemplateRevision(id));
 
     ObjectNode submitted = brokenStored.deepCopy();
     Response response = verbatimPut(submitted, id, CedarResourceType.TEMPLATE);
@@ -189,7 +278,7 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
     ObjectNode brokenStored = created.deepCopy();
     brokenStored.put("pav:derivedFrom", "");
     ((ObjectNode) brokenStored.path("properties").path(FIELD_NAME)).put("pav:derivedFrom", "");
-    TestUtil.templateService.updateTemplate(id, brokenStored.deepCopy());
+    TestUtil.templateService.updateTemplate(id, brokenStored.deepCopy(), TestUtil.templateService.getTemplateRevision(id));
 
     ObjectNode submitted = brokenStored.deepCopy();
     submitted.put("schema:name", "Edited old template provenance");
@@ -208,7 +297,7 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
     ObjectNode brokenStored = created.deepCopy();
     brokenStored.put("pav:derivedFrom", "");
     ((ObjectNode) brokenStored.path("properties").path(FIELD_NAME)).put("pav:derivedFrom", "");
-    TestUtil.templateService.updateTemplate(id, brokenStored.deepCopy());
+    TestUtil.templateService.updateTemplate(id, brokenStored.deepCopy(), TestUtil.templateService.getTemplateRevision(id));
 
     // The compatibility reader maps the legacy spelling to absence, and its
     // writer omits the optional key before the ordinary update reaches here.
@@ -245,7 +334,8 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
     String id = created.get(LinkedData.ID).asText();
     ObjectNode brokenStored = created.deepCopy();
     ((ObjectNode) brokenStored.get(ELEMENT_NAME)).put(LinkedData.ID, "");
-    TestUtil.templateInstanceService.updateTemplateInstance(id, brokenStored.deepCopy());
+    TestUtil.templateInstanceService.updateTemplateInstance(id, brokenStored.deepCopy(),
+        TestUtil.templateInstanceService.getTemplateInstanceRevision(id));
 
     ObjectNode submitted = brokenStored.deepCopy();
     submitted.put("schema:name", "Edited old instance");
@@ -264,7 +354,8 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
     String id = created.get(LinkedData.ID).asText();
     ObjectNode brokenStored = created.deepCopy();
     ((ObjectNode) brokenStored.get(ELEMENT_NAME)).put(LinkedData.ID, "");
-    TestUtil.templateInstanceService.updateTemplateInstance(id, brokenStored.deepCopy());
+    TestUtil.templateInstanceService.updateTemplateInstance(id, brokenStored.deepCopy(),
+        TestUtil.templateInstanceService.getTemplateInstanceRevision(id));
 
     // CEE's compatibility reader opens the legacy empty string and its writer
     // emits null, the canonical request for server assignment. The differential
@@ -303,7 +394,8 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
     ObjectNode created = createInstanceWithAttributeValueField(template);
     String id = created.get(LinkedData.ID).asText();
     ObjectNode brokenStored = withInvalidAttributeValueNames(created.deepCopy());
-    TestUtil.templateInstanceService.updateTemplateInstance(id, brokenStored.deepCopy());
+    TestUtil.templateInstanceService.updateTemplateInstance(id, brokenStored.deepCopy(),
+        TestUtil.templateInstanceService.getTemplateInstanceRevision(id));
 
     ObjectNode submitted = brokenStored.deepCopy();
     submitted.put("schema:name", "Edited old attribute-value instance");
@@ -488,7 +580,9 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
   private Response put(JsonNode artifact, String id, CedarResourceType resourceType) throws IOException {
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
     return testClient.target(url + "/" + URLEncoder.encode(id, "UTF-8"))
-        .request().header("Authorization", authHeader).put(Entity.json(artifact));
+        .request().header("Authorization", authHeader)
+        .header("If-Match", currentEtag(url + "/" + URLEncoder.encode(id, "UTF-8"), authHeader))
+        .put(Entity.json(artifact));
   }
 
   private Response verbatimPut(JsonNode artifact, String id, CedarResourceType resourceType) throws IOException {
@@ -496,7 +590,9 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
     String adminAuthHeader = TestAuthUtil.getAdminUserAuthHeader(TestUtil.getCedarConfig());
     return testClient.target(url + "/" + URLEncoder.encode(id, "UTF-8"))
         .queryParam("verbatim", true)
-        .request().header("Authorization", adminAuthHeader).put(Entity.json(artifact));
+        .request().header("Authorization", adminAuthHeader)
+        .header("If-Match", currentEtag(url + "/" + URLEncoder.encode(id, "UTF-8"), adminAuthHeader))
+        .put(Entity.json(artifact));
   }
 
 }

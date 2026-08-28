@@ -10,8 +10,11 @@ import org.metadatacenter.cedar.util.dw.CedarMicroserviceApplicationWithMongo;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.config.MongoConfig;
 import org.metadatacenter.model.ServerName;
+import org.metadatacenter.server.service.mongodb.DiagnosticsServiceMongoDB;
 
 public class ArtifactServerApplication extends CedarMicroserviceApplicationWithMongo<ArtifactServerConfiguration> {
+
+  private ArtifactServerMongoHealthCheck mongoHealthCheck;
 
   public static void main(String[] args) throws Exception {
     new ArtifactServerApplication().run(args);
@@ -34,6 +37,8 @@ public class ArtifactServerApplication extends CedarMicroserviceApplicationWithM
     MongoClient mongoClientForDocuments = CedarDataServices.getInstance().getMongoClientFactoryForDocuments().getClient();
 
     initMongoServices(mongoClientForDocuments, artifactServerConfig);
+    mongoHealthCheck = new ArtifactServerMongoHealthCheck(
+        new DiagnosticsServiceMongoDB(mongoClientForDocuments, artifactServerConfig.getDatabaseName()));
   }
 
   @Override
@@ -60,5 +65,6 @@ public class ArtifactServerApplication extends CedarMicroserviceApplicationWithM
 
     final CedarDefaultHealthCheck healthCheck = new CedarDefaultHealthCheck();
     environment.healthChecks().register("message", healthCheck);
+    environment.healthChecks().register("mongo", mongoHealthCheck);
   }
 }

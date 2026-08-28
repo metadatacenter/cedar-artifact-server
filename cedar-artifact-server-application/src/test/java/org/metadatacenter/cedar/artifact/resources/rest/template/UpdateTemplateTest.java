@@ -77,6 +77,7 @@ public class UpdateTemplateTest extends AbstractRestTest {
 
     // Extract the Id, mark it for deletion
     String createdId = null;
+    String createdEtag = createResponse.getHeaderString("ETag");
     String createdBody = createResponse.readEntity(String.class);
     JsonNode template = null;
     try {
@@ -117,6 +118,7 @@ public class UpdateTemplateTest extends AbstractRestTest {
     if (authHeaderValue != null) {
       putRequest.header(AUTHORIZATION, authHeaderValue);
     }
+    putRequest.header("If-Match", createdEtag);
 
     ((ObjectNode) template).put(CedarModelVocabulary.SCHEMA_DESCRIPTION, TEST_DESCRIPTION_VALUE);
     String modifiedContent = JsonMapper.MAPPER.writeValueAsString(template);

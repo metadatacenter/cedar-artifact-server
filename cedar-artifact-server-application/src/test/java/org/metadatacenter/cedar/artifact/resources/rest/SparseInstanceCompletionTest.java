@@ -87,7 +87,9 @@ public class SparseInstanceCompletionTest extends AbstractRestTest {
 
     ObjectNode withoutTheEmptyField = stored.deepCopy();
     withoutTheEmptyField.remove("omitted");
-    Response response = request(instanceUrl(instanceId)).put(Entity.json(withoutTheEmptyField));
+    String url = instanceUrl(instanceId);
+    Response response = request(url).header("If-Match", currentEtag(url, authHeaderTestUser1))
+        .put(Entity.json(withoutTheEmptyField));
     String body = response.readEntity(String.class);
 
     assertEquals(CedarResponseStatus.BAD_REQUEST.getStatusCode(), response.getStatus(),
@@ -134,7 +136,8 @@ public class SparseInstanceCompletionTest extends AbstractRestTest {
     assertFalse(sparseAgain.contains("omitted"),
         "the YAML rendering carries no empty field, which is what makes this a round trip: " + sparseAgain);
 
-    Response updated = request(instanceUrl(instanceId))
+    String url = instanceUrl(instanceId);
+    Response updated = request(url).header("If-Match", currentEtag(url, authHeaderTestUser1))
         .put(Entity.entity(sparseAgain.replace("Alice", "Alice Smith"), APPLICATION_YAML));
     assertEquals(CedarResponseStatus.OK.getStatusCode(), updated.getStatus());
 

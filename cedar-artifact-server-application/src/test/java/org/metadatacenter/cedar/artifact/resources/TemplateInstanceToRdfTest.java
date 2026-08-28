@@ -83,6 +83,7 @@ public class TemplateInstanceToRdfTest extends BaseServerTest {
     Response updateResponse = testClient.target(instanceUrl)
         .request()
         .header(HttpHeaders.AUTHORIZATION, authHeaderValue)
+        .header(HttpHeaders.IF_MATCH, currentEtag(instanceUrl, authHeaderValue))
         .put(Entity.json(storedInstance));
 
     assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), updateResponse.getStatus());

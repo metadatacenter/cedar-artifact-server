@@ -14,6 +14,7 @@ import org.metadatacenter.server.service.TemplateFieldService;
 import org.metadatacenter.server.service.TemplateInstanceService;
 import org.metadatacenter.server.service.TemplateService;
 import org.metadatacenter.server.service.mongodb.TemplateElementServiceMongoDB;
+import org.metadatacenter.server.service.mongodb.TemplateFieldServiceMongoDB;
 import org.metadatacenter.server.service.mongodb.TemplateInstanceServiceMongoDB;
 import org.metadatacenter.server.service.mongodb.TemplateServiceMongoDB;
 import org.metadatacenter.util.json.JsonMapper;
@@ -44,6 +45,11 @@ public class TestUtil {
         mongoClientForDocuments,
         cedarConfig.getArtifactServerConfig().getDatabaseName(),
         cedarConfig.getArtifactServerConfig().getMongoCollectionName(CedarResourceType.ELEMENT));
+
+    templateFieldService = new TemplateFieldServiceMongoDB(
+        mongoClientForDocuments,
+        cedarConfig.getArtifactServerConfig().getDatabaseName(),
+        cedarConfig.getArtifactServerConfig().getMongoCollectionName(CedarResourceType.FIELD));
 
     templateService = new TemplateServiceMongoDB(
         mongoClientForDocuments,
@@ -82,8 +88,9 @@ public class TestUtil {
       url += ELEMENT_ROUTE;
     } else if (resourceType.equals(CedarResourceType.INSTANCE)) {
       url += INSTANCE_ROUTE;
-    }
-    else {
+    } else if (resourceType.equals(CedarResourceType.FIELD)) {
+      url += FIELD_ROUTE;
+    } else {
       throw new InternalError("Wrong artifact type: " + resourceType.name());
     }
     return url;

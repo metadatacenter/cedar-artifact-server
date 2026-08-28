@@ -9,6 +9,7 @@ import org.metadatacenter.exception.ArtifactServerResourceNotFoundException;
 import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.model.CedarResourceType;
 import org.metadatacenter.model.validation.report.ValidationReport;
+import org.metadatacenter.server.dao.ArtifactWithRevision;
 import org.metadatacenter.server.security.model.auth.CedarPermission;
 import org.metadatacenter.server.service.FieldNameInEx;
 import org.metadatacenter.server.service.TemplateElementService;
@@ -78,7 +79,8 @@ public class TemplateElementsResource extends AbstractArtifactCrudResource {
                                @QueryParam("compact") Optional<Boolean> compactParam,
                                @QueryParam(QP_VERBATIM) Optional<Boolean> verbatimParam,
                                String requestBody) throws CedarException {
-    return updateArtifact(id, CedarPermission.TEMPLATE_ELEMENT_UPDATE, CedarResourceType.ELEMENT,
+    return updateArtifact(id, CedarPermission.TEMPLATE_ELEMENT_CREATE, CedarPermission.TEMPLATE_ELEMENT_UPDATE,
+        CedarResourceType.ELEMENT,
         CedarErrorKey.TEMPLATE_ELEMENT_NOT_UPDATED, CedarErrorKey.TEMPLATE_ELEMENT_NOT_CREATED, requestBody, compactParam, verbatimParam);
   }
 
@@ -101,9 +103,14 @@ public class TemplateElementsResource extends AbstractArtifactCrudResource {
   }
 
   @Override
-  protected JsonNode updateArtifactInService(String id, JsonNode content) throws IOException,
+  protected ArtifactWithRevision<JsonNode> findArtifactWithRevisionInService(String id) throws IOException {
+    return templateElementService.findTemplateElementWithRevision(id);
+  }
+
+  @Override
+  protected JsonNode updateArtifactInService(String id, JsonNode content, long expectedRevision) throws IOException,
       ArtifactServerResourceNotFoundException {
-    return templateElementService.updateTemplateElement(id, content);
+    return templateElementService.updateTemplateElement(id, content, expectedRevision);
   }
 
   @Override
