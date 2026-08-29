@@ -210,6 +210,9 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
       if (snapshot == null) {
         currentTemplateInstance = null;
         c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_CREATE);
+        if (c.getIfMatchHeader() != null && !c.getIfMatchHeader().isBlank()) {
+          return movedOnResponse(id, null);
+        }
       } else {
         currentTemplateInstance = snapshot.content();
         c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_UPDATE);

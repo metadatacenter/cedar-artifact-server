@@ -315,6 +315,9 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
       if (snapshot == null) {
         currentArtifact = null;
         c.must(c.user()).have(createPermission);
+        if (c.getIfMatchHeader() != null && !c.getIfMatchHeader().isBlank()) {
+          return movedOnResponse(id, null);
+        }
       } else {
         currentArtifact = snapshot.content();
         c.must(c.user()).have(updatePermission);

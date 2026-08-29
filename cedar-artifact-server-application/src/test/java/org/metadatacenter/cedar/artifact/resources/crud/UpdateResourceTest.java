@@ -127,6 +127,29 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
     Assertions.assertEquals("first editor", stored.get(editableName).asText());
   }
 
+  @ParameterizedTest
+  @MethodSource("getCommonParams1")
+  public void conditionalPutCannotRecreateADeletedArtifact(JsonNode sampleResource,
+                                                            CedarResourceType resourceType) throws Exception {
+    JsonNode prepared = setSchemaIsBasedOn(sampleTemplate.deepCopy(), sampleResource.deepCopy(), resourceType);
+    JsonNode created = createResource(prepared, resourceType);
+    String id = created.get(LinkedData.ID).asText();
+    String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType) + "/" + URLEncoder.encode(id, "UTF-8");
+    String etag = currentEtag(url, authHeader);
+
+    Response deleted = testClient.target(url).request().header(HttpHeaders.AUTHORIZATION, authHeader)
+        .header(HttpHeaders.IF_MATCH, etag).delete();
+    Assertions.assertEquals(CedarResponseStatus.NO_CONTENT.getStatusCode(), deleted.getStatus());
+
+    for (String ifMatch : List.of(etag, "*")) {
+      Response recreate = testClient.target(url).request().header(HttpHeaders.AUTHORIZATION, authHeader)
+          .header(HttpHeaders.IF_MATCH, ifMatch).put(Entity.json(created));
+      Assertions.assertEquals(CedarResponseStatus.PRECONDITION_FAILED.getStatusCode(), recreate.getStatus());
+      Response stillGone = testClient.target(url).request().header(HttpHeaders.AUTHORIZATION, authHeader).get();
+      Assertions.assertEquals(CedarResponseStatus.NOT_FOUND.getStatusCode(), stillGone.getStatus());
+    }
+  }
+
   @Test
   public void mongoCompareAndSwapRejectsAStaleRevision() throws Exception {
     ObjectNode created = (ObjectNode) createResource(sampleTemplate.deepCopy(), CedarResourceType.TEMPLATE);
