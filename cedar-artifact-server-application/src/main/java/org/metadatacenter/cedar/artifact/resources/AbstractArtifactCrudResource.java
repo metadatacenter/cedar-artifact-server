@@ -12,6 +12,7 @@ import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.exception.CedarProcessingException;
 import org.metadatacenter.http.CedarResponseStatus;
 import org.metadatacenter.model.CedarResourceType;
+import org.metadatacenter.model.request.OutputFormatType;
 import org.metadatacenter.model.CreateOrUpdate;
 import org.metadatacenter.model.validation.report.CedarValidationReport;
 import org.metadatacenter.model.validation.report.ReportUtils;
@@ -223,10 +224,16 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
       MongoUtils.removeIdField(artifact);
       long revision = snapshot.revision();
       if (ArtifactYamlTranscoder.isJson(responseType.get())) {
-        return Response.ok().header(HttpHeaders.ETAG, etag(revision)).entity(artifact).build();
+        return Response.ok()
+            .header(HttpHeaders.ETAG, etag(revision))
+            .header(HttpHeaders.VARY, HttpHeaders.ACCEPT)
+            .entity(artifact)
+            .build();
       }
       return Response.ok()
-          .header(HttpHeaders.ETAG, etag(revision))
+          .header(HttpHeaders.ETAG, etag(revision, responseType.get(),
+              compactParam.isPresent() && compactParam.get()))
+          .header(HttpHeaders.VARY, HttpHeaders.ACCEPT)
           .entity(ArtifactYamlTranscoder.jsonToYaml(artifact, resourceType,
               compactParam.isPresent() && compactParam.get()))
           .type(responseType.get())
@@ -563,7 +570,22 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
   }
 
   protected String etag(long revision) {
-    return "\"" + revision + "\"";
+    return RevisionPreconditionParser.format(revision);
+  }
+
+  protected String etag(long revision, MediaType responseType, boolean compact) {
+    if (ArtifactYamlTranscoder.isYaml(responseType)) {
+      return RevisionPreconditionParser.format(revision, compact ? "yaml-compact" : "yaml");
+    }
+    return etag(revision);
+  }
+
+  protected String etag(long revision, OutputFormatType formatType) {
+    return switch (formatType) {
+      case JSONLD -> etag(revision);
+      case JSON -> RevisionPreconditionParser.format(revision, "json");
+      case RDF_NQUAD -> RevisionPreconditionParser.format(revision, "rdf-nquad");
+    };
   }
 
   /**

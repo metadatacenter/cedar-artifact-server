@@ -157,16 +157,22 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
       // An explicit format names the representation, so it wins over Accept negotiation.
       if (format.isEmpty() && !ArtifactYamlTranscoder.isJson(responseType.get())) {
         return Response.ok()
-            .header(HttpHeaders.ETAG, etag(revision))
+            .header(HttpHeaders.ETAG, etag(revision, responseType.get(),
+                compactParam.isPresent() && compactParam.get()))
+            .header(HttpHeaders.VARY, HttpHeaders.ACCEPT)
             .entity(ArtifactYamlTranscoder.jsonToYaml(templateInstance, CedarResourceType.INSTANCE,
                 compactParam.isPresent() && compactParam.get()))
             .type(responseType.get())
             .build();
       }
       OutputFormatType formatType = OutputFormatTypeDetector.detectFormat(format);
-      return Response.fromResponse(sendFormattedTemplateInstance(templateInstance, formatType))
-          .header(HttpHeaders.ETAG, etag(revision))
-          .build();
+      Response.ResponseBuilder responseBuilder = Response.fromResponse(
+          sendFormattedTemplateInstance(templateInstance, formatType))
+          .header(HttpHeaders.ETAG, etag(revision, formatType));
+      if (format.isEmpty()) {
+        responseBuilder.header(HttpHeaders.VARY, HttpHeaders.ACCEPT);
+      }
+      return responseBuilder.build();
     }
   }
 

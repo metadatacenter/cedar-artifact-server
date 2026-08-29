@@ -52,6 +52,7 @@ public class TemplateInstanceToRdfTest extends BaseServerTest {
     checkStatusOk(response);
     // Assert header
     assertThat(response.getHeaderString(HttpHeaders.CONTENT_TYPE), is("application/n-quads"));
+    assertEquals("\"1-rdf-nquad\"", response.getHeaderString(HttpHeaders.ETAG));
     // Assert content
     String responseContent = response.readEntity(String.class);
     System.out.println(responseContent);
@@ -64,6 +65,7 @@ public class TemplateInstanceToRdfTest extends BaseServerTest {
 
     checkStatusOk(response);
     assertThat(response.getHeaderString(HttpHeaders.CONTENT_TYPE), is("application/n-quads"));
+    assertEquals("\"1-rdf-nquad\"", response.getHeaderString(HttpHeaders.ETAG));
   }
 
   /**

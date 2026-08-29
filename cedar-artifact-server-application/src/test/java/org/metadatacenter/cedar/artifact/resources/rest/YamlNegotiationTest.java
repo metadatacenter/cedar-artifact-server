@@ -19,6 +19,7 @@ import java.net.URLEncoder;
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -89,6 +90,36 @@ public class YamlNegotiationTest extends AbstractRestTest {
         "the compact form drops provenance, version and status, so it is smaller");
     assertTrue(full.contains("modelVersion:"));
     assertFalse(compact.contains("modelVersion:"), "the compact form carries no system-recorded keys");
+  }
+
+  @Test
+  public void byteDifferentRepresentationsHaveDifferentStrongEtags() throws IOException {
+    String id = createTemplateFromJson();
+
+    Response jsonResponse = get(id).get();
+    String jsonEtag = jsonResponse.getHeaderString("ETag");
+    assertTrue(jsonResponse.getHeaderString("Vary").contains("Accept"));
+    jsonResponse.close();
+
+    Response yamlResponse = get(id).accept(APPLICATION_YAML).get();
+    String yamlEtag = yamlResponse.getHeaderString("ETag");
+    String yaml = yamlResponse.readEntity(String.class);
+    assertTrue(yamlResponse.getHeaderString("Vary").contains("Accept"));
+
+    Response compactResponse = getWithQuery(id, "compact=true").accept(APPLICATION_YAML).get();
+    String compactEtag = compactResponse.getHeaderString("ETag");
+    compactResponse.close();
+
+    assertNotEquals(jsonEtag, yamlEtag);
+    assertNotEquals(yamlEtag, compactEtag);
+    assertEquals("\"1-yaml\"", yamlEtag);
+    assertEquals("\"1-yaml-compact\"", compactEtag);
+
+    Response updated = request(templateUrl(id)).header("If-Match", yamlEtag)
+        .put(Entity.entity(yaml.replaceFirst("(?m)^name: .*$", "name: Updated With YAML ETag"),
+            APPLICATION_YAML));
+    assertEquals(CedarResponseStatus.OK.getStatusCode(), updated.getStatus());
+    assertEquals("\"2\"", updated.getHeaderString("ETag"));
   }
 
   // Writing
@@ -166,6 +197,8 @@ public class YamlNegotiationTest extends AbstractRestTest {
         .post(Entity.entity(yaml, APPLICATION_YAML));
 
     assertEquals(CedarResponseStatus.CREATED.getStatusCode(), response.getStatus());
+    assertEquals("\"1-yaml\"", response.getHeaderString("ETag"));
+    assertTrue(response.getHeaderString("Vary").contains("Accept"));
     String body = response.readEntity(String.class);
     assertTrue(body.startsWith("type:"), "the write response honors Accept, got: " + head(body));
     markForCleanup(yamlBodyId(body));
