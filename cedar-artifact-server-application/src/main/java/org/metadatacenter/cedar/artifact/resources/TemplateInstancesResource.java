@@ -12,7 +12,6 @@ import org.metadatacenter.exception.ArtifactServerResourceNotFoundException;
 import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.exception.CedarProcessingException;
 import org.metadatacenter.model.CedarResourceType;
-import org.metadatacenter.model.CreateOrUpdate;
 import org.metadatacenter.model.request.OutputFormatType;
 import org.metadatacenter.model.request.OutputFormatTypeDetector;
 import org.metadatacenter.model.trimmer.JsonLdDocument;
@@ -21,7 +20,6 @@ import org.metadatacenter.model.validation.report.ReportUtils;
 import org.metadatacenter.model.validation.report.ValidationReport;
 import org.metadatacenter.rest.assertion.noun.CedarRequestBody;
 import org.metadatacenter.rest.context.CedarRequestContext;
-import org.metadatacenter.server.dao.ArtifactRevisionConflictException;
 import org.metadatacenter.server.dao.ArtifactWithRevision;
 import org.metadatacenter.server.model.provenance.ProvenanceInfo;
 import org.metadatacenter.server.security.model.auth.CedarPermission;
@@ -30,7 +28,6 @@ import org.metadatacenter.server.service.TemplateInstanceService;
 import org.metadatacenter.server.service.TemplateService;
 import org.metadatacenter.util.artifact.ArtifactYamlTranscoder;
 import org.metadatacenter.util.http.CedarResponse;
-import org.metadatacenter.util.http.CedarUrlUtil;
 import org.metadatacenter.util.mongo.MongoUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +37,6 @@ import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.io.IOException;
-import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 
@@ -285,47 +281,10 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
       }
     }
 
-    JsonNode outputTemplateInstance = null;
-    CreateOrUpdate createOrUpdate = null;
-    try {
-      if (currentTemplateInstance != null) {
-        createOrUpdate = CreateOrUpdate.UPDATE;
-        outputTemplateInstance = templateInstanceService.updateTemplateInstance(id, newInstance, currentRevision);
-      } else {
-        c.must(id).be(ValidId);
-        createOrUpdate = CreateOrUpdate.CREATE;
-        outputTemplateInstance = templateInstanceService.createTemplateInstance(newInstance);
-      }
-    } catch (ArtifactRevisionConflictException e) {
-      return movedOnResponse(id, currentRevision);
-    } catch (IOException | ArtifactServerResourceNotFoundException e) {
-      CedarResponse.CedarResponseBuilder responseBuilder = CedarResponse.internalServerError()
-          .id(id)
-          .exception(e);
-      if (createOrUpdate == CreateOrUpdate.CREATE) {
-        responseBuilder
-            .errorKey(CedarErrorKey.TEMPLATE_INSTANCE_NOT_CREATED)
-            .errorMessage("The artifact instance can not be created using id:" + id);
-      } else if (createOrUpdate == CreateOrUpdate.UPDATE) {
-        responseBuilder
-            .errorKey(CedarErrorKey.TEMPLATE_INSTANCE_NOT_UPDATED)
-            .errorMessage("The artifact instance can not be updated by id:" + id);
-      }
-      return responseBuilder.build();
-    }
-    MongoUtils.removeIdField(outputTemplateInstance);
-    CedarResponse.CedarResponseBuilder responseBuilder = null;
-    if (createOrUpdate == CreateOrUpdate.UPDATE) {
-      responseBuilder = CedarResponse.ok();
-    } else {
-      URI createdTemplateUri = CedarUrlUtil.getURI(uriInfo);
-      responseBuilder = CedarResponse.created(createdTemplateUri);
-    }
-    responseBuilder
-        .header(HttpHeaders.ETAG, etag(createOrUpdate == CreateOrUpdate.UPDATE ? currentRevision + 1L : 1L))
-        .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_VALID)
-        .entity(outputTemplateInstance);
-    return negotiateArtifactResponse(responseBuilder.build(), CedarResourceType.INSTANCE);
+    Response response = updateOrCreateArtifactInDatabase(id, newInstance, pi, c,
+        CedarErrorKey.TEMPLATE_INSTANCE_NOT_CREATED, CedarErrorKey.TEMPLATE_INSTANCE_NOT_UPDATED,
+        verbatim, currentTemplateInstance, currentRevision);
+    return negotiateArtifactResponse(response, CedarResourceType.INSTANCE);
   }
 
   @DELETE

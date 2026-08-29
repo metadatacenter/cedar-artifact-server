@@ -532,21 +532,40 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
           .build();
     } catch (ArtifactRevisionConflictException e) {
       return movedOnResponse(artifactId, currentRevision);
-    } catch (IOException | ArtifactServerResourceNotFoundException e) {
-      CedarResponse.CedarResponseBuilder responseBuilder = CedarResponse.internalServerError()
-          .id(artifactId)
-          .exception(e);
-      if (createOrUpdate == CreateOrUpdate.CREATE) {
-        responseBuilder
-            .errorKey(notCreatedKey)
-            .errorMessage("The " + artifactLabel + " can not be created using id:" + artifactId);
-      } else if (createOrUpdate == CreateOrUpdate.UPDATE) {
-        responseBuilder
-            .errorKey(notUpdatedKey)
-            .errorMessage("The " + artifactLabel + " can not be updated by id:" + artifactId);
+    } catch (ArtifactServerResourceNotFoundException e) {
+      if (createOrUpdate == CreateOrUpdate.UPDATE) {
+        return disappearedDuringConditionalUpdate(artifactId);
       }
-      return responseBuilder.build();
+      return artifactWriteFailureResponse(artifactId, createOrUpdate, notCreatedKey, notUpdatedKey, e);
+    } catch (IOException e) {
+      return artifactWriteFailureResponse(artifactId, createOrUpdate, notCreatedKey, notUpdatedKey, e);
     }
+  }
+
+  private Response artifactWriteFailureResponse(String artifactId, CreateOrUpdate createOrUpdate,
+                                                CedarErrorKey notCreatedKey, CedarErrorKey notUpdatedKey,
+                                                Exception exception) {
+    CedarResponse.CedarResponseBuilder responseBuilder = CedarResponse.internalServerError()
+        .id(artifactId)
+        .exception(exception);
+    if (createOrUpdate == CreateOrUpdate.CREATE) {
+      responseBuilder
+          .errorKey(notCreatedKey)
+          .errorMessage("The " + artifactLabel + " can not be created using id:" + artifactId);
+    } else if (createOrUpdate == CreateOrUpdate.UPDATE) {
+      responseBuilder
+          .errorKey(notUpdatedKey)
+          .errorMessage("The " + artifactLabel + " can not be updated by id:" + artifactId);
+    }
+    return responseBuilder.build();
+  }
+
+  protected Response disappearedDuringConditionalUpdate(String artifactId) {
+    return CedarResponse.status(CedarResponseStatus.PRECONDITION_FAILED)
+        .id(artifactId)
+        .errorKey(CedarErrorKey.ARTIFACT_HAS_MOVED_ON)
+        .errorMessage("The " + artifactLabel + " no longer exists")
+        .build();
   }
 
   protected Response enforceIfMatch(String ifMatch, long currentRevision, String artifactId) {
