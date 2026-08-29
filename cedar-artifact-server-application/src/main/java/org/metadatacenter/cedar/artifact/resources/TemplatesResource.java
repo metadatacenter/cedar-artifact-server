@@ -113,7 +113,7 @@ public class TemplatesResource extends AbstractArtifactCrudResource {
           .build();
     }
 
-    return deleteArtifactFromDatabase(id, CedarErrorKey.TEMPLATE_NOT_FOUND, CedarErrorKey.TEMPLATE_NOT_DELETED);
+    return deleteArtifactFromDatabase(c, id, CedarErrorKey.TEMPLATE_NOT_FOUND, CedarErrorKey.TEMPLATE_NOT_DELETED);
   }
 
   @Override
@@ -140,6 +140,12 @@ public class TemplatesResource extends AbstractArtifactCrudResource {
   @Override
   protected void deleteArtifactInService(String id) throws IOException, ArtifactServerResourceNotFoundException {
     templateService.deleteTemplate(id);
+  }
+
+  @Override
+  protected void deleteArtifactInService(String id, long expectedRevision)
+      throws IOException, ArtifactServerResourceNotFoundException {
+    templateService.deleteTemplate(id, expectedRevision);
   }
 
   @Override

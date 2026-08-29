@@ -119,6 +119,12 @@ public class TemplateFieldsResource extends AbstractArtifactCrudResource {
   }
 
   @Override
+  protected void deleteArtifactInService(String id, long expectedRevision)
+      throws IOException, ArtifactServerResourceNotFoundException {
+    templateFieldService.deleteTemplateField(id, expectedRevision);
+  }
+
+  @Override
   protected List<JsonNode> findAllArtifactsInService(Integer limit, Integer offset, List<String> fieldNames,
                                                      FieldNameInEx includeExclude) throws IOException {
     return templateFieldService.findAllTemplateFields(limit, offset, fieldNames, includeExclude);

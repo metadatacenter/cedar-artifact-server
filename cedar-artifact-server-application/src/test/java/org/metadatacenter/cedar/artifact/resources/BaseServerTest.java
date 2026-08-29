@@ -171,10 +171,14 @@ public abstract class BaseServerTest {
   }
 
   protected Response sendDeleteRequest(String requestUrl) {
-    Response response = testClient.target(requestUrl)
+    Invocation.Builder request = testClient.target(requestUrl)
         .request()
-        .header(HTTP_HEADER_AUTHORIZATION, authHeaderValue)
-        .delete();
+        .header(HTTP_HEADER_AUTHORIZATION, authHeaderValue);
+    String etag = currentEtag(requestUrl, authHeaderValue);
+    if (etag != null) {
+      request.header("If-Match", etag);
+    }
+    Response response = request.delete();
     return response;
   }
 

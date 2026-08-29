@@ -20,6 +20,7 @@ import org.metadatacenter.rest.assertion.noun.CedarRequestBody;
 import org.metadatacenter.rest.context.CedarRequestContext;
 import org.metadatacenter.server.dao.ArtifactRevisionConflictException;
 import org.metadatacenter.server.dao.ArtifactWithRevision;
+import org.metadatacenter.server.RevisionPrecondition;
 import org.metadatacenter.server.jsonld.LinkedDataUtil;
 import org.metadatacenter.server.model.provenance.ProvenanceInfo;
 import org.metadatacenter.server.security.model.auth.CedarPermission;
@@ -31,6 +32,7 @@ import org.metadatacenter.util.http.CedarResponse;
 import org.metadatacenter.util.http.CedarUrlUtil;
 import org.metadatacenter.util.http.LinkHeaderUtil;
 import org.metadatacenter.util.http.PagedQuery;
+import org.metadatacenter.util.http.RevisionPreconditionParser;
 import org.metadatacenter.util.mongo.MongoUtils;
 import org.slf4j.Logger;
 
@@ -75,6 +77,9 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
       ArtifactServerResourceNotFoundException;
 
   protected abstract void deleteArtifactInService(String id) throws IOException,
+      ArtifactServerResourceNotFoundException;
+
+  protected abstract void deleteArtifactInService(String id, long expectedRevision) throws IOException,
       ArtifactServerResourceNotFoundException;
 
   protected abstract List<JsonNode> findAllArtifactsInService(Integer limit, Integer offset, List<String> fieldNames,
@@ -542,11 +547,8 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
           .errorMessage("Updating an existing " + artifactLabel + " requires the ETag returned by GET in If-Match")
           .build();
     }
-    String current = etag(currentRevision);
-    for (String candidate : ifMatch.split(",")) {
-      if (current.equals(candidate.trim())) {
-        return null;
-      }
+    if (RevisionPreconditionParser.parse(ifMatch).matches(currentRevision)) {
+      return null;
     }
     return movedOnResponse(artifactId, currentRevision);
   }
@@ -594,18 +596,67 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     c.must(c.user()).have(deletePermission);
     c.must(id).be(ValidUrl);
 
-    return deleteArtifactFromDatabase(id, notFoundKey, notDeletedKey);
+    return deleteArtifactFromDatabase(c, id, notFoundKey, notDeletedKey);
   }
 
-  protected Response deleteArtifactFromDatabase(String id, CedarErrorKey notFoundKey, CedarErrorKey notDeletedKey) {
+  protected Response deleteArtifactFromDatabase(CedarRequestContext c, String id, CedarErrorKey notFoundKey,
+                                                CedarErrorKey notDeletedKey) {
+    ArtifactWithRevision<JsonNode> snapshot;
     try {
-      deleteArtifactInService(id);
-    } catch (ArtifactServerResourceNotFoundException e) {
+      snapshot = findArtifactWithRevisionInService(id);
+    } catch (IOException e) {
+      return CedarResponse.internalServerError()
+          .id(id)
+          .errorKey(notDeletedKey)
+          .errorMessage("The " + artifactLabel + " can not be read before deletion by id:" + id)
+          .exception(e)
+          .build();
+    }
+    if (snapshot == null) {
       return CedarResponse.notFound()
           .id(id)
           .errorKey(notFoundKey)
           .errorMessage("The " + artifactLabel + " can not be found by id:" + id)
-          .exception(e)
+          .build();
+    }
+
+    String ifMatch = c.getIfMatchHeader();
+    if (ifMatch == null || ifMatch.isBlank()) {
+      return CedarResponse.status(CedarResponseStatus.PRECONDITION_REQUIRED)
+          .id(id)
+          .errorKey(CedarErrorKey.ARTIFACT_PRECONDITION_REQUIRED)
+          .errorMessage("Deleting an existing " + artifactLabel
+              + " requires the ETag returned by GET in If-Match")
+          .build();
+    }
+    RevisionPrecondition precondition = RevisionPreconditionParser.parse(ifMatch);
+    if (!precondition.matches(snapshot.revision())) {
+      return movedOnResponse(id, snapshot.revision());
+    }
+
+    try {
+      if (precondition.anyCurrentRevision()) {
+        deleteArtifactInService(id);
+      } else {
+        deleteArtifactInService(id, snapshot.revision());
+      }
+    } catch (ArtifactRevisionConflictException e) {
+      try {
+        ArtifactWithRevision<JsonNode> current = findArtifactWithRevisionInService(id);
+        return movedOnResponse(id, current == null ? null : current.revision());
+      } catch (IOException readFailure) {
+        return CedarResponse.internalServerError()
+            .id(id)
+            .errorKey(notDeletedKey)
+            .errorMessage("The " + artifactLabel + " changed while it was being deleted")
+            .exception(readFailure)
+            .build();
+      }
+    } catch (ArtifactServerResourceNotFoundException e) {
+      return CedarResponse.status(CedarResponseStatus.PRECONDITION_FAILED)
+          .id(id)
+          .errorKey(CedarErrorKey.ARTIFACT_HAS_MOVED_ON)
+          .errorMessage("The " + artifactLabel + " no longer exists")
           .build();
     } catch (IOException e) {
       return CedarResponse.internalServerError()

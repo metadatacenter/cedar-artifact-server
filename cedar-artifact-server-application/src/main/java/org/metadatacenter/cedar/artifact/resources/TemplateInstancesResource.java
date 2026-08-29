@@ -327,7 +327,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
     c.must(c.user()).be(LoggedIn);
     c.must(id).be(ValidUrl);
     c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_DELETE);
-    return deleteArtifactFromDatabase(id, CedarErrorKey.TEMPLATE_INSTANCE_NOT_FOUND,
+    return deleteArtifactFromDatabase(c, id, CedarErrorKey.TEMPLATE_INSTANCE_NOT_FOUND,
         CedarErrorKey.TEMPLATE_INSTANCE_NOT_DELETED);
   }
 
@@ -355,6 +355,12 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
   @Override
   protected void deleteArtifactInService(String id) throws IOException, ArtifactServerResourceNotFoundException {
     templateInstanceService.deleteTemplateInstance(id);
+  }
+
+  @Override
+  protected void deleteArtifactInService(String id, long expectedRevision)
+      throws IOException, ArtifactServerResourceNotFoundException {
+    templateInstanceService.deleteTemplateInstance(id, expectedRevision);
   }
 
   @Override

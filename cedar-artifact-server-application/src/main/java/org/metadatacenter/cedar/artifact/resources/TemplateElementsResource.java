@@ -119,6 +119,12 @@ public class TemplateElementsResource extends AbstractArtifactCrudResource {
   }
 
   @Override
+  protected void deleteArtifactInService(String id, long expectedRevision)
+      throws IOException, ArtifactServerResourceNotFoundException {
+    templateElementService.deleteTemplateElement(id, expectedRevision);
+  }
+
+  @Override
   protected List<JsonNode> findAllArtifactsInService(Integer limit, Integer offset, List<String> fieldNames,
                                                      FieldNameInEx includeExclude) throws IOException {
     return templateElementService.findAllTemplateElements(limit, offset, fieldNames, includeExclude);
