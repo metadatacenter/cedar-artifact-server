@@ -6,6 +6,7 @@ import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.error.CedarErrorKey;
 import org.metadatacenter.error.CedarErrorPack;
 import org.metadatacenter.exception.CedarException;
+import org.metadatacenter.exception.CedarProcessingException;
 import org.metadatacenter.constant.HttpConstants;
 import org.metadatacenter.model.CedarResourceType;
 import org.metadatacenter.model.request.ResourceType;
@@ -100,7 +101,7 @@ public class CommandResource extends AbstractArtifactServerResource {
       }
       return validationReport;
     } catch (IOException e) {
-      throw newCedarException(e.getMessage());
+      throw new CedarProcessingException(e);
     }
   }
 

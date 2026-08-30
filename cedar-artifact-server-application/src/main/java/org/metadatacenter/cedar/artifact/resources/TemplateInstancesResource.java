@@ -362,7 +362,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
       linkedDataUtil.pruneOrphanPropertyIris(templateInstance, instanceSchema, CedarResourceType.INSTANCE);
       return validateTemplateInstance(templateInstance, instanceSchema);
     } catch (IOException e) {
-      throw newCedarException(e.getMessage());
+      throw new CedarProcessingException(e);
     }
   }
 

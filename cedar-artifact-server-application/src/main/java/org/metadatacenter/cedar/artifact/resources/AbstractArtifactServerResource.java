@@ -10,6 +10,7 @@ import org.metadatacenter.error.CedarErrorKey;
 import org.metadatacenter.error.CedarErrorPack;
 import org.metadatacenter.exception.CedarBadRequestException;
 import org.metadatacenter.exception.CedarException;
+import org.metadatacenter.exception.CedarProcessingException;
 import org.metadatacenter.exception.CedarRequestBodyMissingFieldException;
 import org.metadatacenter.model.CedarResourceType;
 import org.metadatacenter.model.core.CedarModelVocabulary;
@@ -109,7 +110,7 @@ public class AbstractArtifactServerResource extends CedarMicroserviceResource {
     try {
       return newModelValidator().validateTemplate(template);
     } catch (Exception e) {
-      throw newCedarException(e.getMessage());
+      throw new CedarProcessingException(e);
     }
   }
 
@@ -117,7 +118,7 @@ public class AbstractArtifactServerResource extends CedarMicroserviceResource {
     try {
       return newModelValidator().validateTemplateElement(templateElement);
     } catch (Exception e) {
-      throw newCedarException(e.getMessage());
+      throw new CedarProcessingException(e);
     }
   }
 
@@ -125,7 +126,7 @@ public class AbstractArtifactServerResource extends CedarMicroserviceResource {
     try {
       return newModelValidator().validateTemplateField(templateField);
     } catch (Exception e) {
-      throw newCedarException(e.getMessage());
+      throw new CedarProcessingException(e);
     }
   }
 
@@ -133,17 +134,12 @@ public class AbstractArtifactServerResource extends CedarMicroserviceResource {
     try {
       return newModelValidator().validateTemplateInstance(templateInstance, instanceSchema);
     } catch (Exception e) {
-      throw newCedarException(e.getMessage());
+      throw new CedarProcessingException(e);
     }
   }
 
   private static ModelValidator newModelValidator() {
     return new CedarValidator();
-  }
-
-  protected static CedarException newCedarException(String message) {
-    return new CedarException(message) {
-    };
   }
 
   /**
