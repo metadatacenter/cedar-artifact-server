@@ -110,8 +110,4 @@ public abstract class AbstractResourceCrudTest extends AbstractResourceTest {
     };
   }
 
-  protected static Object[] getCommonParams2() {
-    return new Object[]{CedarResourceType.TEMPLATE, CedarResourceType.ELEMENT, CedarResourceType.INSTANCE};
-  }
-
 }

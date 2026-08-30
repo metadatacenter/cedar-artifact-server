@@ -101,23 +101,6 @@ public class CreateResourceTest extends AbstractResourceCrudTest {
     Assertions.assertEquals(expected, actual);
   }
 
-  // TODO: Fix the following test
-//  @ParameterizedTest
-//  @MethodSource("getCommonParams2")
-//  public void createResourceMalformedBodyTest(CedarNodeType resourceType) {
-//    String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
-//    // Post empty json
-//    Response response1 = testClient.target(url).request().header("Authorization", authHeader).post(Entity.json(""));
-//    // Check HTTP response
-//    Assertions.assertEquals(CedarResponseStatus.BAD_REQUEST.getStatusCode(), response1.getStatus());
-//    // Post invalid json
-//    Response response2 = testClient.target(url).request().header("Authorization", authHeader).post(Entity.json
-// (INVALID_JSON));
-//    // Check HTTP response
-//    Assertions.assertEquals(CedarResponseStatus.BAD_REQUEST.getStatusCode(), response2.getStatus());
-//  }
-
-
   @ParameterizedTest
   @MethodSource("getCommonParams1")
   public void createResourceMissingAuthorizationHeaderTest(JsonNode sampleResource, CedarResourceType resourceType) {
