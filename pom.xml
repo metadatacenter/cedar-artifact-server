@@ -24,7 +24,6 @@
   </scm>
 
   <modules>
-    <module>cedar-artifact-server-core</module>
     <module>cedar-artifact-server-application</module>
   </modules>
 

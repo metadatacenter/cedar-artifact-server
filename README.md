@@ -6,8 +6,7 @@ The internal persistence service for CEDAR templates, template elements, templat
 instances. It stores artifact JSON in MongoDB; authorization and workspace graph operations belong to
 the resource server at the public edge.
 
-The deployable Dropwizard service is in `cedar-artifact-server-application`. The reactor also retains
-the legacy `cedar-artifact-server-core` module, which currently contains no Java sources.
+The deployable Dropwizard service is in `cedar-artifact-server-application`.
 
 ## Development
 
