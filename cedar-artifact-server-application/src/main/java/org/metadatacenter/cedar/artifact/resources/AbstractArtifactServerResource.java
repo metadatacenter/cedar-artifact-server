@@ -48,7 +48,7 @@ import java.util.Optional;
 
 import static com.fasterxml.jackson.databind.node.JsonNodeType.NULL;
 
-public class AbstractArtifactServerResource extends CedarMicroserviceResource {
+public abstract class AbstractArtifactServerResource extends CedarMicroserviceResource {
 
   private static final Logger log = LoggerFactory.getLogger(AbstractArtifactServerResource.class);
 
