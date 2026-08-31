@@ -1,0 +1,29 @@
+# Base OpenAPI document merged into the generated spec by io.swagger.core.v3:swagger-maven-plugin.
+# It seeds the info block (version stamped from the POM via resource filtering) and the api_key
+# security scheme that every resource class references with @SecurityRequirement(name = "api_key").
+openapi: 3.0.1
+info:
+  title: CEDAR Artifact Server API
+  description: |
+    Better Metadata - Better Science
+
+    The artifact server stores templates, template elements, template fields, and template
+    instances, and validates every one of them against the CEDAR model before storing it.
+
+    Artifacts use strong ETags for optimistic concurrency. Read the artifact and send the returned
+    ETag in `If-Match` when replacing or deleting it. A missing required precondition returns 428;
+    a stale or malformed validator returns 412. `If-Match: *` accepts whichever revision currently
+    exists and therefore deliberately gives up lost-update protection. Representation suffixes such
+    as `"7-yaml"` and `"7-yaml-compact"` identify different bytes of the same stored revision and
+    are valid write preconditions.
+
+    Artifacts are read and written as JSON or YAML, selected by the Accept and Content-Type
+    headers. The compact YAML form is a lossy read-time convenience: it can be read but not stored.
+  version: ${project.version}
+components:
+  securitySchemes:
+    api_key:
+      type: apiKey
+      name: Authorization
+      in: header
+      description: "Your CEDAR API key, using the format 'apiKey <yourApiKey>'"

@@ -1,6 +1,15 @@
 package org.metadatacenter.cedar.artifact.resources;
 
 import com.codahale.metrics.annotation.Timed;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.headers.Header;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.jsonldjava.core.JsonLdError;
 import org.metadatacenter.config.CedarConfig;
@@ -46,6 +55,8 @@ import static org.metadatacenter.rest.assertion.GenericAssertions.*;
 
 @Path("/template-instances")
 @Produces(MediaType.APPLICATION_JSON)
+@Tag(name = "Template instances")
+@SecurityRequirement(name = "api_key")
 public class TemplateInstancesResource extends AbstractArtifactCrudResource {
 
   private static final Logger logger = LoggerFactory.getLogger(TemplateInstancesResource.class);
@@ -65,9 +76,33 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
   @Timed
   @Produces({MediaType.APPLICATION_JSON, HttpConstants.CONTENT_TYPE_APPLICATION_YAML, "application/yaml"})
   @Consumes({MediaType.APPLICATION_JSON, HttpConstants.CONTENT_TYPE_APPLICATION_YAML, "application/yaml"})
-  public Response createTemplateInstance(@QueryParam(QP_SKIP_VALIDATION) Optional<Boolean> skipValidation,
-                                         @QueryParam("compact") Optional<Boolean> compactParam,
-                                         String requestBody) throws CedarException {
+  @Operation(summary = "Create a template instance",
+      description = "Create a template instance. " + ArtifactApiDocs.BODY_FORMAT + " The instance is validated "
+          + "against the template it names in `schema:isBasedOn`; an invalid one is refused rather "
+          + "than stored. The server mints the identifier, so the body must carry none, and must "
+          + "carry a name.")
+  @ApiResponses({
+      @ApiResponse(responseCode = "201", description = "The stored instance",
+          headers = {
+              @Header(name = "Location", description = "URL of the created instance.",
+                  schema = @Schema(type = "string")),
+              @Header(name = "ETag", description = ArtifactApiDocs.ETAG, schema = @Schema(type = "string")),
+              @Header(name = "CEDAR-Validation-Status", description = ArtifactApiDocs.VALIDATION_STATUS,
+                  schema = @Schema(type = "string"))
+          }),
+      @ApiResponse(responseCode = "400",
+          description = "The body is empty, carries an identifier, has no name, or failed validation"),
+      @ApiResponse(responseCode = "401", description = "Unauthorized"),
+      @ApiResponse(responseCode = "403", description = "Forbidden"),
+      @ApiResponse(responseCode = "406", description = ArtifactApiDocs.NOT_ACCEPTABLE),
+      @ApiResponse(responseCode = "500", description = "Internal server error")
+  })
+  public Response createTemplateInstance(
+      @Parameter(description = "Accepted for wire compatibility and ignored: every write is validated.")
+      @QueryParam(QP_SKIP_VALIDATION) Optional<Boolean> skipValidation,
+      @Parameter(description = ArtifactApiDocs.COMPACT_ON_WRITE)
+      @QueryParam("compact") Optional<Boolean> compactParam,
+      String requestBody) throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_CREATE);
@@ -114,8 +149,31 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
   @Path("/{id}")
   @Produces({MediaType.APPLICATION_JSON, HttpConstants.CONTENT_TYPE_APPLICATION_YAML, "application/yaml",
       "application/n-quads"})
-  public Response findTemplateInstance(@PathParam(PP_ID) String id, @QueryParam(QP_FORMAT) Optional<String> format,
-                                       @QueryParam("compact") Optional<Boolean> compactParam) throws CedarException {
+  @Operation(summary = "Get a template instance",
+      description = "Get a template instance by identifier. " + ArtifactApiDocs.READ_FORMAT + " An explicit `format` "
+          + "names the representation directly and wins over Accept negotiation.")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "The stored instance",
+          headers = {
+              @Header(name = "ETag", description = ArtifactApiDocs.ETAG, schema = @Schema(type = "string")),
+              @Header(name = "Vary", description = "Accept, where the representation was negotiated "
+                  + "rather than named by `format`.", schema = @Schema(type = "string"))
+          }),
+      @ApiResponse(responseCode = "400", description = "The identifier is not a valid URL"),
+      @ApiResponse(responseCode = "401", description = "Unauthorized"),
+      @ApiResponse(responseCode = "403", description = "Forbidden"),
+      @ApiResponse(responseCode = "404", description = "No such instance"),
+      @ApiResponse(responseCode = "406", description = ArtifactApiDocs.NOT_ACCEPTABLE),
+      @ApiResponse(responseCode = "500", description = "Internal server error")
+  })
+  public Response findTemplateInstance(
+      @Parameter(description = "Instance identifier, as an absolute IRI.", required = true)
+      @PathParam(PP_ID) String id,
+      @Parameter(description = "Representation to return: `jsonld` (the default), `json`, or "
+          + "`rdf-nquad`. Named explicitly, it wins over Accept negotiation.")
+      @QueryParam(QP_FORMAT) Optional<String> format,
+      @Parameter(description = ArtifactApiDocs.COMPACT_ON_READ)
+      @QueryParam("compact") Optional<Boolean> compactParam) throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
     c.must(id).be(ValidUrl);
@@ -174,10 +232,29 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
 
   @GET
   @Timed
-  public Response findAllTemplateInstances(@QueryParam(QP_LIMIT) Optional<Integer> limitParam,
-                                           @QueryParam(QP_OFFSET) Optional<Integer> offsetParam,
-                                           @QueryParam(QP_SUMMARY) Optional<Boolean> summaryParam,
-                                           @QueryParam(QP_FIELD_NAMES) Optional<String> fieldNamesParam) throws CedarException {
+  @Operation(summary = "List template instances",
+      description = "List template instances, one page at a time. The response carries the size of "
+          + "the whole collection and paging links, not just the returned page.")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "A page of instances",
+          headers = {
+              @Header(name = "Total-Count", description = ArtifactApiDocs.TOTAL_COUNT, schema = @Schema(type = "integer")),
+              @Header(name = "Link", description = ArtifactApiDocs.LINK, schema = @Schema(type = "string"))
+          }),
+      @ApiResponse(responseCode = "400", description = "A paging parameter is out of range"),
+      @ApiResponse(responseCode = "401", description = "Unauthorized"),
+      @ApiResponse(responseCode = "403", description = "Forbidden"),
+      @ApiResponse(responseCode = "500", description = "Internal server error")
+  })
+  public Response findAllTemplateInstances(
+      @Parameter(description = ArtifactApiDocs.LIMIT)
+      @QueryParam(QP_LIMIT) Optional<Integer> limitParam,
+      @Parameter(description = ArtifactApiDocs.OFFSET)
+      @QueryParam(QP_OFFSET) Optional<Integer> offsetParam,
+      @Parameter(description = ArtifactApiDocs.SUMMARY)
+      @QueryParam(QP_SUMMARY) Optional<Boolean> summaryParam,
+      @Parameter(description = ArtifactApiDocs.FIELD_NAMES)
+      @QueryParam(QP_FIELD_NAMES) Optional<String> fieldNamesParam) throws CedarException {
     return findAllArtifacts(limitParam, offsetParam, summaryParam, fieldNamesParam,
         CedarPermission.TEMPLATE_INSTANCE_READ, CedarErrorKey.TEMPLATE_INSTANCES_NOT_LISTED);
   }
@@ -187,10 +264,38 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
   @Path("/{id}")
   @Produces({MediaType.APPLICATION_JSON, HttpConstants.CONTENT_TYPE_APPLICATION_YAML, "application/yaml"})
   @Consumes({MediaType.APPLICATION_JSON, HttpConstants.CONTENT_TYPE_APPLICATION_YAML, "application/yaml"})
-  public Response updateTemplateInstance(@PathParam(PP_ID) String id,
-                                         @QueryParam("compact") Optional<Boolean> compactParam,
-                                         @QueryParam(QP_VERBATIM) Optional<Boolean> verbatimParam,
-                                         String requestBody) throws CedarException {
+  @Operation(summary = "Replace a template instance",
+      description = "Replace a template instance, or create one at a client-supplied identifier that "
+          + "does not yet exist. " + ArtifactApiDocs.BODY_FORMAT + " Replacing an instance that exists is "
+          + "conditional: the current ETag must be supplied in If-Match, so a write can not silently "
+          + "overwrite one that landed since the instance was read.",
+      parameters = @Parameter(in = ParameterIn.HEADER, name = "If-Match",
+          description = ArtifactApiDocs.IF_MATCH_FOR_CREATE_OR_REPLACE, schema = @Schema(type = "string")))
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "The replaced instance",
+          headers = {
+              @Header(name = "ETag", description = ArtifactApiDocs.ETAG, schema = @Schema(type = "string")),
+              @Header(name = "CEDAR-Validation-Status", description = ArtifactApiDocs.VALIDATION_STATUS,
+                  schema = @Schema(type = "string"))
+          }),
+      @ApiResponse(responseCode = "201", description = "An instance created at the supplied identifier",
+          headers = @Header(name = "ETag", description = ArtifactApiDocs.ETAG, schema = @Schema(type = "string"))),
+      @ApiResponse(responseCode = "400", description = "The body is empty, has no name, or failed validation"),
+      @ApiResponse(responseCode = "401", description = "Unauthorized"),
+      @ApiResponse(responseCode = "403", description = "Forbidden"),
+      @ApiResponse(responseCode = "406", description = ArtifactApiDocs.NOT_ACCEPTABLE),
+      @ApiResponse(responseCode = "412", description = ArtifactApiDocs.PRECONDITION_FAILED),
+      @ApiResponse(responseCode = "428", description = ArtifactApiDocs.PRECONDITION_REQUIRED),
+      @ApiResponse(responseCode = "500", description = "Internal server error")
+  })
+  public Response updateTemplateInstance(
+      @Parameter(description = "Instance identifier, as an absolute IRI.", required = true)
+      @PathParam(PP_ID) String id,
+      @Parameter(description = ArtifactApiDocs.COMPACT_ON_WRITE)
+      @QueryParam("compact") Optional<Boolean> compactParam,
+      @Parameter(description = ArtifactApiDocs.VERBATIM)
+      @QueryParam(QP_VERBATIM) Optional<Boolean> verbatimParam,
+      String requestBody) throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
     c.must(id).be(ValidUrl);
@@ -290,7 +395,24 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
   @DELETE
   @Timed
   @Path("/{id}")
-  public Response deleteTemplateInstance(@PathParam(PP_ID) String id) throws CedarException {
+  @Operation(summary = "Delete a template instance",
+      description = "Delete a template instance. Conditional on the current ETag, so a delete can not "
+          + "discard a revision written since the instance was read.",
+      parameters = @Parameter(in = ParameterIn.HEADER, name = "If-Match", required = true,
+          description = ArtifactApiDocs.IF_MATCH_REQUIRED, schema = @Schema(type = "string")))
+  @ApiResponses({
+      @ApiResponse(responseCode = "204", description = "Deleted"),
+      @ApiResponse(responseCode = "400", description = "The identifier is not a valid URL"),
+      @ApiResponse(responseCode = "401", description = "Unauthorized"),
+      @ApiResponse(responseCode = "403", description = "Forbidden"),
+      @ApiResponse(responseCode = "404", description = "No such instance"),
+      @ApiResponse(responseCode = "412", description = ArtifactApiDocs.PRECONDITION_FAILED),
+      @ApiResponse(responseCode = "428", description = ArtifactApiDocs.PRECONDITION_REQUIRED),
+      @ApiResponse(responseCode = "500", description = "Internal server error")
+  })
+  public Response deleteTemplateInstance(
+      @Parameter(description = "Instance identifier, as an absolute IRI.", required = true)
+      @PathParam(PP_ID) String id) throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
     c.must(id).be(ValidUrl);

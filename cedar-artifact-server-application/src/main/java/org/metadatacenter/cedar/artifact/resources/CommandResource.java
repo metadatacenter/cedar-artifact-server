@@ -1,6 +1,12 @@
 package org.metadatacenter.cedar.artifact.resources;
 
 import com.codahale.metrics.annotation.Timed;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.error.CedarErrorKey;
@@ -32,6 +38,8 @@ import static org.metadatacenter.rest.assertion.GenericAssertions.LoggedIn;
 
 @Path("/command")
 @Produces(MediaType.APPLICATION_JSON)
+@Tag(name = "Command")
+@SecurityRequirement(name = "api_key")
 public class CommandResource extends AbstractArtifactServerResource {
 
   private static final Logger log = LoggerFactory.getLogger(CommandResource.class);
@@ -59,8 +67,25 @@ public class CommandResource extends AbstractArtifactServerResource {
   @Timed
   @Path("/validate")
   @Consumes({MediaType.APPLICATION_JSON, HttpConstants.CONTENT_TYPE_APPLICATION_YAML, "application/yaml"})
-  public Response validateResource(@QueryParam(QP_RESOURCE_TYPE) String type, String requestBody)
-      throws CedarException {
+  @Operation(summary = "Validate an artifact",
+      description = "Validate an artifact against the CEDAR model without storing it. The body may be "
+          + "JSON or YAML, selected by the Content-Type header, so a client that authors in YAML can "
+          + "ask whether its work is valid before sending it. An instance may instead be validated "
+          + "against a template supplied alongside it, as `{\"schema\": …, \"instance\": …}`; that "
+          + "composite is a JSON convenience rather than an artifact, so it has no YAML form and a "
+          + "YAML body is read as the artifact itself. The report is returned with 200 whether or not "
+          + "the artifact is valid: an invalid artifact is an answer, not a failed request.")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "The validation report"),
+      @ApiResponse(responseCode = "400", description = "The body could not be read as the named artifact type"),
+      @ApiResponse(responseCode = "401", description = "Unauthorized"),
+      @ApiResponse(responseCode = "500", description = "No validation exists for the named artifact type")
+  })
+  public Response validateResource(
+      @Parameter(description = "Artifact type to validate against: `template`, `element`, `field`, "
+          + "or `instance`.", required = true)
+      @QueryParam(QP_RESOURCE_TYPE) String type,
+      String requestBody) throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
 
