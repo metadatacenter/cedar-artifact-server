@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.metadatacenter</groupId>
     <artifactId>cedar-artifact-server</artifactId>
-    <version>2.9.3</version>
+    <version>2.9.4</version>
   </parent>
 
   <groupId>org.metadatacenter</groupId>
@@ -104,6 +104,12 @@
       <artifactId>log4j-core</artifactId>
     </dependency>
 
+    <!-- OpenAPI annotations on the resource classes. Version managed in cedar-parent. -->
+    <dependency>
+      <groupId>io.swagger.core.v3</groupId>
+      <artifactId>swagger-annotations-jakarta</artifactId>
+    </dependency>
+
   </dependencies>
 
   <build>
@@ -128,6 +134,67 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
+      </plugin>
+
+      <!--
+        Filters the base OpenAPI document (src/main/swagger/openapi-base.yaml) so ${project.version}
+        is stamped into info.version, then writes it to target/ for the swagger-maven-plugin to read.
+      -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>filter-openapi-base</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/generated-swagger</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${project.basedir}/src/main/swagger</directory>
+                  <includes>
+                    <include>openapi-base.yaml</include>
+                  </includes>
+                  <filtering>true</filtering>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!--
+        Generates the OpenAPI 3.0 spec from the JAX-RS (jakarta.ws.rs) resource annotations into
+        src/main/resources/assets/swagger-api/ as swagger.json + swagger.yaml (committed; Maven
+        copies it onto the classpath that the Dropwizard AssetsBundle serves, and its presence is
+        what makes the server serve and advertise documentation at all). sortOutput keeps the spec
+        byte-stable. Info and the api_key security scheme come from the filtered openapi-base.yaml.
+      -->
+      <plugin>
+        <groupId>io.swagger.core.v3</groupId>
+        <artifactId>swagger-maven-plugin-jakarta</artifactId>
+        <configuration>
+          <outputPath>${project.basedir}/src/main/resources/assets/swagger-api</outputPath>
+          <outputFileName>swagger</outputFileName>
+          <outputFormat>JSONANDYAML</outputFormat>
+          <prettyPrint>true</prettyPrint>
+          <sortOutput>true</sortOutput>
+          <resourcePackages>
+            <package>org.metadatacenter.cedar.artifact.resources</package>
+          </resourcePackages>
+          <openapiFilePath>${project.build.directory}/generated-swagger/openapi-base.yaml</openapiFilePath>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>resolve</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
 
     </plugins>

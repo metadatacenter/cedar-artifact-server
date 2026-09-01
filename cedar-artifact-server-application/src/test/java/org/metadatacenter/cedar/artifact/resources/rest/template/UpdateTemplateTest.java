@@ -187,7 +187,9 @@ public class UpdateTemplateTest extends AbstractRestTest {
     if (((TestValueResourceIdGenerator) idInUrlGenerator).getIdMatchingSelector() == GIBBERISH) {
       return CedarResponseStatus.BAD_REQUEST.getStatusCode();
     } else if (((TestValueResourceIdGenerator) idInUrlGenerator).getIdMatchingSelector() == RANDOM_ID) {
-      return CedarResponseStatus.BAD_REQUEST.getStatusCode();
+      // The identifier is syntactically valid but absent. This request carries the ETag of the
+      // separately created fixture, so If-Match must fail instead of turning PUT into a create.
+      return CedarResponseStatus.PRECONDITION_FAILED.getStatusCode();
     } else if (((TestValueResourceIdGenerator) idInUrlGenerator).getIdMatchingSelector() == PREVIOUSLY_CREATED) {
       return CedarResponseStatus.OK.getStatusCode();
     }

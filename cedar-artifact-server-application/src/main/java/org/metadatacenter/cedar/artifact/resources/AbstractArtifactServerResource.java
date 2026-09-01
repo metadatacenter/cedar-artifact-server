@@ -10,6 +10,7 @@ import org.metadatacenter.error.CedarErrorKey;
 import org.metadatacenter.error.CedarErrorPack;
 import org.metadatacenter.exception.CedarBadRequestException;
 import org.metadatacenter.exception.CedarException;
+import org.metadatacenter.exception.CedarProcessingException;
 import org.metadatacenter.exception.CedarRequestBodyMissingFieldException;
 import org.metadatacenter.model.CedarResourceType;
 import org.metadatacenter.model.core.CedarModelVocabulary;
@@ -21,17 +22,20 @@ import org.metadatacenter.rest.assertion.noun.CedarRequestBody;
 import org.metadatacenter.rest.context.HttpRequestEmptyBody;
 import org.metadatacenter.rest.context.HttpRequestJsonBody;
 import org.metadatacenter.rest.exception.CedarAssertionException;
+import org.metadatacenter.server.RevisionPrecondition;
 import org.metadatacenter.server.model.provenance.ProvenanceInfo;
 import org.metadatacenter.server.service.TemplateService;
 import org.metadatacenter.util.JsonPointerValuePair;
 import org.metadatacenter.util.ModelUtil;
 import org.metadatacenter.util.artifact.ArtifactYamlTranscoder;
 import org.metadatacenter.util.http.CedarResponse;
+import org.metadatacenter.util.http.RevisionPreconditionParser;
 import org.metadatacenter.util.json.JsonMapper;
 import org.metadatacenter.util.mongo.MongoUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.io.IOException;
@@ -44,7 +48,7 @@ import java.util.Optional;
 
 import static com.fasterxml.jackson.databind.node.JsonNodeType.NULL;
 
-public class AbstractArtifactServerResource extends CedarMicroserviceResource {
+public abstract class AbstractArtifactServerResource extends CedarMicroserviceResource {
 
   private static final Logger log = LoggerFactory.getLogger(AbstractArtifactServerResource.class);
 
@@ -106,7 +110,7 @@ public class AbstractArtifactServerResource extends CedarMicroserviceResource {
     try {
       return newModelValidator().validateTemplate(template);
     } catch (Exception e) {
-      throw newCedarException(e.getMessage());
+      throw new CedarProcessingException(e);
     }
   }
 
@@ -114,7 +118,7 @@ public class AbstractArtifactServerResource extends CedarMicroserviceResource {
     try {
       return newModelValidator().validateTemplateElement(templateElement);
     } catch (Exception e) {
-      throw newCedarException(e.getMessage());
+      throw new CedarProcessingException(e);
     }
   }
 
@@ -122,7 +126,7 @@ public class AbstractArtifactServerResource extends CedarMicroserviceResource {
     try {
       return newModelValidator().validateTemplateField(templateField);
     } catch (Exception e) {
-      throw newCedarException(e.getMessage());
+      throw new CedarProcessingException(e);
     }
   }
 
@@ -130,17 +134,12 @@ public class AbstractArtifactServerResource extends CedarMicroserviceResource {
     try {
       return newModelValidator().validateTemplateInstance(templateInstance, instanceSchema);
     } catch (Exception e) {
-      throw newCedarException(e.getMessage());
+      throw new CedarProcessingException(e);
     }
   }
 
   private static ModelValidator newModelValidator() {
     return new CedarValidator();
-  }
-
-  protected static CedarException newCedarException(String message) {
-    return new CedarException(message) {
-    };
   }
 
   /**
@@ -365,8 +364,23 @@ public class AbstractArtifactServerResource extends CedarMicroserviceResource {
    * is not the artifact keeps the JSON it was built as.
    */
   protected Response negotiateArtifactResponse(Response jsonResponse, CedarResourceType resourceType) {
-    return ArtifactYamlTranscoder.negotiatedArtifactResponse(
-        jsonResponse, resourceType, negotiatedArtifactResponseType());
+    Optional<MediaType> responseType = negotiatedArtifactResponseType();
+    Response negotiated = ArtifactYamlTranscoder.negotiatedArtifactResponse(
+        jsonResponse, resourceType, responseType);
+    Response.ResponseBuilder responseBuilder = Response.fromResponse(negotiated)
+        .header(HttpHeaders.VARY, HttpHeaders.ACCEPT);
+    if (responseType.isPresent() && ArtifactYamlTranscoder.isYaml(negotiated.getMediaType())) {
+      String currentEtag = negotiated.getHeaderString(HttpHeaders.ETAG);
+      if (currentEtag != null) {
+        RevisionPrecondition precondition = RevisionPreconditionParser.parse(currentEtag);
+        if (precondition.revisions().size() == 1) {
+          long revision = precondition.revisions().iterator().next();
+          responseBuilder.header(HttpHeaders.ETAG, null)
+              .header(HttpHeaders.ETAG, RevisionPreconditionParser.format(revision, "yaml"));
+        }
+      }
+    }
+    return responseBuilder.build();
   }
 
   /**

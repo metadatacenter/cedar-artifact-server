@@ -114,6 +114,7 @@ public class DeleteTemplateTest extends AbstractRestTest {
     if (authHeaderValue != null) {
       deleteRequest.header(AUTHORIZATION, authHeaderValue);
     }
+    deleteRequest.header("If-Match", "\"1\"");
 
     Response deleteResponse = deleteRequest.delete();
 

@@ -12,6 +12,7 @@ import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.exception.CedarProcessingException;
 import org.metadatacenter.http.CedarResponseStatus;
 import org.metadatacenter.model.CedarResourceType;
+import org.metadatacenter.model.request.OutputFormatType;
 import org.metadatacenter.model.CreateOrUpdate;
 import org.metadatacenter.model.validation.report.CedarValidationReport;
 import org.metadatacenter.model.validation.report.ReportUtils;
@@ -20,6 +21,7 @@ import org.metadatacenter.rest.assertion.noun.CedarRequestBody;
 import org.metadatacenter.rest.context.CedarRequestContext;
 import org.metadatacenter.server.dao.ArtifactRevisionConflictException;
 import org.metadatacenter.server.dao.ArtifactWithRevision;
+import org.metadatacenter.server.RevisionPrecondition;
 import org.metadatacenter.server.jsonld.LinkedDataUtil;
 import org.metadatacenter.server.model.provenance.ProvenanceInfo;
 import org.metadatacenter.server.security.model.auth.CedarPermission;
@@ -31,6 +33,7 @@ import org.metadatacenter.util.http.CedarResponse;
 import org.metadatacenter.util.http.CedarUrlUtil;
 import org.metadatacenter.util.http.LinkHeaderUtil;
 import org.metadatacenter.util.http.PagedQuery;
+import org.metadatacenter.util.http.RevisionPreconditionParser;
 import org.metadatacenter.util.mongo.MongoUtils;
 import org.slf4j.Logger;
 
@@ -75,6 +78,9 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
       ArtifactServerResourceNotFoundException;
 
   protected abstract void deleteArtifactInService(String id) throws IOException,
+      ArtifactServerResourceNotFoundException;
+
+  protected abstract void deleteArtifactInService(String id, long expectedRevision) throws IOException,
       ArtifactServerResourceNotFoundException;
 
   protected abstract List<JsonNode> findAllArtifactsInService(Integer limit, Integer offset, List<String> fieldNames,
@@ -218,10 +224,16 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
       MongoUtils.removeIdField(artifact);
       long revision = snapshot.revision();
       if (ArtifactYamlTranscoder.isJson(responseType.get())) {
-        return Response.ok().header(HttpHeaders.ETAG, etag(revision)).entity(artifact).build();
+        return Response.ok()
+            .header(HttpHeaders.ETAG, etag(revision))
+            .header(HttpHeaders.VARY, HttpHeaders.ACCEPT)
+            .entity(artifact)
+            .build();
       }
       return Response.ok()
-          .header(HttpHeaders.ETAG, etag(revision))
+          .header(HttpHeaders.ETAG, etag(revision, responseType.get(),
+              compactParam.isPresent() && compactParam.get()))
+          .header(HttpHeaders.VARY, HttpHeaders.ACCEPT)
           .entity(ArtifactYamlTranscoder.jsonToYaml(artifact, resourceType,
               compactParam.isPresent() && compactParam.get()))
           .type(responseType.get())
@@ -303,6 +315,9 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
       if (snapshot == null) {
         currentArtifact = null;
         c.must(c.user()).have(createPermission);
+        if (c.getIfMatchHeader() != null && !c.getIfMatchHeader().isBlank()) {
+          return movedOnResponse(id, null);
+        }
       } else {
         currentArtifact = snapshot.content();
         c.must(c.user()).have(updatePermission);
@@ -517,21 +532,40 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
           .build();
     } catch (ArtifactRevisionConflictException e) {
       return movedOnResponse(artifactId, currentRevision);
-    } catch (IOException | ArtifactServerResourceNotFoundException e) {
-      CedarResponse.CedarResponseBuilder responseBuilder = CedarResponse.internalServerError()
-          .id(artifactId)
-          .exception(e);
-      if (createOrUpdate == CreateOrUpdate.CREATE) {
-        responseBuilder
-            .errorKey(notCreatedKey)
-            .errorMessage("The " + artifactLabel + " can not be created using id:" + artifactId);
-      } else if (createOrUpdate == CreateOrUpdate.UPDATE) {
-        responseBuilder
-            .errorKey(notUpdatedKey)
-            .errorMessage("The " + artifactLabel + " can not be updated by id:" + artifactId);
+    } catch (ArtifactServerResourceNotFoundException e) {
+      if (createOrUpdate == CreateOrUpdate.UPDATE) {
+        return disappearedDuringConditionalUpdate(artifactId);
       }
-      return responseBuilder.build();
+      return artifactWriteFailureResponse(artifactId, createOrUpdate, notCreatedKey, notUpdatedKey, e);
+    } catch (IOException e) {
+      return artifactWriteFailureResponse(artifactId, createOrUpdate, notCreatedKey, notUpdatedKey, e);
     }
+  }
+
+  private Response artifactWriteFailureResponse(String artifactId, CreateOrUpdate createOrUpdate,
+                                                CedarErrorKey notCreatedKey, CedarErrorKey notUpdatedKey,
+                                                Exception exception) {
+    CedarResponse.CedarResponseBuilder responseBuilder = CedarResponse.internalServerError()
+        .id(artifactId)
+        .exception(exception);
+    if (createOrUpdate == CreateOrUpdate.CREATE) {
+      responseBuilder
+          .errorKey(notCreatedKey)
+          .errorMessage("The " + artifactLabel + " can not be created using id:" + artifactId);
+    } else if (createOrUpdate == CreateOrUpdate.UPDATE) {
+      responseBuilder
+          .errorKey(notUpdatedKey)
+          .errorMessage("The " + artifactLabel + " can not be updated by id:" + artifactId);
+    }
+    return responseBuilder.build();
+  }
+
+  protected Response disappearedDuringConditionalUpdate(String artifactId) {
+    return CedarResponse.status(CedarResponseStatus.PRECONDITION_FAILED)
+        .id(artifactId)
+        .errorKey(CedarErrorKey.ARTIFACT_HAS_MOVED_ON)
+        .errorMessage("The " + artifactLabel + " no longer exists")
+        .build();
   }
 
   protected Response enforceIfMatch(String ifMatch, long currentRevision, String artifactId) {
@@ -542,11 +576,8 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
           .errorMessage("Updating an existing " + artifactLabel + " requires the ETag returned by GET in If-Match")
           .build();
     }
-    String current = etag(currentRevision);
-    for (String candidate : ifMatch.split(",")) {
-      if (current.equals(candidate.trim())) {
-        return null;
-      }
+    if (RevisionPreconditionParser.parse(ifMatch).matches(currentRevision)) {
+      return null;
     }
     return movedOnResponse(artifactId, currentRevision);
   }
@@ -561,7 +592,22 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
   }
 
   protected String etag(long revision) {
-    return "\"" + revision + "\"";
+    return RevisionPreconditionParser.format(revision);
+  }
+
+  protected String etag(long revision, MediaType responseType, boolean compact) {
+    if (ArtifactYamlTranscoder.isYaml(responseType)) {
+      return RevisionPreconditionParser.format(revision, compact ? "yaml-compact" : "yaml");
+    }
+    return etag(revision);
+  }
+
+  protected String etag(long revision, OutputFormatType formatType) {
+    return switch (formatType) {
+      case JSONLD -> etag(revision);
+      case JSON -> RevisionPreconditionParser.format(revision, "json");
+      case RDF_NQUAD -> RevisionPreconditionParser.format(revision, "rdf-nquad");
+    };
   }
 
   /**
@@ -594,18 +640,67 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     c.must(c.user()).have(deletePermission);
     c.must(id).be(ValidUrl);
 
-    return deleteArtifactFromDatabase(id, notFoundKey, notDeletedKey);
+    return deleteArtifactFromDatabase(c, id, notFoundKey, notDeletedKey);
   }
 
-  protected Response deleteArtifactFromDatabase(String id, CedarErrorKey notFoundKey, CedarErrorKey notDeletedKey) {
+  protected Response deleteArtifactFromDatabase(CedarRequestContext c, String id, CedarErrorKey notFoundKey,
+                                                CedarErrorKey notDeletedKey) {
+    ArtifactWithRevision<JsonNode> snapshot;
     try {
-      deleteArtifactInService(id);
-    } catch (ArtifactServerResourceNotFoundException e) {
+      snapshot = findArtifactWithRevisionInService(id);
+    } catch (IOException e) {
+      return CedarResponse.internalServerError()
+          .id(id)
+          .errorKey(notDeletedKey)
+          .errorMessage("The " + artifactLabel + " can not be read before deletion by id:" + id)
+          .exception(e)
+          .build();
+    }
+    if (snapshot == null) {
       return CedarResponse.notFound()
           .id(id)
           .errorKey(notFoundKey)
           .errorMessage("The " + artifactLabel + " can not be found by id:" + id)
-          .exception(e)
+          .build();
+    }
+
+    String ifMatch = c.getIfMatchHeader();
+    if (ifMatch == null || ifMatch.isBlank()) {
+      return CedarResponse.status(CedarResponseStatus.PRECONDITION_REQUIRED)
+          .id(id)
+          .errorKey(CedarErrorKey.ARTIFACT_PRECONDITION_REQUIRED)
+          .errorMessage("Deleting an existing " + artifactLabel
+              + " requires the ETag returned by GET in If-Match")
+          .build();
+    }
+    RevisionPrecondition precondition = RevisionPreconditionParser.parse(ifMatch);
+    if (!precondition.matches(snapshot.revision())) {
+      return movedOnResponse(id, snapshot.revision());
+    }
+
+    try {
+      if (precondition.anyCurrentRevision()) {
+        deleteArtifactInService(id);
+      } else {
+        deleteArtifactInService(id, snapshot.revision());
+      }
+    } catch (ArtifactRevisionConflictException e) {
+      try {
+        ArtifactWithRevision<JsonNode> current = findArtifactWithRevisionInService(id);
+        return movedOnResponse(id, current == null ? null : current.revision());
+      } catch (IOException readFailure) {
+        return CedarResponse.internalServerError()
+            .id(id)
+            .errorKey(notDeletedKey)
+            .errorMessage("The " + artifactLabel + " changed while it was being deleted")
+            .exception(readFailure)
+            .build();
+      }
+    } catch (ArtifactServerResourceNotFoundException e) {
+      return CedarResponse.status(CedarResponseStatus.PRECONDITION_FAILED)
+          .id(id)
+          .errorKey(CedarErrorKey.ARTIFACT_HAS_MOVED_ON)
+          .errorMessage("The " + artifactLabel + " no longer exists")
           .build();
     } catch (IOException e) {
       return CedarResponse.internalServerError()

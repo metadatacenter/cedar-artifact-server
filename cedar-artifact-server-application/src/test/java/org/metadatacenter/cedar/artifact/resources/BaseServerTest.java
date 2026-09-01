@@ -37,12 +37,12 @@ public abstract class BaseServerTest {
   static {
     // Must run before anything builds the CEDAR configuration: the document store comes from an
     // in-process MongoDB, and Redis goes to a dead port, since queue writes are best-effort -
-    // the suite needs no live backend at all. Alternate server ports, so the test instance
+    // the suite needs no live backend at all. OS-assigned server ports, so the test instance
     // never collides with a running dev server.
     EmbeddedCedarMongo.startAndRedirectEnvironment(java.util.Map.of(
-        "CEDAR_ARTIFACT_HTTP_PORT", "19001",
-        "CEDAR_ARTIFACT_ADMIN_PORT", "19101",
-        "CEDAR_ARTIFACT_STOP_PORT", "19201",
+        "CEDAR_ARTIFACT_HTTP_PORT", "0",
+        "CEDAR_ARTIFACT_ADMIN_PORT", "0",
+        "CEDAR_ARTIFACT_STOP_PORT", "0",
         "CEDAR_REDIS_PERSISTENT_PORT", "1"));
   }
 
@@ -171,10 +171,14 @@ public abstract class BaseServerTest {
   }
 
   protected Response sendDeleteRequest(String requestUrl) {
-    Response response = testClient.target(requestUrl)
+    Invocation.Builder request = testClient.target(requestUrl)
         .request()
-        .header(HTTP_HEADER_AUTHORIZATION, authHeaderValue)
-        .delete();
+        .header(HTTP_HEADER_AUTHORIZATION, authHeaderValue);
+    String etag = currentEtag(requestUrl, authHeaderValue);
+    if (etag != null) {
+      request.header("If-Match", etag);
+    }
+    Response response = request.delete();
     return response;
   }
 

@@ -1,0 +1,1623 @@
+{
+  "openapi" : "3.0.1",
+  "info" : {
+    "description" : "Better Metadata - Better Science\n\nThe artifact server stores templates, template elements, template fields, and template\ninstances, and validates every one of them against the CEDAR model before storing it.\n\nArtifacts use strong ETags for optimistic concurrency. Read the artifact and send the returned\nETag in `If-Match` when replacing or deleting it. A missing required precondition returns 428;\na stale or malformed validator returns 412. `If-Match: *` accepts whichever revision currently\nexists and therefore deliberately gives up lost-update protection. Representation suffixes such\nas `\"7-yaml\"` and `\"7-yaml-compact\"` identify different bytes of the same stored revision and\nare valid write preconditions.\n\nArtifacts are read and written as JSON or YAML, selected by the Accept and Content-Type\nheaders. The compact YAML form is a lossy read-time convenience: it can be read but not stored.\n",
+    "title" : "CEDAR Artifact Server API",
+    "version" : "2.9.4"
+  },
+  "paths" : {
+    "/command/validate" : {
+      "post" : {
+        "description" : "Validate an artifact against the CEDAR model without storing it. The body may be JSON or YAML, selected by the Content-Type header, so a client that authors in YAML can ask whether its work is valid before sending it. An instance may instead be validated against a template supplied alongside it, as `{\"schema\": …, \"instance\": …}`; that composite is a JSON convenience rather than an artifact, so it has no YAML form and a YAML body is read as the artifact itself. The report is returned with 200 whether or not the artifact is valid: an invalid artifact is an answer, not a failed request.",
+        "operationId" : "validateResource",
+        "parameters" : [ {
+          "description" : "Artifact type to validate against: `template`, `element`, `field`, or `instance`.",
+          "in" : "query",
+          "name" : "resource_type",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "string"
+              }
+            },
+            "application/x-yaml" : {
+              "schema" : {
+                "type" : "string"
+              }
+            },
+            "application/yaml" : {
+              "schema" : {
+                "type" : "string"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "The validation report"
+          },
+          "400" : {
+            "description" : "The body could not be read as the named artifact type"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "500" : {
+            "description" : "No validation exists for the named artifact type"
+          }
+        },
+        "security" : [ {
+          "api_key" : [ ]
+        } ],
+        "summary" : "Validate an artifact",
+        "tags" : [ "Command" ]
+      }
+    },
+    "/template-elements" : {
+      "get" : {
+        "description" : "List template elements, one page at a time. The response carries the size of the whole collection and paging links, not just the returned page.",
+        "operationId" : "findAllTemplateElements",
+        "parameters" : [ {
+          "description" : "Maximum number of artifacts to return.",
+          "in" : "query",
+          "name" : "limit",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "description" : "Number of artifacts to skip before the first one returned.",
+          "in" : "query",
+          "name" : "offset",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "description" : "Return only the summary fields configured for this artifact type.",
+          "in" : "query",
+          "name" : "summary",
+          "schema" : {
+            "type" : "boolean"
+          }
+        }, {
+          "description" : "Comma-separated list of fields to return, in place of the default selection. Ignored when `summary` is set.",
+          "in" : "query",
+          "name" : "field_names",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "A page of template elements",
+            "headers" : {
+              "Link" : {
+                "description" : "Paging links for the first, previous, next, and last pages, where those exist.",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              },
+              "Total-Count" : {
+                "description" : "Total number of artifacts of this type, which is the whole collection rather than the returned page.",
+                "schema" : {
+                  "type" : "integer"
+                },
+                "style" : "simple"
+              }
+            }
+          },
+          "400" : {
+            "description" : "A paging parameter is out of range"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "Forbidden"
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        },
+        "security" : [ {
+          "api_key" : [ ]
+        } ],
+        "summary" : "List template elements",
+        "tags" : [ "Template elements" ]
+      },
+      "post" : {
+        "description" : "Create a template element. The body may be JSON or YAML, selected by the Content-Type header. A YAML body must be the full or minimal form. The artifact is validated against the CEDAR model before it is stored; an invalid one is refused rather than stored. The server mints the identifier, so the body must carry none, and must carry a name.",
+        "operationId" : "createTemplateElement",
+        "parameters" : [ {
+          "description" : "Not supported on writes, and rejected with 400. A write response always renders the full form, and the compact form can not be stored.",
+          "in" : "query",
+          "name" : "compact",
+          "schema" : {
+            "type" : "boolean"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "string"
+              }
+            },
+            "application/x-yaml" : {
+              "schema" : {
+                "type" : "string"
+              }
+            },
+            "application/yaml" : {
+              "schema" : {
+                "type" : "string"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "The stored template element",
+            "headers" : {
+              "CEDAR-Validation-Status" : {
+                "description" : "Whether the artifact passed validation against the CEDAR model. Every write is validated; an invalid artifact is refused rather than stored.",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              },
+              "ETag" : {
+                "description" : "Strong validator for the returned representation and its stored revision. A representation suffix such as \"7-yaml\" identifies different bytes of the same stored revision and is a valid write precondition.",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              },
+              "Location" : {
+                "description" : "URL of the created artifact.",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              }
+            }
+          },
+          "400" : {
+            "description" : "The body is empty, carries an identifier, has no name, or failed validation"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "Forbidden"
+          },
+          "406" : {
+            "description" : "The Accept header names no representation this artifact can be served in."
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        },
+        "security" : [ {
+          "api_key" : [ ]
+        } ],
+        "summary" : "Create a template element",
+        "tags" : [ "Template elements" ]
+      }
+    },
+    "/template-elements/{id}" : {
+      "delete" : {
+        "description" : "Delete a template element. Conditional on the current ETag, so a delete can not discard a revision written since the artifact was read.",
+        "operationId" : "deleteTemplateElement",
+        "parameters" : [ {
+          "description" : "Strong ETag returned by the corresponding GET. `*` accepts whichever revision currently exists and therefore deliberately gives up lost-update protection. Weak, stale, and malformed validators fail with 412.",
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Artifact identifier, as an absolute IRI.",
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Deleted"
+          },
+          "400" : {
+            "description" : "The identifier is not a valid URL"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "description" : "No such artifact"
+          },
+          "412" : {
+            "description" : "The supplied If-Match value is stale, weak, or malformed, or the artifact has been written since it was read. Where a revision still exists, the error body's `parameters.currentETag` identifies it."
+          },
+          "428" : {
+            "description" : "Writing over an artifact that already exists requires its current ETag in If-Match."
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        },
+        "security" : [ {
+          "api_key" : [ ]
+        } ],
+        "summary" : "Delete a template element",
+        "tags" : [ "Template elements" ]
+      },
+      "get" : {
+        "description" : "Get a template element by identifier. Served as JSON or YAML, selected by the Accept header.",
+        "operationId" : "findTemplateElement",
+        "parameters" : [ {
+          "description" : "Artifact identifier, as an absolute IRI.",
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Return the compact YAML form. It is a lossy read-time convenience, so it is accepted only on reads.",
+          "in" : "query",
+          "name" : "compact",
+          "schema" : {
+            "type" : "boolean"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "The stored template element",
+            "headers" : {
+              "ETag" : {
+                "description" : "Strong validator for the returned representation and its stored revision. A representation suffix such as \"7-yaml\" identifies different bytes of the same stored revision and is a valid write precondition.",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              },
+              "Vary" : {
+                "description" : "Accept, since the representation is negotiated.",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              }
+            }
+          },
+          "400" : {
+            "description" : "The identifier is not a valid URL"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "description" : "No such artifact"
+          },
+          "406" : {
+            "description" : "The Accept header names no representation this artifact can be served in."
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        },
+        "security" : [ {
+          "api_key" : [ ]
+        } ],
+        "summary" : "Get a template element",
+        "tags" : [ "Template elements" ]
+      },
+      "put" : {
+        "description" : "Replace a template element, or create one at a client-supplied identifier that does not yet exist. The body may be JSON or YAML, selected by the Content-Type header. A YAML body must be the full or minimal form. Replacing an artifact that exists is conditional: the current ETag must be supplied in If-Match, so a write can not silently overwrite one that landed since the artifact was read.",
+        "operationId" : "updateTemplateElement",
+        "parameters" : [ {
+          "description" : "Required when the identifier already exists and the PUT replaces it; omit it when creating an artifact with a new client-supplied identifier. Supplying it for an absent artifact fails with 412 rather than creating one.",
+          "in" : "header",
+          "name" : "If-Match",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Artifact identifier, as an absolute IRI.",
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Not supported on writes, and rejected with 400. A write response always renders the full form, and the compact form can not be stored.",
+          "in" : "query",
+          "name" : "compact",
+          "schema" : {
+            "type" : "boolean"
+          }
+        }, {
+          "description" : "Store the body exactly as supplied, without preserving creation provenance or minting missing child identifiers. Requires the verbatim-write permission.",
+          "in" : "query",
+          "name" : "verbatim",
+          "schema" : {
+            "type" : "boolean"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "string"
+              }
+            },
+            "application/x-yaml" : {
+              "schema" : {
+                "type" : "string"
+              }
+            },
+            "application/yaml" : {
+              "schema" : {
+                "type" : "string"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "The replaced a template element",
+            "headers" : {
+              "CEDAR-Validation-Status" : {
+                "description" : "Whether the artifact passed validation against the CEDAR model. Every write is validated; an invalid artifact is refused rather than stored.",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              },
+              "ETag" : {
+                "description" : "Strong validator for the returned representation and its stored revision. A representation suffix such as \"7-yaml\" identifies different bytes of the same stored revision and is a valid write precondition.",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              }
+            }
+          },
+          "201" : {
+            "description" : "A template element created at the supplied identifier",
+            "headers" : {
+              "ETag" : {
+                "description" : "Strong validator for the returned representation and its stored revision. A representation suffix such as \"7-yaml\" identifies different bytes of the same stored revision and is a valid write precondition.",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              }
+            }
+          },
+          "400" : {
+            "description" : "The body is empty, has no name, or failed validation"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "Forbidden"
+          },
+          "406" : {
+            "description" : "The Accept header names no representation this artifact can be served in."
+          },
+          "412" : {
+            "description" : "The supplied If-Match value is stale, weak, or malformed, or the artifact has been written since it was read. Where a revision still exists, the error body's `parameters.currentETag` identifies it."
+          },
+          "428" : {
+            "description" : "Writing over an artifact that already exists requires its current ETag in If-Match."
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        },
+        "security" : [ {
+          "api_key" : [ ]
+        } ],
+        "summary" : "Replace a template element",
+        "tags" : [ "Template elements" ]
+      }
+    },
+    "/template-fields" : {
+      "get" : {
+        "description" : "List template fields, one page at a time. The response carries the size of the whole collection and paging links, not just the returned page.",
+        "operationId" : "findAllTemplateFields",
+        "parameters" : [ {
+          "description" : "Maximum number of artifacts to return.",
+          "in" : "query",
+          "name" : "limit",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "description" : "Number of artifacts to skip before the first one returned.",
+          "in" : "query",
+          "name" : "offset",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "description" : "Return only the summary fields configured for this artifact type.",
+          "in" : "query",
+          "name" : "summary",
+          "schema" : {
+            "type" : "boolean"
+          }
+        }, {
+          "description" : "Comma-separated list of fields to return, in place of the default selection. Ignored when `summary` is set.",
+          "in" : "query",
+          "name" : "field_names",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "A page of template fields",
+            "headers" : {
+              "Link" : {
+                "description" : "Paging links for the first, previous, next, and last pages, where those exist.",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              },
+              "Total-Count" : {
+                "description" : "Total number of artifacts of this type, which is the whole collection rather than the returned page.",
+                "schema" : {
+                  "type" : "integer"
+                },
+                "style" : "simple"
+              }
+            }
+          },
+          "400" : {
+            "description" : "A paging parameter is out of range"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "Forbidden"
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        },
+        "security" : [ {
+          "api_key" : [ ]
+        } ],
+        "summary" : "List template fields",
+        "tags" : [ "Template fields" ]
+      },
+      "post" : {
+        "description" : "Create a template field. The body may be JSON or YAML, selected by the Content-Type header. A YAML body must be the full or minimal form. The artifact is validated against the CEDAR model before it is stored; an invalid one is refused rather than stored. The server mints the identifier, so the body must carry none, and must carry a name.",
+        "operationId" : "createTemplateField",
+        "parameters" : [ {
+          "description" : "Not supported on writes, and rejected with 400. A write response always renders the full form, and the compact form can not be stored.",
+          "in" : "query",
+          "name" : "compact",
+          "schema" : {
+            "type" : "boolean"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "string"
+              }
+            },
+            "application/x-yaml" : {
+              "schema" : {
+                "type" : "string"
+              }
+            },
+            "application/yaml" : {
+              "schema" : {
+                "type" : "string"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "The stored template field",
+            "headers" : {
+              "CEDAR-Validation-Status" : {
+                "description" : "Whether the artifact passed validation against the CEDAR model. Every write is validated; an invalid artifact is refused rather than stored.",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              },
+              "ETag" : {
+                "description" : "Strong validator for the returned representation and its stored revision. A representation suffix such as \"7-yaml\" identifies different bytes of the same stored revision and is a valid write precondition.",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              },
+              "Location" : {
+                "description" : "URL of the created artifact.",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              }
+            }
+          },
+          "400" : {
+            "description" : "The body is empty, carries an identifier, has no name, or failed validation"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "Forbidden"
+          },
+          "406" : {
+            "description" : "The Accept header names no representation this artifact can be served in."
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        },
+        "security" : [ {
+          "api_key" : [ ]
+        } ],
+        "summary" : "Create a template field",
+        "tags" : [ "Template fields" ]
+      }
+    },
+    "/template-fields/{id}" : {
+      "delete" : {
+        "description" : "Delete a template field. Conditional on the current ETag, so a delete can not discard a revision written since the artifact was read.",
+        "operationId" : "deleteTemplateField",
+        "parameters" : [ {
+          "description" : "Strong ETag returned by the corresponding GET. `*` accepts whichever revision currently exists and therefore deliberately gives up lost-update protection. Weak, stale, and malformed validators fail with 412.",
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Artifact identifier, as an absolute IRI.",
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Deleted"
+          },
+          "400" : {
+            "description" : "The identifier is not a valid URL"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "description" : "No such artifact"
+          },
+          "412" : {
+            "description" : "The supplied If-Match value is stale, weak, or malformed, or the artifact has been written since it was read. Where a revision still exists, the error body's `parameters.currentETag` identifies it."
+          },
+          "428" : {
+            "description" : "Writing over an artifact that already exists requires its current ETag in If-Match."
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        },
+        "security" : [ {
+          "api_key" : [ ]
+        } ],
+        "summary" : "Delete a template field",
+        "tags" : [ "Template fields" ]
+      },
+      "get" : {
+        "description" : "Get a template field by identifier. Served as JSON or YAML, selected by the Accept header.",
+        "operationId" : "findTemplateField",
+        "parameters" : [ {
+          "description" : "Artifact identifier, as an absolute IRI.",
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Return the compact YAML form. It is a lossy read-time convenience, so it is accepted only on reads.",
+          "in" : "query",
+          "name" : "compact",
+          "schema" : {
+            "type" : "boolean"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "The stored template field",
+            "headers" : {
+              "ETag" : {
+                "description" : "Strong validator for the returned representation and its stored revision. A representation suffix such as \"7-yaml\" identifies different bytes of the same stored revision and is a valid write precondition.",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              },
+              "Vary" : {
+                "description" : "Accept, since the representation is negotiated.",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              }
+            }
+          },
+          "400" : {
+            "description" : "The identifier is not a valid URL"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "description" : "No such artifact"
+          },
+          "406" : {
+            "description" : "The Accept header names no representation this artifact can be served in."
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        },
+        "security" : [ {
+          "api_key" : [ ]
+        } ],
+        "summary" : "Get a template field",
+        "tags" : [ "Template fields" ]
+      },
+      "put" : {
+        "description" : "Replace a template field, or create one at a client-supplied identifier that does not yet exist. The body may be JSON or YAML, selected by the Content-Type header. A YAML body must be the full or minimal form. Replacing an artifact that exists is conditional: the current ETag must be supplied in If-Match, so a write can not silently overwrite one that landed since the artifact was read.",
+        "operationId" : "updateTemplateField",
+        "parameters" : [ {
+          "description" : "Required when the identifier already exists and the PUT replaces it; omit it when creating an artifact with a new client-supplied identifier. Supplying it for an absent artifact fails with 412 rather than creating one.",
+          "in" : "header",
+          "name" : "If-Match",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Artifact identifier, as an absolute IRI.",
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Not supported on writes, and rejected with 400. A write response always renders the full form, and the compact form can not be stored.",
+          "in" : "query",
+          "name" : "compact",
+          "schema" : {
+            "type" : "boolean"
+          }
+        }, {
+          "description" : "Store the body exactly as supplied, without preserving creation provenance or minting missing child identifiers. Requires the verbatim-write permission.",
+          "in" : "query",
+          "name" : "verbatim",
+          "schema" : {
+            "type" : "boolean"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "string"
+              }
+            },
+            "application/x-yaml" : {
+              "schema" : {
+                "type" : "string"
+              }
+            },
+            "application/yaml" : {
+              "schema" : {
+                "type" : "string"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "The replaced a template field",
+            "headers" : {
+              "CEDAR-Validation-Status" : {
+                "description" : "Whether the artifact passed validation against the CEDAR model. Every write is validated; an invalid artifact is refused rather than stored.",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              },
+              "ETag" : {
+                "description" : "Strong validator for the returned representation and its stored revision. A representation suffix such as \"7-yaml\" identifies different bytes of the same stored revision and is a valid write precondition.",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              }
+            }
+          },
+          "201" : {
+            "description" : "A template field created at the supplied identifier",
+            "headers" : {
+              "ETag" : {
+                "description" : "Strong validator for the returned representation and its stored revision. A representation suffix such as \"7-yaml\" identifies different bytes of the same stored revision and is a valid write precondition.",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              }
+            }
+          },
+          "400" : {
+            "description" : "The body is empty, has no name, or failed validation"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "Forbidden"
+          },
+          "406" : {
+            "description" : "The Accept header names no representation this artifact can be served in."
+          },
+          "412" : {
+            "description" : "The supplied If-Match value is stale, weak, or malformed, or the artifact has been written since it was read. Where a revision still exists, the error body's `parameters.currentETag` identifies it."
+          },
+          "428" : {
+            "description" : "Writing over an artifact that already exists requires its current ETag in If-Match."
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        },
+        "security" : [ {
+          "api_key" : [ ]
+        } ],
+        "summary" : "Replace a template field",
+        "tags" : [ "Template fields" ]
+      }
+    },
+    "/template-instances" : {
+      "get" : {
+        "description" : "List template instances, one page at a time. The response carries the size of the whole collection and paging links, not just the returned page.",
+        "operationId" : "findAllTemplateInstances",
+        "parameters" : [ {
+          "description" : "Maximum number of artifacts to return.",
+          "in" : "query",
+          "name" : "limit",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "description" : "Number of artifacts to skip before the first one returned.",
+          "in" : "query",
+          "name" : "offset",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "description" : "Return only the summary fields configured for this artifact type.",
+          "in" : "query",
+          "name" : "summary",
+          "schema" : {
+            "type" : "boolean"
+          }
+        }, {
+          "description" : "Comma-separated list of fields to return, in place of the default selection. Ignored when `summary` is set.",
+          "in" : "query",
+          "name" : "field_names",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "A page of instances",
+            "headers" : {
+              "Link" : {
+                "description" : "Paging links for the first, previous, next, and last pages, where those exist.",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              },
+              "Total-Count" : {
+                "description" : "Total number of artifacts of this type, which is the whole collection rather than the returned page.",
+                "schema" : {
+                  "type" : "integer"
+                },
+                "style" : "simple"
+              }
+            }
+          },
+          "400" : {
+            "description" : "A paging parameter is out of range"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "Forbidden"
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        },
+        "security" : [ {
+          "api_key" : [ ]
+        } ],
+        "summary" : "List template instances",
+        "tags" : [ "Template instances" ]
+      },
+      "post" : {
+        "description" : "Create a template instance. The body may be JSON or YAML, selected by the Content-Type header. A YAML body must be the full or minimal form. The instance is validated against the template it names in `schema:isBasedOn`; an invalid one is refused rather than stored. The server mints the identifier, so the body must carry none, and must carry a name.",
+        "operationId" : "createTemplateInstance",
+        "parameters" : [ {
+          "description" : "Accepted for wire compatibility and ignored: every write is validated.",
+          "in" : "query",
+          "name" : "skip_validation",
+          "schema" : {
+            "type" : "boolean"
+          }
+        }, {
+          "description" : "Not supported on writes, and rejected with 400. A write response always renders the full form, and the compact form can not be stored.",
+          "in" : "query",
+          "name" : "compact",
+          "schema" : {
+            "type" : "boolean"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "string"
+              }
+            },
+            "application/x-yaml" : {
+              "schema" : {
+                "type" : "string"
+              }
+            },
+            "application/yaml" : {
+              "schema" : {
+                "type" : "string"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "The stored instance",
+            "headers" : {
+              "CEDAR-Validation-Status" : {
+                "description" : "Whether the artifact passed validation against the CEDAR model. Every write is validated; an invalid artifact is refused rather than stored.",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              },
+              "ETag" : {
+                "description" : "Strong validator for the returned representation and its stored revision. A representation suffix such as \"7-yaml\" identifies different bytes of the same stored revision and is a valid write precondition.",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              },
+              "Location" : {
+                "description" : "URL of the created instance.",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              }
+            }
+          },
+          "400" : {
+            "description" : "The body is empty, carries an identifier, has no name, or failed validation"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "Forbidden"
+          },
+          "406" : {
+            "description" : "The Accept header names no representation this artifact can be served in."
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        },
+        "security" : [ {
+          "api_key" : [ ]
+        } ],
+        "summary" : "Create a template instance",
+        "tags" : [ "Template instances" ]
+      }
+    },
+    "/template-instances/{id}" : {
+      "delete" : {
+        "description" : "Delete a template instance. Conditional on the current ETag, so a delete can not discard a revision written since the instance was read.",
+        "operationId" : "deleteTemplateInstance",
+        "parameters" : [ {
+          "description" : "Strong ETag returned by the corresponding GET. `*` accepts whichever revision currently exists and therefore deliberately gives up lost-update protection. Weak, stale, and malformed validators fail with 412.",
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Instance identifier, as an absolute IRI.",
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Deleted"
+          },
+          "400" : {
+            "description" : "The identifier is not a valid URL"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "description" : "No such instance"
+          },
+          "412" : {
+            "description" : "The supplied If-Match value is stale, weak, or malformed, or the artifact has been written since it was read. Where a revision still exists, the error body's `parameters.currentETag` identifies it."
+          },
+          "428" : {
+            "description" : "Writing over an artifact that already exists requires its current ETag in If-Match."
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        },
+        "security" : [ {
+          "api_key" : [ ]
+        } ],
+        "summary" : "Delete a template instance",
+        "tags" : [ "Template instances" ]
+      },
+      "get" : {
+        "description" : "Get a template instance by identifier. Served as JSON or YAML, selected by the Accept header. An explicit `format` names the representation directly and wins over Accept negotiation.",
+        "operationId" : "findTemplateInstance",
+        "parameters" : [ {
+          "description" : "Instance identifier, as an absolute IRI.",
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Representation to return: `jsonld` (the default), `json`, or `rdf-nquad`. Named explicitly, it wins over Accept negotiation.",
+          "in" : "query",
+          "name" : "format",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Return the compact YAML form. It is a lossy read-time convenience, so it is accepted only on reads.",
+          "in" : "query",
+          "name" : "compact",
+          "schema" : {
+            "type" : "boolean"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "The stored instance",
+            "headers" : {
+              "ETag" : {
+                "description" : "Strong validator for the returned representation and its stored revision. A representation suffix such as \"7-yaml\" identifies different bytes of the same stored revision and is a valid write precondition.",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              },
+              "Vary" : {
+                "description" : "Accept, where the representation was negotiated rather than named by `format`.",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              }
+            }
+          },
+          "400" : {
+            "description" : "The identifier is not a valid URL"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "description" : "No such instance"
+          },
+          "406" : {
+            "description" : "The Accept header names no representation this artifact can be served in."
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        },
+        "security" : [ {
+          "api_key" : [ ]
+        } ],
+        "summary" : "Get a template instance",
+        "tags" : [ "Template instances" ]
+      },
+      "put" : {
+        "description" : "Replace a template instance, or create one at a client-supplied identifier that does not yet exist. The body may be JSON or YAML, selected by the Content-Type header. A YAML body must be the full or minimal form. Replacing an instance that exists is conditional: the current ETag must be supplied in If-Match, so a write can not silently overwrite one that landed since the instance was read.",
+        "operationId" : "updateTemplateInstance",
+        "parameters" : [ {
+          "description" : "Required when the identifier already exists and the PUT replaces it; omit it when creating an artifact with a new client-supplied identifier. Supplying it for an absent artifact fails with 412 rather than creating one.",
+          "in" : "header",
+          "name" : "If-Match",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Instance identifier, as an absolute IRI.",
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Not supported on writes, and rejected with 400. A write response always renders the full form, and the compact form can not be stored.",
+          "in" : "query",
+          "name" : "compact",
+          "schema" : {
+            "type" : "boolean"
+          }
+        }, {
+          "description" : "Store the body exactly as supplied, without preserving creation provenance or minting missing child identifiers. Requires the verbatim-write permission.",
+          "in" : "query",
+          "name" : "verbatim",
+          "schema" : {
+            "type" : "boolean"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "string"
+              }
+            },
+            "application/x-yaml" : {
+              "schema" : {
+                "type" : "string"
+              }
+            },
+            "application/yaml" : {
+              "schema" : {
+                "type" : "string"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "The replaced instance",
+            "headers" : {
+              "CEDAR-Validation-Status" : {
+                "description" : "Whether the artifact passed validation against the CEDAR model. Every write is validated; an invalid artifact is refused rather than stored.",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              },
+              "ETag" : {
+                "description" : "Strong validator for the returned representation and its stored revision. A representation suffix such as \"7-yaml\" identifies different bytes of the same stored revision and is a valid write precondition.",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              }
+            }
+          },
+          "201" : {
+            "description" : "An instance created at the supplied identifier",
+            "headers" : {
+              "ETag" : {
+                "description" : "Strong validator for the returned representation and its stored revision. A representation suffix such as \"7-yaml\" identifies different bytes of the same stored revision and is a valid write precondition.",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              }
+            }
+          },
+          "400" : {
+            "description" : "The body is empty, has no name, or failed validation"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "Forbidden"
+          },
+          "406" : {
+            "description" : "The Accept header names no representation this artifact can be served in."
+          },
+          "412" : {
+            "description" : "The supplied If-Match value is stale, weak, or malformed, or the artifact has been written since it was read. Where a revision still exists, the error body's `parameters.currentETag` identifies it."
+          },
+          "428" : {
+            "description" : "Writing over an artifact that already exists requires its current ETag in If-Match."
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        },
+        "security" : [ {
+          "api_key" : [ ]
+        } ],
+        "summary" : "Replace a template instance",
+        "tags" : [ "Template instances" ]
+      }
+    },
+    "/templates" : {
+      "get" : {
+        "description" : "List templates, one page at a time. The response carries the size of the whole collection and paging links, not just the returned page.",
+        "operationId" : "findAllTemplates",
+        "parameters" : [ {
+          "description" : "Maximum number of artifacts to return.",
+          "in" : "query",
+          "name" : "limit",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "description" : "Number of artifacts to skip before the first one returned.",
+          "in" : "query",
+          "name" : "offset",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "description" : "Return only the summary fields configured for this artifact type.",
+          "in" : "query",
+          "name" : "summary",
+          "schema" : {
+            "type" : "boolean"
+          }
+        }, {
+          "description" : "Comma-separated list of fields to return, in place of the default selection. Ignored when `summary` is set.",
+          "in" : "query",
+          "name" : "field_names",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "A page of templates",
+            "headers" : {
+              "Link" : {
+                "description" : "Paging links for the first, previous, next, and last pages, where those exist.",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              },
+              "Total-Count" : {
+                "description" : "Total number of artifacts of this type, which is the whole collection rather than the returned page.",
+                "schema" : {
+                  "type" : "integer"
+                },
+                "style" : "simple"
+              }
+            }
+          },
+          "400" : {
+            "description" : "A paging parameter is out of range"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "Forbidden"
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        },
+        "security" : [ {
+          "api_key" : [ ]
+        } ],
+        "summary" : "List templates",
+        "tags" : [ "Templates" ]
+      },
+      "post" : {
+        "description" : "Create a template. The body may be JSON or YAML, selected by the Content-Type header. A YAML body must be the full or minimal form. The artifact is validated against the CEDAR model before it is stored; an invalid one is refused rather than stored. The server mints the identifier, so the body must carry none, and must carry a name.",
+        "operationId" : "createTemplate",
+        "parameters" : [ {
+          "description" : "Not supported on writes, and rejected with 400. A write response always renders the full form, and the compact form can not be stored.",
+          "in" : "query",
+          "name" : "compact",
+          "schema" : {
+            "type" : "boolean"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "string"
+              }
+            },
+            "application/x-yaml" : {
+              "schema" : {
+                "type" : "string"
+              }
+            },
+            "application/yaml" : {
+              "schema" : {
+                "type" : "string"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "The stored template",
+            "headers" : {
+              "CEDAR-Validation-Status" : {
+                "description" : "Whether the artifact passed validation against the CEDAR model. Every write is validated; an invalid artifact is refused rather than stored.",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              },
+              "ETag" : {
+                "description" : "Strong validator for the returned representation and its stored revision. A representation suffix such as \"7-yaml\" identifies different bytes of the same stored revision and is a valid write precondition.",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              },
+              "Location" : {
+                "description" : "URL of the created artifact.",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              }
+            }
+          },
+          "400" : {
+            "description" : "The body is empty, carries an identifier, has no name, or failed validation"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "Forbidden"
+          },
+          "406" : {
+            "description" : "The Accept header names no representation this artifact can be served in."
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        },
+        "security" : [ {
+          "api_key" : [ ]
+        } ],
+        "summary" : "Create a template",
+        "tags" : [ "Templates" ]
+      }
+    },
+    "/templates/{id}" : {
+      "delete" : {
+        "description" : "Delete a template. Conditional on the current ETag, so a delete can not discard a revision written since the artifact was read.",
+        "operationId" : "deleteTemplate",
+        "parameters" : [ {
+          "description" : "Strong ETag returned by the corresponding GET. `*` accepts whichever revision currently exists and therefore deliberately gives up lost-update protection. Weak, stale, and malformed validators fail with 412.",
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Artifact identifier, as an absolute IRI.",
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Deleted"
+          },
+          "400" : {
+            "description" : "The artifact is referenced by stored instances and was not deleted"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "description" : "No such artifact"
+          },
+          "412" : {
+            "description" : "The supplied If-Match value is stale, weak, or malformed, or the artifact has been written since it was read. Where a revision still exists, the error body's `parameters.currentETag` identifies it."
+          },
+          "428" : {
+            "description" : "Writing over an artifact that already exists requires its current ETag in If-Match."
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        },
+        "security" : [ {
+          "api_key" : [ ]
+        } ],
+        "summary" : "Delete a template",
+        "tags" : [ "Templates" ]
+      },
+      "get" : {
+        "description" : "Get a template by identifier. Served as JSON or YAML, selected by the Accept header.",
+        "operationId" : "findTemplate",
+        "parameters" : [ {
+          "description" : "Artifact identifier, as an absolute IRI.",
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Return the compact YAML form. It is a lossy read-time convenience, so it is accepted only on reads.",
+          "in" : "query",
+          "name" : "compact",
+          "schema" : {
+            "type" : "boolean"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "The stored template",
+            "headers" : {
+              "ETag" : {
+                "description" : "Strong validator for the returned representation and its stored revision. A representation suffix such as \"7-yaml\" identifies different bytes of the same stored revision and is a valid write precondition.",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              },
+              "Vary" : {
+                "description" : "Accept, since the representation is negotiated.",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              }
+            }
+          },
+          "400" : {
+            "description" : "The identifier is not a valid URL"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "description" : "No such artifact"
+          },
+          "406" : {
+            "description" : "The Accept header names no representation this artifact can be served in."
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        },
+        "security" : [ {
+          "api_key" : [ ]
+        } ],
+        "summary" : "Get a template",
+        "tags" : [ "Templates" ]
+      },
+      "put" : {
+        "description" : "Replace a template, or create one at a client-supplied identifier that does not yet exist. The body may be JSON or YAML, selected by the Content-Type header. A YAML body must be the full or minimal form. Replacing an artifact that exists is conditional: the current ETag must be supplied in If-Match, so a write can not silently overwrite one that landed since the artifact was read.",
+        "operationId" : "updateTemplate",
+        "parameters" : [ {
+          "description" : "Required when the identifier already exists and the PUT replaces it; omit it when creating an artifact with a new client-supplied identifier. Supplying it for an absent artifact fails with 412 rather than creating one.",
+          "in" : "header",
+          "name" : "If-Match",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Artifact identifier, as an absolute IRI.",
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Not supported on writes, and rejected with 400. A write response always renders the full form, and the compact form can not be stored.",
+          "in" : "query",
+          "name" : "compact",
+          "schema" : {
+            "type" : "boolean"
+          }
+        }, {
+          "description" : "Store the body exactly as supplied, without preserving creation provenance or minting missing child identifiers. Requires the verbatim-write permission.",
+          "in" : "query",
+          "name" : "verbatim",
+          "schema" : {
+            "type" : "boolean"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "string"
+              }
+            },
+            "application/x-yaml" : {
+              "schema" : {
+                "type" : "string"
+              }
+            },
+            "application/yaml" : {
+              "schema" : {
+                "type" : "string"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "The replaced a template",
+            "headers" : {
+              "CEDAR-Validation-Status" : {
+                "description" : "Whether the artifact passed validation against the CEDAR model. Every write is validated; an invalid artifact is refused rather than stored.",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              },
+              "ETag" : {
+                "description" : "Strong validator for the returned representation and its stored revision. A representation suffix such as \"7-yaml\" identifies different bytes of the same stored revision and is a valid write precondition.",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              }
+            }
+          },
+          "201" : {
+            "description" : "A template created at the supplied identifier",
+            "headers" : {
+              "ETag" : {
+                "description" : "Strong validator for the returned representation and its stored revision. A representation suffix such as \"7-yaml\" identifies different bytes of the same stored revision and is a valid write precondition.",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              }
+            }
+          },
+          "400" : {
+            "description" : "The body is empty, has no name, or failed validation"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "Forbidden"
+          },
+          "406" : {
+            "description" : "The Accept header names no representation this artifact can be served in."
+          },
+          "412" : {
+            "description" : "The supplied If-Match value is stale, weak, or malformed, or the artifact has been written since it was read. Where a revision still exists, the error body's `parameters.currentETag` identifies it."
+          },
+          "428" : {
+            "description" : "Writing over an artifact that already exists requires its current ETag in If-Match."
+          },
+          "500" : {
+            "description" : "Internal server error"
+          }
+        },
+        "security" : [ {
+          "api_key" : [ ]
+        } ],
+        "summary" : "Replace a template",
+        "tags" : [ "Templates" ]
+      }
+    }
+  },
+  "components" : {
+    "securitySchemes" : {
+      "api_key" : {
+        "description" : "Your CEDAR API key, using the format 'apiKey <yourApiKey>'",
+        "in" : "header",
+        "name" : "Authorization",
+        "type" : "apiKey"
+      }
+    }
+  }
+}

@@ -5,16 +5,14 @@ import io.dropwizard.core.setup.Bootstrap;
 import io.dropwizard.core.setup.Environment;
 import org.metadatacenter.bridge.CedarDataServices;
 import org.metadatacenter.cedar.artifact.resources.*;
-import org.metadatacenter.cedar.util.dw.CedarDefaultHealthCheck;
+import org.metadatacenter.cedar.util.dw.CedarMicroserviceIndexResource;
 import org.metadatacenter.cedar.util.dw.CedarMicroserviceApplicationWithMongo;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.config.MongoConfig;
 import org.metadatacenter.model.ServerName;
-import org.metadatacenter.server.service.mongodb.DiagnosticsServiceMongoDB;
 
 public class ArtifactServerApplication extends CedarMicroserviceApplicationWithMongo<ArtifactServerConfiguration> {
 
-  private ArtifactServerMongoHealthCheck mongoHealthCheck;
 
   public static void main(String[] args) throws Exception {
     new ArtifactServerApplication().run(args);
@@ -37,14 +35,13 @@ public class ArtifactServerApplication extends CedarMicroserviceApplicationWithM
     MongoClient mongoClientForDocuments = CedarDataServices.getInstance().getMongoClientFactoryForDocuments().getClient();
 
     initMongoServices(mongoClientForDocuments, artifactServerConfig);
-    mongoHealthCheck = new ArtifactServerMongoHealthCheck(
-        new DiagnosticsServiceMongoDB(mongoClientForDocuments, artifactServerConfig.getDatabaseName()));
   }
 
   @Override
   public void runApp(ArtifactServerConfiguration configuration, Environment environment) {
 
-    final IndexResource index = new IndexResource(cedarConfig);
+    final CedarMicroserviceIndexResource index =
+        new CedarMicroserviceIndexResource(cedarConfig, getServerName());
     environment.jersey().register(index);
 
     final TemplateFieldsResource fields = new TemplateFieldsResource(cedarConfig, templateFieldService);
@@ -63,8 +60,5 @@ public class ArtifactServerApplication extends CedarMicroserviceApplicationWithM
     final CommandResource commands = new CommandResource(cedarConfig, templateService);
     environment.jersey().register(commands);
 
-    final CedarDefaultHealthCheck healthCheck = new CedarDefaultHealthCheck();
-    environment.healthChecks().register("message", healthCheck);
-    environment.healthChecks().register("mongo", mongoHealthCheck);
   }
 }

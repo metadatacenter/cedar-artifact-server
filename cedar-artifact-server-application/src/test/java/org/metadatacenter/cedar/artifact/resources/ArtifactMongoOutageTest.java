@@ -32,9 +32,9 @@ class ArtifactMongoOutageTest {
 
   static {
     Map<String, String> environment = new HashMap<>(CedarEnvironmentSource.getAll());
-    environment.put("CEDAR_ARTIFACT_HTTP_PORT", "19001");
-    environment.put("CEDAR_ARTIFACT_ADMIN_PORT", "19101");
-    environment.put("CEDAR_ARTIFACT_STOP_PORT", "19201");
+    environment.put("CEDAR_ARTIFACT_HTTP_PORT", "0");
+    environment.put("CEDAR_ARTIFACT_ADMIN_PORT", "0");
+    environment.put("CEDAR_ARTIFACT_STOP_PORT", "0");
     environment.put("CEDAR_MONGO_HOST", "127.0.0.1");
     environment.put("CEDAR_MONGO_PORT", "1");
     environment.put("CEDAR_NEO4J_HOST", "127.0.0.1");
@@ -68,9 +68,9 @@ class ArtifactMongoOutageTest {
     // This suite reuses one JVM. Restore the ordinary embedded-store environment so a class which
     // boots after this one cannot inherit the deliberately dead client configuration.
     EmbeddedCedarMongo.startAndRedirectEnvironment(Map.of(
-        "CEDAR_ARTIFACT_HTTP_PORT", "19001",
-        "CEDAR_ARTIFACT_ADMIN_PORT", "19101",
-        "CEDAR_ARTIFACT_STOP_PORT", "19201",
+        "CEDAR_ARTIFACT_HTTP_PORT", "0",
+        "CEDAR_ARTIFACT_ADMIN_PORT", "0",
+        "CEDAR_ARTIFACT_STOP_PORT", "0",
         "CEDAR_REDIS_PERSISTENT_PORT", "1"));
   }
 

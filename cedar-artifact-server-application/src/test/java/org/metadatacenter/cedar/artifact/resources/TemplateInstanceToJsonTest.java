@@ -11,6 +11,7 @@ import org.metadatacenter.model.request.OutputFormatType;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TemplateInstanceToJsonTest extends BaseServerTest {
 
@@ -46,6 +47,7 @@ public class TemplateInstanceToJsonTest extends BaseServerTest {
     checkStatusOk(response);
     // Assert header
     assertThat(response.getHeaderString(HttpHeaders.CONTENT_TYPE), is(MediaType.APPLICATION_JSON));
+    assertEquals("\"1-json\"", response.getHeaderString(HttpHeaders.ETAG));
     // Assert content
     String responseContent = response.readEntity(String.class);
     System.out.println(responseContent);
