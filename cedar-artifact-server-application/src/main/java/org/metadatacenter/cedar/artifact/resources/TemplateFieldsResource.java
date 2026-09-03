@@ -5,6 +5,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.headers.Header;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -91,6 +93,14 @@ public class TemplateFieldsResource extends AbstractArtifactCrudResource {
       description = "Get a template field by identifier. " + ArtifactApiDocs.READ_FORMAT)
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "The stored template field",
+          content = {
+              @Content(mediaType = MediaType.APPLICATION_JSON,
+                  schema = @Schema(ref = "#/components/schemas/ArtifactDocument")),
+              @Content(mediaType = HttpConstants.CONTENT_TYPE_APPLICATION_YAML,
+                  schema = @Schema(ref = "#/components/schemas/ArtifactDocument")),
+              @Content(mediaType = "application/yaml",
+                  schema = @Schema(ref = "#/components/schemas/ArtifactDocument"))
+          },
           headers = {
               @Header(name = "ETag", description = ArtifactApiDocs.ETAG, schema = @Schema(type = "string")),
               @Header(name = "Vary", description = "Accept, since the representation is negotiated.",
@@ -118,6 +128,8 @@ public class TemplateFieldsResource extends AbstractArtifactCrudResource {
           + "collection and paging links, not just the returned page.")
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "A page of template fields",
+          content = @Content(mediaType = MediaType.APPLICATION_JSON,
+              array = @ArraySchema(schema = @Schema(ref = "#/components/schemas/ArtifactDocument"))),
           headers = {
               @Header(name = "Total-Count", description = ArtifactApiDocs.TOTAL_COUNT, schema = @Schema(type = "integer")),
               @Header(name = "Link", description = ArtifactApiDocs.LINK, schema = @Schema(type = "string"))
