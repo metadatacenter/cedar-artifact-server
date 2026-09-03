@@ -347,6 +347,8 @@ public abstract class AbstractArtifactServerResource extends CedarMicroserviceRe
       try {
         String json = ArtifactYamlTranscoder.yamlToJsonString(requestBody, resourceType, templateResolver);
         return new HttpRequestJsonBody(JsonMapper.MAPPER.readTree(json));
+      } catch (ArtifactYamlTranscoder.CompactYamlBodyException e) {
+        throw new CedarBadRequestException(e.getMessage(), e);
       } catch (Exception e) {
         throw new CedarBadRequestException("There was an error converting the YAML request body to JSON", e);
       }

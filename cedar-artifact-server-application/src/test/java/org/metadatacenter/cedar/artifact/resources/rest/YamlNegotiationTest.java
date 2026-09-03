@@ -88,6 +88,7 @@ public class YamlNegotiationTest extends AbstractRestTest {
 
     assertTrue(compact.length() < full.length(),
         "the compact form drops provenance, version and status, so it is smaller");
+    assertTrue(compact.contains(id), "the compact form retains artifact identity");
     assertTrue(full.contains("modelVersion:"));
     assertFalse(compact.contains("modelVersion:"), "the compact form carries no system-recorded keys");
   }
@@ -138,27 +139,18 @@ public class YamlNegotiationTest extends AbstractRestTest {
     assertEquals("YAML Posted Template", created.get("schema:name").asText());
   }
 
-  /**
-   * A body that names an artifact is read as a stored one, and a stored one carries its model version.
-   *
-   * <p>The shape below — an id with none of the system-recorded keys — used to be caught by a guard of
-   * its own, as the signature of the compact form, which strips those keys and could not be stored
-   * without silently regenerating them. The guard is gone: compact stopped carrying the identifier, so
-   * nothing emits that signature any more. The shape is still refused, by the reader rather than a
-   * guard — naming an artifact is what selects the full form, and the full form requires
-   * {@code modelVersion}.
-   */
   @Test
-  public void postRejectsAYamlBodyThatNamesAnArtifactWithoutItsModelVersion() throws IOException {
-    String naming = "type: template\nname: Compact\nid: https://repo.metadatacenter.org/templates/"
+  public void postRejectsTheCompactYamlForm() throws IOException {
+    // An id with none of the system-recorded keys is the signature of the compact form, which is
+    // a lossy read-time convenience and can not be stored.
+    String compact = "type: template\nname: Compact\nid: https://repo.metadatacenter.org/templates/"
         + "11111111-1111-1111-1111-111111111111\n";
 
     Response response = request(baseTestUrl + "/" + CedarResourceType.TEMPLATE.getPrefix())
-        .post(Entity.entity(naming, APPLICATION_YAML));
+        .post(Entity.entity(compact, APPLICATION_YAML));
 
     assertEquals(CedarResponseStatus.BAD_REQUEST.getStatusCode(), response.getStatus());
-    assertTrue(response.readEntity(String.class).contains("modelVersion"),
-        "the refusal names what the form it was read as requires");
+    assertTrue(response.readEntity(String.class).contains("compact form"));
   }
 
   @Test
