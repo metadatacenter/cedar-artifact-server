@@ -363,7 +363,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
         logLegacyArtifactRepairs(
             linkedDataUtil.repairInheritedDefects(newArtifact, currentArtifact, null, resourceType), id);
       }
-      provenanceUtil.patchProvenanceInfo(newArtifact, pi);
+      stampProvenanceForPut(newArtifact, currentArtifact, pi);
       // and a property IRI for any child added during the edit
       linkedDataUtil.addChildPropertyIris(newArtifact, resourceType);
     }
@@ -387,6 +387,20 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
       }
     }
     return negotiateArtifactResponse(response, resourceType);
+  }
+
+  /**
+   * Stamps the provenance that belongs to this PUT before validation. A PUT can create when its
+   * identifier does not exist, and that path must establish creation provenance from the
+   * authenticated caller just as POST does. A replacement stamps only modification provenance;
+   * {@link #updateOrCreateArtifactInDatabase} then restores its creation provenance from storage.
+   */
+  protected void stampProvenanceForPut(JsonNode artifact, JsonNode currentArtifact, ProvenanceInfo pi) {
+    if (currentArtifact == null) {
+      provenanceUtil.addProvenanceInfo(artifact, pi);
+    } else {
+      provenanceUtil.patchProvenanceInfo(artifact, pi);
+    }
   }
 
   /**

@@ -374,7 +374,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
       logLegacyArtifactRepairs(
           linkedDataUtil.repairInheritedDefects(newInstance, currentTemplateInstance, instanceSchema,
               CedarResourceType.INSTANCE), id);
-      provenanceUtil.patchProvenanceInfo(newInstance, pi);
+      stampProvenanceForPut(newInstance, currentTemplateInstance, pi);
 
       // add template-element-instance ids if needed. For instance, this may be needed if new items are added to an
       // array
