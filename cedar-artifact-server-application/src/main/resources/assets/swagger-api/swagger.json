@@ -3,7 +3,7 @@
   "info" : {
     "description" : "Better Metadata - Better Science\n\nThe artifact server stores templates, template elements, template fields, and template\ninstances, and validates every one of them against the CEDAR model before storing it.\n\nArtifacts use strong ETags for optimistic concurrency. Read the artifact and send the returned\nETag in `If-Match` when replacing or deleting it. A missing required precondition returns 428;\na stale or malformed validator returns 412. `If-Match: *` accepts whichever revision currently\nexists and therefore deliberately gives up lost-update protection. Representation suffixes such\nas `\"7-yaml\"` and `\"7-yaml-compact\"` identify different bytes of the same stored revision and\nare valid write preconditions.\n\nArtifacts are read and written as JSON or YAML, selected by the Accept and Content-Type\nheaders. The compact YAML form is a lossy read-time convenience: it can be read but not stored.\n",
     "title" : "CEDAR Artifact Server API",
-    "version" : "2.9.6"
+    "version" : "2.9.7"
   },
   "paths" : {
     "/command/validate" : {
@@ -96,6 +96,16 @@
         } ],
         "responses" : {
           "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ArtifactDocument"
+                  }
+                }
+              }
+            },
             "description" : "A page of template elements",
             "headers" : {
               "Link" : {
@@ -287,6 +297,23 @@
         } ],
         "responses" : {
           "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ArtifactDocument"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ArtifactDocument"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ArtifactDocument"
+                }
+              }
+            },
             "description" : "The stored template element",
             "headers" : {
               "ETag" : {
@@ -480,6 +507,16 @@
         } ],
         "responses" : {
           "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ArtifactDocument"
+                  }
+                }
+              }
+            },
             "description" : "A page of template fields",
             "headers" : {
               "Link" : {
@@ -671,6 +708,23 @@
         } ],
         "responses" : {
           "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ArtifactDocument"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ArtifactDocument"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ArtifactDocument"
+                }
+              }
+            },
             "description" : "The stored template field",
             "headers" : {
               "ETag" : {
@@ -864,6 +918,16 @@
         } ],
         "responses" : {
           "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ArtifactDocument"
+                  }
+                }
+              }
+            },
             "description" : "A page of instances",
             "headers" : {
               "Link" : {
@@ -1069,6 +1133,28 @@
         } ],
         "responses" : {
           "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ArtifactDocument"
+                }
+              },
+              "application/n-quads" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ArtifactDocument"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ArtifactDocument"
+                }
+              }
+            },
             "description" : "The stored instance",
             "headers" : {
               "ETag" : {
@@ -1262,6 +1348,16 @@
         } ],
         "responses" : {
           "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ArtifactDocument"
+                  }
+                }
+              }
+            },
             "description" : "A page of templates",
             "headers" : {
               "Link" : {
@@ -1453,6 +1549,23 @@
         } ],
         "responses" : {
           "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ArtifactDocument"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ArtifactDocument"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ArtifactDocument"
+                }
+              }
+            },
             "description" : "The stored template",
             "headers" : {
               "ETag" : {
@@ -1611,6 +1724,53 @@
     }
   },
   "components" : {
+    "schemas" : {
+      "ArtifactDocument" : {
+        "type" : "object",
+        "additionalProperties" : true,
+        "description" : "An open CEDAR JSON-LD artifact. Templates, elements, fields, and instances have different\nmodel-defined properties, and user-defined field names are legal, so the schema deliberately\ndescribes the common identity and provenance surface without closing the object.\n",
+        "properties" : {
+          "@id" : {
+            "type" : "string",
+            "format" : "uri"
+          },
+          "@type" : {
+            "oneOf" : [ {
+              "type" : "string",
+              "format" : "uri"
+            }, {
+              "type" : "array",
+              "items" : {
+                "type" : "string",
+                "format" : "uri"
+              }
+            } ]
+          },
+          "oslc:modifiedBy" : {
+            "type" : "string",
+            "format" : "uri"
+          },
+          "pav:createdBy" : {
+            "type" : "string",
+            "format" : "uri"
+          },
+          "pav:createdOn" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "pav:lastUpdatedOn" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "schema:description" : {
+            "type" : "string"
+          },
+          "schema:name" : {
+            "type" : "string"
+          }
+        }
+      }
+    },
     "securitySchemes" : {
       "api_key" : {
         "description" : "Your CEDAR API key, using the format 'apiKey <yourApiKey>'",

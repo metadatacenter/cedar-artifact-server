@@ -16,7 +16,7 @@ info:
     Artifacts are read and written as JSON or YAML, selected by the Accept and Content-Type
     headers. The compact YAML form is a lossy read-time convenience: it can be read but not stored.
   title: CEDAR Artifact Server API
-  version: 2.9.6
+  version: 2.9.7
 paths:
   /command/validate:
     post:
@@ -94,6 +94,12 @@ paths:
           type: string
       responses:
         "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ArtifactDocument"
           description: A page of template elements
           headers:
             Link:
@@ -250,6 +256,16 @@ paths:
           type: boolean
       responses:
         "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArtifactDocument"
+            application/x-yaml:
+              schema:
+                $ref: "#/components/schemas/ArtifactDocument"
+            application/yaml:
+              schema:
+                $ref: "#/components/schemas/ArtifactDocument"
           description: The stored template element
           headers:
             ETag:
@@ -412,6 +428,12 @@ paths:
           type: string
       responses:
         "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ArtifactDocument"
           description: A page of template fields
           headers:
             Link:
@@ -568,6 +590,16 @@ paths:
           type: boolean
       responses:
         "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArtifactDocument"
+            application/x-yaml:
+              schema:
+                $ref: "#/components/schemas/ArtifactDocument"
+            application/yaml:
+              schema:
+                $ref: "#/components/schemas/ArtifactDocument"
           description: The stored template field
           headers:
             ETag:
@@ -730,6 +762,12 @@ paths:
           type: string
       responses:
         "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ArtifactDocument"
           description: A page of instances
           headers:
             Link:
@@ -899,6 +937,19 @@ paths:
           type: boolean
       responses:
         "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArtifactDocument"
+            application/n-quads:
+              schema:
+                type: string
+            application/x-yaml:
+              schema:
+                $ref: "#/components/schemas/ArtifactDocument"
+            application/yaml:
+              schema:
+                $ref: "#/components/schemas/ArtifactDocument"
           description: The stored instance
           headers:
             ETag:
@@ -1061,6 +1112,12 @@ paths:
           type: string
       responses:
         "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ArtifactDocument"
           description: A page of templates
           headers:
             Link:
@@ -1218,6 +1275,16 @@ paths:
           type: boolean
       responses:
         "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArtifactDocument"
+            application/x-yaml:
+              schema:
+                $ref: "#/components/schemas/ArtifactDocument"
+            application/yaml:
+              schema:
+                $ref: "#/components/schemas/ArtifactDocument"
           description: The stored template
           headers:
             ETag:
@@ -1349,6 +1416,42 @@ paths:
       tags:
       - Templates
 components:
+  schemas:
+    ArtifactDocument:
+      type: object
+      additionalProperties: true
+      description: |
+        An open CEDAR JSON-LD artifact. Templates, elements, fields, and instances have different
+        model-defined properties, and user-defined field names are legal, so the schema deliberately
+        describes the common identity and provenance surface without closing the object.
+      properties:
+        '@id':
+          type: string
+          format: uri
+        '@type':
+          oneOf:
+          - type: string
+            format: uri
+          - type: array
+            items:
+              type: string
+              format: uri
+        oslc:modifiedBy:
+          type: string
+          format: uri
+        pav:createdBy:
+          type: string
+          format: uri
+        pav:createdOn:
+          type: string
+          format: date-time
+        pav:lastUpdatedOn:
+          type: string
+          format: date-time
+        schema:description:
+          type: string
+        schema:name:
+          type: string
   securitySchemes:
     api_key:
       description: "Your CEDAR API key, using the format 'apiKey <yourApiKey>'"

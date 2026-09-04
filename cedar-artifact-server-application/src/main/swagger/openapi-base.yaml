@@ -21,6 +21,42 @@ info:
     headers. The compact YAML form is a lossy read-time convenience: it can be read but not stored.
   version: ${project.version}
 components:
+  schemas:
+    ArtifactDocument:
+      type: object
+      description: |
+        An open CEDAR JSON-LD artifact. Templates, elements, fields, and instances have different
+        model-defined properties, and user-defined field names are legal, so the schema deliberately
+        describes the common identity and provenance surface without closing the object.
+      properties:
+        '@id':
+          type: string
+          format: uri
+        '@type':
+          oneOf:
+            - type: string
+              format: uri
+            - type: array
+              items:
+                type: string
+                format: uri
+        'schema:name':
+          type: string
+        'schema:description':
+          type: string
+        'pav:createdOn':
+          type: string
+          format: date-time
+        'pav:lastUpdatedOn':
+          type: string
+          format: date-time
+        'pav:createdBy':
+          type: string
+          format: uri
+        'oslc:modifiedBy':
+          type: string
+          format: uri
+      additionalProperties: true
   securitySchemes:
     api_key:
       type: apiKey
