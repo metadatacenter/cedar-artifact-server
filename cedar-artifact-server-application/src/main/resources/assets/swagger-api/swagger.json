@@ -43,12 +43,33 @@
             "description" : "The validation report"
           },
           "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "The body could not be read as the named artifact type"
           },
           "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Unauthorized"
           },
           "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "No validation exists for the named artifact type"
           }
         },
@@ -125,15 +146,43 @@
             }
           },
           "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "A paging parameter is out of range"
           },
           "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Unauthorized"
           },
           "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Forbidden"
           },
           "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Internal server error"
           }
         },
@@ -201,18 +250,103 @@
             }
           },
           "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "The body is empty, carries an identifier, has no name, or failed validation"
           },
           "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Unauthorized"
           },
           "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Forbidden"
           },
           "406" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "The Accept header names no representation this artifact can be served in."
           },
           "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Internal server error"
           }
         },
@@ -249,24 +383,73 @@
             "description" : "Deleted"
           },
           "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "The identifier is not a valid URL"
           },
           "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Unauthorized"
           },
           "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Forbidden"
           },
           "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "No such artifact"
           },
           "412" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "The supplied If-Match value is stale, weak, or malformed, or the artifact has been written since it was read. Where a revision still exists, the error body's `parameters.currentETag` identifies it."
           },
           "428" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Writing over an artifact that already exists requires its current ETag in If-Match."
           },
           "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Internal server error"
           }
         },
@@ -333,21 +516,123 @@
             }
           },
           "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "The identifier is not a valid URL"
           },
           "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Unauthorized"
           },
           "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Forbidden"
           },
           "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "No such artifact"
           },
           "406" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "The Accept header names no representation this artifact can be served in."
           },
           "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Internal server error"
           }
         },
@@ -442,24 +727,143 @@
             }
           },
           "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "The body is empty, has no name, or failed validation"
           },
           "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Unauthorized"
           },
           "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Forbidden"
           },
           "406" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "The Accept header names no representation this artifact can be served in."
           },
           "412" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "The supplied If-Match value is stale, weak, or malformed, or the artifact has been written since it was read. Where a revision still exists, the error body's `parameters.currentETag` identifies it."
           },
           "428" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Writing over an artifact that already exists requires its current ETag in If-Match."
           },
           "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Internal server error"
           }
         },
@@ -536,15 +940,43 @@
             }
           },
           "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "A paging parameter is out of range"
           },
           "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Unauthorized"
           },
           "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Forbidden"
           },
           "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Internal server error"
           }
         },
@@ -612,18 +1044,103 @@
             }
           },
           "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "The body is empty, carries an identifier, has no name, or failed validation"
           },
           "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Unauthorized"
           },
           "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Forbidden"
           },
           "406" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "The Accept header names no representation this artifact can be served in."
           },
           "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Internal server error"
           }
         },
@@ -660,24 +1177,73 @@
             "description" : "Deleted"
           },
           "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "The identifier is not a valid URL"
           },
           "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Unauthorized"
           },
           "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Forbidden"
           },
           "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "No such artifact"
           },
           "412" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "The supplied If-Match value is stale, weak, or malformed, or the artifact has been written since it was read. Where a revision still exists, the error body's `parameters.currentETag` identifies it."
           },
           "428" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Writing over an artifact that already exists requires its current ETag in If-Match."
           },
           "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Internal server error"
           }
         },
@@ -744,21 +1310,123 @@
             }
           },
           "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "The identifier is not a valid URL"
           },
           "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Unauthorized"
           },
           "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Forbidden"
           },
           "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "No such artifact"
           },
           "406" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "The Accept header names no representation this artifact can be served in."
           },
           "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Internal server error"
           }
         },
@@ -853,24 +1521,143 @@
             }
           },
           "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "The body is empty, has no name, or failed validation"
           },
           "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Unauthorized"
           },
           "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Forbidden"
           },
           "406" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "The Accept header names no representation this artifact can be served in."
           },
           "412" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "The supplied If-Match value is stale, weak, or malformed, or the artifact has been written since it was read. Where a revision still exists, the error body's `parameters.currentETag` identifies it."
           },
           "428" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Writing over an artifact that already exists requires its current ETag in If-Match."
           },
           "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Internal server error"
           }
         },
@@ -947,15 +1734,43 @@
             }
           },
           "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "A paging parameter is out of range"
           },
           "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Unauthorized"
           },
           "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Forbidden"
           },
           "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Internal server error"
           }
         },
@@ -1030,18 +1845,103 @@
             }
           },
           "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "The body is empty, carries an identifier, has no name, or failed validation"
           },
           "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Unauthorized"
           },
           "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Forbidden"
           },
           "406" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "The Accept header names no representation this artifact can be served in."
           },
           "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Internal server error"
           }
         },
@@ -1078,24 +1978,73 @@
             "description" : "Deleted"
           },
           "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "The identifier is not a valid URL"
           },
           "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Unauthorized"
           },
           "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Forbidden"
           },
           "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "No such instance"
           },
           "412" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "The supplied If-Match value is stale, weak, or malformed, or the artifact has been written since it was read. Where a revision still exists, the error body's `parameters.currentETag` identifies it."
           },
           "428" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Writing over an artifact that already exists requires its current ETag in If-Match."
           },
           "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Internal server error"
           }
         },
@@ -1174,21 +2123,153 @@
             }
           },
           "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/n-quads" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "The identifier is not a valid URL"
           },
           "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/n-quads" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Unauthorized"
           },
           "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/n-quads" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Forbidden"
           },
           "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/n-quads" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "No such instance"
           },
           "406" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/n-quads" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "The Accept header names no representation this artifact can be served in."
           },
           "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/n-quads" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Internal server error"
           }
         },
@@ -1283,24 +2364,143 @@
             }
           },
           "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "The body is empty, has no name, or failed validation"
           },
           "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Unauthorized"
           },
           "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Forbidden"
           },
           "406" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "The Accept header names no representation this artifact can be served in."
           },
           "412" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "The supplied If-Match value is stale, weak, or malformed, or the artifact has been written since it was read. Where a revision still exists, the error body's `parameters.currentETag` identifies it."
           },
           "428" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Writing over an artifact that already exists requires its current ETag in If-Match."
           },
           "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Internal server error"
           }
         },
@@ -1377,15 +2577,43 @@
             }
           },
           "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "A paging parameter is out of range"
           },
           "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Unauthorized"
           },
           "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Forbidden"
           },
           "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Internal server error"
           }
         },
@@ -1453,18 +2681,103 @@
             }
           },
           "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "The body is empty, carries an identifier, has no name, or failed validation"
           },
           "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Unauthorized"
           },
           "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Forbidden"
           },
           "406" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "The Accept header names no representation this artifact can be served in."
           },
           "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Internal server error"
           }
         },
@@ -1501,24 +2814,73 @@
             "description" : "Deleted"
           },
           "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "The artifact is referenced by stored instances and was not deleted"
           },
           "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Unauthorized"
           },
           "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Forbidden"
           },
           "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "No such artifact"
           },
           "412" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "The supplied If-Match value is stale, weak, or malformed, or the artifact has been written since it was read. Where a revision still exists, the error body's `parameters.currentETag` identifies it."
           },
           "428" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Writing over an artifact that already exists requires its current ETag in If-Match."
           },
           "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Internal server error"
           }
         },
@@ -1585,21 +2947,123 @@
             }
           },
           "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "The identifier is not a valid URL"
           },
           "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Unauthorized"
           },
           "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Forbidden"
           },
           "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "No such artifact"
           },
           "406" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "The Accept header names no representation this artifact can be served in."
           },
           "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Internal server error"
           }
         },
@@ -1694,24 +3158,143 @@
             }
           },
           "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "The body is empty, has no name, or failed validation"
           },
           "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Unauthorized"
           },
           "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Forbidden"
           },
           "406" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "The Accept header names no representation this artifact can be served in."
           },
           "412" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "The supplied If-Match value is stale, weak, or malformed, or the artifact has been written since it was read. Where a revision still exists, the error body's `parameters.currentETag` identifies it."
           },
           "428" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Writing over an artifact that already exists requires its current ETag in If-Match."
           },
           "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/x-yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              },
+              "application/yaml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
             "description" : "Internal server error"
           }
         },
@@ -1769,6 +3352,102 @@
             "type" : "string"
           }
         }
+      },
+      "CedarError" : {
+        "type" : "object",
+        "additionalProperties" : true,
+        "description" : "A CEDAR error response. Diagnostic fields are populated only when they are relevant to the failure.",
+        "properties" : {
+          "entities" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "object",
+              "description" : "Named domain entities associated with exception-mapped errors.",
+              "nullable" : true
+            },
+            "description" : "Named domain entities associated with exception-mapped errors.",
+            "nullable" : true
+          },
+          "errorId" : {
+            "type" : "string",
+            "format" : "uuid",
+            "description" : "Correlation identifier for an internal error recorded in server logs.",
+            "nullable" : true
+          },
+          "errorKey" : {
+            "type" : "string",
+            "description" : "Stable machine-readable error identifier.",
+            "enum" : [ "templateElementNotCreated", "templateElementNotFound", "templateElementNotDeleted", "templateElementNotUpdated", "templateElementsNotListed", "templateFieldNotCreated", "templateFieldNotFound", "templateFieldNotDeleted", "templateFieldNotUpdated", "templateFieldsNotListed", "templateNotCreated", "templateNotFound", "templateNotDeleted", "templateNotUpdated", "templatesNotListed", "templateInstanceNotCreated", "templateInstanceNotFound", "templateInstanceNotDeleted", "templateInstanceNotUpdated", "templateInstancesNotListed", "noReadAccessToResource", "noWriteAccessToResource", "noReadAccessToFolder", "noWriteAccessToFolder", "noReadAccessToTemplate", "noWriteAccessToTemplate", "noReadAccessToTemplateElement", "noWriteAccessToTemplateElement", "noReadAccessToTemplateField", "noWriteAccessToTemplateField", "noReadAccessToTemplateInstance", "noWriteAccessToTemplateInstance", "noReadAccessToArtifact", "noWriteAccessToArtifact", "noWriteAccessToCategory", "folderNotFound", "artifactNotFound", "artifactPreconditionRequired", "artifactHasMovedOn", "verbatimWriteRefused", "nodeNotFound", "unknownResourceType", "missingParameter", "invalidInput", "sourceFolderNotFound", "sourceResourceNotFound", "targetFolderNotFound", "nodeNotMoved", "groupNotFound", "userNotFound", "uniqueConstraintCollision", "invalidData", "notAuthorized", "permissionMissing", "tokenInvalid", "userInfoLoadByTokenFailed", "userInfoLoadByApiKeyFailed", "cedarUserNotFound", "authorizationNotFound", "permissionNotOwned", "authorizationTypeUnknown", "apiKeyNotFound", "tokenMissing", "tokenExpired", "parentFolderNotSpecified", "parentFolderSpecifiedTwice", "pathNotNormalized", "parentFolderNotFound", "updateInvalidFolderName", "createInvalidFolderName", "nodeAlreadyPresent", "folderNotCreated", "missingNameAndDescription", "missingData", "folderNotDeleted", "artifactNotDeleted", "resourceNotCreated", "invalidResourceType", "invalidArtifactType", "readOtherProfileForbidden", "updateOtherProfileForbidden", "folderCanNotBeDeleted", "folderCanNotBeChanged", "groupAlreadyPresent", "groupCanBeModifiedOnlyByGroupAdmin", "groupCanBeDeletedOnlyByGroupAdmin", "groupUsersNotUpdated", "specialGroupCanNotBeDeleted", "folderPermissionsCanNotBeChanged", "unknownInstanceOutputFormat", "folderCopyNotAllowed", "methodNotImplemented", "upstreamServerError", "nothingToDo", "parentCategoryNotFound", "categoryAlreadyPresent", "categoryNotFound", "categoryCanNotBeDeleted", "rootCategoryCanNotBeDeleted", "unableToAttachCategory", "unableToDetachCategory", "noCategoriesWereAttached", "malformedJsonRequestBody", "malformedSearchTerm", "publishedArtifactCanNotBeChanged", "publishedArtifactCanNotBeDeleted", "versioningOnlyOnLatest", "versioningOnlyByOwner", "nonVersionedArtifactType", "createDraftOnlyFromPublished", "publishOnlyDraft", "draftNotCreated", "contentNotValid", "doiNotSupportedByResourceType", "doiCanNotBeSetForEmptyAtId", "doiCanNotBeAltered", "doiCanNotBeSet", "doiAlreadyExists", "dataCiteDOIDisabled", "resourceNotFound", "internalError" ],
+            "nullable" : true
+          },
+          "errorMessage" : {
+            "type" : "string",
+            "description" : "Alias of message retained for compatibility.",
+            "nullable" : true
+          },
+          "errorReasonKey" : {
+            "type" : "string",
+            "description" : "More specific machine-readable reason for the error.",
+            "enum" : [ "nonEmptyFolder", "nonEmptyCategory", "userHomeFolder", "systemFolder", "templateReferencedInInstances", "validationError", "continuationExpired" ],
+            "nullable" : true
+          },
+          "errorType" : {
+            "type" : "string",
+            "description" : "Broad category of the error.",
+            "enum" : [ "notFound", "invalidArgument", "authorization", "permission", "server", "validationError" ],
+            "nullable" : true
+          },
+          "message" : {
+            "type" : "string",
+            "description" : "Human-readable error message.",
+            "nullable" : true
+          },
+          "objects" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "object",
+              "description" : "Named structured values associated with the error."
+            },
+            "description" : "Named structured values associated with the error."
+          },
+          "operation" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "object",
+              "description" : "Operation that failed. Its fields depend on the operation type.",
+              "nullable" : true
+            },
+            "description" : "Operation that failed. Its fields depend on the operation type.",
+            "nullable" : true
+          },
+          "parameters" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "object",
+              "description" : "Named scalar values associated with the error."
+            },
+            "description" : "Named scalar values associated with the error."
+          },
+          "status" : {
+            "type" : "string",
+            "description" : "Symbolic HTTP response status.",
+            "enum" : [ "BAD_REQUEST", "UNAUTHORIZED", "FORBIDDEN", "NOT_FOUND", "METHOD_NOT_ALLOWED", "NOT_ACCEPTABLE", "CONFLICT", "PRECONDITION_FAILED", "UNSUPPORTED_MEDIA_TYPE", "UNPROCESSABLE_ENTITY", "PRECONDITION_REQUIRED", "INTERNAL_SERVER_ERROR", "NOT_IMPLEMENTED", "BAD_GATEWAY", "SERVICE_UNAVAILABLE", "HTTP_VERSION_NOT_SUPPORTED" ]
+          },
+          "statusCode" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Numeric HTTP response status.",
+            "maximum" : 599,
+            "minimum" : 400
+          },
+          "suggestedAction" : {
+            "type" : "string",
+            "description" : "Recovery action suggested to the client.",
+            "enum" : [ "none", "requestRole", "logout", "logoutImmediately", "provideAuthorizationHeader", "refreshToken" ],
+            "nullable" : true
+          }
+        },
+        "required" : [ "status", "statusCode" ]
       }
     },
     "securitySchemes" : {

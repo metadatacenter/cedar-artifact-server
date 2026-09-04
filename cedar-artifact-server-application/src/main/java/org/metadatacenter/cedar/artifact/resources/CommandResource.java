@@ -3,11 +3,14 @@ package org.metadatacenter.cedar.artifact.resources;
 import com.codahale.metrics.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.metadatacenter.util.http.CedarError;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.error.CedarErrorKey;
 import org.metadatacenter.error.CedarErrorPack;
@@ -77,9 +80,9 @@ public class CommandResource extends AbstractArtifactServerResource {
           + "the artifact is valid: an invalid artifact is an answer, not a failed request.")
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "The validation report"),
-      @ApiResponse(responseCode = "400", description = "The body could not be read as the named artifact type"),
-      @ApiResponse(responseCode = "401", description = "Unauthorized"),
-      @ApiResponse(responseCode = "500", description = "No validation exists for the named artifact type")
+      @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "The body could not be read as the named artifact type"),
+      @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Unauthorized"),
+      @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "No validation exists for the named artifact type")
   })
   public Response validateResource(
       @Parameter(description = "Artifact type to validate against: `template`, `element`, `field`, "

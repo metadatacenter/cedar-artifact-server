@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.jsonldjava.core.JsonLdError;
+import org.metadatacenter.util.http.CedarError;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.constant.CustomHttpConstants;
 import org.metadatacenter.constant.HttpConstants;
@@ -92,12 +93,12 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
               @Header(name = "CEDAR-Validation-Status", description = ArtifactApiDocs.VALIDATION_STATUS,
                   schema = @Schema(type = "string"))
           }),
-      @ApiResponse(responseCode = "400",
+      @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation = CedarError.class)),
           description = "The body is empty, carries an identifier, has no name, or failed validation"),
-      @ApiResponse(responseCode = "401", description = "Unauthorized"),
-      @ApiResponse(responseCode = "403", description = "Forbidden"),
-      @ApiResponse(responseCode = "406", description = ArtifactApiDocs.NOT_ACCEPTABLE),
-      @ApiResponse(responseCode = "500", description = "Internal server error")
+      @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Unauthorized"),
+      @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Forbidden"),
+      @ApiResponse(responseCode = "406", content = @Content(schema = @Schema(implementation = CedarError.class)), description = ArtifactApiDocs.NOT_ACCEPTABLE),
+      @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Internal server error")
   })
   public Response createTemplateInstance(
       @Parameter(description = "Accepted for wire compatibility and ignored: every write is validated.")
@@ -170,12 +171,12 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
               @Header(name = "Vary", description = "Accept, where the representation was negotiated "
                   + "rather than named by `format`.", schema = @Schema(type = "string"))
           }),
-      @ApiResponse(responseCode = "400", description = "The identifier is not a valid URL"),
-      @ApiResponse(responseCode = "401", description = "Unauthorized"),
-      @ApiResponse(responseCode = "403", description = "Forbidden"),
-      @ApiResponse(responseCode = "404", description = "No such instance"),
-      @ApiResponse(responseCode = "406", description = ArtifactApiDocs.NOT_ACCEPTABLE),
-      @ApiResponse(responseCode = "500", description = "Internal server error")
+      @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "The identifier is not a valid URL"),
+      @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Unauthorized"),
+      @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Forbidden"),
+      @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "No such instance"),
+      @ApiResponse(responseCode = "406", content = @Content(schema = @Schema(implementation = CedarError.class)), description = ArtifactApiDocs.NOT_ACCEPTABLE),
+      @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Internal server error")
   })
   public Response findTemplateInstance(
       @Parameter(description = "Instance identifier, as an absolute IRI.", required = true)
@@ -254,10 +255,10 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
               @Header(name = "Total-Count", description = ArtifactApiDocs.TOTAL_COUNT, schema = @Schema(type = "integer")),
               @Header(name = "Link", description = ArtifactApiDocs.LINK, schema = @Schema(type = "string"))
           }),
-      @ApiResponse(responseCode = "400", description = "A paging parameter is out of range"),
-      @ApiResponse(responseCode = "401", description = "Unauthorized"),
-      @ApiResponse(responseCode = "403", description = "Forbidden"),
-      @ApiResponse(responseCode = "500", description = "Internal server error")
+      @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "A paging parameter is out of range"),
+      @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Unauthorized"),
+      @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Forbidden"),
+      @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Internal server error")
   })
   public Response findAllTemplateInstances(
       @Parameter(description = ArtifactApiDocs.LIMIT)
@@ -293,13 +294,13 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
           }),
       @ApiResponse(responseCode = "201", description = "An instance created at the supplied identifier",
           headers = @Header(name = "ETag", description = ArtifactApiDocs.ETAG, schema = @Schema(type = "string"))),
-      @ApiResponse(responseCode = "400", description = "The body is empty, has no name, or failed validation"),
-      @ApiResponse(responseCode = "401", description = "Unauthorized"),
-      @ApiResponse(responseCode = "403", description = "Forbidden"),
-      @ApiResponse(responseCode = "406", description = ArtifactApiDocs.NOT_ACCEPTABLE),
-      @ApiResponse(responseCode = "412", description = ArtifactApiDocs.PRECONDITION_FAILED),
-      @ApiResponse(responseCode = "428", description = ArtifactApiDocs.PRECONDITION_REQUIRED),
-      @ApiResponse(responseCode = "500", description = "Internal server error")
+      @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "The body is empty, has no name, or failed validation"),
+      @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Unauthorized"),
+      @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Forbidden"),
+      @ApiResponse(responseCode = "406", content = @Content(schema = @Schema(implementation = CedarError.class)), description = ArtifactApiDocs.NOT_ACCEPTABLE),
+      @ApiResponse(responseCode = "412", content = @Content(schema = @Schema(implementation = CedarError.class)), description = ArtifactApiDocs.PRECONDITION_FAILED),
+      @ApiResponse(responseCode = "428", content = @Content(schema = @Schema(implementation = CedarError.class)), description = ArtifactApiDocs.PRECONDITION_REQUIRED),
+      @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Internal server error")
   })
   public Response updateTemplateInstance(
       @Parameter(description = "Instance identifier, as an absolute IRI.", required = true)
@@ -415,13 +416,13 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
           description = ArtifactApiDocs.IF_MATCH_REQUIRED, schema = @Schema(type = "string")))
   @ApiResponses({
       @ApiResponse(responseCode = "204", description = "Deleted"),
-      @ApiResponse(responseCode = "400", description = "The identifier is not a valid URL"),
-      @ApiResponse(responseCode = "401", description = "Unauthorized"),
-      @ApiResponse(responseCode = "403", description = "Forbidden"),
-      @ApiResponse(responseCode = "404", description = "No such instance"),
-      @ApiResponse(responseCode = "412", description = ArtifactApiDocs.PRECONDITION_FAILED),
-      @ApiResponse(responseCode = "428", description = ArtifactApiDocs.PRECONDITION_REQUIRED),
-      @ApiResponse(responseCode = "500", description = "Internal server error")
+      @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "The identifier is not a valid URL"),
+      @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Unauthorized"),
+      @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Forbidden"),
+      @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "No such instance"),
+      @ApiResponse(responseCode = "412", content = @Content(schema = @Schema(implementation = CedarError.class)), description = ArtifactApiDocs.PRECONDITION_FAILED),
+      @ApiResponse(responseCode = "428", content = @Content(schema = @Schema(implementation = CedarError.class)), description = ArtifactApiDocs.PRECONDITION_REQUIRED),
+      @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Internal server error")
   })
   public Response deleteTemplateInstance(
       @Parameter(description = "Instance identifier, as an absolute IRI.", required = true)
