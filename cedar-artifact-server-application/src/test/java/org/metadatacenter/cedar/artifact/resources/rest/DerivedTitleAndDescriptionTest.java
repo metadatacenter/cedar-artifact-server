@@ -91,7 +91,7 @@ public class DerivedTitleAndDescriptionTest extends AbstractRestTest {
   }
 
   @Test
-  public void nestedChildrenFollowTheirOwnNames() throws IOException {
+  public void embeddedChildrenKeepThePairTheyWereSentWith() throws IOException {
     String yaml = """
         type: template
         name: Nested Parent
@@ -103,21 +103,17 @@ public class DerivedTitleAndDescriptionTest extends AbstractRestTest {
               - key: street
                 type: text-field
                 name: Street
-              - key: tags
-                type: text-field
-                name: Tag
-                configuration:
-                  multiple: true
         """;
     Response createResponse = request(collectionUrl(TEMPLATE)).post(Entity.entity(yaml, APPLICATION_YAML));
     JsonNode created = created(TEMPLATE, createResponse);
     String id = idOf(created);
+    assertPair(created.at("/properties/address"), "Address", ELEMENT, LIBRARY);
 
     ObjectNode edited = created.deepCopy();
+    edited.put(SCHEMA_ORG_NAME, "Renamed Parent");
     ObjectNode address = objectAt(edited, "/properties/address");
     address.put(SCHEMA_ORG_NAME, "Postal Address");
     objectAt(address, "/properties/street").put(SCHEMA_ORG_NAME, "Street Line");
-    objectAt(address, "/properties/tags/items").put(SCHEMA_ORG_NAME, "Keyword");
     Response putResponse = request(itemUrl(TEMPLATE, id))
         .header("If-Match", createResponse.getHeaderString("ETag"))
         .put(Entity.json(edited.toString()));
@@ -125,15 +121,9 @@ public class DerivedTitleAndDescriptionTest extends AbstractRestTest {
         putResponse.readEntity(String.class));
 
     JsonNode stored = get(TEMPLATE, id);
-    assertPair(stored, "Nested Parent", TEMPLATE, LIBRARY);
-    assertPair(stored.at("/properties/address"), "Postal Address", ELEMENT, LIBRARY);
-    assertPair(stored.at("/properties/address/properties/street"), "Street Line", FIELD, LIBRARY);
-    JsonNode tags = stored.at("/properties/address/properties/tags");
-    assertEquals("array", tags.path("type").asText(), tags.toString());
-    assertPair(tags.get("items"), "Keyword", FIELD, LIBRARY);
-    if (tags.has(JSON_SCHEMA_TITLE)) {
-      assertEquals(tags.at("/items/title"), tags.get(JSON_SCHEMA_TITLE), "the wrapper repeats its child's title");
-    }
+    assertPair(stored, "Renamed Parent", TEMPLATE, LIBRARY);
+    assertPair(stored.at("/properties/address"), "Address", ELEMENT, LIBRARY);
+    assertPair(stored.at("/properties/address/properties/street"), "Street", FIELD, LIBRARY);
   }
 
   private static void assertPair(JsonNode node, String name, CedarResourceType type, String attribution) {

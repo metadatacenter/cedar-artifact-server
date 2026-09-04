@@ -3,13 +3,11 @@ package org.metadatacenter.cedar.artifact.resources;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.metadatacenter.model.CedarResourceType;
-import org.metadatacenter.util.ModelUtil;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.metadatacenter.model.ModelNodeNames.JSON_SCHEMA_DESCRIPTION;
-import static org.metadatacenter.model.ModelNodeNames.JSON_SCHEMA_PROPERTIES;
 import static org.metadatacenter.model.ModelNodeNames.JSON_SCHEMA_TITLE;
 import static org.metadatacenter.model.ModelNodeNames.SCHEMA_ORG_NAME;
 
@@ -32,9 +30,9 @@ import static org.metadatacenter.model.ModelNodeNames.SCHEMA_ORG_NAME;
  * library's, which is also what an artifact posted as YAML receives, so the two media types store the
  * same words for the same unsigned artifact.
  * <p>
- * Children follow their own names. A nested element or field carries the pair as well, and the array
- * that wraps a multi-instance child repeats whichever of the two keys it already carries. A node with
- * no usable name keeps what it has, for validation to judge.
+ * Only the artifact's own pair is rewritten. An embedded element or field carries a pair of its own,
+ * written by whatever generated that piece, which may not be the tool saving the parent; it is left as
+ * sent. An artifact with no usable name keeps what it has, for validation to judge.
  */
 public final class JsonSchemaTitleAndDescription {
 
@@ -47,19 +45,21 @@ public final class JsonSchemaTitleAndDescription {
   private JsonSchemaTitleAndDescription() {
   }
 
-  /**
-   * Rewrites the pair on the artifact and, for a template or element, on every child below it.
-   * An artifact of any other kind is left untouched.
-   */
+  /** Rewrites the pair on a template, element or field. An artifact of any other kind is left untouched. */
   static void derive(JsonNode artifact, CedarResourceType resourceType) {
     String kind = kindWord(resourceType);
     if (kind == null || !(artifact instanceof ObjectNode node)) {
       return;
     }
-    deriveForNode(node, kind);
-    if (resourceType == CedarResourceType.TEMPLATE || resourceType == CedarResourceType.ELEMENT) {
-      deriveForChildren(node);
+    JsonNode nameNode = node.get(SCHEMA_ORG_NAME);
+    if (nameNode == null || !nameNode.isTextual() || nameNode.textValue().isBlank()) {
+      return;
     }
+    String name = nameNode.textValue();
+    JsonNode previous = node.get(JSON_SCHEMA_DESCRIPTION);
+    String previousDescription = previous != null && previous.isTextual() ? previous.textValue() : null;
+    node.put(JSON_SCHEMA_TITLE, title(name, kind));
+    node.put(JSON_SCHEMA_DESCRIPTION, description(name, kind, previousDescription));
   }
 
   public static String title(String name, CedarResourceType resourceType) {
@@ -108,44 +108,5 @@ public final class JsonSchemaTitleAndDescription {
       case FIELD -> "field";
       default -> null;
     };
-  }
-
-  private static boolean deriveForNode(ObjectNode node, String kind) {
-    JsonNode nameNode = node.get(SCHEMA_ORG_NAME);
-    if (nameNode == null || !nameNode.isTextual() || nameNode.textValue().isBlank()) {
-      return false;
-    }
-    String name = nameNode.textValue();
-    JsonNode previous = node.get(JSON_SCHEMA_DESCRIPTION);
-    String previousDescription = previous != null && previous.isTextual() ? previous.textValue() : null;
-    node.put(JSON_SCHEMA_TITLE, title(name, kind));
-    node.put(JSON_SCHEMA_DESCRIPTION, description(name, kind, previousDescription));
-    return true;
-  }
-
-  private static void deriveForChildren(ObjectNode parent) {
-    JsonNode properties = parent.get(JSON_SCHEMA_PROPERTIES);
-    ModelUtil.forEachChild(parent, (key, child) -> {
-      if (!(child instanceof ObjectNode childNode)) {
-        return;
-      }
-      CedarResourceType childType = ModelUtil.childResourceType(child);
-      if (deriveForNode(childNode, kindWord(childType))) {
-        JsonNode holder = properties.get(key);
-        if (holder != child && holder instanceof ObjectNode wrapper) {
-          repeatIfPresent(wrapper, childNode, JSON_SCHEMA_TITLE);
-          repeatIfPresent(wrapper, childNode, JSON_SCHEMA_DESCRIPTION);
-        }
-      }
-      if (childType == CedarResourceType.ELEMENT) {
-        deriveForChildren(childNode);
-      }
-    });
-  }
-
-  private static void repeatIfPresent(ObjectNode wrapper, ObjectNode child, String key) {
-    if (wrapper.has(key)) {
-      wrapper.set(key, child.get(key).deepCopy());
-    }
   }
 }
