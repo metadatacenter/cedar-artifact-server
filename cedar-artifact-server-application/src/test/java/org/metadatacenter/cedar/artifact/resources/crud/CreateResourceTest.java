@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.metadatacenter.cedar.artifact.resources.JsonSchemaTitleAndDescription;
 import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
 import org.metadatacenter.constant.LinkedData;
 import org.metadatacenter.http.CedarResponseStatus;
@@ -85,6 +86,15 @@ public class CreateResourceTest extends AbstractResourceCrudTest {
     // create posting a body with no `@id` key at all, which the server refuses — the identifier is how
     // a client asks for one, so it has to be there.
     JsonNode expected = sampleResource.deepCopy();
+    // The JSON Schema title and description of a schema artifact follow the name on every write, so
+    // what comes back is the canonical pair for the fixture's name, signed as the fixture was.
+    if (resourceType != CedarResourceType.INSTANCE) {
+      String name = expected.get("schema:name").asText();
+      String previous = expected.path("description").asText(null);
+      ((ObjectNode) expected).put("title", JsonSchemaTitleAndDescription.title(name, resourceType));
+      ((ObjectNode) expected).put("description",
+          JsonSchemaTitleAndDescription.description(name, resourceType, previous));
+    }
     JsonNode actual = findResponse.readEntity(JsonNode.class);
     // Check that id and provenance information have been generated
     Assertions.assertNotEquals(actual.get(LinkedData.ID), null);

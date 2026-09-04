@@ -112,6 +112,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     enforceMandatoryNullOrMissingId(artifact, resourceType, notCreatedKey);
     enforceMandatoryName(artifact, resourceType, notCreatedKey);
     enforceChildArtifactTypes(artifact, resourceType, notCreatedKey);
+    JsonSchemaTitleAndDescription.derive(artifact, resourceType);
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     setProvenanceAndId(resourceType, artifact, pi);
@@ -359,6 +360,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
       }
     } else {
       enforceChildArtifactTypes(newArtifact, resourceType, notUpdatedKey);
+      JsonSchemaTitleAndDescription.derive(newArtifact, resourceType);
       if (resourceType == CedarResourceType.TEMPLATE || resourceType == CedarResourceType.ELEMENT) {
         logLegacyArtifactRepairs(
             linkedDataUtil.repairInheritedDefects(newArtifact, currentArtifact, null, resourceType), id);
