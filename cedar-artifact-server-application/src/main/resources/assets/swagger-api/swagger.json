@@ -3,7 +3,7 @@
   "info" : {
     "description" : "Better Metadata - Better Science\n\nThe artifact server stores templates, template elements, template fields, and template\ninstances, and validates every one of them against the CEDAR model before storing it.\n\nArtifacts use strong ETags for optimistic concurrency. Read the artifact and send the returned\nETag in `If-Match` when replacing or deleting it. A missing required precondition returns 428;\na stale or malformed validator returns 412. `If-Match: *` accepts whichever revision currently\nexists and therefore deliberately gives up lost-update protection. Representation suffixes such\nas `\"7-yaml\"` and `\"7-yaml-compact\"` identify different bytes of the same stored revision and\nare valid write preconditions.\n\nArtifacts are read and written as JSON or YAML, selected by the Accept and Content-Type\nheaders. The compact YAML form is a lossy read-time convenience: it can be read but not stored.\n",
     "title" : "CEDAR Artifact Server API",
-    "version" : "2.9.8-SNAPSHOT"
+    "version" : "2.9.9-SNAPSHOT"
   },
   "paths" : {
     "/command/validate" : {
