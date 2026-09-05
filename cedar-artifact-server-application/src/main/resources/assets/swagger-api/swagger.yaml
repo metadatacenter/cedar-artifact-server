@@ -16,7 +16,7 @@ info:
     Artifacts are read and written as JSON or YAML, selected by the Accept and Content-Type
     headers. The compact YAML form is a lossy read-time convenience: it can be read but not stored.
   title: CEDAR Artifact Server API
-  version: 2.9.8-SNAPSHOT
+  version: 2.9.8
 paths:
   /command/validate:
     post:
