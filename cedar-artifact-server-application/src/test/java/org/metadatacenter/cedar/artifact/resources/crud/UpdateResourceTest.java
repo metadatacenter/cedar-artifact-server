@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.metadatacenter.cedar.artifact.resources.JsonSchemaTitleAndDescription;
 import org.metadatacenter.cedar.artifact.resources.TemplateElementsResource;
 import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
 import org.metadatacenter.constant.LinkedData;
@@ -59,10 +60,11 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
       createdResources.put(createdResource.get(LinkedData.ID).asText(), resourceType);
       String createdResourceId = createdResource.get(LinkedData.ID).asText();
       // Update the artifact
-      // Template instances are JSON-LD documents constrained by their template schema. Update an
-      // allowed metadata field so this generic CRUD test remains valid when update validation is on.
-      String fieldName = resourceType == CedarResourceType.INSTANCE ? "schema:name" : "title";
-      String fieldNewValue = "This is a new title";
+      // The name is the one field every artifact kind lets a client change: an instance is
+      // constrained by its template schema, and a schema artifact's JSON Schema title and
+      // description are derived from the name by the server rather than taken from the client.
+      String fieldName = "schema:name";
+      String fieldNewValue = "This is a new name";
       JsonNode updatedResource = ((ObjectNode) createdResource).put(fieldName, fieldNewValue);
       // Service invocation - Update
       Response responseUpdate = testClient.target(url + "/" + URLEncoder.encode(createdResourceId, "UTF-8")).
@@ -78,7 +80,14 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
       // Check that the modifications have been done correctly
       Assertions.assertNotNull(actual.get(fieldName));
       Assertions.assertEquals(fieldNewValue, actual.get(fieldName).asText());
-      // Check that all the other fields contain the expected values
+      // Check that all the other fields contain the expected values, the derived pair having
+      // followed the name
+      if (resourceType != CedarResourceType.INSTANCE) {
+        String previous = createdResource.path("description").asText(null);
+        ((ObjectNode) createdResource).put("title", JsonSchemaTitleAndDescription.title(fieldNewValue, resourceType));
+        ((ObjectNode) createdResource).put("description",
+            JsonSchemaTitleAndDescription.description(fieldNewValue, resourceType, previous));
+      }
       ((ObjectNode) createdResource).remove(fieldName);
       ((ObjectNode) actual).remove(fieldName);
       // Remove the lastUpdatedOn field
@@ -114,7 +123,7 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
     createdResources.put(id, resourceType);
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType) + "/" + URLEncoder.encode(id, "UTF-8");
     String originalEtag = currentEtag(url, authHeader);
-    String editableName = resourceType == CedarResourceType.INSTANCE ? "schema:name" : "title";
+    String editableName = "schema:name";
 
     ObjectNode firstEditor = created.deepCopy().put(editableName, "first editor");
     ObjectNode secondEditor = created.deepCopy().put(editableName, "second editor");
@@ -186,7 +195,7 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
     // service before cleanup and the next test.
     new TemplateElementsResource(TestUtil.getCedarConfig(), disappearing);
     try {
-      ObjectNode update = created.deepCopy().put("title", "update that loses to deletion");
+      ObjectNode update = created.deepCopy().put("schema:name", "update that loses to deletion");
       Response response = testClient.target(url).request().header(HttpHeaders.AUTHORIZATION, authHeader)
           .header(HttpHeaders.IF_MATCH, etag).put(Entity.json(update));
       Assertions.assertEquals(CedarResponseStatus.PRECONDITION_FAILED.getStatusCode(), response.getStatus());

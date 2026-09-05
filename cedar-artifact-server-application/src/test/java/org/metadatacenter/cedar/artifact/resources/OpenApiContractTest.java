@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class OpenApiContractTest {
 
   private static final String ARTIFACT = "#/components/schemas/ArtifactDocument";
+  private static final String CEDAR_ERROR = "#/components/schemas/CedarError";
 
   @Test
   void artifactGetsAndListingsPublishOpenJsonLdSchemas() throws IOException {
@@ -35,6 +36,22 @@ class OpenApiContractTest {
     assertTrue(artifact.path("additionalProperties").asBoolean());
     assertTrue(artifact.path("properties").has("@id"));
     assertTrue(artifact.path("properties").has("schema:name"));
+  }
+
+  @Test
+  void conditionalWritePublishesTheCommonErrorSchema() throws IOException {
+    JsonNode spec = readSpec();
+    JsonNode response = spec.path("paths").path("/template-elements/{id}").path("put")
+        .path("responses").path("412").path("content").path("application/json").path("schema");
+    assertEquals(CEDAR_ERROR, response.path("$ref").asText());
+
+    JsonNode error = spec.at("/components/schemas/CedarError");
+    assertEquals("object", error.path("type").asText());
+    assertTrue(error.path("required").toString().contains("status"));
+    assertTrue(error.path("required").toString().contains("statusCode"));
+    assertTrue(error.path("properties").path("errorKey").path("enum").isArray());
+    assertTrue(error.path("properties").path("errorKey").path("enum").size() > 100);
+    assertTrue(error.path("additionalProperties").asBoolean());
   }
 
   private static JsonNode readSpec() throws IOException {
