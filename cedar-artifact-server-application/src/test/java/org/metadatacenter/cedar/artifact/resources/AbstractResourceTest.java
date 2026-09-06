@@ -35,6 +35,10 @@ import static org.metadatacenter.constant.HttpConstants.CREATED;
 public abstract class AbstractResourceTest {
 
   static {
+    redirectEnvironment();
+  }
+
+  private static void redirectEnvironment() {
     // Must run before anything builds the CEDAR configuration: the document store comes from an
     // in-process MongoDB, and Redis goes to a dead port, since queue writes are best-effort -
     // the suite needs no live backend at all. OS-assigned server ports, so the test instance
@@ -61,6 +65,9 @@ public abstract class AbstractResourceTest {
 
   @BeforeAll
   public static void startServerApplication() throws Exception {
+    // The abstract harness is reused by several concrete test classes. The class-isolation
+    // extension restores the process environment after each one, so redirect it again here.
+    redirectEnvironment();
     SERVER_APPLICATION.before();
   }
 

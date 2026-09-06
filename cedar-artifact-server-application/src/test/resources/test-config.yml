@@ -1,9 +1,12 @@
-testPort: 9091
 server:
   applicationConnectors:
   - type: http
+    bindHost: 127.0.0.1
+    port: 0
   adminConnectors:
   - type: http
+    bindHost: 127.0.0.1
+    port: 0
 logging:
   level: INFO
   loggers:
