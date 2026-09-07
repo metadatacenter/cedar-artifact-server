@@ -35,6 +35,10 @@ import static org.metadatacenter.constant.HttpConstants.HTTP_HEADER_AUTHORIZATIO
 public abstract class BaseServerTest {
 
   static {
+    redirectEnvironment();
+  }
+
+  private static void redirectEnvironment() {
     // Must run before anything builds the CEDAR configuration: the document store comes from an
     // in-process MongoDB, and Redis goes to a dead port, since queue writes are best-effort -
     // the suite needs no live backend at all. OS-assigned server ports, so the test instance
@@ -56,6 +60,9 @@ public abstract class BaseServerTest {
 
   @BeforeAll
   public static void startServerAndClient() throws Exception {
+    // The abstract harness is reused by several concrete test classes. The class-isolation
+    // extension restores the process environment after each one, so redirect it again here.
+    redirectEnvironment();
     SERVER_APPLICATION.before();
     // Replace the Neo4j-backed user service wired at application startup with an in-memory one,
     // so API-key authentication needs no live Neo4j (and no Keycloak)
