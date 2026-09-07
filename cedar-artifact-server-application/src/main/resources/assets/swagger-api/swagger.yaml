@@ -10,7 +10,7 @@ info:
     ETag in `If-Match` when replacing or deleting it. A missing required precondition returns 428;
     a stale or malformed validator returns 412. `If-Match: *` accepts whichever revision currently
     exists and therefore deliberately gives up lost-update protection. Representation suffixes such
-    as `"7-yaml"` and `"7-yaml-compact"` identify different bytes of the same stored revision and
+    as `"7-yaml"` and `"7-yaml-compact-v2"` identify different bytes of the same stored revision and
     are valid write preconditions.
 
     Artifacts are read and written as JSON or YAML, selected by the Accept and Content-Type
