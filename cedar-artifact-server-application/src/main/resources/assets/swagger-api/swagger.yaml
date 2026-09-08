@@ -41,15 +41,22 @@ paths:
         content:
           application/json:
             schema:
-              type: string
+              $ref: "#/components/schemas/ValidationTarget"
           application/x-yaml:
             schema:
-              type: string
+              $ref: "#/components/schemas/ArtifactDocument"
           application/yaml:
             schema:
-              type: string
+              $ref: "#/components/schemas/ArtifactDocument"
+        description: "The artifact to validate, or an instance and the template to\
+          \ validate it against."
+        required: true
       responses:
         "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationReport"
           description: The validation report
         "400":
           content:
@@ -111,7 +118,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/ArtifactDocument"
+                  $ref: "#/components/schemas/SchemaArtifactDocument"
           description: A page of template elements
           headers:
             Link:
@@ -173,15 +180,27 @@ paths:
         content:
           application/json:
             schema:
-              type: string
+              $ref: "#/components/schemas/SchemaArtifactDocument"
           application/x-yaml:
             schema:
-              type: string
+              $ref: "#/components/schemas/SchemaArtifactDocument"
           application/yaml:
             schema:
-              type: string
+              $ref: "#/components/schemas/SchemaArtifactDocument"
+        description: The template element to store.
+        required: true
       responses:
         "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SchemaArtifactDocument"
+            application/x-yaml:
+              schema:
+                $ref: "#/components/schemas/SchemaArtifactDocument"
+            application/yaml:
+              schema:
+                $ref: "#/components/schemas/SchemaArtifactDocument"
           description: The stored template element
           headers:
             CEDAR-Validation-Status:
@@ -365,13 +384,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ArtifactDocument"
+                $ref: "#/components/schemas/SchemaArtifactDocument"
             application/x-yaml:
               schema:
-                $ref: "#/components/schemas/ArtifactDocument"
+                $ref: "#/components/schemas/SchemaArtifactDocument"
             application/yaml:
               schema:
-                $ref: "#/components/schemas/ArtifactDocument"
+                $ref: "#/components/schemas/SchemaArtifactDocument"
           description: The stored template element
           headers:
             ETag:
@@ -504,15 +523,27 @@ paths:
         content:
           application/json:
             schema:
-              type: string
+              $ref: "#/components/schemas/SchemaArtifactDocument"
           application/x-yaml:
             schema:
-              type: string
+              $ref: "#/components/schemas/SchemaArtifactDocument"
           application/yaml:
             schema:
-              type: string
+              $ref: "#/components/schemas/SchemaArtifactDocument"
+        description: The template element to store at that identifier.
+        required: true
       responses:
         "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SchemaArtifactDocument"
+            application/x-yaml:
+              schema:
+                $ref: "#/components/schemas/SchemaArtifactDocument"
+            application/yaml:
+              schema:
+                $ref: "#/components/schemas/SchemaArtifactDocument"
           description: The replaced a template element
           headers:
             CEDAR-Validation-Status:
@@ -530,6 +561,16 @@ paths:
                 type: string
               style: simple
         "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SchemaArtifactDocument"
+            application/x-yaml:
+              schema:
+                $ref: "#/components/schemas/SchemaArtifactDocument"
+            application/yaml:
+              schema:
+                $ref: "#/components/schemas/SchemaArtifactDocument"
           description: A template element created at the supplied identifier
           headers:
             ETag:
@@ -669,7 +710,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/ArtifactDocument"
+                  $ref: "#/components/schemas/SchemaArtifactDocument"
           description: A page of template fields
           headers:
             Link:
@@ -731,15 +772,27 @@ paths:
         content:
           application/json:
             schema:
-              type: string
+              $ref: "#/components/schemas/SchemaArtifactDocument"
           application/x-yaml:
             schema:
-              type: string
+              $ref: "#/components/schemas/SchemaArtifactDocument"
           application/yaml:
             schema:
-              type: string
+              $ref: "#/components/schemas/SchemaArtifactDocument"
+        description: The template field to store.
+        required: true
       responses:
         "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SchemaArtifactDocument"
+            application/x-yaml:
+              schema:
+                $ref: "#/components/schemas/SchemaArtifactDocument"
+            application/yaml:
+              schema:
+                $ref: "#/components/schemas/SchemaArtifactDocument"
           description: The stored template field
           headers:
             CEDAR-Validation-Status:
@@ -923,13 +976,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ArtifactDocument"
+                $ref: "#/components/schemas/SchemaArtifactDocument"
             application/x-yaml:
               schema:
-                $ref: "#/components/schemas/ArtifactDocument"
+                $ref: "#/components/schemas/SchemaArtifactDocument"
             application/yaml:
               schema:
-                $ref: "#/components/schemas/ArtifactDocument"
+                $ref: "#/components/schemas/SchemaArtifactDocument"
           description: The stored template field
           headers:
             ETag:
@@ -1062,15 +1115,27 @@ paths:
         content:
           application/json:
             schema:
-              type: string
+              $ref: "#/components/schemas/SchemaArtifactDocument"
           application/x-yaml:
             schema:
-              type: string
+              $ref: "#/components/schemas/SchemaArtifactDocument"
           application/yaml:
             schema:
-              type: string
+              $ref: "#/components/schemas/SchemaArtifactDocument"
+        description: The template field to store at that identifier.
+        required: true
       responses:
         "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SchemaArtifactDocument"
+            application/x-yaml:
+              schema:
+                $ref: "#/components/schemas/SchemaArtifactDocument"
+            application/yaml:
+              schema:
+                $ref: "#/components/schemas/SchemaArtifactDocument"
           description: The replaced a template field
           headers:
             CEDAR-Validation-Status:
@@ -1088,6 +1153,16 @@ paths:
                 type: string
               style: simple
         "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SchemaArtifactDocument"
+            application/x-yaml:
+              schema:
+                $ref: "#/components/schemas/SchemaArtifactDocument"
+            application/yaml:
+              schema:
+                $ref: "#/components/schemas/SchemaArtifactDocument"
           description: A template field created at the supplied identifier
           headers:
             ETag:
@@ -1227,7 +1302,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/ArtifactDocument"
+                  $ref: "#/components/schemas/InstanceArtifactDocument"
           description: A page of instances
           headers:
             Link:
@@ -1295,15 +1370,27 @@ paths:
         content:
           application/json:
             schema:
-              type: string
+              $ref: "#/components/schemas/InstanceArtifactDocument"
           application/x-yaml:
             schema:
-              type: string
+              $ref: "#/components/schemas/InstanceArtifactDocument"
           application/yaml:
             schema:
-              type: string
+              $ref: "#/components/schemas/InstanceArtifactDocument"
+        description: The instance to store.
+        required: true
       responses:
         "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstanceArtifactDocument"
+            application/x-yaml:
+              schema:
+                $ref: "#/components/schemas/InstanceArtifactDocument"
+            application/yaml:
+              schema:
+                $ref: "#/components/schemas/InstanceArtifactDocument"
           description: The stored instance
           headers:
             CEDAR-Validation-Status:
@@ -1494,16 +1581,16 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ArtifactDocument"
+                $ref: "#/components/schemas/InstanceArtifactDocument"
             application/n-quads:
               schema:
                 type: string
             application/x-yaml:
               schema:
-                $ref: "#/components/schemas/ArtifactDocument"
+                $ref: "#/components/schemas/InstanceArtifactDocument"
             application/yaml:
               schema:
-                $ref: "#/components/schemas/ArtifactDocument"
+                $ref: "#/components/schemas/InstanceArtifactDocument"
           description: The stored instance
           headers:
             ETag:
@@ -1655,15 +1742,27 @@ paths:
         content:
           application/json:
             schema:
-              type: string
+              $ref: "#/components/schemas/InstanceArtifactDocument"
           application/x-yaml:
             schema:
-              type: string
+              $ref: "#/components/schemas/InstanceArtifactDocument"
           application/yaml:
             schema:
-              type: string
+              $ref: "#/components/schemas/InstanceArtifactDocument"
+        description: The instance to store at that identifier.
+        required: true
       responses:
         "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstanceArtifactDocument"
+            application/x-yaml:
+              schema:
+                $ref: "#/components/schemas/InstanceArtifactDocument"
+            application/yaml:
+              schema:
+                $ref: "#/components/schemas/InstanceArtifactDocument"
           description: The replaced instance
           headers:
             CEDAR-Validation-Status:
@@ -1681,6 +1780,16 @@ paths:
                 type: string
               style: simple
         "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstanceArtifactDocument"
+            application/x-yaml:
+              schema:
+                $ref: "#/components/schemas/InstanceArtifactDocument"
+            application/yaml:
+              schema:
+                $ref: "#/components/schemas/InstanceArtifactDocument"
           description: An instance created at the supplied identifier
           headers:
             ETag:
@@ -1819,7 +1928,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/ArtifactDocument"
+                  $ref: "#/components/schemas/SchemaArtifactDocument"
           description: A page of templates
           headers:
             Link:
@@ -1881,15 +1990,27 @@ paths:
         content:
           application/json:
             schema:
-              type: string
+              $ref: "#/components/schemas/SchemaArtifactDocument"
           application/x-yaml:
             schema:
-              type: string
+              $ref: "#/components/schemas/SchemaArtifactDocument"
           application/yaml:
             schema:
-              type: string
+              $ref: "#/components/schemas/SchemaArtifactDocument"
+        description: The template to store.
+        required: true
       responses:
         "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SchemaArtifactDocument"
+            application/x-yaml:
+              schema:
+                $ref: "#/components/schemas/SchemaArtifactDocument"
+            application/yaml:
+              schema:
+                $ref: "#/components/schemas/SchemaArtifactDocument"
           description: The stored template
           headers:
             CEDAR-Validation-Status:
@@ -2074,13 +2195,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ArtifactDocument"
+                $ref: "#/components/schemas/SchemaArtifactDocument"
             application/x-yaml:
               schema:
-                $ref: "#/components/schemas/ArtifactDocument"
+                $ref: "#/components/schemas/SchemaArtifactDocument"
             application/yaml:
               schema:
-                $ref: "#/components/schemas/ArtifactDocument"
+                $ref: "#/components/schemas/SchemaArtifactDocument"
           description: The stored template
           headers:
             ETag:
@@ -2213,15 +2334,27 @@ paths:
         content:
           application/json:
             schema:
-              type: string
+              $ref: "#/components/schemas/SchemaArtifactDocument"
           application/x-yaml:
             schema:
-              type: string
+              $ref: "#/components/schemas/SchemaArtifactDocument"
           application/yaml:
             schema:
-              type: string
+              $ref: "#/components/schemas/SchemaArtifactDocument"
+        description: The template to store at that identifier.
+        required: true
       responses:
         "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SchemaArtifactDocument"
+            application/x-yaml:
+              schema:
+                $ref: "#/components/schemas/SchemaArtifactDocument"
+            application/yaml:
+              schema:
+                $ref: "#/components/schemas/SchemaArtifactDocument"
           description: The replaced a template
           headers:
             CEDAR-Validation-Status:
@@ -2239,6 +2372,16 @@ paths:
                 type: string
               style: simple
         "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SchemaArtifactDocument"
+            application/x-yaml:
+              schema:
+                $ref: "#/components/schemas/SchemaArtifactDocument"
+            application/yaml:
+              schema:
+                $ref: "#/components/schemas/SchemaArtifactDocument"
           description: A template created at the supplied identifier
           headers:
             ETag:
@@ -2346,38 +2489,46 @@ components:
     ArtifactDocument:
       type: object
       additionalProperties: true
-      description: |
-        An open CEDAR JSON-LD artifact. Templates, elements, fields, and instances have different
-        model-defined properties, and user-defined field names are legal, so the schema deliberately
-        describes the common identity and provenance surface without closing the object.
+      description: "An open CEDAR JSON-LD artifact: the identity and provenance keys\
+        \ that templates, elements, fields and instances all carry. Kind-specific\
+        \ keys are described by SchemaArtifactDocument and InstanceArtifactDocument;\
+        \ the authoritative definition of each kind is the CEDAR model's JSON Schema."
+      externalDocs:
+        description: The CEDAR template model
+        url: https://more.metadatacenter.org/tools-training/outreach/cedar-template-model
       properties:
+        '@context':
+          type: object
+          additionalProperties: true
+          description: JSON-LD context for the keys the artifact uses.
         '@id':
           type: string
           format: uri
-        '@type':
-          oneOf:
-          - type: string
-            format: uri
-          - type: array
-            items:
-              type: string
-              format: uri
+          description: "The artifact's IRI. The server mints it on a POST, so a body\
+            \ sent to POST carries none; a body sent to PUT carries the IRI of the\
+            \ path."
         oslc:modifiedBy:
           type: string
           format: uri
+          description: IRI of the user who last changed it.
         pav:createdBy:
           type: string
           format: uri
+          description: IRI of the user who created it.
         pav:createdOn:
           type: string
           format: date-time
+          description: When the artifact was created.
         pav:lastUpdatedOn:
           type: string
           format: date-time
+          description: When the artifact was last changed.
         schema:description:
           type: string
+          description: Description shown with the name.
         schema:name:
           type: string
+          description: Display name.
     CedarError:
       type: object
       additionalProperties: true
@@ -2489,6 +2640,7 @@ components:
           - groupAlreadyPresent
           - groupCanBeModifiedOnlyByGroupAdmin
           - groupCanBeDeletedOnlyByGroupAdmin
+          - groupMembersCanBeReadOnlyByGroupAdmin
           - groupRequiresAdministrator
           - groupUsersNotUpdated
           - specialGroupCanNotBeDeleted
@@ -2618,6 +2770,237 @@ components:
       required:
       - status
       - statusCode
+    ErrorItem:
+      type: object
+      description: "Everything that makes the artifact invalid, in the order found."
+      properties:
+        additionalInfo:
+          type: object
+          additionalProperties:
+            type: object
+        location:
+          type: string
+        message:
+          type: string
+    InstanceArtifactDocument:
+      type: object
+      additionalProperties: true
+      description: "A template instance. Its value keys are the names of the template's\
+        \ fields and elements, so the only fixed key beyond the common artifact keys\
+        \ is the template it is based on."
+      properties:
+        '@context':
+          type: object
+          additionalProperties: true
+          description: JSON-LD context for the keys the artifact uses.
+        '@id':
+          type: string
+          format: uri
+          description: "The artifact's IRI. The server mints it on a POST, so a body\
+            \ sent to POST carries none; a body sent to PUT carries the IRI of the\
+            \ path."
+        oslc:modifiedBy:
+          type: string
+          format: uri
+          description: IRI of the user who last changed it.
+        pav:createdBy:
+          type: string
+          format: uri
+          description: IRI of the user who created it.
+        pav:createdOn:
+          type: string
+          format: date-time
+          description: When the artifact was created.
+        pav:lastUpdatedOn:
+          type: string
+          format: date-time
+          description: When the artifact was last changed.
+        schema:description:
+          type: string
+          description: Description shown with the name.
+        schema:isBasedOn:
+          type: string
+          format: uri
+          description: IRI of the template the instance was filled in against.
+        schema:name:
+          type: string
+          description: Display name.
+    InstanceWithSchema:
+      type: object
+      additionalProperties: false
+      description: An instance and the template it is validated against.
+      properties:
+        instance:
+          allOf:
+          - $ref: "#/components/schemas/ArtifactDocument"
+          description: The instance to validate.
+        schema:
+          allOf:
+          - $ref: "#/components/schemas/ArtifactDocument"
+          description: |
+            The template to validate the instance against. It is validated first, and a template
+            that does not itself pass is reported in place of the instance. Omitting it validates
+            the instance against the stored template it names.
+      required:
+      - instance
+    SchemaArtifactDocument:
+      type: object
+      additionalProperties: true
+      description: "A template, template element or template field. Beyond the common\
+        \ artifact keys it carries the model's versioning keys and the JSON Schema\
+        \ keys that declare the properties an instance may hold. The entries under\
+        \ `properties` depend on the artifact."
+      properties:
+        $schema:
+          type: string
+          format: uri
+          description: The JSON Schema dialect IRI.
+        '@context':
+          type: object
+          additionalProperties: true
+          description: JSON-LD context for the keys the artifact uses.
+        '@id':
+          type: string
+          format: uri
+          description: "The artifact's IRI. The server mints it on a POST, so a body\
+            \ sent to POST carries none; a body sent to PUT carries the IRI of the\
+            \ path."
+        '@type':
+          type: string
+          format: uri
+          description: IRI of the artifact kind.
+          enum:
+          - https://schema.metadatacenter.org/core/Template
+          - https://schema.metadatacenter.org/core/TemplateElement
+          - https://schema.metadatacenter.org/core/TemplateField
+          - https://schema.metadatacenter.org/core/StaticTemplateField
+        _ui:
+          type: object
+          additionalProperties: true
+          description: "Editor rendering directives: child order, labels, descriptions\
+            \ and, for a field, its input type."
+        bibo:status:
+          type: string
+          description: Publication status. A published artifact can no longer be changed.
+          enum:
+          - bibo:draft
+          - bibo:published
+        description:
+          type: string
+          description: "JSON Schema description, derived from the name."
+        oslc:modifiedBy:
+          type: string
+          format: uri
+          description: IRI of the user who last changed it.
+        pav:createdBy:
+          type: string
+          format: uri
+          description: IRI of the user who created it.
+        pav:createdOn:
+          type: string
+          format: date-time
+          description: When the artifact was created.
+        pav:derivedFrom:
+          type: string
+          format: uri
+          description: "IRI of the artifact this one was copied from, when there is\
+            \ one."
+          nullable: true
+        pav:lastUpdatedOn:
+          type: string
+          format: date-time
+          description: When the artifact was last changed.
+        pav:previousVersion:
+          type: string
+          format: uri
+          description: "IRI of the version this one was drafted from, when there is\
+            \ one."
+          nullable: true
+        pav:version:
+          type: string
+          description: The artifact's own version.
+        properties:
+          type: object
+          additionalProperties: true
+          description: "One entry per child field or element, keyed by its name, plus\
+            \ the JSON-LD keys an instance must carry."
+        required:
+          type: array
+          description: Names of the properties an instance must carry.
+          items:
+            type: string
+            description: Names of the properties an instance must carry.
+        schema:description:
+          type: string
+          description: Description shown with the name.
+        schema:identifier:
+          type: string
+          description: Caller-assigned identifier.
+          nullable: true
+        schema:name:
+          type: string
+          description: Display name.
+        schema:schemaVersion:
+          type: string
+          description: Version of the CEDAR model the artifact conforms to.
+        title:
+          type: string
+          description: "JSON Schema title, derived from the name."
+        type:
+          type: string
+          description: Always `object`.
+    ValidationReport:
+      type: object
+      description: "What validating an artifact against the CEDAR model found. Returned\
+        \ with 200 whether or not the artifact is valid: an invalid artifact is an\
+        \ answer, not a failed request. The artifact server produces it, and the resource\
+        \ server hands the same document back unchanged."
+      properties:
+        errors:
+          type: array
+          description: "Everything that makes the artifact invalid, in the order found."
+          items:
+            $ref: "#/components/schemas/ErrorItem"
+          uniqueItems: true
+        validates:
+          type: string
+          description: "Whether the artifact validates, as a string. One error makes\
+            \ it false; warnings alone still validate."
+          enum:
+          - "true"
+          - "false"
+        warnings:
+          type: array
+          description: "Everything the artifact should change but need not, in the\
+            \ order found."
+          items:
+            $ref: "#/components/schemas/WarningItem"
+          uniqueItems: true
+      required:
+      - errors
+      - validates
+      - warnings
+    ValidationTarget:
+      description: |
+        What POST /command/validate accepts as JSON: an artifact, or an instance together with the
+        template to validate it against. The composite form is a JSON convenience rather than an
+        artifact, so it has no YAML equivalent.
+      oneOf:
+      - $ref: "#/components/schemas/ArtifactDocument"
+      - $ref: "#/components/schemas/InstanceWithSchema"
+    WarningItem:
+      type: object
+      description: "Everything the artifact should change but need not, in the order\
+        \ found."
+      properties:
+        additionalInfo:
+          type: object
+          additionalProperties:
+            type: object
+        location:
+          type: string
+        message:
+          type: string
   securitySchemes:
     api_key:
       description: "Your CEDAR API key, using the format 'apiKey <yourApiKey>'"

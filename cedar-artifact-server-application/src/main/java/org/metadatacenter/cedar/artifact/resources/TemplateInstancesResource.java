@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -15,6 +16,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.jsonldjava.core.JsonLdError;
 import org.metadatacenter.util.http.CedarError;
+import org.metadatacenter.util.artifact.InstanceArtifactDocument;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.constant.CustomHttpConstants;
 import org.metadatacenter.constant.HttpConstants;
@@ -84,8 +86,25 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
           + "against the template it names in `schema:isBasedOn`; an invalid one is refused rather "
           + "than stored. The server mints the identifier, so the body must carry none, and must "
           + "carry a name.")
+  @RequestBody(required = true, description = "The instance to store.",
+      content = {
+          @Content(mediaType = MediaType.APPLICATION_JSON,
+              schema = @Schema(implementation = InstanceArtifactDocument.class)),
+          @Content(mediaType = HttpConstants.CONTENT_TYPE_APPLICATION_YAML,
+              schema = @Schema(implementation = InstanceArtifactDocument.class)),
+          @Content(mediaType = "application/yaml",
+              schema = @Schema(implementation = InstanceArtifactDocument.class))
+      })
   @ApiResponses({
       @ApiResponse(responseCode = "201", description = "The stored instance",
+          content = {
+              @Content(mediaType = MediaType.APPLICATION_JSON,
+                  schema = @Schema(implementation = InstanceArtifactDocument.class)),
+              @Content(mediaType = HttpConstants.CONTENT_TYPE_APPLICATION_YAML,
+                  schema = @Schema(implementation = InstanceArtifactDocument.class)),
+              @Content(mediaType = "application/yaml",
+                  schema = @Schema(implementation = InstanceArtifactDocument.class))
+          },
           headers = {
               @Header(name = "Location", description = "URL of the created instance.",
                   schema = @Schema(type = "string")),
@@ -159,11 +178,11 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
       @ApiResponse(responseCode = "200", description = "The stored instance",
           content = {
               @Content(mediaType = MediaType.APPLICATION_JSON,
-                  schema = @Schema(ref = "#/components/schemas/ArtifactDocument")),
+                  schema = @Schema(implementation = InstanceArtifactDocument.class)),
               @Content(mediaType = HttpConstants.CONTENT_TYPE_APPLICATION_YAML,
-                  schema = @Schema(ref = "#/components/schemas/ArtifactDocument")),
+                  schema = @Schema(implementation = InstanceArtifactDocument.class)),
               @Content(mediaType = "application/yaml",
-                  schema = @Schema(ref = "#/components/schemas/ArtifactDocument")),
+                  schema = @Schema(implementation = InstanceArtifactDocument.class)),
               @Content(mediaType = "application/n-quads", schema = @Schema(type = "string"))
           },
           headers = {
@@ -250,7 +269,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "A page of instances",
           content = @Content(mediaType = MediaType.APPLICATION_JSON,
-              array = @ArraySchema(schema = @Schema(ref = "#/components/schemas/ArtifactDocument"))),
+              array = @ArraySchema(schema = @Schema(implementation = InstanceArtifactDocument.class))),
           headers = {
               @Header(name = "Total-Count", description = ArtifactApiDocs.TOTAL_COUNT, schema = @Schema(type = "integer")),
               @Header(name = "Link", description = ArtifactApiDocs.LINK, schema = @Schema(type = "string"))
@@ -285,14 +304,39 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
           + "overwrite one that landed since the instance was read.",
       parameters = @Parameter(in = ParameterIn.HEADER, name = "If-Match",
           description = ArtifactApiDocs.IF_MATCH_FOR_CREATE_OR_REPLACE, schema = @Schema(type = "string")))
+  @RequestBody(required = true, description = "The instance to store at that identifier.",
+      content = {
+          @Content(mediaType = MediaType.APPLICATION_JSON,
+              schema = @Schema(implementation = InstanceArtifactDocument.class)),
+          @Content(mediaType = HttpConstants.CONTENT_TYPE_APPLICATION_YAML,
+              schema = @Schema(implementation = InstanceArtifactDocument.class)),
+          @Content(mediaType = "application/yaml",
+              schema = @Schema(implementation = InstanceArtifactDocument.class))
+      })
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "The replaced instance",
+          content = {
+              @Content(mediaType = MediaType.APPLICATION_JSON,
+                  schema = @Schema(implementation = InstanceArtifactDocument.class)),
+              @Content(mediaType = HttpConstants.CONTENT_TYPE_APPLICATION_YAML,
+                  schema = @Schema(implementation = InstanceArtifactDocument.class)),
+              @Content(mediaType = "application/yaml",
+                  schema = @Schema(implementation = InstanceArtifactDocument.class))
+          },
           headers = {
               @Header(name = "ETag", description = ArtifactApiDocs.ETAG, schema = @Schema(type = "string")),
               @Header(name = "CEDAR-Validation-Status", description = ArtifactApiDocs.VALIDATION_STATUS,
                   schema = @Schema(type = "string"))
           }),
       @ApiResponse(responseCode = "201", description = "An instance created at the supplied identifier",
+          content = {
+              @Content(mediaType = MediaType.APPLICATION_JSON,
+                  schema = @Schema(implementation = InstanceArtifactDocument.class)),
+              @Content(mediaType = HttpConstants.CONTENT_TYPE_APPLICATION_YAML,
+                  schema = @Schema(implementation = InstanceArtifactDocument.class)),
+              @Content(mediaType = "application/yaml",
+                  schema = @Schema(implementation = InstanceArtifactDocument.class))
+          },
           headers = @Header(name = "ETag", description = ArtifactApiDocs.ETAG, schema = @Schema(type = "string"))),
       @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "The body is empty, has no name, or failed validation"),
       @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Unauthorized"),
