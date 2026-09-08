@@ -205,6 +205,44 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
+  public void createByPutThatLosesToAConcurrentCreateReturnsPreconditionFailed() throws Exception {
+    ObjectNode fresh = (ObjectNode) sampleElement.deepCopy();
+    String id = linkedDataUtil.buildNewLinkedDataId(CedarResourceType.ELEMENT);
+    fresh.put(LinkedData.ID, id);
+    String url = TestUtil.getResourceUrlRoute(baseTestUrl, CedarResourceType.ELEMENT) + "/"
+        + URLEncoder.encode(id, "UTF-8");
+
+    TemplateElementService<String, JsonNode> original = TestUtil.templateElementService;
+    TemplateElementService<String, JsonNode> raced =
+        (TemplateElementService<String, JsonNode>) Proxy.newProxyInstance(
+            TemplateElementService.class.getClassLoader(),
+            new Class<?>[]{TemplateElementService.class},
+            (proxy, method, arguments) -> {
+              if ("createTemplateElement".equals(method.getName())) {
+                // What the DAO throws when the unique @id index rejects the insert because another
+                // writer created the same identifier between this request's read and its write.
+                throw new ArtifactRevisionConflictException(id);
+              }
+              try {
+                return method.invoke(original, arguments);
+              } catch (InvocationTargetException e) {
+                throw e.getCause();
+              }
+            });
+
+    new TemplateElementsResource(TestUtil.getCedarConfig(), raced);
+    try {
+      Response response = testClient.target(url).request().header(HttpHeaders.AUTHORIZATION, authHeader)
+          .put(Entity.json(fresh));
+      Assertions.assertEquals(CedarResponseStatus.PRECONDITION_FAILED.getStatusCode(), response.getStatus(),
+          () -> response.readEntity(String.class));
+    } finally {
+      new TemplateElementsResource(TestUtil.getCedarConfig(), original);
+    }
+  }
+
+  @Test
   public void mongoCompareAndSwapRejectsAStaleRevision() throws Exception {
     ObjectNode created = (ObjectNode) createResource(sampleTemplate.deepCopy(), CedarResourceType.TEMPLATE);
     String id = created.get(LinkedData.ID).asText();
