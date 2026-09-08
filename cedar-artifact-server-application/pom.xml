@@ -178,6 +178,7 @@
         <configuration>
           <resourcePackages>
             <package>org.metadatacenter.cedar.artifact.resources</package>
+            <package>org.metadatacenter.cedar.util.dw</package>
           </resourcePackages>
         </configuration>
       </plugin>

@@ -18,6 +18,19 @@ info:
   title: CEDAR Artifact Server API
   version: 2.9.10-SNAPSHOT
 paths:
+  /:
+    get:
+      operationId: showInfo
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+          description: The service name and links to its API documentation
+      summary: Describe this CEDAR service
+      tags:
+      - Service
   /command/validate:
     post:
       description: "Validate an artifact against the CEDAR model without storing it.\
@@ -81,6 +94,201 @@ paths:
       summary: Validate an artifact
       tags:
       - Command
+  /healthcheck:
+    get:
+      operationId: healthCheck
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Every health check passed
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CedarError"
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CedarError"
+          description: Forbidden
+        "500":
+          content:
+            application/json:
+              schema:
+                type: object
+          description: At least one health check failed
+      security:
+      - api_key: []
+      summary: Run this service's health checks
+      tags:
+      - Service diagnostics
+  /insight/full:
+    get:
+      operationId: full
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+          description: The requested JVM diagnostic report
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CedarError"
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CedarError"
+          description: Forbidden
+      security:
+      - api_key: []
+      summary: Report all JVM diagnostics except per-thread stack traces
+      tags:
+      - Service diagnostics
+  /insight/gc:
+    get:
+      operationId: gc
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+          description: The requested JVM diagnostic report
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CedarError"
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CedarError"
+          description: Forbidden
+      security:
+      - api_key: []
+      summary: Report JVM garbage-collection counts
+      tags:
+      - Service diagnostics
+  /insight/memory:
+    get:
+      operationId: memory
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+          description: The requested JVM diagnostic report
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CedarError"
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CedarError"
+          description: Forbidden
+      security:
+      - api_key: []
+      summary: Report JVM memory use
+      tags:
+      - Service diagnostics
+  /insight/system:
+    get:
+      operationId: system
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+          description: The requested JVM diagnostic report
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CedarError"
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CedarError"
+          description: Forbidden
+      security:
+      - api_key: []
+      summary: Report operating-system information
+      tags:
+      - Service diagnostics
+  /insight/thread-details:
+    get:
+      operationId: threadDetails
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+          description: The requested JVM diagnostic report
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CedarError"
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CedarError"
+          description: Forbidden
+      security:
+      - api_key: []
+      summary: Report details and stack traces for every JVM thread
+      tags:
+      - Service diagnostics
+  /insight/threads:
+    get:
+      operationId: threads
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+          description: The requested JVM diagnostic report
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CedarError"
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CedarError"
+          description: Forbidden
+      security:
+      - api_key: []
+      summary: Report JVM thread counts
+      tags:
+      - Service diagnostics
   /template-elements:
     get:
       description: "List template elements, one page at a time. The response carries\
