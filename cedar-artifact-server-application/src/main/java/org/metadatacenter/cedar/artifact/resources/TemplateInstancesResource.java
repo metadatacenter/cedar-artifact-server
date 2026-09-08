@@ -274,7 +274,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
               @Header(name = "Total-Count", description = ArtifactApiDocs.TOTAL_COUNT, schema = @Schema(type = "integer")),
               @Header(name = "Link", description = ArtifactApiDocs.LINK, schema = @Schema(type = "string"))
           }),
-      @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "A paging parameter is out of range"),
+      @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "A paging parameter is out of range, or field_names is combined with summary=true"),
       @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Unauthorized"),
       @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Forbidden"),
       @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Internal server error")
@@ -547,23 +547,13 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
   }
 
   private Response sendFormattedTemplateInstance(JsonNode templateInstance, OutputFormatType formatType) throws CedarException {
-    Object responseObject = null;
-    String mediaType = null;
-    if (formatType == OutputFormatType.JSONLD) { // The assumption is the formatType is already a valid-and-supported
-      // type
-      responseObject = templateInstance;
-      mediaType = MediaType.APPLICATION_JSON;
-    } else if (formatType == OutputFormatType.JSON) {
-      responseObject = getJsonString(templateInstance);
-      mediaType = MediaType.APPLICATION_JSON;
-    } else if (formatType == OutputFormatType.RDF_NQUAD) {
-      responseObject = getRdfString(templateInstance);
-      mediaType = "application/n-quads";
-    } else {
-      throw new CedarException("Programming error: no handler is programmed for format type: " + formatType) {
-      };
-    }
-    return Response.ok(responseObject, mediaType).build();
+    // A switch expression over the enum, with no default: a format this cannot render is a compile
+    // error, not a runtime 500 with no decided status.
+    return switch (formatType) {
+      case JSONLD -> Response.ok(templateInstance, MediaType.APPLICATION_JSON).build();
+      case JSON -> Response.ok(getJsonString(templateInstance), MediaType.APPLICATION_JSON).build();
+      case RDF_NQUAD -> Response.ok(getRdfString(templateInstance), "application/n-quads").build();
+    };
   }
 
   private JsonNode getJsonString(JsonNode templateInstance) {

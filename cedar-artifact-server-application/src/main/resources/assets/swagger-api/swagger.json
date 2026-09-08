@@ -79,7 +79,7 @@
                 }
               }
             },
-            "description" : "No validation exists for the named artifact type"
+            "description" : "The validation could not be run"
           }
         },
         "security" : [ {
@@ -162,7 +162,7 @@
                 }
               }
             },
-            "description" : "A paging parameter is out of range"
+            "description" : "A paging parameter is out of range, or field_names is combined with summary=true"
           },
           "401" : {
             "content" : {
@@ -1011,7 +1011,7 @@
                 }
               }
             },
-            "description" : "A paging parameter is out of range"
+            "description" : "A paging parameter is out of range, or field_names is combined with summary=true"
           },
           "401" : {
             "content" : {
@@ -1860,7 +1860,7 @@
                 }
               }
             },
-            "description" : "A paging parameter is out of range"
+            "description" : "A paging parameter is out of range, or field_names is combined with summary=true"
           },
           "401" : {
             "content" : {
@@ -2758,7 +2758,7 @@
                 }
               }
             },
-            "description" : "A paging parameter is out of range"
+            "description" : "A paging parameter is out of range, or field_names is combined with summary=true"
           },
           "401" : {
             "content" : {

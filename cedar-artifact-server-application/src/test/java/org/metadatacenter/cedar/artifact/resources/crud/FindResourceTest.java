@@ -218,6 +218,30 @@ public class FindResourceTest extends AbstractResourceCrudTest {
     }
   }
 
+  /**
+   * {@code summary} and {@code field_names} select the listed fields in two ways, so a request naming
+   * both is the caller's mistake. It used to answer 500 with no error key, indistinguishable from a
+   * Mongo outage.
+   */
+  @ParameterizedTest
+  @MethodSource("parametersForFindAllWithFieldNamesAndSummaryTest")
+  public void findAllWithFieldNamesAndSummaryIsABadRequest(CedarResourceType resourceType) throws URISyntaxException {
+    String findAllUrl = new URIBuilder(TestUtil.getResourceUrlRoute(baseTestUrl, resourceType))
+        .addParameter("summary", "true")
+        .addParameter("field_names", "schema:name")
+        .build().toString();
+    Response findAllResponse = testClient.target(findAllUrl).request().header("Authorization", authHeader).get();
+    Assertions.assertEquals(CedarResponseStatus.BAD_REQUEST.getStatusCode(), findAllResponse.getStatus());
+    JsonNode error = findAllResponse.readEntity(JsonNode.class);
+    Assertions.assertEquals("invalidInput", error.get("errorKey").asText());
+    Assertions.assertEquals(CedarResponseStatus.BAD_REQUEST.getStatusCode(), error.get("statusCode").asInt());
+    Assertions.assertEquals("schema:name", error.get("parameters").get("field_names").asText());
+  }
+
+  static Object[] parametersForFindAllWithFieldNamesAndSummaryTest() {
+    return new Object[]{CedarResourceType.TEMPLATE, CedarResourceType.ELEMENT, CedarResourceType.INSTANCE};
+  }
+
   static Object[] parametersForFindAllResourcesTest() {
     List<Object> p1p2Values = Arrays.asList(
         Arrays.asList(CedarResourceType.TEMPLATE, sampleTemplate),

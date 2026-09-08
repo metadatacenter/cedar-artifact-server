@@ -75,7 +75,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CedarError"
-          description: No validation exists for the named artifact type
+          description: The validation could not be run
       security:
       - api_key: []
       summary: Validate an artifact
@@ -138,7 +138,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CedarError"
-          description: A paging parameter is out of range
+          description: "A paging parameter is out of range, or field_names is combined\
+            \ with summary=true"
         "401":
           content:
             application/json:
@@ -730,7 +731,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CedarError"
-          description: A paging parameter is out of range
+          description: "A paging parameter is out of range, or field_names is combined\
+            \ with summary=true"
         "401":
           content:
             application/json:
@@ -1322,7 +1324,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CedarError"
-          description: A paging parameter is out of range
+          description: "A paging parameter is out of range, or field_names is combined\
+            \ with summary=true"
         "401":
           content:
             application/json:
@@ -1948,7 +1951,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CedarError"
-          description: A paging parameter is out of range
+          description: "A paging parameter is out of range, or field_names is combined\
+            \ with summary=true"
         "401":
           content:
             application/json:
