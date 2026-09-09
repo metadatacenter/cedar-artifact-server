@@ -85,11 +85,16 @@ public abstract class AbstractArtifactServerResource extends CedarMicroserviceRe
     }
   }
 
-  protected static List<String> getAndCheckFieldNames(Optional<String> fieldNames, boolean summary) throws CedarAssertionException {
+  protected static List<String> getAndCheckFieldNames(Optional<String> fieldNames, boolean summary) throws CedarException {
     if (fieldNames != null && fieldNames.isPresent()) {
-      if (summary == true) {
+      if (summary) {
+        // The two select the fields the listing carries in different ways, so a request naming both
+        // is the caller's to fix. The assertion type answers 400 by itself; the key says what.
         throw new CedarAssertionException(
-            "It is no allowed to specify parameter 'field_names' and also set 'summary' to true!");
+            "It is not allowed to specify parameter 'field_names' and also set 'summary' to true!")
+            .errorKey(CedarErrorKey.INVALID_INPUT)
+            .parameter("field_names", fieldNames.get())
+            .parameter("summary", true);
       } else if (fieldNames.get().length() > 0) {
         return Arrays.asList(fieldNames.get().split(","));
       }

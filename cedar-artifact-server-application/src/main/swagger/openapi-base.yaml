@@ -14,7 +14,7 @@ info:
     ETag in `If-Match` when replacing or deleting it. A missing required precondition returns 428;
     a stale or malformed validator returns 412. `If-Match: *` accepts whichever revision currently
     exists and therefore deliberately gives up lost-update protection. Representation suffixes such
-    as `"7-yaml"` and `"7-yaml-compact"` identify different bytes of the same stored revision and
+    as `"7-yaml"` and `"7-yaml-compact-v2"` identify different bytes of the same stored revision and
     are valid write preconditions.
 
     Artifacts are read and written as JSON or YAML, selected by the Accept and Content-Type
@@ -22,41 +22,32 @@ info:
   version: ${project.version}
 components:
   schemas:
-    ArtifactDocument:
-      type: object
+    ValidationTarget:
       description: |
-        An open CEDAR JSON-LD artifact. Templates, elements, fields, and instances have different
-        model-defined properties, and user-defined field names are legal, so the schema deliberately
-        describes the common identity and provenance surface without closing the object.
+        What POST /command/validate accepts as JSON: an artifact, or an instance together with the
+        template to validate it against. The composite form is a JSON convenience rather than an
+        artifact, so it has no YAML equivalent.
+      oneOf:
+        - $ref: '#/components/schemas/ArtifactDocument'
+        - $ref: '#/components/schemas/InstanceWithSchema'
+    InstanceWithSchema:
+      type: object
+      description: An instance and the template it is validated against.
+      required:
+        - instance
       properties:
-        '@id':
-          type: string
-          format: uri
-        '@type':
-          oneOf:
-            - type: string
-              format: uri
-            - type: array
-              items:
-                type: string
-                format: uri
-        'schema:name':
-          type: string
-        'schema:description':
-          type: string
-        'pav:createdOn':
-          type: string
-          format: date-time
-        'pav:lastUpdatedOn':
-          type: string
-          format: date-time
-        'pav:createdBy':
-          type: string
-          format: uri
-        'oslc:modifiedBy':
-          type: string
-          format: uri
-      additionalProperties: true
+        schema:
+          allOf:
+            - $ref: '#/components/schemas/ArtifactDocument'
+          description: |
+            The template to validate the instance against. It is validated first, and a template
+            that does not itself pass is reported in place of the instance. Omitting it validates
+            the instance against the stored template it names.
+        instance:
+          allOf:
+            - $ref: '#/components/schemas/ArtifactDocument'
+          description: The instance to validate.
+      additionalProperties: false
   securitySchemes:
     api_key:
       type: apiKey

@@ -8,9 +8,9 @@ package org.metadatacenter.cedar.artifact.resources;
  * every operation that needs it. Annotation values must be compile-time constants, which is why
  * these are strings rather than a shared annotation.
  *
- * <p>The resource server keeps the equivalent wording in an {@code openapi-base.yaml} and reaches it
- * with {@code $ref}. The artifact server has no such document yet, so a {@code $ref} here would
- * dangle and the descriptions are declared inline instead.
+ * <p>The resource server keeps the equivalent wording in {@code components.headers} of its
+ * {@code openapi-base.yaml} and reaches it with {@code $ref}. This server's base document declares
+ * only schemas, so a header {@code $ref} here would dangle and the descriptions stay inline.
  */
 final class ArtifactApiDocs {
 

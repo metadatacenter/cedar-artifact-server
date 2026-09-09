@@ -547,6 +547,9 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
           .entity(outputArtifact)
           .build();
     } catch (ArtifactRevisionConflictException e) {
+      // On the create path the read found nothing and another writer inserted the identifier first, so the
+      // unique index refused this insert. currentRevision is null there; the response carries no ETag, and
+      // a retry of the same PUT after a fresh GET becomes an update.
       return movedOnResponse(artifactId, currentRevision);
     } catch (ArtifactServerResourceNotFoundException e) {
       if (createOrUpdate == CreateOrUpdate.UPDATE) {
@@ -613,7 +616,9 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
 
   protected String etag(long revision, MediaType responseType, boolean compact) {
     if (ArtifactYamlTranscoder.isYaml(responseType)) {
-      return RevisionPreconditionParser.format(revision, compact ? "yaml-compact" : "yaml");
+      // The compact renderer's bytes changed when nested repository identifiers left the form.
+      // Version the strong validator so an unchanged stored revision cannot validate stale bytes.
+      return RevisionPreconditionParser.format(revision, compact ? "yaml-compact-v2" : "yaml");
     }
     return etag(revision);
   }

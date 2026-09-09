@@ -5,21 +5,22 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.metadatacenter.util.artifact.ArtifactDocument;
 import org.metadatacenter.util.http.CedarError;
 import org.metadatacenter.config.CedarConfig;
-import org.metadatacenter.error.CedarErrorKey;
-import org.metadatacenter.error.CedarErrorPack;
 import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.exception.CedarProcessingException;
 import org.metadatacenter.constant.HttpConstants;
 import org.metadatacenter.model.CedarResourceType;
 import org.metadatacenter.model.request.ResourceType;
 import org.metadatacenter.model.request.ResourceTypeDetector;
+import org.metadatacenter.model.validation.report.CedarValidationReport;
 import org.metadatacenter.model.validation.report.ValidationReport;
 import org.metadatacenter.rest.context.CedarRequestContext;
 import org.metadatacenter.server.service.TemplateService;
@@ -78,11 +79,22 @@ public class CommandResource extends AbstractArtifactServerResource {
           + "composite is a JSON convenience rather than an artifact, so it has no YAML form and a "
           + "YAML body is read as the artifact itself. The report is returned with 200 whether or not "
           + "the artifact is valid: an invalid artifact is an answer, not a failed request.")
+  @RequestBody(required = true, description = "The artifact to validate, or an instance and the "
+      + "template to validate it against.",
+      content = {
+          @Content(mediaType = MediaType.APPLICATION_JSON,
+              schema = @Schema(ref = "#/components/schemas/ValidationTarget")),
+          @Content(mediaType = HttpConstants.CONTENT_TYPE_APPLICATION_YAML,
+              schema = @Schema(implementation = ArtifactDocument.class)),
+          @Content(mediaType = "application/yaml",
+              schema = @Schema(implementation = ArtifactDocument.class))
+      })
   @ApiResponses({
-      @ApiResponse(responseCode = "200", description = "The validation report"),
+      @ApiResponse(responseCode = "200", description = "The validation report",
+          content = @Content(schema = @Schema(implementation = CedarValidationReport.class))),
       @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "The body could not be read as the named artifact type"),
       @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Unauthorized"),
-      @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "No validation exists for the named artifact type")
+      @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "The validation could not be run")
   })
   public Response validateResource(
       @Parameter(description = "Artifact type to validate against: `template`, `element`, `field`, "
@@ -99,23 +111,14 @@ public class CommandResource extends AbstractArtifactServerResource {
   }
 
   private ValidationReport validateResource(JsonNode resource, ResourceType type) throws CedarException {
-    ValidationReport validationReport = null;
-    if (type == ResourceType.TEMPLATE) {
-      validationReport = validateTemplate(resource);
-    } else if (type == ResourceType.ELEMENT) {
-      validationReport = validateTemplateElement(resource);
-    } else if (type == ResourceType.FIELD) {
-      validationReport = validateTemplateField(resource);
-    } else if (type == ResourceType.INSTANCE) {
-      validationReport = validateTemplateInstance(resource);
-    } else {
-      CedarErrorPack errorPack = new CedarErrorPack()
-          .errorKey(CedarErrorKey.METHOD_NOT_IMPLEMENTED)
-          .message("Validation method for type " + type + " is not implemented yet");
-      throw new CedarException(errorPack) {
-      };
-    }
-    return validationReport;
+    // A switch expression over the enum, with no default: a type this cannot validate is a compile
+    // error, not a runtime 500 with an error key and no status.
+    return switch (type) {
+      case TEMPLATE -> validateTemplate(resource);
+      case ELEMENT -> validateTemplateElement(resource);
+      case FIELD -> validateTemplateField(resource);
+      case INSTANCE -> validateTemplateInstance(resource);
+    };
   }
 
   private ValidationReport validateTemplateInstance(JsonNode payload) throws CedarException {

@@ -94,6 +94,31 @@ public class YamlNegotiationTest extends AbstractRestTest {
   }
 
   @Test
+  public void compactKeepsOnlyTheRootArtifactIdentifier() throws IOException {
+    String yaml = """
+        type: template
+        name: Root Identity Only
+        children:
+          - key: title
+            type: text-field
+            name: Title
+        """;
+    Response createdResponse = request(baseTestUrl + "/" + CedarResourceType.TEMPLATE.getPrefix())
+        .post(Entity.entity(yaml, APPLICATION_YAML));
+    assertEquals(CedarResponseStatus.CREATED.getStatusCode(), createdResponse.getStatus());
+    JsonNode created = JsonMapper.MAPPER.readTree(createdResponse.readEntity(String.class));
+    markForCleanup(created);
+    String id = created.get(LinkedData.ID).asText();
+
+    String compact = getWithQuery(id, "compact=true").accept(APPLICATION_YAML).get().readEntity(String.class);
+
+    assertTrue(compact.lines().anyMatch(line -> line.startsWith("id:") && line.contains(id)),
+        "the document root must retain its identifier: " + compact);
+    assertFalse(compact.lines().anyMatch(line -> line.matches("\\s+id:.*")),
+        "a nested schema artifact retained its repository identifier: " + compact);
+  }
+
+  @Test
   public void byteDifferentRepresentationsHaveDifferentStrongEtags() throws IOException {
     String id = createTemplateFromJson();
 
@@ -114,7 +139,7 @@ public class YamlNegotiationTest extends AbstractRestTest {
     assertNotEquals(jsonEtag, yamlEtag);
     assertNotEquals(yamlEtag, compactEtag);
     assertEquals("\"1-yaml\"", yamlEtag);
-    assertEquals("\"1-yaml-compact\"", compactEtag);
+    assertEquals("\"1-yaml-compact-v2\"", compactEtag);
 
     Response updated = request(templateUrl(id)).header("If-Match", yamlEtag)
         .put(Entity.entity(yaml.replaceFirst("(?m)^name: .*$", "name: Updated With YAML ETag"),

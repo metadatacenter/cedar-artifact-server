@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -25,6 +26,7 @@ import org.metadatacenter.server.security.model.auth.CedarPermission;
 import org.metadatacenter.server.service.FieldNameInEx;
 import org.metadatacenter.server.service.TemplateElementService;
 import org.metadatacenter.util.http.CedarError;
+import org.metadatacenter.util.artifact.SchemaArtifactDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,8 +64,25 @@ public class TemplateElementsResource extends AbstractArtifactCrudResource {
       description = "Create a template element. " + ArtifactApiDocs.BODY_FORMAT + " The artifact is validated against the CEDAR "
           + "model before it is stored; an invalid one is refused rather than stored. The server mints "
           + "the identifier, so the body must carry none, and must carry a name.")
+  @RequestBody(required = true, description = "The template element to store.",
+      content = {
+          @Content(mediaType = MediaType.APPLICATION_JSON,
+              schema = @Schema(implementation = SchemaArtifactDocument.class)),
+          @Content(mediaType = HttpConstants.CONTENT_TYPE_APPLICATION_YAML,
+              schema = @Schema(implementation = SchemaArtifactDocument.class)),
+          @Content(mediaType = "application/yaml",
+              schema = @Schema(implementation = SchemaArtifactDocument.class))
+      })
   @ApiResponses({
       @ApiResponse(responseCode = "201", description = "The stored template element",
+          content = {
+              @Content(mediaType = MediaType.APPLICATION_JSON,
+                  schema = @Schema(implementation = SchemaArtifactDocument.class)),
+              @Content(mediaType = HttpConstants.CONTENT_TYPE_APPLICATION_YAML,
+                  schema = @Schema(implementation = SchemaArtifactDocument.class)),
+              @Content(mediaType = "application/yaml",
+                  schema = @Schema(implementation = SchemaArtifactDocument.class))
+          },
           headers = {
               @Header(name = "Location", description = "URL of the created artifact.",
                   schema = @Schema(type = "string")),
@@ -96,11 +115,11 @@ public class TemplateElementsResource extends AbstractArtifactCrudResource {
       @ApiResponse(responseCode = "200", description = "The stored template element",
           content = {
               @Content(mediaType = MediaType.APPLICATION_JSON,
-                  schema = @Schema(ref = "#/components/schemas/ArtifactDocument")),
+                  schema = @Schema(implementation = SchemaArtifactDocument.class)),
               @Content(mediaType = HttpConstants.CONTENT_TYPE_APPLICATION_YAML,
-                  schema = @Schema(ref = "#/components/schemas/ArtifactDocument")),
+                  schema = @Schema(implementation = SchemaArtifactDocument.class)),
               @Content(mediaType = "application/yaml",
-                  schema = @Schema(ref = "#/components/schemas/ArtifactDocument"))
+                  schema = @Schema(implementation = SchemaArtifactDocument.class))
           },
           headers = {
               @Header(name = "ETag", description = ArtifactApiDocs.ETAG, schema = @Schema(type = "string")),
@@ -130,12 +149,12 @@ public class TemplateElementsResource extends AbstractArtifactCrudResource {
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "A page of template elements",
           content = @Content(mediaType = MediaType.APPLICATION_JSON,
-              array = @ArraySchema(schema = @Schema(ref = "#/components/schemas/ArtifactDocument"))),
+              array = @ArraySchema(schema = @Schema(implementation = SchemaArtifactDocument.class))),
           headers = {
               @Header(name = "Total-Count", description = ArtifactApiDocs.TOTAL_COUNT, schema = @Schema(type = "integer")),
               @Header(name = "Link", description = ArtifactApiDocs.LINK, schema = @Schema(type = "string"))
           }),
-      @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "A paging parameter is out of range"),
+      @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "A paging parameter is out of range, or field_names is combined with summary=true"),
       @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Unauthorized"),
       @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Forbidden"),
       @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Internal server error")
@@ -165,14 +184,39 @@ public class TemplateElementsResource extends AbstractArtifactCrudResource {
           + "landed since the artifact was read.",
       parameters = @Parameter(in = ParameterIn.HEADER, name = "If-Match",
           description = ArtifactApiDocs.IF_MATCH_FOR_CREATE_OR_REPLACE, schema = @Schema(type = "string")))
+  @RequestBody(required = true, description = "The template element to store at that identifier.",
+      content = {
+          @Content(mediaType = MediaType.APPLICATION_JSON,
+              schema = @Schema(implementation = SchemaArtifactDocument.class)),
+          @Content(mediaType = HttpConstants.CONTENT_TYPE_APPLICATION_YAML,
+              schema = @Schema(implementation = SchemaArtifactDocument.class)),
+          @Content(mediaType = "application/yaml",
+              schema = @Schema(implementation = SchemaArtifactDocument.class))
+      })
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "The replaced a template element",
+          content = {
+              @Content(mediaType = MediaType.APPLICATION_JSON,
+                  schema = @Schema(implementation = SchemaArtifactDocument.class)),
+              @Content(mediaType = HttpConstants.CONTENT_TYPE_APPLICATION_YAML,
+                  schema = @Schema(implementation = SchemaArtifactDocument.class)),
+              @Content(mediaType = "application/yaml",
+                  schema = @Schema(implementation = SchemaArtifactDocument.class))
+          },
           headers = {
               @Header(name = "ETag", description = ArtifactApiDocs.ETAG, schema = @Schema(type = "string")),
               @Header(name = "CEDAR-Validation-Status", description = ArtifactApiDocs.VALIDATION_STATUS,
                   schema = @Schema(type = "string"))
           }),
       @ApiResponse(responseCode = "201", description = "A template element created at the supplied identifier",
+          content = {
+              @Content(mediaType = MediaType.APPLICATION_JSON,
+                  schema = @Schema(implementation = SchemaArtifactDocument.class)),
+              @Content(mediaType = HttpConstants.CONTENT_TYPE_APPLICATION_YAML,
+                  schema = @Schema(implementation = SchemaArtifactDocument.class)),
+              @Content(mediaType = "application/yaml",
+                  schema = @Schema(implementation = SchemaArtifactDocument.class))
+          },
           headers = @Header(name = "ETag", description = ArtifactApiDocs.ETAG, schema = @Schema(type = "string"))),
       @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "The body is empty, has no name, or failed validation"),
       @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Unauthorized"),
