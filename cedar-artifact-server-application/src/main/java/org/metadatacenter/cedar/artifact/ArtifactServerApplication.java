@@ -45,6 +45,7 @@ public class ArtifactServerApplication extends CedarMicroserviceApplicationWithM
     final CedarMicroserviceIndexResource index =
         new CedarMicroserviceIndexResource(cedarConfig, getServerName());
     environment.jersey().register(index);
+    environment.jersey().register(new ArtifactCountsResource(cedarConfig, templateFieldService, templateElementService, templateService, templateInstanceService));
 
     final TemplateFieldsResource fields = new TemplateFieldsResource(cedarConfig, templateFieldService);
     environment.jersey().register(fields);

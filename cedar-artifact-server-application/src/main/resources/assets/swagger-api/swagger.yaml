@@ -293,6 +293,41 @@ paths:
       summary: Report JVM thread counts
       tags:
       - Service diagnostics
+  /monitor/artifact-counts:
+    get:
+      description: "Requires MONITOR_READ. Counts stored documents, including any\
+        \ absent from the workspace graph."
+      operationId: counts
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArtifactCounts"
+          description: Actual artifact document-store counts
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CedarError"
+          description: Authentication required
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CedarError"
+          description: The caller lacks monitor read permission
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CedarError"
+          description: Artifact counts are unavailable
+      security:
+      - api_key: []
+      summary: Count artifact documents
+      tags:
+      - Monitoring
   /template-elements:
     get:
       description: "List template elements, one page at a time. The response carries\
@@ -2722,6 +2757,21 @@ paths:
       - Templates
 components:
   schemas:
+    ArtifactCounts:
+      type: object
+      properties:
+        element:
+          type: integer
+          format: int64
+        field:
+          type: integer
+          format: int64
+        instance:
+          type: integer
+          format: int64
+        template:
+          type: integer
+          format: int64
     ArtifactDocument:
       type: object
       additionalProperties: true

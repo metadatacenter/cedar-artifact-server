@@ -46,6 +46,43 @@ class ArtifactServiceBoundaryTest extends AbstractRestTest {
     assertEquals(200, send("GET", "/", null, null).statusCode());
   }
 
+  @Test
+  void countsRequireBothCredentialsAndMonitorPermissionAndIncludeGraphlessDocuments() throws Exception {
+    var config = TestUtil.getCedarConfig();
+    String key = config.getArtifactService().requireApiKey();
+    String admin = org.metadatacenter.util.test.TestAuthUtil.getAdminUserAuthHeader(config);
+    String path = "/monitor/artifact-counts";
+    assertEquals(401, send("GET", path, null, admin).statusCode());
+    assertEquals(401, send("GET", path, key, null).statusCode());
+    assertEquals(403, send("GET", path, key, authHeaderTestUser1).statusCode());
+    var initial = send("GET", path, key, admin);
+    assertEquals(200, initial.statusCode(), initial.body());
+    var before = org.metadatacenter.util.json.JsonMapper.STRICT_MAPPER.readTree(initial.body());
+    var mongo = config.getArtifactServerConfig();
+    var database = org.metadatacenter.bridge.CedarDataServices.getInstance()
+        .getMongoClientFactoryForDocuments().getClient().getDatabase(mongo.getDatabaseName());
+    // Deliberately no graph nodes: diagnostics must count orphaned storage records too.
+    var types = List.of(org.metadatacenter.model.CedarResourceType.FIELD,
+        org.metadatacenter.model.CedarResourceType.ELEMENT, org.metadatacenter.model.CedarResourceType.TEMPLATE,
+        org.metadatacenter.model.CedarResourceType.INSTANCE);
+    String marker = java.util.UUID.randomUUID().toString();
+    try {
+      for (var type : types) {
+        database.getCollection(mongo.getMongoCollectionName(type))
+            .insertOne(new org.bson.Document("_id", marker));
+      }
+      var result = send("GET", path, key, admin);
+      assertEquals(200, result.statusCode(), result.body());
+      var counts = org.metadatacenter.util.json.JsonMapper.STRICT_MAPPER.readTree(result.body());
+      for (String kind : List.of("field", "element", "template", "instance")) {
+        assertEquals(before.path(kind).longValue() + 1, counts.path(kind).longValue(), kind);
+      }
+    } finally {
+      for (var type : types) database.getCollection(mongo.getMongoCollectionName(type))
+          .deleteOne(new org.bson.Document("_id", marker));
+    }
+  }
+
   private HttpResponse<String> send(String method, String path, String serviceKey, String authorization) throws Exception {
     var request = HttpRequest.newBuilder(URI.create(baseTestUrl + path)).timeout(Duration.ofSeconds(10))
         .header("Content-Type", "application/json");
