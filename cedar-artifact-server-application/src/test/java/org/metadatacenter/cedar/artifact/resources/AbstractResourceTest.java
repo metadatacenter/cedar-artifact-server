@@ -113,6 +113,9 @@ public abstract class AbstractResourceTest {
     testClient = new JerseyClientBuilder(SERVER_APPLICATION.getEnvironment())
         .using(clientConfig)
         .build("artifact-test-client-" + System.nanoTime());
+    testClient.register((jakarta.ws.rs.client.ClientRequestFilter) request ->
+        request.getHeaders().putSingle(org.metadatacenter.config.ArtifactServiceConfig.HEADER,
+            TestUtil.getCedarConfig().getArtifactService().requireApiKey()));
     testClient.property(ClientProperties.READ_TIMEOUT, DEFAULT_TIMEOUT);
     testClient.property(ClientProperties.CONNECT_TIMEOUT, DEFAULT_TIMEOUT);
     testClient.property(ClientProperties.SUPPRESS_HTTP_COMPLIANCE_VALIDATION, true);

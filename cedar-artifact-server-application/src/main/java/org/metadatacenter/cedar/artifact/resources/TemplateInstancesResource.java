@@ -11,8 +11,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.security.SecurityRequirementEntry;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.jsonldjava.core.JsonLdError;
 import org.metadatacenter.util.http.CedarError;
@@ -61,7 +62,8 @@ import static org.metadatacenter.rest.assertion.GenericAssertions.*;
 @Path("/template-instances")
 @Produces(MediaType.APPLICATION_JSON)
 @Tag(name = "Template instances")
-@SecurityRequirement(name = "api_key")
+@SecurityRequirement(name = "", combine = {
+    @SecurityRequirementEntry(name = "api_key"), @SecurityRequirementEntry(name = "artifact_service")})
 public class TemplateInstancesResource extends AbstractArtifactCrudResource {
 
   private static final Logger logger = LoggerFactory.getLogger(TemplateInstancesResource.class);

@@ -3,6 +3,9 @@ info:
   description: |
     Better Metadata - Better Science
 
+    Internal service: business routes require both X-CEDAR-Artifact-Service-Key and the
+    end-user Authorization header. Public callers use resource; a user API key alone is insufficient.
+
     The artifact server stores templates, template elements, template fields, and template
     instances, and validates every one of them against the CEDAR model before storing it.
 
@@ -91,6 +94,7 @@ paths:
           description: The validation could not be run
       security:
       - api_key: []
+        artifact_service: []
       summary: Validate an artifact
       tags:
       - Command
@@ -368,6 +372,7 @@ paths:
           description: Internal server error
       security:
       - api_key: []
+        artifact_service: []
       summary: List template elements
       tags:
       - Template elements
@@ -495,6 +500,7 @@ paths:
           description: Internal server error
       security:
       - api_key: []
+        artifact_service: []
       summary: Create a template element
       tags:
       - Template elements
@@ -568,6 +574,7 @@ paths:
           description: Internal server error
       security:
       - api_key: []
+        artifact_service: []
       summary: Delete a template element
       tags:
       - Template elements
@@ -689,6 +696,7 @@ paths:
           description: Internal server error
       security:
       - api_key: []
+        artifact_service: []
       summary: Get a template element
       tags:
       - Template elements
@@ -879,6 +887,7 @@ paths:
           description: Internal server error
       security:
       - api_key: []
+        artifact_service: []
       summary: Replace a template element
       tags:
       - Template elements
@@ -961,6 +970,7 @@ paths:
           description: Internal server error
       security:
       - api_key: []
+        artifact_service: []
       summary: List template fields
       tags:
       - Template fields
@@ -1088,6 +1098,7 @@ paths:
           description: Internal server error
       security:
       - api_key: []
+        artifact_service: []
       summary: Create a template field
       tags:
       - Template fields
@@ -1161,6 +1172,7 @@ paths:
           description: Internal server error
       security:
       - api_key: []
+        artifact_service: []
       summary: Delete a template field
       tags:
       - Template fields
@@ -1282,6 +1294,7 @@ paths:
           description: Internal server error
       security:
       - api_key: []
+        artifact_service: []
       summary: Get a template field
       tags:
       - Template fields
@@ -1472,6 +1485,7 @@ paths:
           description: Internal server error
       security:
       - api_key: []
+        artifact_service: []
       summary: Replace a template field
       tags:
       - Template fields
@@ -1554,6 +1568,7 @@ paths:
           description: Internal server error
       security:
       - api_key: []
+        artifact_service: []
       summary: List template instances
       tags:
       - Template instances
@@ -1687,6 +1702,7 @@ paths:
           description: Internal server error
       security:
       - api_key: []
+        artifact_service: []
       summary: Create a template instance
       tags:
       - Template instances
@@ -1760,6 +1776,7 @@ paths:
           description: Internal server error
       security:
       - api_key: []
+        artifact_service: []
       summary: Delete a template instance
       tags:
       - Template instances
@@ -1910,6 +1927,7 @@ paths:
           description: Internal server error
       security:
       - api_key: []
+        artifact_service: []
       summary: Get a template instance
       tags:
       - Template instances
@@ -2100,6 +2118,7 @@ paths:
           description: Internal server error
       security:
       - api_key: []
+        artifact_service: []
       summary: Replace a template instance
       tags:
       - Template instances
@@ -2181,6 +2200,7 @@ paths:
           description: Internal server error
       security:
       - api_key: []
+        artifact_service: []
       summary: List templates
       tags:
       - Templates
@@ -2308,6 +2328,7 @@ paths:
           description: Internal server error
       security:
       - api_key: []
+        artifact_service: []
       summary: Create a template
       tags:
       - Templates
@@ -2382,6 +2403,7 @@ paths:
           description: Internal server error
       security:
       - api_key: []
+        artifact_service: []
       summary: Delete a template
       tags:
       - Templates
@@ -2503,6 +2525,7 @@ paths:
           description: Internal server error
       security:
       - api_key: []
+        artifact_service: []
       summary: Get a template
       tags:
       - Templates
@@ -2693,6 +2716,7 @@ paths:
           description: Internal server error
       security:
       - api_key: []
+        artifact_service: []
       summary: Replace a template
       tags:
       - Templates
@@ -3213,4 +3237,10 @@ components:
       description: "Your CEDAR API key, using the format 'apiKey <yourApiKey>'"
       in: header
       name: Authorization
+      type: apiKey
+    artifact_service:
+      description: Private installation credential for trusted artifact callers; required
+        alongside user authorization.
+      in: header
+      name: X-CEDAR-Artifact-Service-Key
       type: apiKey

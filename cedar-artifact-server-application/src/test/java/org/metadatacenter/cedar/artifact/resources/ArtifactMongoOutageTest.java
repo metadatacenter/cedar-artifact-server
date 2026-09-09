@@ -81,6 +81,9 @@ class ArtifactMongoOutageTest {
         .uri(URI.create("http://localhost:" + SERVER.getLocalPort() + "/templates/" + id))
         .timeout(Duration.ofSeconds(5))
         .header("Authorization", authorization)
+        .header(org.metadatacenter.config.ArtifactServiceConfig.HEADER,
+            CedarConfig.getInstance(CedarEnvironmentVariableProvider.getFor(SystemComponent.SERVER_ARTIFACT))
+                .getArtifactService().requireApiKey())
         .GET()
         .build();
 
