@@ -24,7 +24,7 @@ public class JsonSchemaTitleAndDescriptionTest {
 
   @Test
   public void theRootPairFollowsTheNameAndKeepsItsCaseAndItsSignature() throws Exception {
-    JsonNode template = JsonMapper.MAPPER.readTree("""
+    JsonNode template = JsonMapper.STRICT_MAPPER.readTree("""
         {"@type": "https://schema.metadatacenter.org/core/Template",
          "schema:name": "%s",
          "title": "%s",
@@ -40,7 +40,7 @@ public class JsonSchemaTitleAndDescriptionTest {
 
   @Test
   public void aDescriptionWithoutASignatureTakesTheLibrarys() throws Exception {
-    JsonNode template = JsonMapper.MAPPER.readTree(
+    JsonNode template = JsonMapper.STRICT_MAPPER.readTree(
         "{\"schema:name\": \"Study\", \"description\": \"Whatever an author once typed here\"}");
 
     JsonSchemaTitleAndDescription.derive(template, CedarResourceType.TEMPLATE);
@@ -57,7 +57,7 @@ public class JsonSchemaTitleAndDescriptionTest {
   @ParameterizedTest
   @EnumSource(value = CedarResourceType.class, names = {"TEMPLATE", "ELEMENT", "FIELD"})
   public void eachKindHasItsOwnWord(CedarResourceType type) throws Exception {
-    JsonNode artifact = JsonMapper.MAPPER.readTree("{\"schema:name\": \"Study\"}");
+    JsonNode artifact = JsonMapper.STRICT_MAPPER.readTree("{\"schema:name\": \"Study\"}");
 
     JsonSchemaTitleAndDescription.derive(artifact, type);
 
@@ -74,7 +74,7 @@ public class JsonSchemaTitleAndDescriptionTest {
 
   @Test
   public void aPairIsAddedWhereTheClientSentNone() throws Exception {
-    JsonNode field = JsonMapper.MAPPER.readTree("{\"schema:name\": \"Disease\"}");
+    JsonNode field = JsonMapper.STRICT_MAPPER.readTree("{\"schema:name\": \"Disease\"}");
 
     JsonSchemaTitleAndDescription.derive(field, CedarResourceType.FIELD);
 
@@ -84,9 +84,9 @@ public class JsonSchemaTitleAndDescriptionTest {
 
   @Test
   public void aNodeWithoutAUsableNameKeepsWhatItHas() throws Exception {
-    JsonNode missing = JsonMapper.MAPPER.readTree("{\"title\": \"Kept\"}");
-    JsonNode blank = JsonMapper.MAPPER.readTree("{\"schema:name\": \"  \", \"title\": \"Kept\"}");
-    JsonNode notText = JsonMapper.MAPPER.readTree("{\"schema:name\": 7, \"title\": \"Kept\"}");
+    JsonNode missing = JsonMapper.STRICT_MAPPER.readTree("{\"title\": \"Kept\"}");
+    JsonNode blank = JsonMapper.STRICT_MAPPER.readTree("{\"schema:name\": \"  \", \"title\": \"Kept\"}");
+    JsonNode notText = JsonMapper.STRICT_MAPPER.readTree("{\"schema:name\": 7, \"title\": \"Kept\"}");
 
     for (JsonNode node : new JsonNode[]{missing, blank, notText}) {
       JsonSchemaTitleAndDescription.derive(node, CedarResourceType.TEMPLATE);
@@ -97,7 +97,7 @@ public class JsonSchemaTitleAndDescriptionTest {
 
   @Test
   public void anInstanceIsLeftAlone() throws Exception {
-    JsonNode instance = JsonMapper.MAPPER.readTree("{\"schema:name\": \"Study metadata\", \"title\": \"Kept\"}");
+    JsonNode instance = JsonMapper.STRICT_MAPPER.readTree("{\"schema:name\": \"Study metadata\", \"title\": \"Kept\"}");
 
     JsonSchemaTitleAndDescription.derive(instance, CedarResourceType.INSTANCE);
 
@@ -107,7 +107,7 @@ public class JsonSchemaTitleAndDescriptionTest {
 
   @Test
   public void embeddedChildrenAreLeftAsSent() throws Exception {
-    JsonNode template = JsonMapper.MAPPER.readTree("""
+    JsonNode template = JsonMapper.STRICT_MAPPER.readTree("""
         {"@type": "https://schema.metadatacenter.org/core/Template",
          "schema:name": "Parent",
          "properties": {

@@ -351,7 +351,7 @@ public abstract class AbstractArtifactServerResource extends CedarMicroserviceRe
     if (ArtifactYamlTranscoder.isYaml(httpHeaders.getMediaType())) {
       try {
         String json = ArtifactYamlTranscoder.yamlToJsonString(requestBody, resourceType, templateResolver);
-        return new HttpRequestJsonBody(JsonMapper.MAPPER.readTree(json));
+        return new HttpRequestJsonBody(JsonMapper.STRICT_MAPPER.readTree(json));
       } catch (ArtifactYamlTranscoder.CompactYamlBodyException e) {
         throw new CedarBadRequestException(e.getMessage(), e);
       } catch (Exception e) {
@@ -359,7 +359,7 @@ public abstract class AbstractArtifactServerResource extends CedarMicroserviceRe
       }
     }
     try {
-      return new HttpRequestJsonBody(JsonMapper.MAPPER.readTree(requestBody));
+      return new HttpRequestJsonBody(JsonMapper.STRICT_MAPPER.readTree(requestBody));
     } catch (Exception e) {
       throw new CedarBadRequestException("There was an error deserializing the request body", e);
     }

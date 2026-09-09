@@ -95,7 +95,7 @@ public class InstancePayloadBoundaryTest extends AbstractRestTest {
     Response response = request(url).post(Entity.entity(yaml, APPLICATION_YAML));
     String body = response.readEntity(String.class);
     assertEquals(CedarResponseStatus.CREATED.getStatusCode(), response.getStatus(), body);
-    JsonNode created = JsonMapper.MAPPER.readTree(body);
+    JsonNode created = JsonMapper.STRICT_MAPPER.readTree(body);
     createdResources.put(created.path(LinkedData.ID).asText(), type);
     return created;
   }

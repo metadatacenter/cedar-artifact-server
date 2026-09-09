@@ -141,7 +141,7 @@ public class SparseInstanceCompletionTest extends AbstractRestTest {
         .put(Entity.entity(sparseAgain.replace("Alice", "Alice Smith"), APPLICATION_YAML));
     assertEquals(CedarResponseStatus.OK.getStatusCode(), updated.getStatus());
 
-    JsonNode reread = JsonMapper.MAPPER.readTree(
+    JsonNode reread = JsonMapper.STRICT_MAPPER.readTree(
         request(instanceUrl(instanceId)).get().readEntity(String.class));
     assertEquals(instanceId, reread.get(LinkedData.ID).asText(), "the update keeps the identity");
     assertEquals("Alice Smith", reread.path("filled").path("@value").asText());
@@ -178,7 +178,7 @@ public class SparseInstanceCompletionTest extends AbstractRestTest {
         .post(Entity.entity(TWO_FIELD_TEMPLATE, APPLICATION_YAML));
     assertEquals(CedarResponseStatus.CREATED.getStatusCode(), response.getStatus(),
         "the fixture template could not be created, so the assertions would be meaningless");
-    JsonNode created = JsonMapper.MAPPER.readTree(response.readEntity(String.class));
+    JsonNode created = JsonMapper.STRICT_MAPPER.readTree(response.readEntity(String.class));
     String id = created.get(LinkedData.ID).asText();
     createdResources.put(id, CedarResourceType.TEMPLATE);
     return id;
@@ -189,7 +189,7 @@ public class SparseInstanceCompletionTest extends AbstractRestTest {
     String responseBody = response.readEntity(String.class);
     assertEquals(CedarResponseStatus.CREATED.getStatusCode(), response.getStatus(),
         "a sparse instance must be accepted, got: " + responseBody);
-    JsonNode created = JsonMapper.MAPPER.readTree(responseBody);
+    JsonNode created = JsonMapper.STRICT_MAPPER.readTree(responseBody);
     createdResources.put(created.get(LinkedData.ID).asText(), CedarResourceType.INSTANCE);
     return created;
   }

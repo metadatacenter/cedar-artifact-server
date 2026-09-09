@@ -35,7 +35,7 @@ public class FieldPayloadBoundaryTest extends AbstractRestTest {
     String createdBody = createdResponse.readEntity(String.class);
     assertEquals(CedarResponseStatus.CREATED.getStatusCode(), createdResponse.getStatus(), createdBody);
 
-    JsonNode created = JsonMapper.MAPPER.readTree(createdBody);
+    JsonNode created = JsonMapper.STRICT_MAPPER.readTree(createdBody);
     String id = created.path(LinkedData.ID).asText();
     createdResources.put(id, CedarResourceType.FIELD);
     assertEquals("Minimal Field", created.path("schema:name").asText());
@@ -52,7 +52,7 @@ public class FieldPayloadBoundaryTest extends AbstractRestTest {
     String updatedBody = updatedResponse.readEntity(String.class);
     assertEquals(CedarResponseStatus.OK.getStatusCode(), updatedResponse.getStatus(), updatedBody);
 
-    JsonNode updated = JsonMapper.MAPPER.readTree(updatedBody);
+    JsonNode updated = JsonMapper.STRICT_MAPPER.readTree(updatedBody);
     assertEquals(id, updated.path(LinkedData.ID).asText());
     assertEquals("Renamed Field", updated.path("schema:name").asText());
   }
@@ -104,7 +104,7 @@ public class FieldPayloadBoundaryTest extends AbstractRestTest {
     String body = response.readEntity(String.class);
     assertEquals(CedarResponseStatus.CREATED.getStatusCode(), response.getStatus(), body);
 
-    JsonNode created = JsonMapper.MAPPER.readTree(body);
+    JsonNode created = JsonMapper.STRICT_MAPPER.readTree(body);
     String id = created.path(LinkedData.ID).asText();
     createdResources.put(id, CedarResourceType.FIELD);
     assertTrue(created.path("_valueConstraints").toString().contains("DOID"), created.toString());

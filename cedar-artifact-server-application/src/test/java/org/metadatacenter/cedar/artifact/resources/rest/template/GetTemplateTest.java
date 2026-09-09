@@ -78,7 +78,7 @@ public class GetTemplateTest extends AbstractRestTest {
     String createdBody = createResponse.readEntity(String.class);
     JsonNode template = null;
     try {
-      template = JsonMapper.MAPPER.readTree(createdBody);
+      template = JsonMapper.STRICT_MAPPER.readTree(createdBody);
     } catch (JsonParseException e) {
       // do nothing, the json can be invalid intentionally
     }
@@ -127,7 +127,7 @@ public class GetTemplateTest extends AbstractRestTest {
       String getBody = getResponse.readEntity(String.class);
       JsonNode getTemplate = null;
       try {
-        getTemplate = JsonMapper.MAPPER.readTree(createdBody);
+        getTemplate = JsonMapper.STRICT_MAPPER.readTree(createdBody);
       } catch (JsonParseException e) {
         // do nothing, the json can be invalid intentionally
       }

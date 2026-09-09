@@ -212,7 +212,7 @@ public abstract class BaseServerTest {
   protected static String extractIdFromDocument(String templateDocument) {
     JsonNode template = null;
     try {
-      template = JsonMapper.MAPPER.readTree(templateDocument);
+      template = JsonMapper.STRICT_MAPPER.readTree(templateDocument);
     } catch (java.io.IOException e) {
       e.printStackTrace();
     }

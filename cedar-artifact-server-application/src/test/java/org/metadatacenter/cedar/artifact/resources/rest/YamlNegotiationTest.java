@@ -106,7 +106,7 @@ public class YamlNegotiationTest extends AbstractRestTest {
     Response createdResponse = request(baseTestUrl + "/" + CedarResourceType.TEMPLATE.getPrefix())
         .post(Entity.entity(yaml, APPLICATION_YAML));
     assertEquals(CedarResponseStatus.CREATED.getStatusCode(), createdResponse.getStatus());
-    JsonNode created = JsonMapper.MAPPER.readTree(createdResponse.readEntity(String.class));
+    JsonNode created = JsonMapper.STRICT_MAPPER.readTree(createdResponse.readEntity(String.class));
     markForCleanup(created);
     String id = created.get(LinkedData.ID).asText();
 
@@ -159,7 +159,7 @@ public class YamlNegotiationTest extends AbstractRestTest {
         .post(Entity.entity(yaml, yamlMediaType));
 
     assertEquals(CedarResponseStatus.CREATED.getStatusCode(), response.getStatus());
-    JsonNode created = JsonMapper.MAPPER.readTree(response.readEntity(String.class));
+    JsonNode created = JsonMapper.STRICT_MAPPER.readTree(response.readEntity(String.class));
     markForCleanup(created);
     assertEquals("YAML Posted Template", created.get("schema:name").asText());
   }
@@ -246,7 +246,7 @@ public class YamlNegotiationTest extends AbstractRestTest {
         .put(Entity.entity(edited, APPLICATION_YAML));
 
     assertEquals(CedarResponseStatus.OK.getStatusCode(), response.getStatus());
-    JsonNode reread = JsonMapper.MAPPER.readTree(get(id).get().readEntity(String.class));
+    JsonNode reread = JsonMapper.STRICT_MAPPER.readTree(get(id).get().readEntity(String.class));
     assertEquals("Renamed Through YAML", reread.get("schema:name").asText());
   }
 
@@ -273,7 +273,7 @@ public class YamlNegotiationTest extends AbstractRestTest {
     Response created = request(baseTestUrl + "/" + CedarResourceType.TEMPLATE.getPrefix())
         .post(Entity.entity(yaml, APPLICATION_YAML));
     assertEquals(CedarResponseStatus.CREATED.getStatusCode(), created.getStatus());
-    JsonNode stored = JsonMapper.MAPPER.readTree(created.readEntity(String.class));
+    JsonNode stored = JsonMapper.STRICT_MAPPER.readTree(created.readEntity(String.class));
     markForCleanup(stored);
     String id = stored.get(LinkedData.ID).asText();
 
@@ -288,7 +288,7 @@ public class YamlNegotiationTest extends AbstractRestTest {
         .put(Entity.entity(rendered, APPLICATION_YAML));
     assertEquals(CedarResponseStatus.OK.getStatusCode(), put.getStatus());
 
-    JsonNode after = JsonMapper.MAPPER.readTree(get(id).get().readEntity(String.class));
+    JsonNode after = JsonMapper.STRICT_MAPPER.readTree(get(id).get().readEntity(String.class));
     assertEquals(sizeBefore, findFirstUiSize(after), "the YAML round trip dropped _ui._size");
   }
 
@@ -303,7 +303,7 @@ public class YamlNegotiationTest extends AbstractRestTest {
         .post(Entity.json(getFileContentAsString(fixture)));
     assertEquals(CedarResponseStatus.CREATED.getStatusCode(), response.getStatus(),
         "the fixture could not be created, so the negotiation assertions would be meaningless");
-    JsonNode created = JsonMapper.MAPPER.readTree(response.readEntity(String.class));
+    JsonNode created = JsonMapper.STRICT_MAPPER.readTree(response.readEntity(String.class));
     markForCleanup(created);
     return created.get(LinkedData.ID).asText();
   }

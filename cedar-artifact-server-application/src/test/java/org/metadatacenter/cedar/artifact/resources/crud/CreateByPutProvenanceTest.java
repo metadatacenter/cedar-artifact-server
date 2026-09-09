@@ -46,7 +46,7 @@ public class CreateByPutProvenanceTest extends AbstractResourceCrudTest {
 
     assertEquals(CedarResponseStatus.CREATED.getStatusCode(), response.getStatus(), responseBody);
     createdResources.put(id, resourceType);
-    JsonNode created = JsonMapper.MAPPER.readTree(responseBody);
+    JsonNode created = JsonMapper.STRICT_MAPPER.readTree(responseBody);
     assertServerCreationProvenance(created);
 
     JsonNode stored = testClient.target(url).request()

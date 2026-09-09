@@ -77,7 +77,7 @@ public class DeleteTemplateTest extends AbstractRestTest {
     String createdBody = createResponse.readEntity(String.class);
     JsonNode template = null;
     try {
-      template = JsonMapper.MAPPER.readTree(createdBody);
+      template = JsonMapper.STRICT_MAPPER.readTree(createdBody);
     } catch (JsonParseException e) {
       // do nothing, the json can be invalid intentionally
     }
