@@ -283,7 +283,7 @@ public class TemplatesResource extends AbstractArtifactCrudResource {
           .id(id)
           .errorKey(CedarErrorKey.TEMPLATE_NOT_DELETED)
           .errorReasonKey(CedarErrorReasonKey.TEMPLATE_REFERENCED_IN_INSTANCES)
-          .errorMessage("The artifact can not be deleted since there are instances using it")
+          .message("The artifact can not be deleted since there are instances using it")
           .parameter("referenceCount", referenceCount)
           .build();
     }

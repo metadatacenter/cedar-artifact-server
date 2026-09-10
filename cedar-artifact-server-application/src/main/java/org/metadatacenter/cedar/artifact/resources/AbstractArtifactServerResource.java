@@ -319,7 +319,7 @@ public abstract class AbstractArtifactServerResource extends CedarMicroserviceRe
 
   protected Response notAcceptableArtifactFormatResponse() {
     return CedarResponse.notAcceptable()
-        .errorMessage("None of the media types in the Accept header can be produced")
+        .message("None of the media types in the Accept header can be produced")
         .parameter("allowed media types",
             Arrays.toString(new String[]{MediaType.APPLICATION_JSON, HttpConstants.CONTENT_TYPE_APPLICATION_YAML}))
         .build();

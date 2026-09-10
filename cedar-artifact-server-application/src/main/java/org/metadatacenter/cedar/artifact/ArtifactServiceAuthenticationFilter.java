@@ -47,7 +47,7 @@ public final class ArtifactServiceAuthenticationFilter implements ContainerReque
       accepted = MessageDigest.isEqual(current, supplied) | MessageDigest.isEqual(previous, supplied);
     }
     if (!accepted) {
-      request.abortWith(CedarResponse.unauthorized().errorMessage("Internal service authentication required").build());
+      request.abortWith(CedarResponse.unauthorized().message("Internal service authentication required").build());
     }
   }
 

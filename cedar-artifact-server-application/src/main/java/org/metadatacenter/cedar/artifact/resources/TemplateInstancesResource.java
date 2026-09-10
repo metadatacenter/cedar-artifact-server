@@ -157,11 +157,11 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
       response = storeArtifactInDatabase(templateInstance, pi, CedarErrorKey.TEMPLATE_INSTANCE_NOT_CREATED);
     } else {
       response = CedarResponse.badRequest()
-          .errorMessage(concatenateValidationMessages(validationReport))
+          .message(concatenateValidationMessages(validationReport))
           .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_INVALID)
           .errorKey(CedarErrorKey.INVALID_DATA)
           .errorReasonKey(CedarErrorReasonKey.VALIDATION_ERROR)
-          .errorMessage("There was an error while validating the artifact")
+          .message("There was an error while validating the artifact")
           .object("validationReport", validationReport)
           .build();
     }
@@ -227,7 +227,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
       return CedarResponse.internalServerError()
           .id(id)
           .errorKey(CedarErrorKey.TEMPLATE_INSTANCE_NOT_FOUND)
-          .errorMessage("The artifact instance can not be found by id:" + id)
+          .message("The artifact instance can not be found by id:" + id)
           .exception(e)
           .build();
     }
@@ -235,7 +235,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
       return CedarResponse.notFound()
           .id(id)
           .errorKey(CedarErrorKey.TEMPLATE_INSTANCE_NOT_FOUND)
-          .errorMessage("The artifact instance can not be found by id:" + id)
+          .message("The artifact instance can not be found by id:" + id)
           .build();
     } else {
       JsonNode templateInstance = snapshot.content();
@@ -439,7 +439,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
             .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_INVALID)
             .errorKey(CedarErrorKey.INVALID_DATA)
             .errorReasonKey(CedarErrorReasonKey.VALIDATION_ERROR)
-            .errorMessage(updateValidationErrorMessage(validationReport))
+            .message(updateValidationErrorMessage(validationReport))
             .object("validationReport", validationReport)
             .build();
         return negotiateArtifactResponse(response, CedarResourceType.INSTANCE);
