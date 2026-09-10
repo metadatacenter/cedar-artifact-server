@@ -149,7 +149,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
     // is unconditional; honoring this legacy switch would reopen a path for an
     // unchecked instance to enter the repository. It previously also left the
     // response null when true, so it neither skipped nor stored coherently.
-    ValidationReport validationReport = validateArtifact(templateInstance);
+    ValidationReport validationReport = validateArtifact(templateInstance, false);
     ReportUtils.outputLogger(logger, validationReport, true);
     String validationStatus = validationReport.getValidationStatus();
     Response response;
@@ -432,7 +432,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
     }
 
     {
-      ValidationReport validationReport = validateArtifact(newInstance);
+      ValidationReport validationReport = validateArtifact(newInstance, verbatim);
       ReportUtils.outputLogger(logger, validationReport, true);
       if (!CedarValidationReport.IS_VALID.equals(validationReport.getValidationStatus())) {
         Response response = CedarResponse.badRequest()
@@ -536,12 +536,19 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
    *
    * <p>It runs before validation rather than after, because a term for an attribute that no longer
    * exists is not something the instance should be judged on.
+   *
+   * <p>Nothing prunes a verbatim write. It stores the document its caller stated, and a repair that
+   * reported success while storing something else would leave the audit that follows it reading back a
+   * document neither side ever agreed on. An instance whose orphan terms make it invalid is refused
+   * there rather than silently corrected.
    */
   @Override
-  protected ValidationReport validateArtifact(JsonNode templateInstance) throws CedarException {
+  protected ValidationReport validateArtifact(JsonNode templateInstance, boolean verbatim) throws CedarException {
     try {
       JsonNode instanceSchema = getSchemaSource(templateService, templateInstance);
-      linkedDataUtil.pruneOrphanPropertyIris(templateInstance, instanceSchema, CedarResourceType.INSTANCE);
+      if (!verbatim) {
+        linkedDataUtil.pruneOrphanPropertyIris(templateInstance, instanceSchema, CedarResourceType.INSTANCE);
+      }
       return validateTemplateInstance(templateInstance, instanceSchema);
     } catch (IOException e) {
       throw new CedarProcessingException(e);

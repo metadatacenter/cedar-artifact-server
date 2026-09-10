@@ -88,7 +88,15 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
 
   protected abstract long countArtifactsInService();
 
-  protected abstract ValidationReport validateArtifact(JsonNode artifact) throws CedarException;
+  /**
+   * Judges the artifact this write is about to store.
+   *
+   * <p>An implementation may normalize the document on its way through, since validating one shape and
+   * storing another is how a stored artifact ends up unchecked. A verbatim write is the exception: it
+   * stores the document the caller stated, so nothing may be altered when {@code verbatim} is true, and
+   * a document the normalization would have rescued is refused rather than quietly rewritten.
+   */
+  protected abstract ValidationReport validateArtifact(JsonNode artifact, boolean verbatim) throws CedarException;
 
   protected String updateValidationErrorMessage(ValidationReport validationReport) {
     return concatenateValidationMessages(validationReport);
@@ -121,7 +129,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     // Always. Validation used to be switchable, by CEDAR_VALIDATION_ENABLED, and an artifact stored
     // without it is one nothing has ever checked against the model it claims to follow.
     {
-      ValidationReport validationReport = validateArtifact(artifact);
+      ValidationReport validationReport = validateArtifact(artifact, false);
       ReportUtils.outputLogger(logger, validationReport, true);
       String validationStatus = validationReport.getValidationStatus();
       if (validationStatus.equals(CedarValidationReport.IS_VALID)) {
@@ -372,7 +380,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
 
     Response response = null;
     {
-      ValidationReport validationReport = validateArtifact(newArtifact);
+      ValidationReport validationReport = validateArtifact(newArtifact, verbatim);
       ReportUtils.outputLogger(logger, validationReport, true);
       String validationStatus = validationReport.getValidationStatus();
       if (validationStatus.equals(CedarValidationReport.IS_VALID)) {
@@ -639,7 +647,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
    * stored artifact.
    */
   private Response refuseInvalidNormalizedArtifact(JsonNode artifact) throws CedarException {
-    ValidationReport validationReport = validateArtifact(artifact);
+    ValidationReport validationReport = validateArtifact(artifact, false);
     ReportUtils.outputLogger(logger, validationReport, true);
     if (CedarValidationReport.IS_VALID.equals(validationReport.getValidationStatus())) {
       return null;

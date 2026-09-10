@@ -335,7 +335,7 @@ public class TemplatesResource extends AbstractArtifactCrudResource {
   }
 
   @Override
-  protected ValidationReport validateArtifact(JsonNode template) throws CedarException {
+  protected ValidationReport validateArtifact(JsonNode template, boolean verbatim) throws CedarException {
     return validateTemplate(template);
   }
 

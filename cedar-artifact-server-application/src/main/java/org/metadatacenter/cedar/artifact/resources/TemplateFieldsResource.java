@@ -310,7 +310,7 @@ public class TemplateFieldsResource extends AbstractArtifactCrudResource {
   }
 
   @Override
-  protected ValidationReport validateArtifact(JsonNode templateField) throws CedarException {
+  protected ValidationReport validateArtifact(JsonNode templateField, boolean verbatim) throws CedarException {
     return validateTemplateField(templateField);
   }
 }
