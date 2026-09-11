@@ -1,9 +1,9 @@
 {
   "openapi" : "3.0.1",
   "info" : {
-    "description" : "Better Metadata - Better Science\n\nThe artifact server stores templates, template elements, template fields, and template\ninstances, and validates every one of them against the CEDAR model before storing it.\n\nArtifacts use strong ETags for optimistic concurrency. Read the artifact and send the returned\nETag in `If-Match` when replacing or deleting it. A missing required precondition returns 428;\na stale or malformed validator returns 412. `If-Match: *` accepts whichever revision currently\nexists and therefore deliberately gives up lost-update protection. Representation suffixes such\nas `\"7-yaml\"` and `\"7-yaml-compact-v2\"` identify different bytes of the same stored revision and\nare valid write preconditions.\n\nArtifacts are read and written as JSON or YAML, selected by the Accept and Content-Type\nheaders. The compact YAML form is a lossy read-time convenience: it can be read but not stored.\n",
+    "description" : "Better Metadata - Better Science\n\nInternal service: business routes require both X-CEDAR-Artifact-Service-Key and the\nend-user Authorization header. Public callers use resource; a user API key alone is insufficient.\n\nThe artifact server stores templates, template elements, template fields, and template\ninstances, and validates every one of them against the CEDAR model before storing it.\n\nArtifacts use strong ETags for optimistic concurrency. Read the artifact and send the returned\nETag in `If-Match` when replacing or deleting it. A missing required precondition returns 428;\na stale or malformed validator returns 412. `If-Match: *` accepts whichever revision currently\nexists and therefore deliberately gives up lost-update protection. Representation suffixes such\nas `\"7-yaml\"` and `\"7-yaml-compact-v2\"` identify different bytes of the same stored revision and\nare valid write preconditions.\n\nArtifacts are read and written as JSON or YAML, selected by the Accept and Content-Type\nheaders. The compact YAML form is a lossy read-time convenience: it can be read but not stored.\n",
     "title" : "CEDAR Artifact Server API",
-    "version" : "2.9.10"
+    "version" : "2.9.11"
   },
   "paths" : {
     "/" : {
@@ -102,7 +102,8 @@
           }
         },
         "security" : [ {
-          "api_key" : [ ]
+          "api_key" : [ ],
+          "artifact_service" : [ ]
         } ],
         "summary" : "Validate an artifact",
         "tags" : [ "Command" ]
@@ -412,6 +413,59 @@
         "tags" : [ "Service diagnostics" ]
       }
     },
+    "/monitor/artifact-counts" : {
+      "get" : {
+        "description" : "Requires MONITOR_READ. Counts stored documents, including any absent from the workspace graph.",
+        "operationId" : "counts",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ArtifactCounts"
+                }
+              }
+            },
+            "description" : "Actual artifact document-store counts"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
+            "description" : "Authentication required"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
+            "description" : "The caller lacks monitor read permission"
+          },
+          "503" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CedarError"
+                }
+              }
+            },
+            "description" : "Artifact counts are unavailable"
+          }
+        },
+        "security" : [ {
+          "api_key" : [ ]
+        } ],
+        "summary" : "Count artifact documents",
+        "tags" : [ "Monitoring" ]
+      }
+    },
     "/template-elements" : {
       "get" : {
         "description" : "List template elements, one page at a time. The response carries the size of the whole collection and paging links, not just the returned page.",
@@ -519,7 +573,8 @@
           }
         },
         "security" : [ {
-          "api_key" : [ ]
+          "api_key" : [ ],
+          "artifact_service" : [ ]
         } ],
         "summary" : "List template elements",
         "tags" : [ "Template elements" ]
@@ -702,7 +757,8 @@
           }
         },
         "security" : [ {
-          "api_key" : [ ]
+          "api_key" : [ ],
+          "artifact_service" : [ ]
         } ],
         "summary" : "Create a template element",
         "tags" : [ "Template elements" ]
@@ -805,7 +861,8 @@
           }
         },
         "security" : [ {
-          "api_key" : [ ]
+          "api_key" : [ ],
+          "artifact_service" : [ ]
         } ],
         "summary" : "Delete a template element",
         "tags" : [ "Template elements" ]
@@ -988,7 +1045,8 @@
           }
         },
         "security" : [ {
-          "api_key" : [ ]
+          "api_key" : [ ],
+          "artifact_service" : [ ]
         } ],
         "summary" : "Get a template element",
         "tags" : [ "Template elements" ]
@@ -1255,7 +1313,8 @@
           }
         },
         "security" : [ {
-          "api_key" : [ ]
+          "api_key" : [ ],
+          "artifact_service" : [ ]
         } ],
         "summary" : "Replace a template element",
         "tags" : [ "Template elements" ]
@@ -1368,7 +1427,8 @@
           }
         },
         "security" : [ {
-          "api_key" : [ ]
+          "api_key" : [ ],
+          "artifact_service" : [ ]
         } ],
         "summary" : "List template fields",
         "tags" : [ "Template fields" ]
@@ -1551,7 +1611,8 @@
           }
         },
         "security" : [ {
-          "api_key" : [ ]
+          "api_key" : [ ],
+          "artifact_service" : [ ]
         } ],
         "summary" : "Create a template field",
         "tags" : [ "Template fields" ]
@@ -1654,7 +1715,8 @@
           }
         },
         "security" : [ {
-          "api_key" : [ ]
+          "api_key" : [ ],
+          "artifact_service" : [ ]
         } ],
         "summary" : "Delete a template field",
         "tags" : [ "Template fields" ]
@@ -1837,7 +1899,8 @@
           }
         },
         "security" : [ {
-          "api_key" : [ ]
+          "api_key" : [ ],
+          "artifact_service" : [ ]
         } ],
         "summary" : "Get a template field",
         "tags" : [ "Template fields" ]
@@ -2104,7 +2167,8 @@
           }
         },
         "security" : [ {
-          "api_key" : [ ]
+          "api_key" : [ ],
+          "artifact_service" : [ ]
         } ],
         "summary" : "Replace a template field",
         "tags" : [ "Template fields" ]
@@ -2217,7 +2281,8 @@
           }
         },
         "security" : [ {
-          "api_key" : [ ]
+          "api_key" : [ ],
+          "artifact_service" : [ ]
         } ],
         "summary" : "List template instances",
         "tags" : [ "Template instances" ]
@@ -2407,7 +2472,8 @@
           }
         },
         "security" : [ {
-          "api_key" : [ ]
+          "api_key" : [ ],
+          "artifact_service" : [ ]
         } ],
         "summary" : "Create a template instance",
         "tags" : [ "Template instances" ]
@@ -2510,7 +2576,8 @@
           }
         },
         "security" : [ {
-          "api_key" : [ ]
+          "api_key" : [ ],
+          "artifact_service" : [ ]
         } ],
         "summary" : "Delete a template instance",
         "tags" : [ "Template instances" ]
@@ -2735,7 +2802,8 @@
           }
         },
         "security" : [ {
-          "api_key" : [ ]
+          "api_key" : [ ],
+          "artifact_service" : [ ]
         } ],
         "summary" : "Get a template instance",
         "tags" : [ "Template instances" ]
@@ -3002,7 +3070,8 @@
           }
         },
         "security" : [ {
-          "api_key" : [ ]
+          "api_key" : [ ],
+          "artifact_service" : [ ]
         } ],
         "summary" : "Replace a template instance",
         "tags" : [ "Template instances" ]
@@ -3115,7 +3184,8 @@
           }
         },
         "security" : [ {
-          "api_key" : [ ]
+          "api_key" : [ ],
+          "artifact_service" : [ ]
         } ],
         "summary" : "List templates",
         "tags" : [ "Templates" ]
@@ -3298,7 +3368,8 @@
           }
         },
         "security" : [ {
-          "api_key" : [ ]
+          "api_key" : [ ],
+          "artifact_service" : [ ]
         } ],
         "summary" : "Create a template",
         "tags" : [ "Templates" ]
@@ -3401,7 +3472,8 @@
           }
         },
         "security" : [ {
-          "api_key" : [ ]
+          "api_key" : [ ],
+          "artifact_service" : [ ]
         } ],
         "summary" : "Delete a template",
         "tags" : [ "Templates" ]
@@ -3584,7 +3656,8 @@
           }
         },
         "security" : [ {
-          "api_key" : [ ]
+          "api_key" : [ ],
+          "artifact_service" : [ ]
         } ],
         "summary" : "Get a template",
         "tags" : [ "Templates" ]
@@ -3851,7 +3924,8 @@
           }
         },
         "security" : [ {
-          "api_key" : [ ]
+          "api_key" : [ ],
+          "artifact_service" : [ ]
         } ],
         "summary" : "Replace a template",
         "tags" : [ "Templates" ]
@@ -3860,6 +3934,27 @@
   },
   "components" : {
     "schemas" : {
+      "ArtifactCounts" : {
+        "type" : "object",
+        "properties" : {
+          "element" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "field" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "instance" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "template" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }
+      },
       "ArtifactDocument" : {
         "type" : "object",
         "additionalProperties" : true,
@@ -3911,7 +4006,7 @@
       },
       "CedarError" : {
         "type" : "object",
-        "additionalProperties" : true,
+        "additionalProperties" : false,
         "description" : "A CEDAR error response. Diagnostic fields are populated only when they are relevant to the failure.",
         "properties" : {
           "entities" : {
@@ -3933,12 +4028,7 @@
           "errorKey" : {
             "type" : "string",
             "description" : "Stable machine-readable error identifier.",
-            "enum" : [ "templateElementNotCreated", "templateElementNotFound", "templateElementNotDeleted", "templateElementNotUpdated", "templateElementsNotListed", "templateFieldNotCreated", "templateFieldNotFound", "templateFieldNotDeleted", "templateFieldNotUpdated", "templateFieldsNotListed", "templateNotCreated", "templateNotFound", "templateNotDeleted", "templateNotUpdated", "templatesNotListed", "templateInstanceNotCreated", "templateInstanceNotFound", "templateInstanceNotDeleted", "templateInstanceNotUpdated", "templateInstancesNotListed", "noReadAccessToResource", "noWriteAccessToResource", "noReadAccessToFolder", "noWriteAccessToFolder", "noReadAccessToTemplate", "noWriteAccessToTemplate", "noReadAccessToTemplateElement", "noWriteAccessToTemplateElement", "noReadAccessToTemplateField", "noWriteAccessToTemplateField", "noReadAccessToTemplateInstance", "noWriteAccessToTemplateInstance", "noReadAccessToArtifact", "noWriteAccessToArtifact", "noReadAccessToCategory", "noWriteAccessToCategory", "folderNotFound", "artifactNotFound", "artifactPreconditionRequired", "artifactHasMovedOn", "verbatimWriteRefused", "nodeNotFound", "unknownResourceType", "missingParameter", "invalidInput", "sourceFolderNotFound", "sourceResourceNotFound", "targetFolderNotFound", "nodeNotMoved", "groupNotFound", "userNotFound", "uniqueConstraintCollision", "invalidData", "notAuthorized", "permissionMissing", "tokenInvalid", "userInfoLoadByTokenFailed", "userInfoLoadByApiKeyFailed", "cedarUserNotFound", "authorizationNotFound", "permissionNotOwned", "authorizationTypeUnknown", "apiKeyNotFound", "tokenMissing", "tokenExpired", "parentFolderNotSpecified", "parentFolderSpecifiedTwice", "pathNotNormalized", "parentFolderNotFound", "updateInvalidFolderName", "createInvalidFolderName", "nodeAlreadyPresent", "folderNotCreated", "missingNameAndDescription", "missingData", "folderNotDeleted", "artifactNotDeleted", "resourceNotCreated", "invalidResourceType", "invalidArtifactType", "readOtherProfileForbidden", "updateOtherProfileForbidden", "folderCanNotBeDeleted", "folderCanNotBeChanged", "groupAlreadyPresent", "groupCanBeModifiedOnlyByGroupAdmin", "groupCanBeDeletedOnlyByGroupAdmin", "groupMembersCanBeReadOnlyByGroupAdmin", "groupRequiresAdministrator", "groupUsersNotUpdated", "specialGroupCanNotBeDeleted", "folderPermissionsCanNotBeChanged", "unknownInstanceOutputFormat", "folderCopyNotAllowed", "methodNotImplemented", "upstreamServerError", "nothingToDo", "parentCategoryNotFound", "categoryAlreadyPresent", "categoryNotFound", "categoryCanNotBeDeleted", "rootCategoryCanNotBeDeleted", "unableToAttachCategory", "unableToDetachCategory", "noCategoriesWereAttached", "malformedJsonRequestBody", "malformedSearchTerm", "publishedArtifactCanNotBeChanged", "publishedArtifactCanNotBeDeleted", "versioningOnlyOnLatest", "versioningOnlyByOwner", "nonVersionedArtifactType", "createDraftOnlyFromPublished", "publishOnlyDraft", "draftNotCreated", "contentNotValid", "doiNotSupportedByResourceType", "doiCanNotBeSetForEmptyAtId", "doiCanNotBeAltered", "doiCanNotBeSet", "doiAlreadyExists", "dataCiteDOIDisabled", "resourceNotFound", "internalError" ],
-            "nullable" : true
-          },
-          "errorMessage" : {
-            "type" : "string",
-            "description" : "Alias of message retained for compatibility.",
+            "enum" : [ "templateElementNotCreated", "templateElementNotFound", "templateElementNotDeleted", "templateElementNotUpdated", "templateElementsNotListed", "templateFieldNotCreated", "templateFieldNotFound", "templateFieldNotDeleted", "templateFieldNotUpdated", "templateFieldsNotListed", "templateNotCreated", "templateNotFound", "templateNotDeleted", "templateNotUpdated", "templatesNotListed", "templateInstanceNotCreated", "templateInstanceNotFound", "templateInstanceNotDeleted", "templateInstanceNotUpdated", "templateInstancesNotListed", "noReadAccessToResource", "noWriteAccessToResource", "noReadAccessToFolder", "noWriteAccessToFolder", "noReadAccessToTemplate", "noWriteAccessToTemplate", "noReadAccessToTemplateElement", "noWriteAccessToTemplateElement", "noReadAccessToTemplateField", "noWriteAccessToTemplateField", "noReadAccessToTemplateInstance", "noWriteAccessToTemplateInstance", "noReadAccessToArtifact", "noWriteAccessToArtifact", "noReadAccessToCategory", "noWriteAccessToCategory", "folderNotFound", "artifactNotFound", "artifactPreconditionRequired", "artifactHasMovedOn", "verbatimWriteRefused", "nodeNotFound", "unknownResourceType", "missingParameter", "invalidInput", "sourceFolderNotFound", "sourceResourceNotFound", "targetFolderNotFound", "nodeNotMoved", "groupNotFound", "userNotFound", "uniqueConstraintCollision", "invalidData", "notAuthorized", "permissionMissing", "tokenInvalid", "userInfoLoadByTokenFailed", "userInfoLoadByApiKeyFailed", "cedarUserNotFound", "authorizationNotFound", "permissionNotOwned", "authorizationTypeUnknown", "apiKeyNotFound", "tokenMissing", "tokenExpired", "parentFolderNotSpecified", "parentFolderSpecifiedTwice", "pathNotNormalized", "parentFolderNotFound", "updateInvalidFolderName", "createInvalidFolderName", "nodeAlreadyPresent", "folderNotCreated", "missingNameAndDescription", "missingData", "folderNotDeleted", "artifactNotDeleted", "resourceNotCreated", "invalidResourceType", "invalidArtifactType", "readOtherProfileForbidden", "updateOtherProfileForbidden", "folderCanNotBeDeleted", "folderCanNotBeChanged", "groupAlreadyPresent", "groupCanBeModifiedOnlyByGroupAdmin", "groupCanBeDeletedOnlyByGroupAdmin", "groupMembersCanBeReadOnlyByGroupAdmin", "groupRequiresAdministrator", "groupUsersNotUpdated", "specialGroupCanNotBeDeleted", "folderPermissionsCanNotBeChanged", "unknownInstanceOutputFormat", "folderCopyNotAllowed", "methodNotImplemented", "upstreamServerError", "nothingToDo", "parentCategoryNotFound", "categoryAlreadyPresent", "categoryNotFound", "categoryCanNotBeDeleted", "rootCategoryCanNotBeDeleted", "unableToAttachCategory", "unableToDetachCategory", "noCategoriesWereAttached", "malformedJsonRequestBody", "malformedSearchTerm", "publishedArtifactCanNotBeChanged", "publishedArtifactCanNotBeDeleted", "versioningOnlyOnLatest", "versioningOnlyByOwner", "nonVersionedArtifactType", "createDraftOnlyFromPublished", "publishOnlyDraft", "draftNotCreated", "contentNotValid", "doiNotSupportedByResourceType", "doiCanNotBeSetForEmptyAtId", "doiCanNotBeAltered", "doiCanNotBeSet", "doiAlreadyExists", "dataCiteDOIDisabled", "pinnedVersionUnavailable", "resourceNotFound", "internalError" ],
             "nullable" : true
           },
           "errorReasonKey" : {
@@ -4264,6 +4354,12 @@
         "description" : "Your CEDAR API key, using the format 'apiKey <yourApiKey>'",
         "in" : "header",
         "name" : "Authorization",
+        "type" : "apiKey"
+      },
+      "artifact_service" : {
+        "description" : "Private installation credential for trusted artifact callers; required alongside user authorization.",
+        "in" : "header",
+        "name" : "X-CEDAR-Artifact-Service-Key",
         "type" : "apiKey"
       }
     }

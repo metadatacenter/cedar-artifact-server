@@ -319,7 +319,7 @@ public abstract class AbstractArtifactServerResource extends CedarMicroserviceRe
 
   protected Response notAcceptableArtifactFormatResponse() {
     return CedarResponse.notAcceptable()
-        .errorMessage("None of the media types in the Accept header can be produced")
+        .message("None of the media types in the Accept header can be produced")
         .parameter("allowed media types",
             Arrays.toString(new String[]{MediaType.APPLICATION_JSON, HttpConstants.CONTENT_TYPE_APPLICATION_YAML}))
         .build();
@@ -351,7 +351,7 @@ public abstract class AbstractArtifactServerResource extends CedarMicroserviceRe
     if (ArtifactYamlTranscoder.isYaml(httpHeaders.getMediaType())) {
       try {
         String json = ArtifactYamlTranscoder.yamlToJsonString(requestBody, resourceType, templateResolver);
-        return new HttpRequestJsonBody(JsonMapper.MAPPER.readTree(json));
+        return new HttpRequestJsonBody(JsonMapper.STRICT_MAPPER.readTree(json));
       } catch (ArtifactYamlTranscoder.CompactYamlBodyException e) {
         throw new CedarBadRequestException(e.getMessage(), e);
       } catch (Exception e) {
@@ -359,7 +359,7 @@ public abstract class AbstractArtifactServerResource extends CedarMicroserviceRe
       }
     }
     try {
-      return new HttpRequestJsonBody(JsonMapper.MAPPER.readTree(requestBody));
+      return new HttpRequestJsonBody(JsonMapper.STRICT_MAPPER.readTree(requestBody));
     } catch (Exception e) {
       throw new CedarBadRequestException("There was an error deserializing the request body", e);
     }

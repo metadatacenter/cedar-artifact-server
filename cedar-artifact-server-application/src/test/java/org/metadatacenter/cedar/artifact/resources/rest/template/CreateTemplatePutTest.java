@@ -81,7 +81,7 @@ public class CreateTemplatePutTest extends AbstractRestTest {
       if (originalFileContent != null) {
         JsonNode template = null;
         try {
-          template = JsonMapper.MAPPER.readTree(originalFileContent);
+          template = JsonMapper.STRICT_MAPPER.readTree(originalFileContent);
         } catch (JsonParseException e) {
           // do nothing, the json can be invalid intentionally
         }
@@ -91,7 +91,7 @@ public class CreateTemplatePutTest extends AbstractRestTest {
             String templateId = idNode.asText();
             if (templateId != null) {
               ((ObjectNode) template).put(LinkedData.ID, idInBody);
-              originalFileContent = JsonMapper.MAPPER.writeValueAsString(template);
+              originalFileContent = JsonMapper.STRICT_MAPPER.writeValueAsString(template);
             }
           }
         }

@@ -70,7 +70,7 @@ public class TestUtil {
   }
 
   public static JsonNode readFileAsJson(String path) throws IOException {
-    return JsonMapper.MAPPER.readTree(TestUtil.class.getClassLoader().getResourceAsStream(path));
+    return JsonMapper.STRICT_MAPPER.readTree(TestUtil.class.getClassLoader().getResourceAsStream(path));
   }
 
   public static String readFileAsString(String path) throws IOException {

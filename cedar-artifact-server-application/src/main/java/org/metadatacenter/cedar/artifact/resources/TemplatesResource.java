@@ -11,8 +11,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.security.SecurityRequirementEntry;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.metadatacenter.util.http.CedarError;
 import org.metadatacenter.util.artifact.SchemaArtifactDocument;
@@ -48,7 +49,8 @@ import static org.metadatacenter.rest.assertion.GenericAssertions.*;
 @Path("/templates")
 @Produces(MediaType.APPLICATION_JSON)
 @Tag(name = "Templates")
-@SecurityRequirement(name = "api_key")
+@SecurityRequirement(name = "", combine = {
+    @SecurityRequirementEntry(name = "api_key"), @SecurityRequirementEntry(name = "artifact_service")})
 public class TemplatesResource extends AbstractArtifactCrudResource {
 
   private static final Logger logger = LoggerFactory.getLogger(TemplatesResource.class);
@@ -281,7 +283,7 @@ public class TemplatesResource extends AbstractArtifactCrudResource {
           .id(id)
           .errorKey(CedarErrorKey.TEMPLATE_NOT_DELETED)
           .errorReasonKey(CedarErrorReasonKey.TEMPLATE_REFERENCED_IN_INSTANCES)
-          .errorMessage("The artifact can not be deleted since there are instances using it")
+          .message("The artifact can not be deleted since there are instances using it")
           .parameter("referenceCount", referenceCount)
           .build();
     }
@@ -333,7 +335,7 @@ public class TemplatesResource extends AbstractArtifactCrudResource {
   }
 
   @Override
-  protected ValidationReport validateArtifact(JsonNode template) throws CedarException {
+  protected ValidationReport validateArtifact(JsonNode template, boolean verbatim) throws CedarException {
     return validateTemplate(template);
   }
 

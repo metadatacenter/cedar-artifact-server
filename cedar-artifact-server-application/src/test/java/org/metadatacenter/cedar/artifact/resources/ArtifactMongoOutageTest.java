@@ -81,13 +81,16 @@ class ArtifactMongoOutageTest {
         .uri(URI.create("http://localhost:" + SERVER.getLocalPort() + "/templates/" + id))
         .timeout(Duration.ofSeconds(5))
         .header("Authorization", authorization)
+        .header(org.metadatacenter.config.ArtifactServiceConfig.HEADER,
+            CedarConfig.getInstance(CedarEnvironmentVariableProvider.getFor(SystemComponent.SERVER_ARTIFACT))
+                .getArtifactService().requireApiKey())
         .GET()
         .build();
 
     HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
 
     Assertions.assertEquals(503, response.statusCode(), response.body());
-    JsonNode error = JsonMapper.MAPPER.readTree(response.body());
+    JsonNode error = JsonMapper.STRICT_MAPPER.readTree(response.body());
     Assertions.assertEquals("SERVICE_UNAVAILABLE", error.path("status").asText(), response.body());
     Assertions.assertEquals("MongoDB is unavailable", error.path("message").asText(), response.body());
     Assertions.assertTrue(error.path("originalException").isMissingNode()

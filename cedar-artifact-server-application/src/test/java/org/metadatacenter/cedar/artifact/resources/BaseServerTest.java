@@ -86,6 +86,9 @@ public abstract class BaseServerTest {
     testClient = new JerseyClientBuilder(SERVER_APPLICATION.getEnvironment())
         .using(clientConfig)
         .build("artifact-baseserver-test-client-" + System.nanoTime());
+    testClient.register((jakarta.ws.rs.client.ClientRequestFilter) request ->
+        request.getHeaders().putSingle(org.metadatacenter.config.ArtifactServiceConfig.HEADER,
+            TestUtil.getCedarConfig().getArtifactService().requireApiKey()));
     testClient.property(ClientProperties.READ_TIMEOUT, 3000); // 3s
     testClient.property(ClientProperties.CONNECT_TIMEOUT, 3000);
   }
@@ -212,7 +215,7 @@ public abstract class BaseServerTest {
   protected static String extractIdFromDocument(String templateDocument) {
     JsonNode template = null;
     try {
-      template = JsonMapper.MAPPER.readTree(templateDocument);
+      template = JsonMapper.STRICT_MAPPER.readTree(templateDocument);
     } catch (java.io.IOException e) {
       e.printStackTrace();
     }

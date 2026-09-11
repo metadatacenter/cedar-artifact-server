@@ -81,7 +81,7 @@ public class UpdateTemplateTest extends AbstractRestTest {
     String createdBody = createResponse.readEntity(String.class);
     JsonNode template = null;
     try {
-      template = JsonMapper.MAPPER.readTree(createdBody);
+      template = JsonMapper.STRICT_MAPPER.readTree(createdBody);
     } catch (JsonParseException e) {
       // do nothing, the json can be invalid intentionally
     }
@@ -121,7 +121,7 @@ public class UpdateTemplateTest extends AbstractRestTest {
     putRequest.header("If-Match", createdEtag);
 
     ((ObjectNode) template).put(CedarModelVocabulary.SCHEMA_DESCRIPTION, TEST_DESCRIPTION_VALUE);
-    String modifiedContent = JsonMapper.MAPPER.writeValueAsString(template);
+    String modifiedContent = JsonMapper.STRICT_MAPPER.writeValueAsString(template);
     Response putResponse = putRequest.put(Entity.json(modifiedContent));
 
     int putResponseStatus = putResponse.getStatus();
@@ -154,7 +154,7 @@ public class UpdateTemplateTest extends AbstractRestTest {
       String getBody = getResponse.readEntity(String.class);
       JsonNode getTemplate = null;
       try {
-        getTemplate = JsonMapper.MAPPER.readTree(getBody);
+        getTemplate = JsonMapper.STRICT_MAPPER.readTree(getBody);
       } catch (JsonParseException e) {
         // do nothing, the json can be invalid intentionally
       }

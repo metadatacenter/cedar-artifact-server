@@ -11,8 +11,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.security.SecurityRequirementEntry;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.constant.HttpConstants;
@@ -43,7 +44,8 @@ import static org.metadatacenter.constant.CedarQueryParameters.*;
 @Path("/template-elements")
 @Produces(MediaType.APPLICATION_JSON)
 @Tag(name = "Template elements")
-@SecurityRequirement(name = "api_key")
+@SecurityRequirement(name = "", combine = {
+    @SecurityRequirementEntry(name = "api_key"), @SecurityRequirementEntry(name = "artifact_service")})
 public class TemplateElementsResource extends AbstractArtifactCrudResource {
 
   private static final Logger logger = LoggerFactory.getLogger(TemplateInstancesResource.class);
@@ -308,7 +310,7 @@ public class TemplateElementsResource extends AbstractArtifactCrudResource {
   }
 
   @Override
-  protected ValidationReport validateArtifact(JsonNode templateElement) throws CedarException {
+  protected ValidationReport validateArtifact(JsonNode templateElement, boolean verbatim) throws CedarException {
     return validateTemplateElement(templateElement);
   }
 }

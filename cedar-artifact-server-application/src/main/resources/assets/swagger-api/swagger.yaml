@@ -3,6 +3,9 @@ info:
   description: |
     Better Metadata - Better Science
 
+    Internal service: business routes require both X-CEDAR-Artifact-Service-Key and the
+    end-user Authorization header. Public callers use resource; a user API key alone is insufficient.
+
     The artifact server stores templates, template elements, template fields, and template
     instances, and validates every one of them against the CEDAR model before storing it.
 
@@ -16,7 +19,7 @@ info:
     Artifacts are read and written as JSON or YAML, selected by the Accept and Content-Type
     headers. The compact YAML form is a lossy read-time convenience: it can be read but not stored.
   title: CEDAR Artifact Server API
-  version: 2.9.10
+  version: 2.9.11
 paths:
   /:
     get:
@@ -91,6 +94,7 @@ paths:
           description: The validation could not be run
       security:
       - api_key: []
+        artifact_service: []
       summary: Validate an artifact
       tags:
       - Command
@@ -289,6 +293,41 @@ paths:
       summary: Report JVM thread counts
       tags:
       - Service diagnostics
+  /monitor/artifact-counts:
+    get:
+      description: "Requires MONITOR_READ. Counts stored documents, including any\
+        \ absent from the workspace graph."
+      operationId: counts
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArtifactCounts"
+          description: Actual artifact document-store counts
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CedarError"
+          description: Authentication required
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CedarError"
+          description: The caller lacks monitor read permission
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CedarError"
+          description: Artifact counts are unavailable
+      security:
+      - api_key: []
+      summary: Count artifact documents
+      tags:
+      - Monitoring
   /template-elements:
     get:
       description: "List template elements, one page at a time. The response carries\
@@ -368,6 +407,7 @@ paths:
           description: Internal server error
       security:
       - api_key: []
+        artifact_service: []
       summary: List template elements
       tags:
       - Template elements
@@ -495,6 +535,7 @@ paths:
           description: Internal server error
       security:
       - api_key: []
+        artifact_service: []
       summary: Create a template element
       tags:
       - Template elements
@@ -568,6 +609,7 @@ paths:
           description: Internal server error
       security:
       - api_key: []
+        artifact_service: []
       summary: Delete a template element
       tags:
       - Template elements
@@ -689,6 +731,7 @@ paths:
           description: Internal server error
       security:
       - api_key: []
+        artifact_service: []
       summary: Get a template element
       tags:
       - Template elements
@@ -879,6 +922,7 @@ paths:
           description: Internal server error
       security:
       - api_key: []
+        artifact_service: []
       summary: Replace a template element
       tags:
       - Template elements
@@ -961,6 +1005,7 @@ paths:
           description: Internal server error
       security:
       - api_key: []
+        artifact_service: []
       summary: List template fields
       tags:
       - Template fields
@@ -1088,6 +1133,7 @@ paths:
           description: Internal server error
       security:
       - api_key: []
+        artifact_service: []
       summary: Create a template field
       tags:
       - Template fields
@@ -1161,6 +1207,7 @@ paths:
           description: Internal server error
       security:
       - api_key: []
+        artifact_service: []
       summary: Delete a template field
       tags:
       - Template fields
@@ -1282,6 +1329,7 @@ paths:
           description: Internal server error
       security:
       - api_key: []
+        artifact_service: []
       summary: Get a template field
       tags:
       - Template fields
@@ -1472,6 +1520,7 @@ paths:
           description: Internal server error
       security:
       - api_key: []
+        artifact_service: []
       summary: Replace a template field
       tags:
       - Template fields
@@ -1554,6 +1603,7 @@ paths:
           description: Internal server error
       security:
       - api_key: []
+        artifact_service: []
       summary: List template instances
       tags:
       - Template instances
@@ -1687,6 +1737,7 @@ paths:
           description: Internal server error
       security:
       - api_key: []
+        artifact_service: []
       summary: Create a template instance
       tags:
       - Template instances
@@ -1760,6 +1811,7 @@ paths:
           description: Internal server error
       security:
       - api_key: []
+        artifact_service: []
       summary: Delete a template instance
       tags:
       - Template instances
@@ -1910,6 +1962,7 @@ paths:
           description: Internal server error
       security:
       - api_key: []
+        artifact_service: []
       summary: Get a template instance
       tags:
       - Template instances
@@ -2100,6 +2153,7 @@ paths:
           description: Internal server error
       security:
       - api_key: []
+        artifact_service: []
       summary: Replace a template instance
       tags:
       - Template instances
@@ -2181,6 +2235,7 @@ paths:
           description: Internal server error
       security:
       - api_key: []
+        artifact_service: []
       summary: List templates
       tags:
       - Templates
@@ -2308,6 +2363,7 @@ paths:
           description: Internal server error
       security:
       - api_key: []
+        artifact_service: []
       summary: Create a template
       tags:
       - Templates
@@ -2382,6 +2438,7 @@ paths:
           description: Internal server error
       security:
       - api_key: []
+        artifact_service: []
       summary: Delete a template
       tags:
       - Templates
@@ -2503,6 +2560,7 @@ paths:
           description: Internal server error
       security:
       - api_key: []
+        artifact_service: []
       summary: Get a template
       tags:
       - Templates
@@ -2693,11 +2751,27 @@ paths:
           description: Internal server error
       security:
       - api_key: []
+        artifact_service: []
       summary: Replace a template
       tags:
       - Templates
 components:
   schemas:
+    ArtifactCounts:
+      type: object
+      properties:
+        element:
+          type: integer
+          format: int64
+        field:
+          type: integer
+          format: int64
+        instance:
+          type: integer
+          format: int64
+        template:
+          type: integer
+          format: int64
     ArtifactDocument:
       type: object
       additionalProperties: true
@@ -2743,7 +2817,7 @@ components:
           description: Display name.
     CedarError:
       type: object
-      additionalProperties: true
+      additionalProperties: false
       description: A CEDAR error response. Diagnostic fields are populated only when
         they are relevant to the failure.
       properties:
@@ -2887,12 +2961,9 @@ components:
           - doiCanNotBeSet
           - doiAlreadyExists
           - dataCiteDOIDisabled
+          - pinnedVersionUnavailable
           - resourceNotFound
           - internalError
-          nullable: true
-        errorMessage:
-          type: string
-          description: Alias of message retained for compatibility.
           nullable: true
         errorReasonKey:
           type: string
@@ -3213,4 +3284,10 @@ components:
       description: "Your CEDAR API key, using the format 'apiKey <yourApiKey>'"
       in: header
       name: Authorization
+      type: apiKey
+    artifact_service:
+      description: Private installation credential for trusted artifact callers; required
+        alongside user authorization.
+      in: header
+      name: X-CEDAR-Artifact-Service-Key
       type: apiKey

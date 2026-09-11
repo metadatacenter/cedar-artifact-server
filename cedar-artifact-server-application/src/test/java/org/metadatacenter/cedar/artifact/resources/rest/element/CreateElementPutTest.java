@@ -87,7 +87,7 @@ public class CreateElementPutTest extends AbstractRestTest {
       if (originalFileContent != null) {
         JsonNode element = null;
         try {
-          element = JsonMapper.MAPPER.readTree(originalFileContent);
+          element = JsonMapper.STRICT_MAPPER.readTree(originalFileContent);
         } catch (JsonParseException e) {
           // do nothing, the json can be invalid intentionally
         }
@@ -97,11 +97,11 @@ public class CreateElementPutTest extends AbstractRestTest {
             String elementId = idNode.asText();
             if (elementId != null) {
               ((ObjectNode) element).put(LinkedData.ID, idInBody);
-              originalFileContent = JsonMapper.MAPPER.writeValueAsString(element);
+              originalFileContent = JsonMapper.STRICT_MAPPER.writeValueAsString(element);
             }
           } else {
             ((ObjectNode) element).put(LinkedData.ID, idInBody);
-            originalFileContent = JsonMapper.MAPPER.writeValueAsString(element);
+            originalFileContent = JsonMapper.STRICT_MAPPER.writeValueAsString(element);
           }
         }
       }

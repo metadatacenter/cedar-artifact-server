@@ -40,9 +40,12 @@ public class ArtifactServerApplication extends CedarMicroserviceApplicationWithM
   @Override
   public void runApp(ArtifactServerConfiguration configuration, Environment environment) {
 
+    environment.jersey().register(new ArtifactServiceAuthenticationFilter(cedarConfig.getArtifactService()));
+
     final CedarMicroserviceIndexResource index =
         new CedarMicroserviceIndexResource(cedarConfig, getServerName());
     environment.jersey().register(index);
+    environment.jersey().register(new ArtifactCountsResource(cedarConfig, templateFieldService, templateElementService, templateService, templateInstanceService));
 
     final TemplateFieldsResource fields = new TemplateFieldsResource(cedarConfig, templateFieldService);
     environment.jersey().register(fields);

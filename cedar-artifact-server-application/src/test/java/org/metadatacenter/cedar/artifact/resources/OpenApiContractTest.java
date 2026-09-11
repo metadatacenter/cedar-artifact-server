@@ -9,6 +9,7 @@ import java.io.InputStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class OpenApiContractTest {
@@ -77,7 +78,8 @@ class OpenApiContractTest {
     assertTrue(error.path("required").toString().contains("statusCode"));
     assertTrue(error.path("properties").path("errorKey").path("enum").isArray());
     assertTrue(error.path("properties").path("errorKey").path("enum").size() > 100);
-    assertTrue(error.path("additionalProperties").asBoolean());
+    // The envelope carries only its declared fields: nothing emits an undeclared one.
+    assertFalse(error.path("additionalProperties").asBoolean());
   }
 
   /**
@@ -113,7 +115,7 @@ class OpenApiContractTest {
   private static JsonNode readSpec() throws IOException {
     try (InputStream input = readSpecStream()) {
       assertNotNull(input, "generated OpenAPI document");
-      return JsonMapper.MAPPER.readTree(input);
+      return JsonMapper.STRICT_MAPPER.readTree(input);
     }
   }
 

@@ -22,6 +22,7 @@ import org.metadatacenter.server.security.model.auth.CedarPermission;
 import org.metadatacenter.server.security.model.user.CedarUser;
 import org.metadatacenter.server.dao.ArtifactRevisionConflictException;
 import org.metadatacenter.server.service.TemplateElementService;
+import org.metadatacenter.util.mongo.MongoUtils;
 import org.metadatacenter.util.test.TestAuthUtil;
 
 import java.io.IOException;
@@ -41,6 +42,7 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
   private static final String ATTRIBUTE_VALUE_FIELD_NAME = "Additional Information";
   private static final String SAFE_ATTRIBUTE_NAME = "safe";
   private static final String DUPLICATE_ATTRIBUTE_NAME = "duplicate";
+  private static final String ORPHAN_ATTRIBUTE_NAME = "orphan";
   private static final String PROPERTY_IRI_PREFIX = "https://schema.metadatacenter.org/properties/";
   private static final String OCCURRENCE_IRI_PREFIX =
       "https://repo.metadatacenter.orgx/template-element-instances/";
@@ -537,6 +539,47 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
     response.close();
   }
 
+  @Test
+  public void ordinaryPutPrunesAnOrphanPropertyMapping() throws Exception {
+    ObjectNode template = createTemplateWithAttributeValueField();
+    ObjectNode created = createInstanceWithAttributeValueField(template);
+    String id = created.get(LinkedData.ID).asText();
+    ObjectNode submitted = withOrphanPropertyMapping(created.deepCopy());
+    submitted.put("schema:name", "Edited instance carrying a dead term");
+
+    Response response = put(submitted, id, CedarResourceType.INSTANCE);
+
+    Assertions.assertEquals(CedarResponseStatus.OK.getStatusCode(), response.getStatus());
+    JsonNode stored = response.readEntity(JsonNode.class);
+    Assertions.assertFalse(stored.path(LinkedData.CONTEXT).has(ORPHAN_ATTRIBUTE_NAME),
+        "an ordinary edit left a term for an attribute nothing names");
+  }
+
+  /**
+   * The write a repair depends on. A verbatim write states the whole document, and a server that
+   * reports success while storing something else makes the repair unprovable: the audit that follows
+   * it reads back a document neither the caller nor the server ever agreed on.
+   */
+  @Test
+  public void verbatimPutStoresAnOrphanPropertyMappingUnchanged() throws Exception {
+    ObjectNode template = createTemplateWithAttributeValueField();
+    ObjectNode created = createInstanceWithAttributeValueField(template);
+    String id = created.get(LinkedData.ID).asText();
+    ObjectNode submitted = withOrphanPropertyMapping(created.deepCopy());
+
+    Response response = verbatimPut(submitted, id, CedarResourceType.INSTANCE);
+
+    Assertions.assertEquals(CedarResponseStatus.OK.getStatusCode(), response.getStatus());
+    JsonNode stored = response.readEntity(JsonNode.class);
+    Assertions.assertEquals(PROPERTY_IRI_PREFIX + "orphan-term",
+        stored.path(LinkedData.CONTEXT).path(ORPHAN_ATTRIBUTE_NAME).asText(),
+        "a verbatim write reported success while storing a document it had pruned");
+    JsonNode storedInstance = TestUtil.templateInstanceService.findTemplateInstance(id);
+    MongoUtils.removeIdField(storedInstance);
+    Assertions.assertEquals(submitted, storedInstance,
+        "the stored instance differs from the one the verbatim write submitted");
+  }
+
   private ObjectNode createTemplateWithElement() {
     return createTemplateWithChild(ELEMENT_NAME, sampleElement.deepCopy());
   }
@@ -685,6 +728,13 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
     context.put(DUPLICATE_ATTRIBUTE_NAME, PROPERTY_IRI_PREFIX + "legacy-duplicate");
     instance.remove(SAFE_ATTRIBUTE_NAME);
     instance.putObject(DUPLICATE_ATTRIBUTE_NAME).put("@value", "a value");
+    return instance;
+  }
+
+  /** A context term for an attribute the template does not declare and no field names any more. */
+  private ObjectNode withOrphanPropertyMapping(ObjectNode instance) {
+    ((ObjectNode) instance.get(LinkedData.CONTEXT))
+        .put(ORPHAN_ATTRIBUTE_NAME, PROPERTY_IRI_PREFIX + "orphan-term");
     return instance;
   }
 

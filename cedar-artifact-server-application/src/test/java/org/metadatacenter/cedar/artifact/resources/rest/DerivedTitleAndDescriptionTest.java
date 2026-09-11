@@ -150,7 +150,7 @@ public class DerivedTitleAndDescriptionTest extends AbstractRestTest {
   private JsonNode created(CedarResourceType type, Response response) throws IOException {
     String body = response.readEntity(String.class);
     assertEquals(CedarResponseStatus.CREATED.getStatusCode(), response.getStatus(), body);
-    JsonNode created = JsonMapper.MAPPER.readTree(body);
+    JsonNode created = JsonMapper.STRICT_MAPPER.readTree(body);
     createdResources.put(idOf(created), type);
     return created;
   }
@@ -159,7 +159,7 @@ public class DerivedTitleAndDescriptionTest extends AbstractRestTest {
     Response response = request(itemUrl(type, id)).get();
     String body = response.readEntity(String.class);
     assertEquals(CedarResponseStatus.OK.getStatusCode(), response.getStatus(), body);
-    return JsonMapper.MAPPER.readTree(body);
+    return JsonMapper.STRICT_MAPPER.readTree(body);
   }
 
   private static String idOf(JsonNode artifact) {

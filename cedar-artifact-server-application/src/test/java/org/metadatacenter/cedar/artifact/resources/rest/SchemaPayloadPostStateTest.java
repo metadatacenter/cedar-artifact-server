@@ -71,7 +71,7 @@ public class SchemaPayloadPostStateTest extends AbstractRestTest {
     String body = response.readEntity(String.class);
     assertEquals(CedarResponseStatus.CREATED.getStatusCode(), response.getStatus(), body);
 
-    JsonNode created = JsonMapper.MAPPER.readTree(body);
+    JsonNode created = JsonMapper.STRICT_MAPPER.readTree(body);
     String id = created.path(LinkedData.ID).asText();
     createdResources.put(id, type);
     assertEquals(name, created.path("schema:name").asText());

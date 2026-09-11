@@ -11,8 +11,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.security.SecurityRequirementEntry;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.jsonldjava.core.JsonLdError;
 import org.metadatacenter.util.http.CedarError;
@@ -61,7 +62,8 @@ import static org.metadatacenter.rest.assertion.GenericAssertions.*;
 @Path("/template-instances")
 @Produces(MediaType.APPLICATION_JSON)
 @Tag(name = "Template instances")
-@SecurityRequirement(name = "api_key")
+@SecurityRequirement(name = "", combine = {
+    @SecurityRequirementEntry(name = "api_key"), @SecurityRequirementEntry(name = "artifact_service")})
 public class TemplateInstancesResource extends AbstractArtifactCrudResource {
 
   private static final Logger logger = LoggerFactory.getLogger(TemplateInstancesResource.class);
@@ -147,7 +149,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
     // is unconditional; honoring this legacy switch would reopen a path for an
     // unchecked instance to enter the repository. It previously also left the
     // response null when true, so it neither skipped nor stored coherently.
-    ValidationReport validationReport = validateArtifact(templateInstance);
+    ValidationReport validationReport = validateArtifact(templateInstance, false);
     ReportUtils.outputLogger(logger, validationReport, true);
     String validationStatus = validationReport.getValidationStatus();
     Response response;
@@ -155,11 +157,11 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
       response = storeArtifactInDatabase(templateInstance, pi, CedarErrorKey.TEMPLATE_INSTANCE_NOT_CREATED);
     } else {
       response = CedarResponse.badRequest()
-          .errorMessage(concatenateValidationMessages(validationReport))
+          .message(concatenateValidationMessages(validationReport))
           .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_INVALID)
           .errorKey(CedarErrorKey.INVALID_DATA)
           .errorReasonKey(CedarErrorReasonKey.VALIDATION_ERROR)
-          .errorMessage("There was an error while validating the artifact")
+          .message("There was an error while validating the artifact")
           .object("validationReport", validationReport)
           .build();
     }
@@ -225,7 +227,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
       return CedarResponse.internalServerError()
           .id(id)
           .errorKey(CedarErrorKey.TEMPLATE_INSTANCE_NOT_FOUND)
-          .errorMessage("The artifact instance can not be found by id:" + id)
+          .message("The artifact instance can not be found by id:" + id)
           .exception(e)
           .build();
     }
@@ -233,7 +235,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
       return CedarResponse.notFound()
           .id(id)
           .errorKey(CedarErrorKey.TEMPLATE_INSTANCE_NOT_FOUND)
-          .errorMessage("The artifact instance can not be found by id:" + id)
+          .message("The artifact instance can not be found by id:" + id)
           .build();
     } else {
       JsonNode templateInstance = snapshot.content();
@@ -430,14 +432,14 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
     }
 
     {
-      ValidationReport validationReport = validateArtifact(newInstance);
+      ValidationReport validationReport = validateArtifact(newInstance, verbatim);
       ReportUtils.outputLogger(logger, validationReport, true);
       if (!CedarValidationReport.IS_VALID.equals(validationReport.getValidationStatus())) {
         Response response = CedarResponse.badRequest()
             .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_INVALID)
             .errorKey(CedarErrorKey.INVALID_DATA)
             .errorReasonKey(CedarErrorReasonKey.VALIDATION_ERROR)
-            .errorMessage(updateValidationErrorMessage(validationReport))
+            .message(updateValidationErrorMessage(validationReport))
             .object("validationReport", validationReport)
             .build();
         return negotiateArtifactResponse(response, CedarResourceType.INSTANCE);
@@ -534,12 +536,19 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
    *
    * <p>It runs before validation rather than after, because a term for an attribute that no longer
    * exists is not something the instance should be judged on.
+   *
+   * <p>Nothing prunes a verbatim write. It stores the document its caller stated, and a repair that
+   * reported success while storing something else would leave the audit that follows it reading back a
+   * document neither side ever agreed on. An instance whose orphan terms make it invalid is refused
+   * there rather than silently corrected.
    */
   @Override
-  protected ValidationReport validateArtifact(JsonNode templateInstance) throws CedarException {
+  protected ValidationReport validateArtifact(JsonNode templateInstance, boolean verbatim) throws CedarException {
     try {
       JsonNode instanceSchema = getSchemaSource(templateService, templateInstance);
-      linkedDataUtil.pruneOrphanPropertyIris(templateInstance, instanceSchema, CedarResourceType.INSTANCE);
+      if (!verbatim) {
+        linkedDataUtil.pruneOrphanPropertyIris(templateInstance, instanceSchema, CedarResourceType.INSTANCE);
+      }
       return validateTemplateInstance(templateInstance, instanceSchema);
     } catch (IOException e) {
       throw new CedarProcessingException(e);

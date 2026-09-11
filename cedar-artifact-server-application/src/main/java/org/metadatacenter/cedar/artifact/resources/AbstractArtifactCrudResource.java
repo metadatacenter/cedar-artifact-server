@@ -88,7 +88,15 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
 
   protected abstract long countArtifactsInService();
 
-  protected abstract ValidationReport validateArtifact(JsonNode artifact) throws CedarException;
+  /**
+   * Judges the artifact this write is about to store.
+   *
+   * <p>An implementation may normalize the document on its way through, since validating one shape and
+   * storing another is how a stored artifact ends up unchecked. A verbatim write is the exception: it
+   * stores the document the caller stated, so nothing may be altered when {@code verbatim} is true, and
+   * a document the normalization would have rescued is refused rather than quietly rewritten.
+   */
+  protected abstract ValidationReport validateArtifact(JsonNode artifact, boolean verbatim) throws CedarException;
 
   protected String updateValidationErrorMessage(ValidationReport validationReport) {
     return concatenateValidationMessages(validationReport);
@@ -121,7 +129,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     // Always. Validation used to be switchable, by CEDAR_VALIDATION_ENABLED, and an artifact stored
     // without it is one nothing has ever checked against the model it claims to follow.
     {
-      ValidationReport validationReport = validateArtifact(artifact);
+      ValidationReport validationReport = validateArtifact(artifact, false);
       ReportUtils.outputLogger(logger, validationReport, true);
       String validationStatus = validationReport.getValidationStatus();
       if (validationStatus.equals(CedarValidationReport.IS_VALID)) {
@@ -131,7 +139,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
             .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_INVALID)
             .errorKey(CedarErrorKey.INVALID_DATA)
             .errorReasonKey(CedarErrorReasonKey.VALIDATION_ERROR)
-            .errorMessage(concatenateValidationMessages(validationReport))
+            .message(concatenateValidationMessages(validationReport))
             .object("validationReport", validationReport)
             .build();
       }
@@ -161,7 +169,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     } catch (IOException e) {
       return CedarResponse.internalServerError()
           .errorKey(notCreatedKey)
-          .errorMessage("The " + artifactLabel + " can not be created")
+          .message("The " + artifactLabel + " can not be created")
           .exception(e)
           .build();
     }
@@ -210,7 +218,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
       return CedarResponse.internalServerError()
           .id(id)
           .errorKey(notFoundKey)
-          .errorMessage("The " + artifactLabel + " can not be found by id:" + id)
+          .message("The " + artifactLabel + " can not be found by id:" + id)
           .exception(e)
           .build();
     }
@@ -218,7 +226,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
       return CedarResponse.notFound()
           .id(id)
           .errorKey(notFoundKey)
-          .errorMessage("The " + artifactLabel + " can not be found by id:" + id)
+          .message("The " + artifactLabel + " can not be found by id:" + id)
           .build();
     } else {
       JsonNode artifact = snapshot.content();
@@ -271,7 +279,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     } catch (IOException e) {
       return CedarResponse.internalServerError()
           .errorKey(notListedKey)
-          .errorMessage("The " + artifactsLabel + " can not be listed")
+          .message("The " + artifactsLabel + " can not be listed")
           .exception(e)
           .build();
     }
@@ -372,7 +380,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
 
     Response response = null;
     {
-      ValidationReport validationReport = validateArtifact(newArtifact);
+      ValidationReport validationReport = validateArtifact(newArtifact, verbatim);
       ReportUtils.outputLogger(logger, validationReport, true);
       String validationStatus = validationReport.getValidationStatus();
       if (validationStatus.equals(CedarValidationReport.IS_VALID)) {
@@ -383,7 +391,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
             .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_INVALID)
             .errorKey(CedarErrorKey.INVALID_DATA)
             .errorReasonKey(CedarErrorReasonKey.VALIDATION_ERROR)
-            .errorMessage(updateValidationErrorMessage(validationReport))
+            .message(updateValidationErrorMessage(validationReport))
             .object("validationReport", validationReport)
             .build();
       }
@@ -418,7 +426,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
       return CedarResponse.badRequest()
           .id(artifactId)
           .errorKey(CedarErrorKey.VERBATIM_WRITE_REFUSED)
-          .errorMessage("A verbatim write needs a JSON body: a YAML body is transcoded, so what would be "
+          .message("A verbatim write needs a JSON body: a YAML body is transcoded, so what would be "
               + "stored is not what was sent")
           .build();
     }
@@ -432,7 +440,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
       return CedarResponse.notFound()
           .id(artifactId)
           .errorKey(CedarErrorKey.ARTIFACT_NOT_FOUND)
-          .errorMessage("A verbatim write replaces an existing " + artifactLabel + "; this one does not exist")
+          .message("A verbatim write replaces an existing " + artifactLabel + "; this one does not exist")
           .build();
     }
     return null;
@@ -456,7 +464,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
       }
       return CedarResponse.badRequest()
           .errorKey(CedarErrorKey.VERBATIM_WRITE_REFUSED)
-          .errorMessage("A verbatim write alters nothing, so every element occurrence identifier must already "
+          .message("A verbatim write alters nothing, so every element occurrence identifier must already "
               + "be an absolute IRI. These are not: " + String.join(", ", unusableOccurrences))
           .parameter("occurrences", String.join(", ", unusableOccurrences))
           .build();
@@ -474,7 +482,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     }
     return CedarResponse.badRequest()
         .errorKey(CedarErrorKey.VERBATIM_WRITE_REFUSED)
-        .errorMessage("A verbatim write alters nothing, so every child identifier must already be an "
+        .message("A verbatim write alters nothing, so every child identifier must already be an "
             + "absolute IRI. These are not: " + String.join(", ", unusable))
         .parameter("children", String.join(", ", unusable))
         .build();
@@ -570,11 +578,11 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     if (createOrUpdate == CreateOrUpdate.CREATE) {
       responseBuilder
           .errorKey(notCreatedKey)
-          .errorMessage("The " + artifactLabel + " can not be created using id:" + artifactId);
+          .message("The " + artifactLabel + " can not be created using id:" + artifactId);
     } else if (createOrUpdate == CreateOrUpdate.UPDATE) {
       responseBuilder
           .errorKey(notUpdatedKey)
-          .errorMessage("The " + artifactLabel + " can not be updated by id:" + artifactId);
+          .message("The " + artifactLabel + " can not be updated by id:" + artifactId);
     }
     return responseBuilder.build();
   }
@@ -583,7 +591,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     return CedarResponse.status(CedarResponseStatus.PRECONDITION_FAILED)
         .id(artifactId)
         .errorKey(CedarErrorKey.ARTIFACT_HAS_MOVED_ON)
-        .errorMessage("The " + artifactLabel + " no longer exists")
+        .message("The " + artifactLabel + " no longer exists")
         .build();
   }
 
@@ -592,7 +600,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
       return CedarResponse.status(CedarResponseStatus.PRECONDITION_REQUIRED)
           .id(artifactId)
           .errorKey(CedarErrorKey.ARTIFACT_PRECONDITION_REQUIRED)
-          .errorMessage("Updating an existing " + artifactLabel + " requires the ETag returned by GET in If-Match")
+          .message("Updating an existing " + artifactLabel + " requires the ETag returned by GET in If-Match")
           .build();
     }
     if (RevisionPreconditionParser.parse(ifMatch).matches(currentRevision)) {
@@ -605,7 +613,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     return CedarResponse.status(CedarResponseStatus.PRECONDITION_FAILED)
         .id(artifactId)
         .errorKey(CedarErrorKey.ARTIFACT_HAS_MOVED_ON)
-        .errorMessage("The " + artifactLabel + " has been updated since it was read")
+        .message("The " + artifactLabel + " has been updated since it was read")
         .parameter("currentETag", currentRevision == null ? null : etag(currentRevision))
         .build();
   }
@@ -639,7 +647,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
    * stored artifact.
    */
   private Response refuseInvalidNormalizedArtifact(JsonNode artifact) throws CedarException {
-    ValidationReport validationReport = validateArtifact(artifact);
+    ValidationReport validationReport = validateArtifact(artifact, false);
     ReportUtils.outputLogger(logger, validationReport, true);
     if (CedarValidationReport.IS_VALID.equals(validationReport.getValidationStatus())) {
       return null;
@@ -648,7 +656,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
         .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_INVALID)
         .errorKey(CedarErrorKey.INVALID_DATA)
         .errorReasonKey(CedarErrorReasonKey.VALIDATION_ERROR)
-        .errorMessage("Server normalization produced an invalid " + artifactLabel + ": "
+        .message("Server normalization produced an invalid " + artifactLabel + ": "
             + concatenateValidationMessages(validationReport))
         .object("validationReport", validationReport)
         .build();
@@ -673,7 +681,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
       return CedarResponse.internalServerError()
           .id(id)
           .errorKey(notDeletedKey)
-          .errorMessage("The " + artifactLabel + " can not be read before deletion by id:" + id)
+          .message("The " + artifactLabel + " can not be read before deletion by id:" + id)
           .exception(e)
           .build();
     }
@@ -681,7 +689,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
       return CedarResponse.notFound()
           .id(id)
           .errorKey(notFoundKey)
-          .errorMessage("The " + artifactLabel + " can not be found by id:" + id)
+          .message("The " + artifactLabel + " can not be found by id:" + id)
           .build();
     }
 
@@ -690,7 +698,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
       return CedarResponse.status(CedarResponseStatus.PRECONDITION_REQUIRED)
           .id(id)
           .errorKey(CedarErrorKey.ARTIFACT_PRECONDITION_REQUIRED)
-          .errorMessage("Deleting an existing " + artifactLabel
+          .message("Deleting an existing " + artifactLabel
               + " requires the ETag returned by GET in If-Match")
           .build();
     }
@@ -713,7 +721,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
         return CedarResponse.internalServerError()
             .id(id)
             .errorKey(notDeletedKey)
-            .errorMessage("The " + artifactLabel + " changed while it was being deleted")
+            .message("The " + artifactLabel + " changed while it was being deleted")
             .exception(readFailure)
             .build();
       }
@@ -721,13 +729,13 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
       return CedarResponse.status(CedarResponseStatus.PRECONDITION_FAILED)
           .id(id)
           .errorKey(CedarErrorKey.ARTIFACT_HAS_MOVED_ON)
-          .errorMessage("The " + artifactLabel + " no longer exists")
+          .message("The " + artifactLabel + " no longer exists")
           .build();
     } catch (IOException e) {
       return CedarResponse.internalServerError()
           .id(id)
           .errorKey(notDeletedKey)
-          .errorMessage("The " + artifactLabel + " can not be deleted by id:" + id)
+          .message("The " + artifactLabel + " can not be deleted by id:" + id)
           .exception(e)
           .build();
     }

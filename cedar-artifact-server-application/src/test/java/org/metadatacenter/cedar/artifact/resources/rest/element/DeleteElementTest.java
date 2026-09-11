@@ -77,7 +77,7 @@ public class DeleteElementTest extends AbstractRestTest {
     String createdBody = createResponse.readEntity(String.class);
     JsonNode element = null;
     try {
-      element = JsonMapper.MAPPER.readTree(createdBody);
+      element = JsonMapper.STRICT_MAPPER.readTree(createdBody);
     } catch (JsonParseException e) {
       // do nothing, the json can be invalid intentionally
     }
