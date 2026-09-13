@@ -28,6 +28,7 @@ class ArtifactServiceAuthenticationFilterTest {
       var request = request(List.of(key));
       filter.filter(request);
       verify(request, never()).abortWith(any());
+      verify(request).setProperty(org.metadatacenter.cedar.util.dw.ratelimit.UserRateLimits.VERIFIED_INTERNAL_SERVICE, true);
     }
     var retired = request(List.of(PREVIOUS));
     new ArtifactServiceAuthenticationFilter(config(CURRENT, "")).filter(retired);
@@ -41,6 +42,7 @@ class ArtifactServiceAuthenticationFilterTest {
       var request = request(keys);
       filter.filter(request);
       verify(request).abortWith(argThat(response -> response.getStatus() == 401));
+      verify(request, never()).setProperty(eq(org.metadatacenter.cedar.util.dw.ratelimit.UserRateLimits.VERIFIED_INTERNAL_SERVICE), any());
     }
   }
 

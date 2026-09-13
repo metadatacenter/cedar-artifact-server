@@ -46,7 +46,9 @@ public final class ArtifactServiceAuthenticationFilter implements ContainerReque
       byte[] supplied = digest(candidate);
       accepted = MessageDigest.isEqual(current, supplied) | MessageDigest.isEqual(previous, supplied);
     }
-    if (!accepted) {
+    if (accepted) {
+      request.setProperty(org.metadatacenter.cedar.util.dw.ratelimit.UserRateLimits.VERIFIED_INTERNAL_SERVICE, true);
+    } else {
       request.abortWith(CedarResponse.unauthorized().message("Internal service authentication required").build());
     }
   }
