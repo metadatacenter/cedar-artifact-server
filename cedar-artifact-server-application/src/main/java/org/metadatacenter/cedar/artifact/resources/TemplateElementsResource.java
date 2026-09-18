@@ -58,6 +58,14 @@ public class TemplateElementsResource extends AbstractArtifactCrudResource {
     TemplateElementsResource.templateElementService = templateElementService;
   }
 
+  @PUT
+  @Path("/{id}/version-predecessor")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Operation(hidden = true)
+  public Response projectVersionPredecessor(@PathParam("id") String id, String body) throws CedarException {
+    return updateVersionPredecessor(id, body);
+  }
+
   @POST
   @Timed
   @Produces({MediaType.APPLICATION_JSON, HttpConstants.CONTENT_TYPE_APPLICATION_YAML, "application/yaml"})

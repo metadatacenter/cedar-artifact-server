@@ -399,6 +399,46 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     return negotiateArtifactResponse(response, resourceType);
   }
 
+  /** Internal lifecycle projection: changes one link, preserving even legacy document shapes. */
+  protected Response updateVersionPredecessor(String id, String requestBody) throws CedarException {
+    CedarRequestContext c = buildRequestContext();
+    c.must(c.user()).be(LoggedIn);
+    c.must(id).be(ValidUrl);
+    // The internal-service filter also authenticates this route. Reuse the existing filesystem
+    // administrator authority; this service does not need access to the administrator's secret.
+    c.must(c.user()).have(CedarPermission.WRITE_NOT_WRITABLE_NODE);
+    try {
+      JsonNode patch = org.metadatacenter.util.json.JsonMapper.STRICT_MAPPER.readTree(requestBody);
+      if (patch == null || !patch.isObject() || patch.size() != 1 || !patch.has("previousVersion")
+          || !(patch.get("previousVersion").isNull() || patch.get("previousVersion").isTextual())) {
+        return CedarResponse.badRequest().message("Supply only previousVersion, as an absolute URL or null").build();
+      }
+      String previous = patch.get("previousVersion").isNull() ? null : patch.get("previousVersion").asText();
+      if (previous != null) c.must(previous).be(ValidUrl);
+      var snapshot = findArtifactWithRevisionInService(id);
+      if (snapshot == null) return CedarResponse.notFound().build();
+      if ("*".equals(c.getIfMatchHeader())) {
+        return CedarResponse.badRequest().message("A specific artifact revision is required").build();
+      }
+      Response failure = enforceIfMatch(c.getIfMatchHeader(), snapshot.revision(), id);
+      if (failure != null) return failure;
+      var document = (com.fasterxml.jackson.databind.node.ObjectNode) snapshot.content().deepCopy();
+      if (previous == null) document.remove("pav:previousVersion");
+      else document.put("pav:previousVersion", previous);
+      MongoUtils.removeIdField(document);
+      updateArtifactInService(id, document, snapshot.revision());
+      return CedarResponse.ok().header(HttpHeaders.ETAG, etag(snapshot.revision() + 1L)).build();
+    } catch (ArtifactRevisionConflictException e) {
+      return movedOnResponse(id, null);
+    } catch (ArtifactServerResourceNotFoundException e) {
+      return disappearedDuringConditionalUpdate(id);
+    } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+      return CedarResponse.badRequest().message("Invalid lifecycle patch JSON").build();
+    } catch (IOException e) {
+      throw new CedarProcessingException(e);
+    }
+  }
+
   /**
    * Stamps the provenance that belongs to this PUT before validation. A PUT can create when its
    * identifier does not exist, and that path must establish creation provenance from the
