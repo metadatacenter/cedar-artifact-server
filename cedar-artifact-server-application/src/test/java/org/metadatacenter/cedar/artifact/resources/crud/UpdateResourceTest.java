@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.metadatacenter.cedar.artifact.resources.utils.TestConstants.LAST_UPDATED_ON_FIELD;
+import static org.metadatacenter.model.ModelNodeNames.MODEL_VERSION;
 import static org.metadatacenter.model.ModelNodeNames.SCHEMA_IS_BASED_ON;
 
 public class UpdateResourceTest extends AbstractResourceCrudTest {
@@ -593,7 +594,7 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
     field.put("$schema", "http://json-schema.org/draft-04/schema#");
     field.put("@type", "https://schema.metadatacenter.org/core/TemplateField");
     field.put("schema:name", fieldName);
-    field.put("schema:schemaVersion", "1.5.0");
+    field.put("schema:schemaVersion", MODEL_VERSION);
     field.remove("pav:version");
     field.remove("bibo:status");
     ObjectNode fieldContext = (ObjectNode) field.get(LinkedData.CONTEXT);
@@ -626,7 +627,7 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
     field.put("@type", "https://schema.metadatacenter.org/core/TemplateField");
     field.put("type", "string");
     field.put("schema:name", fieldName);
-    field.put("schema:schemaVersion", "1.5.0");
+    field.put("schema:schemaVersion", MODEL_VERSION);
     field.remove("properties");
     field.remove("required");
     field.remove("pav:version");
