@@ -102,15 +102,6 @@ public abstract class AbstractArtifactServerResource extends CedarMicroserviceRe
     return null;
   }
 
-  protected static void checkPagingParametersAgainstTotal(Integer offset, long total) throws CedarException {
-    if (offset != 0 && offset > total - 1) {
-      throw new CedarBadRequestException(new CedarErrorPack()
-          .message("Parameter 'offset' must be smaller than the total count of objects, which is " + total + "!")
-          .parameter("offset", offset)
-          .parameter("total", total));
-    }
-  }
-
   protected ValidationReport validateTemplate(JsonNode template) throws CedarException {
     try {
       return newModelValidator().validateTemplate(template);

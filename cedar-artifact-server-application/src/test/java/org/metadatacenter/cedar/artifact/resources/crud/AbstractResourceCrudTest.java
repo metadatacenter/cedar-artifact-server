@@ -82,8 +82,7 @@ public abstract class AbstractResourceCrudTest extends AbstractResourceTest {
   protected static int countResources(CedarResourceType resourceType) {
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
     Response findAllResponse = testClient.target(url).request().header("Authorization", authHeaderTestUser1).get();
-    int totalCount = Integer.parseInt(findAllResponse.getHeaderString(CustomHttpConstants.HEADER_TOTAL_COUNT));
-    return totalCount;
+    return findAllResponse.readEntity(JsonNode.class).get("totalCount").asInt();
   }
 
   // Creates a artifact and then creates and instance and sets schema:isBasedOn to the artifact id

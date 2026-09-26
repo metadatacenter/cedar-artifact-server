@@ -42,14 +42,17 @@ public class EndpointSanityTest extends BaseServerTest {
         "The advertised spec path should serve an OpenAPI document");
   }
 
+  /** An offset past the end is an empty page, as on every other CEDAR listing, not a refusal. */
   @Test
-  public void shouldRejectOffsetBeyondCollectionAsBadRequest() {
+  public void shouldAnswerAnOffsetBeyondTheCollectionWithAnEmptyPage() {
     Response response = testClient.target("http://localhost:" + getPortNumber() + "/templates")
         .queryParam("offset", Integer.MAX_VALUE)
         .request()
         .header(HttpHeaders.AUTHORIZATION, authHeaderValue)
         .get();
 
-    assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
+    assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+    assertTrue(response.readEntity(String.class).contains("\"artifacts\":[]"),
+        "the page past the end holds no artifacts");
   }
 }

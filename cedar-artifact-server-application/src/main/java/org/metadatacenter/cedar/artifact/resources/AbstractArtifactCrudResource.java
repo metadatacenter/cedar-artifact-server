@@ -30,7 +30,6 @@ import org.metadatacenter.util.provenance.ProvenanceUtil;
 import org.metadatacenter.util.artifact.ArtifactYamlTranscoder;
 import org.metadatacenter.util.http.CedarResponse;
 import org.metadatacenter.util.http.CedarUrlUtil;
-import org.metadatacenter.util.http.LinkHeaderUtil;
 import org.metadatacenter.util.http.PagedQuery;
 import org.metadatacenter.util.http.RevisionPreconditionParser;
 import org.metadatacenter.util.mongo.MongoUtils;
@@ -276,16 +275,12 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
           .build();
     }
     long total = countArtifactsInService();
-    checkPagingParametersAgainstTotal(offset, total);
 
-    String absoluteUrl = uriInfo.getAbsolutePathBuilder().build().toString();
-    String linkHeader = LinkHeaderUtil.getPagingLinkHeader(absoluteUrl, total, limit, offset);
-    Response.ResponseBuilder responseBuilder = Response.ok().entity(artifacts);
-    responseBuilder.header(CustomHttpConstants.HEADER_TOTAL_COUNT, String.valueOf(total));
-    if (!linkHeader.isEmpty()) {
-      responseBuilder.header(HttpConstants.HTTP_HEADER_LINK, linkHeader);
-    }
-    return responseBuilder.build();
+    // An offset past the end is an empty page, as it is on every other CEDAR listing. The links keep
+    // the request's own summary and field_names, replacing only the offset and limit.
+    return Response.ok()
+        .entity(new ArtifactPage(artifacts, uriInfo.getRequestUri().toString(), total, limit, offset))
+        .build();
   }
 
   protected Response updateArtifact(String id, CedarPermission createPermission, CedarPermission updatePermission,

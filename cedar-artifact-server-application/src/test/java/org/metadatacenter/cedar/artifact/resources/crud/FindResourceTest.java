@@ -182,17 +182,18 @@ public class FindResourceTest extends AbstractResourceCrudTest {
       Response findAllResponse = testClient.target(findAllUrl).request().header("Authorization", authHeader).get();
       // Check response is OK
       Assertions.assertEquals(CedarResponseStatus.OK.getStatusCode(), findAllResponse.getStatus());
-      // Check headers
-      Assertions.assertNotNull(findAllResponse.getHeaderString(CustomHttpConstants.HEADER_TOTAL_COUNT));
-      int currentCount = Integer.parseInt(findAllResponse.getHeaderString(CustomHttpConstants.HEADER_TOTAL_COUNT));
-      Assertions.assertNotNull(findAllResponse.getHeaderString(HttpConstants.HTTP_HEADER_LINK));
+      // The page, its count and its links are in the body envelope, and no longer in headers.
+      JsonNode findAllJsonResponse = findAllResponse.readEntity(JsonNode.class);
+      Assertions.assertNull(findAllResponse.getHeaderString(CustomHttpConstants.HEADER_TOTAL_COUNT));
+      Assertions.assertNull(findAllResponse.getHeaderString(HttpConstants.HTTP_HEADER_LINK));
+      Assertions.assertTrue(findAllJsonResponse.get("paging").has("first"));
+      int currentCount = findAllJsonResponse.get("totalCount").asInt();
       // Check the number of resources created
       int expectedCount = initialCount + CREATE_RESOURCES_COUNT;
-      Assertions.assertTrue(expectedCount == currentCount, "Expected total count specified in header is wrong");
-      JsonNode findAllJsonResponse = findAllResponse.readEntity(JsonNode.class);
+      Assertions.assertTrue(expectedCount == currentCount, "Expected total count in the envelope is wrong");
       // Check the number of elements retrieved
       List<JsonNode> actual = new ArrayList<>();
-      for (JsonNode r : findAllJsonResponse) {
+      for (JsonNode r : findAllJsonResponse.get("artifacts")) {
         actual.add(r);
       }
       int expectedSize;

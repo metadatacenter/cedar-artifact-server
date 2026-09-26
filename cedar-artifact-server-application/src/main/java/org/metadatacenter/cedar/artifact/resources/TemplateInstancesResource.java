@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.headers.Header;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
@@ -266,17 +265,14 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
   @GET
   @Timed
   @Operation(summary = "List template instances",
-      description = "List template instances, one page at a time. The response carries the size of "
-          + "the whole collection and paging links, not just the returned page.")
+      description = "List template instances, one page at a time. The body carries the page's artifacts "
+          + "beside the size of the whole collection and links to the neighbouring pages. An offset past "
+          + "the end answers an empty page.")
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "A page of instances",
           content = @Content(mediaType = MediaType.APPLICATION_JSON,
-              array = @ArraySchema(schema = @Schema(implementation = InstanceArtifactDocument.class))),
-          headers = {
-              @Header(name = "Total-Count", description = ArtifactApiDocs.TOTAL_COUNT, schema = @Schema(type = "integer")),
-              @Header(name = "Link", description = ArtifactApiDocs.LINK, schema = @Schema(type = "string"))
-          }),
-      @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "A paging parameter is out of range, or field_names is combined with summary=true"),
+              schema = @Schema(implementation = ArtifactPage.OfInstances.class))),
+      @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "The limit or offset is out of range, or field_names is combined with summary=true"),
       @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Unauthorized"),
       @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Forbidden"),
       @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Internal server error")
