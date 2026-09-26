@@ -412,15 +412,6 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     if (!verbatim) {
-      JsonNode instanceSchema;
-      try {
-        instanceSchema = getSchemaSource(templateService, newInstance);
-      } catch (IOException e) {
-        throw new CedarProcessingException(e);
-      }
-      logLegacyArtifactRepairs(
-          linkedDataUtil.repairInheritedDefects(newInstance, currentTemplateInstance, instanceSchema,
-              CedarResourceType.INSTANCE), id);
       stampProvenanceForPut(newInstance, currentTemplateInstance, pi);
 
       // add template-element-instance ids if needed. For instance, this may be needed if new items are added to an

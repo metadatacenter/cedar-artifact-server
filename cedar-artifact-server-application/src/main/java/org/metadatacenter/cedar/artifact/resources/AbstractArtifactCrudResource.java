@@ -22,7 +22,6 @@ import org.metadatacenter.rest.context.CedarRequestContext;
 import org.metadatacenter.server.dao.ArtifactRevisionConflictException;
 import org.metadatacenter.server.dao.ArtifactWithRevision;
 import org.metadatacenter.server.RevisionPrecondition;
-import org.metadatacenter.server.jsonld.LinkedDataUtil;
 import org.metadatacenter.server.model.provenance.ProvenanceInfo;
 import org.metadatacenter.server.security.model.auth.CedarPermission;
 import org.metadatacenter.server.service.FieldNameInEx;
@@ -189,13 +188,6 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
             mint.property(), artifactId == null ? "a new " + artifactLabel : artifactId,
             mint.replaced(), mint.minted());
       }
-    }
-  }
-
-  protected void logLegacyArtifactRepairs(List<LinkedDataUtil.LegacyArtifactRepair> repairs, String artifactId) {
-    for (LinkedDataUtil.LegacyArtifactRepair repair : repairs) {
-      logger.warn("Repaired inherited defect '{}' at '{}' in {}. Previous value: {}",
-          repair.issue(), repair.path(), artifactId, repair.previousValue());
     }
   }
 
@@ -369,10 +361,6 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     } else {
       enforceChildArtifactTypes(newArtifact, resourceType, notUpdatedKey);
       JsonSchemaTitleAndDescription.derive(newArtifact, resourceType);
-      if (resourceType == CedarResourceType.TEMPLATE || resourceType == CedarResourceType.ELEMENT) {
-        logLegacyArtifactRepairs(
-            linkedDataUtil.repairInheritedDefects(newArtifact, currentArtifact, null, resourceType), id);
-      }
       stampProvenanceForPut(newArtifact, currentArtifact, pi);
       // and a property IRI for any child added during the edit
       linkedDataUtil.addChildPropertyIris(newArtifact, resourceType);
