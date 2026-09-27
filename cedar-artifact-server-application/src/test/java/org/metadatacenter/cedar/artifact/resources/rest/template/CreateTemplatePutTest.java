@@ -105,12 +105,17 @@ public class CreateTemplatePutTest extends AbstractRestTest {
       response = request.put(null);
     }
 
-    createdResources.put(idInURL, CedarResourceType.TEMPLATE);
-
-    int responseStatus = response.getStatus();
-    int expectedResponseStatus = getExpectedResponseStatus(generator, js, rt, auth, idInURLGenerator,
-        idInBodyGenerator);
-    Assertions.assertEquals(expectedResponseStatus, responseStatus);
+    try (response) {
+      createdResources.put(idInURL, CedarResourceType.TEMPLATE);
+      // Status-only assertions still own an HTTP entity. Drain it before closing,
+      // so hundreds of parameterized cases do not leave leased connections or
+      // unfinished response writes for the server's graceful shutdown.
+      response.bufferEntity();
+      int responseStatus = response.getStatus();
+      int expectedResponseStatus = getExpectedResponseStatus(generator, js, rt, auth, idInURLGenerator,
+          idInBodyGenerator);
+      Assertions.assertEquals(expectedResponseStatus, responseStatus);
+    }
   }
 
   private int getExpectedResponseStatus(TestParameterArrayGeneratorGenerator generator,
