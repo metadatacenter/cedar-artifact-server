@@ -57,12 +57,6 @@ final class ArtifactApiDocs {
   static final String FIELD_NAMES = "Comma-separated list of fields to return, in place of the default "
       + "selection. Ignored when `summary` is set.";
 
-  static final String TOTAL_COUNT = "Total number of artifacts of this type, which is the whole "
-      + "collection rather than the returned page.";
-
-  static final String LINK = "Paging links for the first, previous, next, and last pages, where those "
-      + "exist.";
-
   static final String BODY_FORMAT = "The body may be JSON or YAML, selected by the Content-Type header. "
       + "A YAML body must be the full or minimal form.";
 

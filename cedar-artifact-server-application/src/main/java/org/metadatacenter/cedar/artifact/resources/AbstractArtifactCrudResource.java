@@ -22,7 +22,6 @@ import org.metadatacenter.rest.context.CedarRequestContext;
 import org.metadatacenter.server.dao.ArtifactRevisionConflictException;
 import org.metadatacenter.server.dao.ArtifactWithRevision;
 import org.metadatacenter.server.RevisionPrecondition;
-import org.metadatacenter.server.jsonld.LinkedDataUtil;
 import org.metadatacenter.server.model.provenance.ProvenanceInfo;
 import org.metadatacenter.server.security.model.auth.CedarPermission;
 import org.metadatacenter.server.service.FieldNameInEx;
@@ -31,7 +30,6 @@ import org.metadatacenter.util.provenance.ProvenanceUtil;
 import org.metadatacenter.util.artifact.ArtifactYamlTranscoder;
 import org.metadatacenter.util.http.CedarResponse;
 import org.metadatacenter.util.http.CedarUrlUtil;
-import org.metadatacenter.util.http.LinkHeaderUtil;
 import org.metadatacenter.util.http.PagedQuery;
 import org.metadatacenter.util.http.RevisionPreconditionParser;
 import org.metadatacenter.util.mongo.MongoUtils;
@@ -192,13 +190,6 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     }
   }
 
-  protected void logLegacyArtifactRepairs(List<LinkedDataUtil.LegacyArtifactRepair> repairs, String artifactId) {
-    for (LinkedDataUtil.LegacyArtifactRepair repair : repairs) {
-      logger.warn("Repaired inherited defect '{}' at '{}' in {}. Previous value: {}",
-          repair.issue(), repair.path(), artifactId, repair.previousValue());
-    }
-  }
-
   protected Response findArtifact(String id, CedarPermission readPermission, CedarErrorKey notFoundKey,
                                   CedarResourceType resourceType, Optional<Boolean> compactParam) throws CedarException {
     CedarRequestContext c = buildRequestContext();
@@ -284,16 +275,12 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
           .build();
     }
     long total = countArtifactsInService();
-    checkPagingParametersAgainstTotal(offset, total);
 
-    String absoluteUrl = uriInfo.getAbsolutePathBuilder().build().toString();
-    String linkHeader = LinkHeaderUtil.getPagingLinkHeader(absoluteUrl, total, limit, offset);
-    Response.ResponseBuilder responseBuilder = Response.ok().entity(artifacts);
-    responseBuilder.header(CustomHttpConstants.HEADER_TOTAL_COUNT, String.valueOf(total));
-    if (!linkHeader.isEmpty()) {
-      responseBuilder.header(HttpConstants.HTTP_HEADER_LINK, linkHeader);
-    }
-    return responseBuilder.build();
+    // An offset past the end is an empty page, as it is on every other CEDAR listing. The links keep
+    // the request's own summary and field_names, replacing only the offset and limit.
+    return Response.ok()
+        .entity(new ArtifactPage(artifacts, uriInfo.getRequestUri().toString(), total, limit, offset))
+        .build();
   }
 
   protected Response updateArtifact(String id, CedarPermission createPermission, CedarPermission updatePermission,
@@ -369,10 +356,6 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     } else {
       enforceChildArtifactTypes(newArtifact, resourceType, notUpdatedKey);
       JsonSchemaTitleAndDescription.derive(newArtifact, resourceType);
-      if (resourceType == CedarResourceType.TEMPLATE || resourceType == CedarResourceType.ELEMENT) {
-        logLegacyArtifactRepairs(
-            linkedDataUtil.repairInheritedDefects(newArtifact, currentArtifact, null, resourceType), id);
-      }
       stampProvenanceForPut(newArtifact, currentArtifact, pi);
       // and a property IRI for any child added during the edit
       linkedDataUtil.addChildPropertyIris(newArtifact, resourceType);

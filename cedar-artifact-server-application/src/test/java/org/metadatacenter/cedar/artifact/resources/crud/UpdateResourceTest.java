@@ -285,7 +285,7 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
   }
 
   @Test
-  public void ordinaryPutRepairsAnInheritedUnusableTemplatePropertyIri() throws Exception {
+  public void ordinaryPutRejectsAnInheritedUnusableTemplatePropertyIri() throws Exception {
     ObjectNode created = createTemplateWithField();
     String id = created.get(LinkedData.ID).asText();
     ObjectNode brokenStored = created.deepCopy();
@@ -297,10 +297,8 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
     submitted.put("schema:name", "Edited old template");
     Response response = put(submitted, id, CedarResourceType.TEMPLATE);
 
-    Assertions.assertEquals(CedarResponseStatus.OK.getStatusCode(), response.getStatus());
-    JsonNode repaired = response.readEntity(JsonNode.class);
-    Assertions.assertTrue(propertyMapping((ObjectNode) repaired, FIELD_NAME).get("enum").get(0).asText()
-        .startsWith(PROPERTY_IRI_PREFIX));
+    Assertions.assertEquals(CedarResponseStatus.BAD_REQUEST.getStatusCode(), response.getStatus());
+    response.close();
   }
 
   @Test
@@ -343,7 +341,7 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
   }
 
   @Test
-  public void ordinaryPutRestoresAnInheritedMissingChildSchema() throws Exception {
+  public void ordinaryPutRejectsAnInheritedMissingChildSchema() throws Exception {
     ObjectNode created = createTemplateWithField();
     String id = created.get(LinkedData.ID).asText();
     ObjectNode brokenStored = created.deepCopy();
@@ -354,10 +352,15 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
     submitted.put("schema:name", "Edited legacy template");
     Response response = put(submitted, id, CedarResourceType.TEMPLATE);
 
-    Assertions.assertEquals(CedarResponseStatus.OK.getStatusCode(), response.getStatus());
-    JsonNode repaired = response.readEntity(JsonNode.class);
-    Assertions.assertEquals("http://json-schema.org/draft-04/schema#",
-        repaired.path("properties").path(FIELD_NAME).path("$schema").asText());
+    Assertions.assertEquals(CedarResponseStatus.BAD_REQUEST.getStatusCode(), response.getStatus());
+    response.close();
+
+    // A client can still repair the stored declaration explicitly in the same ordinary PUT.
+    ((ObjectNode) submitted.path("properties").path(FIELD_NAME))
+        .put("$schema", "http://json-schema.org/draft-04/schema#");
+    Response corrected = put(submitted, id, CedarResourceType.TEMPLATE);
+    Assertions.assertEquals(CedarResponseStatus.OK.getStatusCode(), corrected.getStatus());
+    corrected.close();
   }
 
   @Test
@@ -390,7 +393,7 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
   }
 
   @Test
-  public void ordinaryPutRepairsInheritedEmptyDerivedFromRecursively() throws Exception {
+  public void ordinaryPutRejectsInheritedEmptyDerivedFromRecursively() throws Exception {
     ObjectNode created = createTemplateWithField();
     String id = created.get(LinkedData.ID).asText();
     ObjectNode brokenStored = created.deepCopy();
@@ -402,10 +405,8 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
     submitted.put("schema:name", "Edited old template provenance");
     Response response = put(submitted, id, CedarResourceType.TEMPLATE);
 
-    Assertions.assertEquals(CedarResponseStatus.OK.getStatusCode(), response.getStatus());
-    JsonNode repaired = response.readEntity(JsonNode.class);
-    Assertions.assertFalse(repaired.has("pav:derivedFrom"));
-    Assertions.assertFalse(repaired.path("properties").path(FIELD_NAME).has("pav:derivedFrom"));
+    Assertions.assertEquals(CedarResponseStatus.BAD_REQUEST.getStatusCode(), response.getStatus());
+    response.close();
   }
 
   @Test
@@ -446,7 +447,7 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
   }
 
   @Test
-  public void ordinaryPutRepairsAnInheritedUnusableElementOccurrenceId() throws Exception {
+  public void ordinaryPutRejectsAnInheritedUnusableElementOccurrenceId() throws Exception {
     ObjectNode template = createTemplateWithElement();
     ObjectNode created = createInstanceWithElement(template);
     String id = created.get(LinkedData.ID).asText();
@@ -459,10 +460,8 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
     submitted.put("schema:name", "Edited old instance");
     Response response = put(submitted, id, CedarResourceType.INSTANCE);
 
-    Assertions.assertEquals(CedarResponseStatus.OK.getStatusCode(), response.getStatus());
-    JsonNode repaired = response.readEntity(JsonNode.class);
-    Assertions.assertTrue(repaired.get(ELEMENT_NAME).get(LinkedData.ID).asText()
-        .startsWith(OCCURRENCE_IRI_PREFIX));
+    Assertions.assertEquals(CedarResponseStatus.BAD_REQUEST.getStatusCode(), response.getStatus());
+    response.close();
   }
 
   @Test
@@ -507,7 +506,7 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
   }
 
   @Test
-  public void ordinaryPutRepairsInheritedInvalidAttributeValueNames() throws Exception {
+  public void ordinaryPutRejectsInheritedInvalidAttributeValueNames() throws Exception {
     ObjectNode template = createTemplateWithAttributeValueField();
     ObjectNode created = createInstanceWithAttributeValueField(template);
     String id = created.get(LinkedData.ID).asText();
@@ -519,11 +518,14 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
     submitted.put("schema:name", "Edited old attribute-value instance");
     Response response = put(submitted, id, CedarResourceType.INSTANCE);
 
-    Assertions.assertEquals(CedarResponseStatus.OK.getStatusCode(), response.getStatus());
-    JsonNode repaired = response.readEntity(JsonNode.class);
-    ArrayNode repairedNames = (ArrayNode) repaired.get(ATTRIBUTE_VALUE_FIELD_NAME);
-    Assertions.assertEquals(1, repairedNames.size());
-    Assertions.assertEquals(DUPLICATE_ATTRIBUTE_NAME, repairedNames.get(0).asText());
+    Assertions.assertEquals(CedarResponseStatus.BAD_REQUEST.getStatusCode(), response.getStatus());
+    response.close();
+
+    // A deliberate client correction is still accepted; names are no longer silently removed.
+    submitted.putArray(ATTRIBUTE_VALUE_FIELD_NAME).add(DUPLICATE_ATTRIBUTE_NAME);
+    Response corrected = put(submitted, id, CedarResourceType.INSTANCE);
+    Assertions.assertEquals(CedarResponseStatus.OK.getStatusCode(), corrected.getStatus());
+    corrected.close();
   }
 
   @Test
@@ -537,6 +539,47 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
     Response response = put(submitted, id, CedarResourceType.INSTANCE);
 
     Assertions.assertEquals(CedarResponseStatus.BAD_REQUEST.getStatusCode(), response.getStatus());
+    response.close();
+  }
+
+  @Test
+  public void ordinaryPutRejectsEachInheritedUnsafeAttributeNameShape() throws Exception {
+    ObjectNode template = createTemplateWithAttributeValueField();
+    // Blank draft rows are removed by normal attribute minting; these other categories must fail.
+    for (String unsafeName : java.util.List.of(LinkedData.CONTEXT, FIELD_NAME, SAFE_ATTRIBUTE_NAME)) {
+      ObjectNode created = createInstanceWithAttributeValueField(template);
+      String id = created.get(LinkedData.ID).asText();
+      ObjectNode brokenStored = created.deepCopy();
+      brokenStored.putArray(ATTRIBUTE_VALUE_FIELD_NAME).add(SAFE_ATTRIBUTE_NAME).add(unsafeName);
+      TestUtil.templateInstanceService.updateTemplateInstance(id, brokenStored.deepCopy(),
+          TestUtil.templateInstanceService.getTemplateInstanceRevision(id));
+
+      Response refused = put(brokenStored.deepCopy(), id, CedarResourceType.INSTANCE);
+      Assertions.assertEquals(CedarResponseStatus.BAD_REQUEST.getStatusCode(), refused.getStatus(),
+          "an inherited reserved, colliding, or duplicate name must not be silently removed");
+      refused.close();
+
+      Response corrected = put(created.deepCopy(), id, CedarResourceType.INSTANCE);
+      Assertions.assertEquals(CedarResponseStatus.OK.getStatusCode(), corrected.getStatus());
+      corrected.close();
+    }
+  }
+
+  @Test
+  public void ordinaryPutStillDropsAnInheritedBlankDraftAttributeRow() throws Exception {
+    ObjectNode template = createTemplateWithAttributeValueField();
+    ObjectNode created = createInstanceWithAttributeValueField(template);
+    String id = created.get(LinkedData.ID).asText();
+    ObjectNode stored = created.deepCopy();
+    stored.putArray(ATTRIBUTE_VALUE_FIELD_NAME).add(SAFE_ATTRIBUTE_NAME).add("");
+    TestUtil.templateInstanceService.updateTemplateInstance(id, stored.deepCopy(),
+        TestUtil.templateInstanceService.getTemplateInstanceRevision(id));
+
+    Response response = put(stored.deepCopy(), id, CedarResourceType.INSTANCE);
+    Assertions.assertEquals(CedarResponseStatus.OK.getStatusCode(), response.getStatus());
+    JsonNode saved = response.readEntity(JsonNode.class);
+    Assertions.assertEquals(created.get(ATTRIBUTE_VALUE_FIELD_NAME), saved.get(ATTRIBUTE_VALUE_FIELD_NAME));
+    Assertions.assertEquals(created.get(SAFE_ATTRIBUTE_NAME), saved.get(SAFE_ATTRIBUTE_NAME));
     response.close();
   }
 

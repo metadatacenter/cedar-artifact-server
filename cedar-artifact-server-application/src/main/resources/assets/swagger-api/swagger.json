@@ -3,7 +3,7 @@
   "info" : {
     "description" : "Better Metadata - Better Science\n\nInternal service: business routes require both X-CEDAR-Artifact-Service-Key and the\nend-user Authorization header. Public callers use resource; a user API key alone is insufficient.\n\nThe artifact server stores templates, template elements, template fields, and template\ninstances, and validates every one of them against the CEDAR model before storing it.\n\nArtifacts use strong ETags for optimistic concurrency. Read the artifact and send the returned\nETag in `If-Match` when replacing or deleting it. A missing required precondition returns 428;\na stale or malformed validator returns 412. `If-Match: *` accepts whichever revision currently\nexists and therefore deliberately gives up lost-update protection. Representation suffixes such\nas `\"7-yaml\"` and `\"7-yaml-compact-v2\"` identify different bytes of the same stored revision and\nare valid write preconditions.\n\nArtifacts are read and written as JSON or YAML, selected by the Accept and Content-Type\nheaders. The compact YAML form is a lossy read-time convenience: it can be read but not stored.\n",
     "title" : "CEDAR Artifact Server API",
-    "version" : "2.9.18"
+    "version" : "2.9.19"
   },
   "paths" : {
     "/" : {
@@ -468,7 +468,7 @@
     },
     "/template-elements" : {
       "get" : {
-        "description" : "List template elements, one page at a time. The response carries the size of the whole collection and paging links, not just the returned page.",
+        "description" : "List template elements, one page at a time. The body carries the page's artifacts beside the size of the whole collection and links to the neighbouring pages. An offset past the end answers an empty page.",
         "operationId" : "findAllTemplateElements",
         "parameters" : [ {
           "description" : "Maximum number of artifacts to return.",
@@ -506,30 +506,11 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/SchemaArtifactDocument"
-                  }
+                  "$ref" : "#/components/schemas/SchemaArtifactPage"
                 }
               }
             },
-            "description" : "A page of template elements",
-            "headers" : {
-              "Link" : {
-                "description" : "Paging links for the first, previous, next, and last pages, where those exist.",
-                "schema" : {
-                  "type" : "string"
-                },
-                "style" : "simple"
-              },
-              "Total-Count" : {
-                "description" : "Total number of artifacts of this type, which is the whole collection rather than the returned page.",
-                "schema" : {
-                  "type" : "integer"
-                },
-                "style" : "simple"
-              }
-            }
+            "description" : "A page of template elements"
           },
           "400" : {
             "content" : {
@@ -539,7 +520,7 @@
                 }
               }
             },
-            "description" : "A paging parameter is out of range, or field_names is combined with summary=true"
+            "description" : "The limit or offset is out of range, or field_names is combined with summary=true"
           },
           "401" : {
             "content" : {
@@ -1322,7 +1303,7 @@
     },
     "/template-fields" : {
       "get" : {
-        "description" : "List template fields, one page at a time. The response carries the size of the whole collection and paging links, not just the returned page.",
+        "description" : "List template fields, one page at a time. The body carries the page's artifacts beside the size of the whole collection and links to the neighbouring pages. An offset past the end answers an empty page.",
         "operationId" : "findAllTemplateFields",
         "parameters" : [ {
           "description" : "Maximum number of artifacts to return.",
@@ -1360,30 +1341,11 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/SchemaArtifactDocument"
-                  }
+                  "$ref" : "#/components/schemas/SchemaArtifactPage"
                 }
               }
             },
-            "description" : "A page of template fields",
-            "headers" : {
-              "Link" : {
-                "description" : "Paging links for the first, previous, next, and last pages, where those exist.",
-                "schema" : {
-                  "type" : "string"
-                },
-                "style" : "simple"
-              },
-              "Total-Count" : {
-                "description" : "Total number of artifacts of this type, which is the whole collection rather than the returned page.",
-                "schema" : {
-                  "type" : "integer"
-                },
-                "style" : "simple"
-              }
-            }
+            "description" : "A page of template fields"
           },
           "400" : {
             "content" : {
@@ -1393,7 +1355,7 @@
                 }
               }
             },
-            "description" : "A paging parameter is out of range, or field_names is combined with summary=true"
+            "description" : "The limit or offset is out of range, or field_names is combined with summary=true"
           },
           "401" : {
             "content" : {
@@ -2176,7 +2138,7 @@
     },
     "/template-instances" : {
       "get" : {
-        "description" : "List template instances, one page at a time. The response carries the size of the whole collection and paging links, not just the returned page.",
+        "description" : "List template instances, one page at a time. The body carries the page's artifacts beside the size of the whole collection and links to the neighbouring pages. An offset past the end answers an empty page.",
         "operationId" : "findAllTemplateInstances",
         "parameters" : [ {
           "description" : "Maximum number of artifacts to return.",
@@ -2214,30 +2176,11 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/InstanceArtifactDocument"
-                  }
+                  "$ref" : "#/components/schemas/InstanceArtifactPage"
                 }
               }
             },
-            "description" : "A page of instances",
-            "headers" : {
-              "Link" : {
-                "description" : "Paging links for the first, previous, next, and last pages, where those exist.",
-                "schema" : {
-                  "type" : "string"
-                },
-                "style" : "simple"
-              },
-              "Total-Count" : {
-                "description" : "Total number of artifacts of this type, which is the whole collection rather than the returned page.",
-                "schema" : {
-                  "type" : "integer"
-                },
-                "style" : "simple"
-              }
-            }
+            "description" : "A page of instances"
           },
           "400" : {
             "content" : {
@@ -2247,7 +2190,7 @@
                 }
               }
             },
-            "description" : "A paging parameter is out of range, or field_names is combined with summary=true"
+            "description" : "The limit or offset is out of range, or field_names is combined with summary=true"
           },
           "401" : {
             "content" : {
@@ -3079,7 +3022,7 @@
     },
     "/templates" : {
       "get" : {
-        "description" : "List templates, one page at a time. The response carries the size of the whole collection and paging links, not just the returned page.",
+        "description" : "List templates, one page at a time. The body carries the page's artifacts beside the size of the whole collection and links to the neighbouring pages. An offset past the end answers an empty page.",
         "operationId" : "findAllTemplates",
         "parameters" : [ {
           "description" : "Maximum number of artifacts to return.",
@@ -3117,30 +3060,11 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/SchemaArtifactDocument"
-                  }
+                  "$ref" : "#/components/schemas/SchemaArtifactPage"
                 }
               }
             },
-            "description" : "A page of templates",
-            "headers" : {
-              "Link" : {
-                "description" : "Paging links for the first, previous, next, and last pages, where those exist.",
-                "schema" : {
-                  "type" : "string"
-                },
-                "style" : "simple"
-              },
-              "Total-Count" : {
-                "description" : "Total number of artifacts of this type, which is the whole collection rather than the returned page.",
-                "schema" : {
-                  "type" : "integer"
-                },
-                "style" : "simple"
-              }
-            }
+            "description" : "A page of templates"
           },
           "400" : {
             "content" : {
@@ -3150,7 +3074,7 @@
                 }
               }
             },
-            "description" : "A paging parameter is out of range, or field_names is combined with summary=true"
+            "description" : "The limit or offset is out of range, or field_names is combined with summary=true"
           },
           "401" : {
             "content" : {
@@ -4158,6 +4082,42 @@
           }
         }
       },
+      "InstanceArtifactPage" : {
+        "type" : "object",
+        "properties" : {
+          "artifacts" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/InstanceArtifactDocument"
+            }
+          },
+          "countCapped" : {
+            "type" : "boolean",
+            "description" : "Present and true when counting stopped at a ceiling, so totalCount is a lower bound and no last link is given"
+          },
+          "currentOffset" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "The offset of the first item on this page"
+          },
+          "paging" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string",
+              "description" : "Links to the first, previous, next and last pages, keyed by relation. A relation with no page is absent"
+            },
+            "description" : "Links to the first, previous, next and last pages, keyed by relation. A relation with no page is absent"
+          },
+          "request" : {
+            "$ref" : "#/components/schemas/PageRequest"
+          },
+          "totalCount" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "How many items match. A lower bound when countCapped is true"
+          }
+        }
+      },
       "InstanceWithSchema" : {
         "type" : "object",
         "additionalProperties" : false,
@@ -4177,6 +4137,20 @@
           }
         },
         "required" : [ "instance" ]
+      },
+      "PageRequest" : {
+        "type" : "object",
+        "description" : "The page that was asked for, after defaults were applied",
+        "properties" : {
+          "limit" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "offset" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
       },
       "SchemaArtifactDocument" : {
         "type" : "object",
@@ -4291,6 +4265,42 @@
           "type" : {
             "type" : "string",
             "description" : "Always `object`."
+          }
+        }
+      },
+      "SchemaArtifactPage" : {
+        "type" : "object",
+        "properties" : {
+          "artifacts" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/SchemaArtifactDocument"
+            }
+          },
+          "countCapped" : {
+            "type" : "boolean",
+            "description" : "Present and true when counting stopped at a ceiling, so totalCount is a lower bound and no last link is given"
+          },
+          "currentOffset" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "The offset of the first item on this page"
+          },
+          "paging" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string",
+              "description" : "Links to the first, previous, next and last pages, keyed by relation. A relation with no page is absent"
+            },
+            "description" : "Links to the first, previous, next and last pages, keyed by relation. A relation with no page is absent"
+          },
+          "request" : {
+            "$ref" : "#/components/schemas/PageRequest"
+          },
+          "totalCount" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "How many items match. A lower bound when countCapped is true"
           }
         }
       },

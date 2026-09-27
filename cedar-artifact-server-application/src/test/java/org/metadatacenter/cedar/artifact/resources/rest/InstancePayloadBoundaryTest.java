@@ -104,7 +104,7 @@ public class InstancePayloadBoundaryTest extends AbstractRestTest {
     Response response = request(instancesUrl()).get();
     try {
       assertEquals(CedarResponseStatus.OK.getStatusCode(), response.getStatus());
-      return Integer.parseInt(response.getHeaderString(CustomHttpConstants.HEADER_TOTAL_COUNT));
+      return response.readEntity(JsonNode.class).get("totalCount").asInt();
     } finally {
       response.close();
     }

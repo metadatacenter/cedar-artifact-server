@@ -87,10 +87,14 @@ class OpenApiContractTest {
    * serializations of one artifact, so a client generated from either describes the same document.
    */
   private static void assertArtifactRoutes(JsonNode spec, String path, String schemaRef) {
-    JsonNode listing = spec.path("paths").path(path).path("get").path("responses").path("200")
-        .path("content").path("application/json").path("schema");
-    assertEquals("array", listing.path("type").asText(), path);
-    assertEquals(schemaRef, listing.path("items").path("$ref").asText(), path);
+    // The listing is a page in the body paging envelope, whose artifacts carry the same schema.
+    String listingRef = spec.path("paths").path(path).path("get").path("responses").path("200")
+        .path("content").path("application/json").path("schema").path("$ref").asText();
+    JsonNode page = spec.at(listingRef.replace("#", ""));
+    assertEquals("array", page.path("properties").path("artifacts").path("type").asText(), path);
+    assertEquals(schemaRef, page.path("properties").path("artifacts").path("items").path("$ref").asText(), path);
+    assertTrue(page.path("properties").has("totalCount"), path);
+    assertTrue(page.path("properties").has("paging"), path);
 
     JsonNode created = spec.path("paths").path(path).path("post");
     assertRepresentations(created.path("requestBody"), schemaRef, "POST " + path + " request body");
