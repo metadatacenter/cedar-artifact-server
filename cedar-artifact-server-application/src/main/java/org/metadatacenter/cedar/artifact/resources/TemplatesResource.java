@@ -65,6 +65,23 @@ public class TemplatesResource extends AbstractArtifactCrudResource {
     this.templateInstanceService = templateInstanceService;
   }
 
+  /** Internal, service-key protected inventory. Never permission-filter references. */
+  @POST
+  @Path("/deletion-references")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Operation(hidden = true)
+  public Response deletionReferences(List<String> templateIds) throws CedarException {
+    CedarRequestContext c = buildRequestContext();
+    c.must(c.user()).be(LoggedIn);
+    c.must(c.user()).have(CedarPermission.TEMPLATE_DELETE);
+    if (templateIds == null || templateIds.size() > 10000 || templateIds.stream().anyMatch(java.util.Objects::isNull)) {
+      return CedarResponse.badRequest().message("Supply at most 10000 template identifiers").build();
+    }
+    java.util.Map<String, List<String>> references = new java.util.TreeMap<>();
+    for (String id : templateIds) references.put(id, templateInstanceService.findReferencingTemplateIds(id));
+    return Response.ok(references).build();
+  }
+
   @PUT
   @Path("/{id}/version-predecessor")
   @Consumes(MediaType.APPLICATION_JSON)
