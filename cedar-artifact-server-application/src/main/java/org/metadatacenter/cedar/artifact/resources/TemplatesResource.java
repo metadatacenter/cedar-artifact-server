@@ -82,6 +82,23 @@ public class TemplatesResource extends AbstractArtifactCrudResource {
     return Response.ok(references).build();
   }
 
+  /** Internal propagation write, fenced against stored and in-flight instance references. */
+  @PUT
+  @Path("/{id}/inclusion")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Operation(hidden = true)
+  public Response updateIncludedTemplate(@PathParam("id") String id, String body) throws CedarException {
+    return updateArtifact(id, CedarPermission.TEMPLATE_CREATE, CedarPermission.TEMPLATE_UPDATE,
+        CedarResourceType.TEMPLATE, CedarErrorKey.TEMPLATE_NOT_UPDATED, CedarErrorKey.TEMPLATE_NOT_CREATED,
+        body, Optional.empty(), Optional.empty(), true);
+  }
+
+  @Override
+  protected JsonNode updateUnreferencedArtifactInService(String id, JsonNode body, long revision)
+      throws IOException, ArtifactServerResourceNotFoundException {
+    return templateService.updateTemplateIfUnreferenced(id, body, revision);
+  }
+
   @PUT
   @Path("/{id}/version-predecessor")
   @Consumes(MediaType.APPLICATION_JSON)

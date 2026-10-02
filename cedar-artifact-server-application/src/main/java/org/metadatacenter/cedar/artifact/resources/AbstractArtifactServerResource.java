@@ -267,10 +267,15 @@ public abstract class AbstractArtifactServerResource extends CedarMicroserviceRe
 
   protected static JsonNode getSchemaSource(TemplateService<String, JsonNode> templateService, JsonNode templateInstance) throws IOException,
       CedarException {
+    return getSchemaSourceWithRevision(templateService, templateInstance).content();
+  }
+
+  protected static org.metadatacenter.server.dao.ArtifactWithRevision<JsonNode> getSchemaSourceWithRevision(
+      TemplateService<String, JsonNode> templateService, JsonNode templateInstance) throws IOException, CedarException {
     checkInstanceSchemaExists(templateInstance);
     String templateRefId = templateInstance.get(CedarModelVocabulary.SCHEMA_IS_BASED_ON).asText();
-    JsonNode template = templateService.findTemplate(templateRefId);
-    if (template == null) {
+    var snapshot = templateService.findTemplateWithRevision(templateRefId);
+    if (snapshot == null) {
       throw new CedarBadRequestException(
           new CedarErrorPack()
               .message("The artifact that this instance is based on can not be found.")
@@ -278,8 +283,8 @@ public abstract class AbstractArtifactServerResource extends CedarMicroserviceRe
               .errorKey(CedarErrorKey.INVALID_INPUT)
       );
     }
-    MongoUtils.removeIdField(template);
-    return template;
+    MongoUtils.removeIdField(snapshot.content());
+    return snapshot;
   }
 
   protected static JsonNode checkInstanceSchemaExists(JsonNode templateInstance) throws CedarException {

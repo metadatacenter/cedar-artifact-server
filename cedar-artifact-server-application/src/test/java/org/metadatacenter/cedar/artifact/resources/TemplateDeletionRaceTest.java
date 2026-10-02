@@ -176,6 +176,40 @@ public class TemplateDeletionRaceTest {
     }
   }
 
+  private Reply updateInclusion(Template template) {
+    ObjectNode changed = new JsonArtifactRenderer().renderTemplateSchemaArtifact(
+        TemplateSchemaArtifact.builder().withName("Changed template").withJsonLdId(java.net.URI.create(template.id()))
+            .withFieldSchema(org.metadatacenter.artifacts.model.core.TextField.builder().withName("New field").build()).build());
+    return reply(testClient.target(template.url() + "/inclusion").request()
+        .header("Authorization", authHeaderValue).header("If-Match", template.etag()).put(Entity.json(changed)));
+  }
+
+  @Test
+  void aFirstStoredInstanceBlocksAnInclusionWriteAtTheStorageBoundary() throws Exception {
+    Template template = createTemplate();
+    assertEquals(201, createInstance(template).status());
+    assertEquals(412, updateInclusion(template).status());
+    assertFalse(get(template.url()).body().contains("New field"));
+  }
+
+  @Test
+  void anInstanceValidatedBeforeAnInclusionWriteCannotCommitAgainstTheOldSchema() throws Exception {
+    Template template = createTemplate();
+    var executor = Executors.newSingleThreadExecutor();
+    try (Pause pause = new Pause("createTemplateInstanceWithRevision", false)) {
+      var creating = executor.submit(() -> createInstance(template));
+      assertTrue(pause.entered.await(10, TimeUnit.SECONDS));
+      Reply changed = updateInclusion(template);
+      assertEquals(200, changed.status(), changed.body());
+      pause.resume.countDown();
+      Reply stale = creating.get(15, TimeUnit.SECONDS);
+      assertEquals(412, stale.status(), stale.body());
+      assertEquals(0, TestUtil.templateInstanceService.countReferencingTemplate(template.id()));
+    } finally {
+      executor.shutdownNow();
+    }
+  }
+
   @Test
   void anAlreadyStoredInstanceBlocksDeletion() throws Exception {
     Template template = createTemplate();
@@ -216,6 +250,7 @@ public class TemplateDeletionRaceTest {
       assertTrue(reserved.await(10, TimeUnit.SECONDS));
       assertEquals(0, TestUtil.templateInstanceService.countReferencingTemplate(template.id()));
       assertEquals(412, delete(template).status(), "an in-flight reservation must block deletion before insertion");
+      assertEquals(412, updateInclusion(template).status(), "the same reservation must block structural propagation");
       assertEquals(200, get(template.url()).status());
       insert.countDown();
       assertEquals(id, creating.get(10, TimeUnit.SECONDS).path("@id").asText());

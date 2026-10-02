@@ -69,6 +69,15 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
 
   private final TemplateInstanceService<String, JsonNode> templateInstanceService;
   private final TemplateService<String, JsonNode> templateService;
+  @jakarta.ws.rs.core.Context
+  private jakarta.servlet.http.HttpServletRequest servletRequest;
+  private static final String VALIDATED_TEMPLATE_REVISION = TemplateInstancesResource.class.getName() + ".templateRevision";
+
+  private Long validatedTemplateRevision() {
+    return java.util.Objects.requireNonNull((Long) servletRequest.getAttribute(VALIDATED_TEMPLATE_REVISION),
+        "Instance writes must use the template revision validated by this request");
+  }
+
 
   public TemplateInstancesResource(CedarConfig cedarConfig, TemplateInstanceService<String, JsonNode> templateInstanceService,
                                    TemplateService<String, JsonNode> templateService) {
@@ -470,7 +479,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
 
   @Override
   protected ArtifactWithRevision<JsonNode> createArtifactWithRevisionInService(JsonNode artifact) throws IOException {
-    return templateInstanceService.createTemplateInstanceWithRevision(artifact);
+    return templateInstanceService.createTemplateInstanceWithRevision(artifact, validatedTemplateRevision());
   }
 
   @Override
@@ -491,7 +500,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
   @Override
   protected JsonNode updateArtifactInService(String id, JsonNode content, long expectedRevision) throws IOException,
       ArtifactServerResourceNotFoundException {
-    return templateInstanceService.updateTemplateInstance(id, content, expectedRevision);
+    return templateInstanceService.updateTemplateInstance(id, content, expectedRevision, validatedTemplateRevision());
   }
 
   @Override
@@ -537,7 +546,9 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
   @Override
   protected ValidationReport validateArtifact(JsonNode templateInstance, boolean verbatim) throws CedarException {
     try {
-      JsonNode instanceSchema = getSchemaSource(templateService, templateInstance);
+      var templateSnapshot = getSchemaSourceWithRevision(templateService, templateInstance);
+      JsonNode instanceSchema = templateSnapshot.content();
+      servletRequest.setAttribute(VALIDATED_TEMPLATE_REVISION, templateSnapshot.revision());
       if (!verbatim) {
         linkedDataUtil.pruneOrphanPropertyIris(templateInstance, instanceSchema, CedarResourceType.INSTANCE);
       }
