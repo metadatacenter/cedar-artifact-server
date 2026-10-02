@@ -66,6 +66,8 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     FIELD_NAMES_SUMMARY_LIST.addAll(summaryFields);
   }
 
+  protected abstract ArtifactWithRevision<JsonNode> createArtifactWithRevisionInService(JsonNode artifact) throws IOException;
+
   protected abstract JsonNode createArtifactInService(JsonNode artifact) throws IOException;
 
   protected abstract JsonNode findArtifactInService(String id) throws IOException;
@@ -156,14 +158,17 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
           return refusal;
         }
       }
-      JsonNode createdArtifact = createArtifactInService(artifact);
+      var created = createArtifactWithRevisionInService(artifact);
+      JsonNode createdArtifact = created.content();
       MongoUtils.removeIdField(createdArtifact);
       String id = createdArtifact.get(LinkedData.ID).asText();
       URI createdArtifactUri = CedarUrlUtil.getIdURI(uriInfo, id);
       return CedarResponse.created(createdArtifactUri)
-          .header(HttpHeaders.ETAG, etag(1L))
+          .header(HttpHeaders.ETAG, etag(created.revision()))
           .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_VALID)
           .entity(createdArtifact).build();
+    } catch (ArtifactRevisionConflictException e) {
+      return movedOnResponse(artifact.path(LinkedData.ID).asText(), null);
     } catch (IOException e) {
       return CedarResponse.internalServerError()
           .errorKey(notCreatedKey)
@@ -296,6 +301,14 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
                                     CedarErrorKey notUpdatedKey, CedarErrorKey notCreatedKey, String requestBody,
                                     Optional<Boolean> compactParam, Optional<Boolean> verbatimParam)
       throws CedarException {
+    return updateArtifact(id, createPermission, updatePermission, resourceType, notUpdatedKey, notCreatedKey,
+        requestBody, compactParam, verbatimParam, false);
+  }
+
+  protected Response updateArtifact(String id, CedarPermission createPermission, CedarPermission updatePermission,
+                                    CedarResourceType resourceType, CedarErrorKey notUpdatedKey,
+                                    CedarErrorKey notCreatedKey, String requestBody, Optional<Boolean> compactParam,
+                                    Optional<Boolean> verbatimParam, boolean requireNoInstances) throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
     c.must(id).be(ValidUrl);
@@ -368,7 +381,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
       String validationStatus = validationReport.getValidationStatus();
       if (validationStatus.equals(CedarValidationReport.IS_VALID)) {
         response = updateOrCreateArtifactInDatabase(id, newArtifact, pi, c, notCreatedKey, notUpdatedKey,
-            verbatim, currentArtifact, currentRevision);
+            verbatim, currentArtifact, currentRevision, requireNoInstances);
       } else {
         response = CedarResponse.badRequest()
             .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_INVALID)
@@ -534,13 +547,26 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     });
   }
 
+  protected JsonNode updateUnreferencedArtifactInService(String id, JsonNode body, long revision)
+      throws IOException, ArtifactServerResourceNotFoundException {
+    throw new UnsupportedOperationException("Only templates support reference-fenced inclusion updates");
+  }
+
+  protected Response updateOrCreateArtifactInDatabase(String id, JsonNode body, ProvenanceInfo pi,
+                                                      CedarRequestContext c, CedarErrorKey notCreated,
+                                                      CedarErrorKey notUpdated, boolean verbatim,
+                                                      JsonNode current, Long revision) throws CedarException {
+    return updateOrCreateArtifactInDatabase(id, body, pi, c, notCreated, notUpdated, verbatim, current, revision, false);
+  }
+
   protected Response updateOrCreateArtifactInDatabase(String artifactId, JsonNode updatedArtifact, ProvenanceInfo pi,
                                                       CedarRequestContext c, CedarErrorKey notCreatedKey,
                                                       CedarErrorKey notUpdatedKey, boolean verbatim,
-                                                      JsonNode currentArtifact, Long currentRevision)
+                                                      JsonNode currentArtifact, Long currentRevision, boolean requireNoInstances)
       throws CedarException {
     JsonNode outputArtifact = null;
     CreateOrUpdate createOrUpdate = null;
+    long outputRevision;
     try {
       if (currentArtifact != null && !verbatim) {
         provenanceUtil.preserveCreationProvenance(updatedArtifact, currentArtifact);
@@ -558,11 +584,17 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
       }
       if (currentArtifact != null) {
         createOrUpdate = CreateOrUpdate.UPDATE;
-        outputArtifact = updateArtifactInService(artifactId, updatedArtifact, currentRevision);
+        outputArtifact = requireNoInstances
+            ? updateUnreferencedArtifactInService(artifactId, updatedArtifact, currentRevision)
+            : updateArtifactInService(artifactId, updatedArtifact, currentRevision);
+        outputRevision = currentRevision + 1L;
       } else {
+        if (requireNoInstances) return movedOnResponse(artifactId, null);
         c.must(artifactId).be(ValidId);
         createOrUpdate = CreateOrUpdate.CREATE;
-        outputArtifact = createArtifactInService(updatedArtifact);
+        var created = createArtifactWithRevisionInService(updatedArtifact);
+        outputArtifact = created.content();
+        outputRevision = created.revision();
       }
       MongoUtils.removeIdField(outputArtifact);
       CedarResponse.CedarResponseBuilder responseBuilder = null;
@@ -573,7 +605,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
         responseBuilder = CedarResponse.created(createdArtifactUri);
       }
       return responseBuilder
-          .header(HttpHeaders.ETAG, etag(createOrUpdate == CreateOrUpdate.UPDATE ? currentRevision + 1L : 1L))
+          .header(HttpHeaders.ETAG, etag(outputRevision))
           .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_VALID)
           .entity(outputArtifact)
           .build();

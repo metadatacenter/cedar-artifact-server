@@ -77,6 +77,19 @@ public class SparseInstanceCompletionTest extends AbstractRestTest {
   }
 
   @Test
+  public void jsonWritesKeepTemplateDefinedPropertiesOpen() throws IOException {
+    JsonNode stored = createInstance(sparseInstanceYaml(createTemplate()), APPLICATION_YAML);
+    ObjectNode update = stored.deepCopy();
+    ((ObjectNode) update.get("filled")).put("@value", "Bob");
+    String url = instanceUrl(stored.get(LinkedData.ID).asText());
+    Response response = request(url).header("If-Match", currentEtag(url, authHeaderTestUser1))
+        .put(Entity.json(update));
+    String body = response.readEntity(String.class);
+    assertEquals(200, response.getStatus(), body);
+    assertEquals("Bob", JsonMapper.STRICT_MAPPER.readTree(body).path("filled").path("@value").asText());
+  }
+
+  @Test
   public void aSparseJsonInstanceIsStillRefused() throws IOException {
     // The JSON is the server's own: an instance is written, read back, and one field removed from
     // what it returned. Hand-authoring CEDAR JSON-LD would test the fixture's @context and property

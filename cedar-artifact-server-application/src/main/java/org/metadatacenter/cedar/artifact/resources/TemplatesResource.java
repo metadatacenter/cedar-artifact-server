@@ -65,6 +65,40 @@ public class TemplatesResource extends AbstractArtifactCrudResource {
     this.templateInstanceService = templateInstanceService;
   }
 
+  /** Internal, service-key protected inventory. Never permission-filter references. */
+  @POST
+  @Path("/deletion-references")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Operation(hidden = true)
+  public Response deletionReferences(List<String> templateIds) throws CedarException {
+    CedarRequestContext c = buildRequestContext();
+    c.must(c.user()).be(LoggedIn);
+    c.must(c.user()).have(CedarPermission.TEMPLATE_DELETE);
+    if (templateIds == null || templateIds.size() > 10000 || templateIds.stream().anyMatch(java.util.Objects::isNull)) {
+      return CedarResponse.badRequest().message("Supply at most 10000 template identifiers").build();
+    }
+    java.util.Map<String, List<String>> references = new java.util.TreeMap<>();
+    for (String id : templateIds) references.put(id, templateInstanceService.findReferencingTemplateIds(id));
+    return Response.ok(references).build();
+  }
+
+  /** Internal propagation write, fenced against stored and in-flight instance references. */
+  @PUT
+  @Path("/{id}/inclusion")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Operation(hidden = true)
+  public Response updateIncludedTemplate(@PathParam("id") String id, String body) throws CedarException {
+    return updateArtifact(id, CedarPermission.TEMPLATE_CREATE, CedarPermission.TEMPLATE_UPDATE,
+        CedarResourceType.TEMPLATE, CedarErrorKey.TEMPLATE_NOT_UPDATED, CedarErrorKey.TEMPLATE_NOT_CREATED,
+        body, Optional.empty(), Optional.empty(), true);
+  }
+
+  @Override
+  protected JsonNode updateUnreferencedArtifactInService(String id, JsonNode body, long revision)
+      throws IOException, ArtifactServerResourceNotFoundException {
+    return templateService.updateTemplateIfUnreferenced(id, body, revision);
+  }
+
   @PUT
   @Path("/{id}/version-predecessor")
   @Consumes(MediaType.APPLICATION_JSON)
@@ -293,6 +327,11 @@ public class TemplatesResource extends AbstractArtifactCrudResource {
     }
 
     return deleteArtifactFromDatabase(c, id, CedarErrorKey.TEMPLATE_NOT_FOUND, CedarErrorKey.TEMPLATE_NOT_DELETED);
+  }
+
+  @Override
+  protected ArtifactWithRevision<JsonNode> createArtifactWithRevisionInService(JsonNode artifact) throws IOException {
+    return templateService.createTemplateWithRevision(artifact);
   }
 
   @Override

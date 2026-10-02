@@ -33,10 +33,13 @@ public class TemplateInstanceToRdfTest extends BaseServerTest {
     instanceExample = TestResourcesUtils.getStringContent("instances/usecase-instance.jsonld");
   }
 
+  private String instanceEtag;
+
   @BeforeEach
   public void uploadResources() {
     templateExampleId = uploadTemplate(templateExample);
     instanceExampleId = uploadInstance(instanceExample);
+    instanceEtag = currentEtag(TestRequestUrls.forCreatingInstances(getPortNumber(), instanceExampleId), authHeaderValue);
   }
 
   @AfterEach
@@ -52,7 +55,7 @@ public class TemplateInstanceToRdfTest extends BaseServerTest {
     checkStatusOk(response);
     // Assert header
     assertThat(response.getHeaderString(HttpHeaders.CONTENT_TYPE), is("application/n-quads"));
-    assertEquals("\"1-rdf-nquad\"", response.getHeaderString(HttpHeaders.ETAG));
+    assertEquals(instanceEtag.substring(0, instanceEtag.length() - 1) + "-rdf-nquad\"", response.getHeaderString(HttpHeaders.ETAG));
     // Assert content
     String responseContent = response.readEntity(String.class);
     System.out.println(responseContent);
@@ -65,7 +68,7 @@ public class TemplateInstanceToRdfTest extends BaseServerTest {
 
     checkStatusOk(response);
     assertThat(response.getHeaderString(HttpHeaders.CONTENT_TYPE), is("application/n-quads"));
-    assertEquals("\"1-rdf-nquad\"", response.getHeaderString(HttpHeaders.ETAG));
+    assertEquals(instanceEtag.substring(0, instanceEtag.length() - 1) + "-rdf-nquad\"", response.getHeaderString(HttpHeaders.ETAG));
   }
 
   /**
