@@ -313,6 +313,11 @@ public class TemplatesResource extends AbstractArtifactCrudResource {
   }
 
   @Override
+  protected ArtifactWithRevision<JsonNode> createArtifactWithRevisionInService(JsonNode artifact) throws IOException {
+    return templateService.createTemplateWithRevision(artifact);
+  }
+
+  @Override
   protected JsonNode createArtifactInService(JsonNode template) throws IOException {
     return templateService.createTemplate(template);
   }

@@ -222,7 +222,7 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
             TemplateElementService.class.getClassLoader(),
             new Class<?>[]{TemplateElementService.class},
             (proxy, method, arguments) -> {
-              if ("createTemplateElement".equals(method.getName())) {
+              if ("createTemplateElementWithRevision".equals(method.getName())) {
                 // What the DAO throws when the unique @id index rejects the insert because another
                 // writer created the same identifier between this request's read and its write.
                 throw new ArtifactRevisionConflictException(id);

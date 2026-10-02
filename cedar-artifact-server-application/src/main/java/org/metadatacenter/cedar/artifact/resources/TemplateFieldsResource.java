@@ -271,6 +271,11 @@ public class TemplateFieldsResource extends AbstractArtifactCrudResource {
   }
 
   @Override
+  protected ArtifactWithRevision<JsonNode> createArtifactWithRevisionInService(JsonNode artifact) throws IOException {
+    return templateFieldService.createTemplateFieldWithRevision(artifact);
+  }
+
+  @Override
   protected JsonNode createArtifactInService(JsonNode templateField) throws IOException {
     return templateFieldService.createTemplateField(templateField);
   }
