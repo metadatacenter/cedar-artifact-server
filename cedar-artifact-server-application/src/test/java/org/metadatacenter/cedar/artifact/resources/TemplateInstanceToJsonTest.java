@@ -6,7 +6,7 @@ import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.RepeatedTest;
 import org.metadatacenter.model.request.OutputFormatType;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -17,6 +17,7 @@ public class TemplateInstanceToJsonTest extends BaseServerTest {
 
   private String templateExampleId;
   private String instanceExampleId;
+  private String instanceEtag;
 
   private static String templateExample;
   private static String instanceExample;
@@ -31,6 +32,7 @@ public class TemplateInstanceToJsonTest extends BaseServerTest {
   public void uploadResources() {
     templateExampleId = uploadTemplate(templateExample);
     instanceExampleId = uploadInstance(instanceExample);
+    instanceEtag = currentEtag(TestRequestUrls.forCreatingInstances(getPortNumber(), instanceExampleId), authHeaderValue);
   }
 
   @AfterEach
@@ -39,7 +41,8 @@ public class TemplateInstanceToJsonTest extends BaseServerTest {
     removeTemplate(templateExampleId);
   }
 
-  @Test
+  // Reuse the fixture identifier after deletion: the exported validator must follow the new revision.
+  @RepeatedTest(2)
   public void shouldGetJsonOutput() {
     Response response = sendGetRequest(
         TestRequestUrls.forFindingInstance(getPortNumber(), instanceExampleId,
@@ -47,7 +50,7 @@ public class TemplateInstanceToJsonTest extends BaseServerTest {
     checkStatusOk(response);
     // Assert header
     assertThat(response.getHeaderString(HttpHeaders.CONTENT_TYPE), is(MediaType.APPLICATION_JSON));
-    assertEquals("\"1-json\"", response.getHeaderString(HttpHeaders.ETAG));
+    assertEquals(instanceEtag.substring(0, instanceEtag.length() - 1) + "-json\"", response.getHeaderString(HttpHeaders.ETAG));
     // Assert content
     String responseContent = response.readEntity(String.class);
     System.out.println(responseContent);
