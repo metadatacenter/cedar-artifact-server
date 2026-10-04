@@ -50,14 +50,16 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
 
   protected final List<String> FIELD_NAMES_SUMMARY_LIST;
 
+  private final CedarResourceType artifactType;
   private final Logger logger;
   private final String artifactLabel;
   private final String artifactsLabel;
   private final boolean ensureFieldIds;
 
-  protected AbstractArtifactCrudResource(CedarConfig cedarConfig, Logger logger, String artifactLabel,
+  protected AbstractArtifactCrudResource(CedarConfig cedarConfig, CedarResourceType artifactType, Logger logger, String artifactLabel,
                                          String artifactsLabel, List<String> summaryFields, boolean ensureFieldIds) {
     super(cedarConfig);
+    this.artifactType = artifactType;
     this.logger = logger;
     this.artifactLabel = artifactLabel;
     this.artifactsLabel = artifactsLabel;
@@ -162,7 +164,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
       JsonNode createdArtifact = created.content();
       MongoUtils.removeIdField(createdArtifact);
       String id = createdArtifact.get(LinkedData.ID).asText();
-      URI createdArtifactUri = CedarUrlUtil.getIdURI(uriInfo, id);
+      URI createdArtifactUri = CedarUrlUtil.getIdURI(uriInfo, linkedDataUtil.resourcePathId(artifactType, id));
       return CedarResponse.created(createdArtifactUri)
           .header(HttpHeaders.ETAG, etag(created.revision()))
           .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_VALID)
@@ -200,6 +202,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(readPermission);
+    id = linkedDataUtil.resolveResourceId(artifactType, id);
     c.must(id).be(ValidUrl);
 
     Optional<MediaType> responseType = negotiatedArtifactResponseType();
@@ -311,6 +314,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
                                     Optional<Boolean> verbatimParam, boolean requireNoInstances) throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
+    id = linkedDataUtil.resolveResourceId(artifactType, id);
     c.must(id).be(ValidUrl);
     rejectCompactOnWriteOperations(compactParam);
     if (negotiatedArtifactResponseType().isEmpty()) {
@@ -399,6 +403,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
   protected Response updateVersionPredecessor(String id, String requestBody) throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
+    id = linkedDataUtil.resolveResourceId(artifactType, id);
     c.must(id).be(ValidUrl);
     // The internal-service filter also authenticates this route. Reuse the existing filesystem
     // administrator authority; this service does not need access to the administrator's secret.
@@ -722,6 +727,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(deletePermission);
+    id = linkedDataUtil.resolveResourceId(artifactType, id);
     c.must(id).be(ValidUrl);
 
     return deleteArtifactFromDatabase(c, id, notFoundKey, notDeletedKey);

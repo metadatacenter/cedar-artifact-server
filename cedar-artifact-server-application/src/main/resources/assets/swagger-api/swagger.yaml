@@ -3,6 +3,13 @@ info:
   description: |
     Better Metadata - Better Science
 
+    Folders and artifacts use type-qualified selectors: `folders/<uuid>`, `templates/<uuid>`,
+    `template-elements/<uuid>`, `template-fields/<uuid>`, or `template-instances/<uuid>`.
+    Typed routes include the type once, for example `/templates/<uuid>`. Query parameters and
+    command-body selectors retain the type, including folder parameters. Percent-encoded full
+    IRIs remain accepted for compatibility. Stored document identities and references remain
+    full IRIs; legacy repository hosts must remain absolute until their data is migrated.
+
     Internal service: business routes require both X-CEDAR-Artifact-Service-Key and the
     end-user Authorization header. Public callers use resource; a user API key alone is insufficient.
 
@@ -538,7 +545,8 @@ paths:
         required: true
         schema:
           type: string
-      - description: "Artifact identifier, as an absolute IRI."
+      - description: "Artifact UUID on this typed route, or a percent-encoded full\
+          \ IRI."
         in: path
         name: id
         required: true
@@ -603,7 +611,8 @@ paths:
         \ selected by the Accept header."
       operationId: findTemplateElement
       parameters:
-      - description: "Artifact identifier, as an absolute IRI."
+      - description: "Artifact UUID on this typed route, or a percent-encoded full\
+          \ IRI."
         in: path
         name: id
         required: true
@@ -737,7 +746,8 @@ paths:
         name: If-Match
         schema:
           type: string
-      - description: "Artifact identifier, as an absolute IRI."
+      - description: "Artifact UUID on this typed route, or a percent-encoded full\
+          \ IRI."
         in: path
         name: id
         required: true
@@ -1121,7 +1131,8 @@ paths:
         required: true
         schema:
           type: string
-      - description: "Artifact identifier, as an absolute IRI."
+      - description: "Artifact UUID on this typed route, or a percent-encoded full\
+          \ IRI."
         in: path
         name: id
         required: true
@@ -1186,7 +1197,8 @@ paths:
         \ by the Accept header."
       operationId: findTemplateField
       parameters:
-      - description: "Artifact identifier, as an absolute IRI."
+      - description: "Artifact UUID on this typed route, or a percent-encoded full\
+          \ IRI."
         in: path
         name: id
         required: true
@@ -1320,7 +1332,8 @@ paths:
         name: If-Match
         schema:
           type: string
-      - description: "Artifact identifier, as an absolute IRI."
+      - description: "Artifact UUID on this typed route, or a percent-encoded full\
+          \ IRI."
         in: path
         name: id
         required: true
@@ -2322,7 +2335,8 @@ paths:
         required: true
         schema:
           type: string
-      - description: "Artifact identifier, as an absolute IRI."
+      - description: "Artifact UUID on this typed route, or a percent-encoded full\
+          \ IRI."
         in: path
         name: id
         required: true
@@ -2388,7 +2402,8 @@ paths:
         \ by the Accept header."
       operationId: findTemplate
       parameters:
-      - description: "Artifact identifier, as an absolute IRI."
+      - description: "Artifact UUID on this typed route, or a percent-encoded full\
+          \ IRI."
         in: path
         name: id
         required: true
@@ -2522,7 +2537,8 @@ paths:
         name: If-Match
         schema:
           type: string
-      - description: "Artifact identifier, as an absolute IRI."
+      - description: "Artifact UUID on this typed route, or a percent-encoded full\
+          \ IRI."
         in: path
         name: id
         required: true

@@ -52,7 +52,7 @@ public class TemplateFieldsResource extends AbstractArtifactCrudResource {
   private static TemplateFieldService<String, JsonNode> templateFieldService;
 
   public TemplateFieldsResource(CedarConfig cedarConfig, TemplateFieldService<String, JsonNode> templateFieldService) {
-    super(cedarConfig, logger, "artifact field", "artifact fields",
+    super(cedarConfig, CedarResourceType.FIELD, logger, "artifact field", "artifact fields",
         cedarConfig.getArtifactRESTAPI().getSummaries().getField().getFields(), false);
     TemplateFieldsResource.templateFieldService = templateFieldService;
   }
@@ -143,7 +143,7 @@ public class TemplateFieldsResource extends AbstractArtifactCrudResource {
       @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Internal server error")
   })
   public Response findTemplateField(
-      @Parameter(description = "Artifact identifier, as an absolute IRI.", required = true)
+      @Parameter(description = "Artifact UUID on this typed route, or a percent-encoded full IRI.", required = true)
       @PathParam(PP_ID) String id,
       @Parameter(description = ArtifactApiDocs.COMPACT_ON_READ)
       @QueryParam("compact") Optional<Boolean> compactParam) throws CedarException {
@@ -233,7 +233,7 @@ public class TemplateFieldsResource extends AbstractArtifactCrudResource {
       @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Internal server error")
   })
   public Response updateTemplateField(
-      @Parameter(description = "Artifact identifier, as an absolute IRI.", required = true)
+      @Parameter(description = "Artifact UUID on this typed route, or a percent-encoded full IRI.", required = true)
       @PathParam(PP_ID) String id,
       @Parameter(description = ArtifactApiDocs.COMPACT_ON_WRITE)
       @QueryParam("compact") Optional<Boolean> compactParam,
@@ -264,7 +264,7 @@ public class TemplateFieldsResource extends AbstractArtifactCrudResource {
       @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Internal server error")
   })
   public Response deleteTemplateField(
-      @Parameter(description = "Artifact identifier, as an absolute IRI.", required = true)
+      @Parameter(description = "Artifact UUID on this typed route, or a percent-encoded full IRI.", required = true)
       @PathParam(PP_ID) String id) throws CedarException {
     return deleteArtifact(id, CedarPermission.TEMPLATE_FIELD_DELETE, CedarErrorKey.TEMPLATE_FIELD_NOT_FOUND,
         CedarErrorKey.TEMPLATE_FIELD_NOT_DELETED);

@@ -81,7 +81,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
 
   public TemplateInstancesResource(CedarConfig cedarConfig, TemplateInstanceService<String, JsonNode> templateInstanceService,
                                    TemplateService<String, JsonNode> templateService) {
-    super(cedarConfig, logger, "artifact instance", "artifact instances",
+    super(cedarConfig, CedarResourceType.INSTANCE, logger, "artifact instance", "artifact instances",
         cedarConfig.getArtifactRESTAPI().getSummaries().getInstance().getFields(), false);
     this.templateInstanceService = templateInstanceService;
     this.templateService = templateService;
@@ -217,6 +217,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
       @QueryParam("compact") Optional<Boolean> compactParam) throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
+    id = linkedDataUtil.resolveResourceId(CedarResourceType.INSTANCE, id);
     c.must(id).be(ValidUrl);
     c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_READ);
 
@@ -363,6 +364,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
       String requestBody) throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
+    id = linkedDataUtil.resolveResourceId(CedarResourceType.INSTANCE, id);
     c.must(id).be(ValidUrl);
     rejectCompactOnWriteOperations(compactParam);
     if (negotiatedArtifactResponseType().isEmpty()) {
@@ -471,6 +473,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
       @PathParam(PP_ID) String id) throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
+    id = linkedDataUtil.resolveResourceId(CedarResourceType.INSTANCE, id);
     c.must(id).be(ValidUrl);
     c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_DELETE);
     return deleteArtifactFromDatabase(c, id, CedarErrorKey.TEMPLATE_INSTANCE_NOT_FOUND,
