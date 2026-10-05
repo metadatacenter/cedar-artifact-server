@@ -231,20 +231,26 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
       JsonNode artifact = snapshot.content();
       MongoUtils.removeIdField(artifact);
       long revision = snapshot.revision();
-      if (ArtifactYamlTranscoder.isJson(responseType.get())) {
-        return Response.ok()
-            .header(HttpHeaders.ETAG, etag(revision))
-            .header(HttpHeaders.VARY, HttpHeaders.ACCEPT)
-            .entity(artifact)
-            .build();
+      boolean compact = compactParam.isPresent() && compactParam.get();
+      if (!ArtifactYamlTranscoder.isJson(responseType.get())) {
+        try {
+          String yaml = ArtifactYamlTranscoder.jsonToYaml(artifact, resourceType, compact);
+          return Response.ok()
+              .header(HttpHeaders.ETAG, etag(revision, responseType.get(), compact))
+              .header(HttpHeaders.VARY, HttpHeaders.ACCEPT)
+              .entity(yaml)
+              .type(responseType.get())
+              .build();
+        } catch (ArtifactYamlTranscoder.UnreadableArtifactException e) {
+          if (!acceptsJson()) {
+            return noYamlFormResponse(id, resourceType, e);
+          }
+        }
       }
       return Response.ok()
-          .header(HttpHeaders.ETAG, etag(revision, responseType.get(),
-              compactParam.isPresent() && compactParam.get()))
+          .header(HttpHeaders.ETAG, etag(revision))
           .header(HttpHeaders.VARY, HttpHeaders.ACCEPT)
-          .entity(ArtifactYamlTranscoder.jsonToYaml(artifact, resourceType,
-              compactParam.isPresent() && compactParam.get()))
-          .type(responseType.get())
+          .entity(artifact)
           .build();
     }
   }

@@ -355,6 +355,18 @@ public abstract class AbstractArtifactServerResource extends CedarMicroserviceRe
     return ArtifactYamlTranscoder.negotiateResponseType(httpHeaders.getAcceptableMediaTypes());
   }
 
+  /** Whether the request accepts JSON at all, as a read falls back to when it can not produce YAML. */
+  protected boolean acceptsJson() {
+    return ArtifactYamlTranscoder.acceptsJson(httpHeaders.getAcceptableMediaTypes());
+  }
+
+  protected Response noYamlFormResponse(String id, CedarResourceType resourceType,
+                                        ArtifactYamlTranscoder.UnreadableArtifactException e) {
+    return Response.fromResponse(ArtifactYamlTranscoder.noYamlFormResponse(id, resourceType, e))
+        .header(HttpHeaders.VARY, HttpHeaders.ACCEPT)
+        .build();
+  }
+
   protected Response notAcceptableArtifactFormatResponse() {
     return CedarResponse.notAcceptable()
         .message("None of the media types in the Accept header can be produced")
