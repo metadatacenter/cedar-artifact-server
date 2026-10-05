@@ -2,6 +2,8 @@ package org.metadatacenter.cedar.artifact.resources;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.metadatacenter.artifacts.model.reader.ArtifactParseException;
+import org.metadatacenter.artifacts.model.reader.JsonArtifactReader;
 import org.metadatacenter.cedar.util.dw.CedarMicroserviceResource;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.constant.HttpConstants;
@@ -16,6 +18,7 @@ import org.metadatacenter.model.CedarResourceType;
 import org.metadatacenter.model.core.CedarModelVocabulary;
 import org.metadatacenter.model.validation.CedarValidator;
 import org.metadatacenter.model.validation.ModelValidator;
+import org.metadatacenter.model.validation.report.CedarValidationReport;
 import org.metadatacenter.model.validation.report.ErrorItem;
 import org.metadatacenter.model.validation.report.ValidationReport;
 import org.metadatacenter.rest.assertion.noun.CedarRequestBody;
@@ -45,6 +48,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 
 import static com.fasterxml.jackson.databind.node.JsonNodeType.NULL;
 
@@ -104,7 +108,8 @@ public abstract class AbstractArtifactServerResource extends CedarMicroserviceRe
 
   protected ValidationReport validateTemplate(JsonNode template) throws CedarException {
     try {
-      return newModelValidator().validateTemplate(template);
+      return withReaderVerdict(newModelValidator().validateTemplate(template), template,
+          (reader, artifact) -> reader.readTemplateSchemaArtifact(artifact));
     } catch (Exception e) {
       throw new CedarProcessingException(e);
     }
@@ -112,7 +117,8 @@ public abstract class AbstractArtifactServerResource extends CedarMicroserviceRe
 
   protected ValidationReport validateTemplateElement(JsonNode templateElement) throws CedarException {
     try {
-      return newModelValidator().validateTemplateElement(templateElement);
+      return withReaderVerdict(newModelValidator().validateTemplateElement(templateElement), templateElement,
+          (reader, artifact) -> reader.readElementSchemaArtifact(artifact));
     } catch (Exception e) {
       throw new CedarProcessingException(e);
     }
@@ -120,10 +126,46 @@ public abstract class AbstractArtifactServerResource extends CedarMicroserviceRe
 
   protected ValidationReport validateTemplateField(JsonNode templateField) throws CedarException {
     try {
-      return newModelValidator().validateTemplateField(templateField);
+      return withReaderVerdict(newModelValidator().validateTemplateField(templateField), templateField,
+          (reader, artifact) -> reader.readFieldSchemaArtifact(artifact));
     } catch (Exception e) {
       throw new CedarProcessingException(e);
     }
+  }
+
+  /**
+   * The validator's report, with the artifact library reader's refusal added when the validator found
+   * nothing wrong.
+   *
+   * The validator checks a schema artifact against the CEDAR meta-schema. The reader turns it into
+   * the model, and refuses some artifacts the meta-schema accepts: a child stored under a reserved key,
+   * such as {@code @foo}, {@code __proto__} or an attribute-value group named {@code name}, among
+   * them. Every editor and viewer reads an artifact through the Java reader or its TypeScript twin,
+   * so an artifact the reader refuses is one nothing can open. Refusing it here keeps the server from
+   * storing one. The reader runs only on an artifact the validator accepts, so one defect is never
+   * reported twice. The reader works on a copy, and the artifact stored is the one received.
+   */
+  private static ValidationReport withReaderVerdict(ValidationReport report, JsonNode artifact,
+                                                    BiConsumer<JsonArtifactReader, ObjectNode> read) {
+    if (!CedarValidationReport.IS_VALID.equals(report.getValidationStatus()) || !(artifact instanceof ObjectNode node)) {
+      return report;
+    }
+    try {
+      read.accept(new JsonArtifactReader(), node.deepCopy());
+      return report;
+    } catch (ArtifactParseException e) {
+      return withError(report, new ErrorItem(e.getParseErrorMessage(), e.getPath()));
+    } catch (RuntimeException e) {
+      return withError(report, new ErrorItem(String.valueOf(e.getMessage())));
+    }
+  }
+
+  private static ValidationReport withError(ValidationReport report, ErrorItem error) {
+    CedarValidationReport combined = CedarValidationReport.newEmptyReport();
+    report.getWarnings().forEach(combined::addWarning);
+    report.getErrors().forEach(combined::addError);
+    combined.addError(error);
+    return combined;
   }
 
   protected ValidationReport validateTemplateInstance(JsonNode templateInstance, JsonNode instanceSchema) throws CedarException {
