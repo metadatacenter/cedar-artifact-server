@@ -662,8 +662,8 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
   }
 
   protected Response enforceIfMatch(String ifMatch, long currentRevision, String artifactId) {
-    if (ifMatch == null || ifMatch.isBlank()) {
-      return CedarResponse.status(CedarResponseStatus.PRECONDITION_REQUIRED)
+    if (RevisionPreconditionParser.isAbsent(ifMatch)) {
+      return CedarResponse.preconditionRequired()
           .id(artifactId)
           .errorKey(CedarErrorKey.ARTIFACT_PRECONDITION_REQUIRED)
           .message("Updating an existing " + artifactLabel + " requires the ETag returned by GET in If-Match")
@@ -761,8 +761,8 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     }
 
     String ifMatch = c.getIfMatchHeader();
-    if (ifMatch == null || ifMatch.isBlank()) {
-      return CedarResponse.status(CedarResponseStatus.PRECONDITION_REQUIRED)
+    if (RevisionPreconditionParser.isAbsent(ifMatch)) {
+      return CedarResponse.preconditionRequired()
           .id(id)
           .errorKey(CedarErrorKey.ARTIFACT_PRECONDITION_REQUIRED)
           .message("Deleting an existing " + artifactLabel
