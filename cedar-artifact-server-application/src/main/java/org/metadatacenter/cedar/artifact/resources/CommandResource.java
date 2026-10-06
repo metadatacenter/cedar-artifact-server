@@ -19,6 +19,7 @@ import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.exception.CedarProcessingException;
 import org.metadatacenter.constant.HttpConstants;
 import org.metadatacenter.model.CedarResourceType;
+import org.metadatacenter.util.artifact.ArtifactYamlTranscoder;
 import org.metadatacenter.model.request.ResourceType;
 import org.metadatacenter.model.request.ResourceTypeDetector;
 import org.metadatacenter.model.validation.report.CedarValidationReport;
@@ -107,7 +108,12 @@ public class CommandResource extends AbstractArtifactServerResource {
     c.must(c.user()).be(LoggedIn);
 
     ResourceType resourceType = ResourceTypeDetector.detectType(type == null ? "" : type);
-    JsonNode resourceNode = artifactRequestBody(requestBody, CedarResourceType.forValue(resourceType.getValue())).asJson();
+    CedarResourceType kind = CedarResourceType.forValue(resourceType.getValue());
+    // A YAML instance is completed against its template, as a write of it is, so that this reports
+    // what the write would decide rather than every field the YAML could not express.
+    ArtifactYamlTranscoder.TemplateResolver templates =
+        kind == CedarResourceType.INSTANCE ? templateService::findTemplate : null;
+    JsonNode resourceNode = artifactRequestBody(requestBody, kind, templates).asJson();
     ValidationReport validationReport = validateResource(resourceNode, resourceType);
     return Response.ok().entity(validationReport).build();
   }

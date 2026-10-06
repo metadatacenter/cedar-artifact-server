@@ -59,7 +59,7 @@ public class TemplatesResource extends AbstractArtifactCrudResource {
 
   public TemplatesResource(CedarConfig cedarConfig, TemplateService<String, JsonNode> templateService,
                            TemplateInstanceService<String, JsonNode> templateInstanceService) {
-    super(cedarConfig, logger, "artifact", "templates",
+    super(cedarConfig, CedarResourceType.TEMPLATE, logger, "artifact", "templates",
         cedarConfig.getArtifactRESTAPI().getSummaries().getTemplate().getFields(), true);
     this.templateService = templateService;
     this.templateInstanceService = templateInstanceService;
@@ -78,7 +78,10 @@ public class TemplatesResource extends AbstractArtifactCrudResource {
       return CedarResponse.badRequest().message("Supply at most 10000 template identifiers").build();
     }
     java.util.Map<String, List<String>> references = new java.util.TreeMap<>();
-    for (String id : templateIds) references.put(id, templateInstanceService.findReferencingTemplateIds(id));
+    for (String selector : templateIds) {
+      String id = linkedDataUtil.resolveResourceId(CedarResourceType.TEMPLATE, selector);
+      references.put(id, templateInstanceService.findReferencingTemplateIds(id));
+    }
     return Response.ok(references).build();
   }
 
@@ -185,7 +188,7 @@ public class TemplatesResource extends AbstractArtifactCrudResource {
       @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Internal server error")
   })
   public Response findTemplate(
-      @Parameter(description = "Artifact identifier, as an absolute IRI.", required = true)
+      @Parameter(description = "Artifact UUID on this typed route, or a percent-encoded full IRI.", required = true)
       @PathParam(PP_ID) String id,
       @Parameter(description = ArtifactApiDocs.COMPACT_ON_READ)
       @QueryParam("compact") Optional<Boolean> compactParam) throws CedarException {
@@ -275,7 +278,7 @@ public class TemplatesResource extends AbstractArtifactCrudResource {
       @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Internal server error")
   })
   public Response updateTemplate(
-      @Parameter(description = "Artifact identifier, as an absolute IRI.", required = true)
+      @Parameter(description = "Artifact UUID on this typed route, or a percent-encoded full IRI.", required = true)
       @PathParam(PP_ID) String id,
       @Parameter(description = ArtifactApiDocs.COMPACT_ON_WRITE)
       @QueryParam("compact") Optional<Boolean> compactParam,
@@ -307,11 +310,12 @@ public class TemplatesResource extends AbstractArtifactCrudResource {
       @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Internal server error")
   })
   public Response deleteTemplate(
-      @Parameter(description = "Artifact identifier, as an absolute IRI.", required = true)
+      @Parameter(description = "Artifact UUID on this typed route, or a percent-encoded full IRI.", required = true)
       @PathParam(PP_ID) String id) throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_DELETE);
+    id = linkedDataUtil.resolveResourceId(CedarResourceType.TEMPLATE, id);
     c.must(id).be(ValidUrl);
 
     long referenceCount = templateInstanceService.countReferencingTemplate(id);

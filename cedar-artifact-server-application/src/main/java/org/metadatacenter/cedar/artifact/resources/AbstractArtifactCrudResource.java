@@ -50,14 +50,16 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
 
   protected final List<String> FIELD_NAMES_SUMMARY_LIST;
 
+  private final CedarResourceType artifactType;
   private final Logger logger;
   private final String artifactLabel;
   private final String artifactsLabel;
   private final boolean ensureFieldIds;
 
-  protected AbstractArtifactCrudResource(CedarConfig cedarConfig, Logger logger, String artifactLabel,
+  protected AbstractArtifactCrudResource(CedarConfig cedarConfig, CedarResourceType artifactType, Logger logger, String artifactLabel,
                                          String artifactsLabel, List<String> summaryFields, boolean ensureFieldIds) {
     super(cedarConfig);
+    this.artifactType = artifactType;
     this.logger = logger;
     this.artifactLabel = artifactLabel;
     this.artifactsLabel = artifactsLabel;
@@ -162,7 +164,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
       JsonNode createdArtifact = created.content();
       MongoUtils.removeIdField(createdArtifact);
       String id = createdArtifact.get(LinkedData.ID).asText();
-      URI createdArtifactUri = CedarUrlUtil.getIdURI(uriInfo, id);
+      URI createdArtifactUri = CedarUrlUtil.getIdURI(uriInfo, linkedDataUtil.resourcePathId(artifactType, id));
       return CedarResponse.created(createdArtifactUri)
           .header(HttpHeaders.ETAG, etag(created.revision()))
           .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_VALID)
@@ -200,6 +202,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(readPermission);
+    id = linkedDataUtil.resolveResourceId(artifactType, id);
     c.must(id).be(ValidUrl);
 
     Optional<MediaType> responseType = negotiatedArtifactResponseType();
@@ -228,20 +231,26 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
       JsonNode artifact = snapshot.content();
       MongoUtils.removeIdField(artifact);
       long revision = snapshot.revision();
-      if (ArtifactYamlTranscoder.isJson(responseType.get())) {
-        return Response.ok()
-            .header(HttpHeaders.ETAG, etag(revision))
-            .header(HttpHeaders.VARY, HttpHeaders.ACCEPT)
-            .entity(artifact)
-            .build();
+      boolean compact = compactParam.isPresent() && compactParam.get();
+      if (!ArtifactYamlTranscoder.isJson(responseType.get())) {
+        try {
+          String yaml = ArtifactYamlTranscoder.jsonToYaml(artifact, resourceType, compact);
+          return Response.ok()
+              .header(HttpHeaders.ETAG, etag(revision, responseType.get(), compact))
+              .header(HttpHeaders.VARY, HttpHeaders.ACCEPT)
+              .entity(yaml)
+              .type(responseType.get())
+              .build();
+        } catch (ArtifactYamlTranscoder.UnreadableArtifactException e) {
+          if (!acceptsJson()) {
+            return noYamlFormResponse(id, resourceType, e);
+          }
+        }
       }
       return Response.ok()
-          .header(HttpHeaders.ETAG, etag(revision, responseType.get(),
-              compactParam.isPresent() && compactParam.get()))
+          .header(HttpHeaders.ETAG, etag(revision))
           .header(HttpHeaders.VARY, HttpHeaders.ACCEPT)
-          .entity(ArtifactYamlTranscoder.jsonToYaml(artifact, resourceType,
-              compactParam.isPresent() && compactParam.get()))
-          .type(responseType.get())
+          .entity(artifact)
           .build();
     }
   }
@@ -311,6 +320,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
                                     Optional<Boolean> verbatimParam, boolean requireNoInstances) throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
+    id = linkedDataUtil.resolveResourceId(artifactType, id);
     c.must(id).be(ValidUrl);
     rejectCompactOnWriteOperations(compactParam);
     if (negotiatedArtifactResponseType().isEmpty()) {
@@ -399,6 +409,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
   protected Response updateVersionPredecessor(String id, String requestBody) throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
+    id = linkedDataUtil.resolveResourceId(artifactType, id);
     c.must(id).be(ValidUrl);
     // The internal-service filter also authenticates this route. Reuse the existing filesystem
     // administrator authority; this service does not need access to the administrator's secret.
@@ -651,8 +662,8 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
   }
 
   protected Response enforceIfMatch(String ifMatch, long currentRevision, String artifactId) {
-    if (ifMatch == null || ifMatch.isBlank()) {
-      return CedarResponse.status(CedarResponseStatus.PRECONDITION_REQUIRED)
+    if (RevisionPreconditionParser.isAbsent(ifMatch)) {
+      return CedarResponse.preconditionRequired()
           .id(artifactId)
           .errorKey(CedarErrorKey.ARTIFACT_PRECONDITION_REQUIRED)
           .message("Updating an existing " + artifactLabel + " requires the ETag returned by GET in If-Match")
@@ -722,6 +733,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(deletePermission);
+    id = linkedDataUtil.resolveResourceId(artifactType, id);
     c.must(id).be(ValidUrl);
 
     return deleteArtifactFromDatabase(c, id, notFoundKey, notDeletedKey);
@@ -749,8 +761,8 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     }
 
     String ifMatch = c.getIfMatchHeader();
-    if (ifMatch == null || ifMatch.isBlank()) {
-      return CedarResponse.status(CedarResponseStatus.PRECONDITION_REQUIRED)
+    if (RevisionPreconditionParser.isAbsent(ifMatch)) {
+      return CedarResponse.preconditionRequired()
           .id(id)
           .errorKey(CedarErrorKey.ARTIFACT_PRECONDITION_REQUIRED)
           .message("Deleting an existing " + artifactLabel

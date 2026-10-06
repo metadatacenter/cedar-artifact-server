@@ -1,9 +1,9 @@
 {
   "openapi" : "3.0.1",
   "info" : {
-    "description" : "Better Metadata - Better Science\n\nInternal service: business routes require both X-CEDAR-Artifact-Service-Key and the\nend-user Authorization header. Public callers use resource; a user API key alone is insufficient.\n\nThe artifact server stores templates, template elements, template fields, and template\ninstances, and validates every one of them against the CEDAR model before storing it.\n\nArtifacts use strong ETags for optimistic concurrency. Read the artifact and send the returned\nETag in `If-Match` when replacing or deleting it. A missing required precondition returns 428;\na stale or malformed validator returns 412. `If-Match: *` accepts whichever revision currently\nexists and therefore deliberately gives up lost-update protection. Representation suffixes such\nas `\"7-yaml\"` and `\"7-yaml-compact-v2\"` identify different bytes of the same stored revision and\nare valid write preconditions.\n\nArtifacts are read and written as JSON or YAML, selected by the Accept and Content-Type\nheaders. The compact YAML form is a lossy read-time convenience: it can be read but not stored.\n",
+    "description" : "Better Metadata - Better Science\n\nFolders and artifacts use type-qualified selectors: `folders/<uuid>`, `templates/<uuid>`,\n`template-elements/<uuid>`, `template-fields/<uuid>`, or `template-instances/<uuid>`.\nTyped routes include the type once, for example `/templates/<uuid>`. Query parameters and\ncommand-body selectors retain the type, including folder parameters. Percent-encoded full\nIRIs remain accepted for compatibility. Stored document identities and references remain\nfull IRIs; legacy repository hosts must remain absolute until their data is migrated.\n\nInternal service: business routes require both X-CEDAR-Artifact-Service-Key and the\nend-user Authorization header. Public callers use resource; a user API key alone is insufficient.\n\nThe artifact server stores templates, template elements, template fields, and template\ninstances, and validates every one of them against the CEDAR model before storing it.\n\nArtifacts use strong ETags for optimistic concurrency. Read the artifact and send the returned\nETag in `If-Match` when replacing or deleting it. A missing required precondition returns 428;\na stale or malformed validator returns 412. `If-Match: *` accepts whichever revision currently\nexists and therefore deliberately gives up lost-update protection. Representation suffixes such\nas `\"7-yaml\"` and `\"7-yaml-compact-v2\"` identify different bytes of the same stored revision and\nare valid write preconditions.\n\nArtifacts are read and written as JSON or YAML, selected by the Accept and Content-Type\nheaders. The compact YAML form is a lossy read-time convenience: it can be read but not stored.\n",
     "title" : "CEDAR Artifact Server API",
-    "version" : "2.9.20"
+    "version" : "2.9.21"
   },
   "paths" : {
     "/" : {
@@ -758,7 +758,7 @@
             "type" : "string"
           }
         }, {
-          "description" : "Artifact identifier, as an absolute IRI.",
+          "description" : "Artifact UUID on this typed route, or a percent-encoded full IRI.",
           "in" : "path",
           "name" : "id",
           "required" : true,
@@ -852,7 +852,7 @@
         "description" : "Get a template element by identifier. Served as JSON or YAML, selected by the Accept header.",
         "operationId" : "findTemplateElement",
         "parameters" : [ {
-          "description" : "Artifact identifier, as an absolute IRI.",
+          "description" : "Artifact UUID on this typed route, or a percent-encoded full IRI.",
           "in" : "path",
           "name" : "id",
           "required" : true,
@@ -1043,7 +1043,7 @@
             "type" : "string"
           }
         }, {
-          "description" : "Artifact identifier, as an absolute IRI.",
+          "description" : "Artifact UUID on this typed route, or a percent-encoded full IRI.",
           "in" : "path",
           "name" : "id",
           "required" : true,
@@ -1593,7 +1593,7 @@
             "type" : "string"
           }
         }, {
-          "description" : "Artifact identifier, as an absolute IRI.",
+          "description" : "Artifact UUID on this typed route, or a percent-encoded full IRI.",
           "in" : "path",
           "name" : "id",
           "required" : true,
@@ -1687,7 +1687,7 @@
         "description" : "Get a template field by identifier. Served as JSON or YAML, selected by the Accept header.",
         "operationId" : "findTemplateField",
         "parameters" : [ {
-          "description" : "Artifact identifier, as an absolute IRI.",
+          "description" : "Artifact UUID on this typed route, or a percent-encoded full IRI.",
           "in" : "path",
           "name" : "id",
           "required" : true,
@@ -1878,7 +1878,7 @@
             "type" : "string"
           }
         }, {
-          "description" : "Artifact identifier, as an absolute IRI.",
+          "description" : "Artifact UUID on this typed route, or a percent-encoded full IRI.",
           "in" : "path",
           "name" : "id",
           "required" : true,
@@ -3312,7 +3312,7 @@
             "type" : "string"
           }
         }, {
-          "description" : "Artifact identifier, as an absolute IRI.",
+          "description" : "Artifact UUID on this typed route, or a percent-encoded full IRI.",
           "in" : "path",
           "name" : "id",
           "required" : true,
@@ -3406,7 +3406,7 @@
         "description" : "Get a template by identifier. Served as JSON or YAML, selected by the Accept header.",
         "operationId" : "findTemplate",
         "parameters" : [ {
-          "description" : "Artifact identifier, as an absolute IRI.",
+          "description" : "Artifact UUID on this typed route, or a percent-encoded full IRI.",
           "in" : "path",
           "name" : "id",
           "required" : true,
@@ -3597,7 +3597,7 @@
             "type" : "string"
           }
         }, {
-          "description" : "Artifact identifier, as an absolute IRI.",
+          "description" : "Artifact UUID on this typed route, or a percent-encoded full IRI.",
           "in" : "path",
           "name" : "id",
           "required" : true,

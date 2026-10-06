@@ -52,7 +52,7 @@ public class TemplateElementsResource extends AbstractArtifactCrudResource {
   private static TemplateElementService<String, JsonNode> templateElementService;
 
   public TemplateElementsResource(CedarConfig cedarConfig, TemplateElementService<String, JsonNode> templateElementService) {
-    super(cedarConfig, logger, "artifact element", "artifact elements",
+    super(cedarConfig, CedarResourceType.ELEMENT, logger, "artifact element", "artifact elements",
         cedarConfig.getArtifactRESTAPI().getSummaries().getElement().getFields(), true);
     TemplateElementsResource.templateElementService = templateElementService;
   }
@@ -143,7 +143,7 @@ public class TemplateElementsResource extends AbstractArtifactCrudResource {
       @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Internal server error")
   })
   public Response findTemplateElement(
-      @Parameter(description = "Artifact identifier, as an absolute IRI.", required = true)
+      @Parameter(description = "Artifact UUID on this typed route, or a percent-encoded full IRI.", required = true)
       @PathParam(PP_ID) String id,
       @Parameter(description = ArtifactApiDocs.COMPACT_ON_READ)
       @QueryParam("compact") Optional<Boolean> compactParam) throws CedarException {
@@ -233,7 +233,7 @@ public class TemplateElementsResource extends AbstractArtifactCrudResource {
       @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Internal server error")
   })
   public Response updateTemplateElement(
-      @Parameter(description = "Artifact identifier, as an absolute IRI.", required = true)
+      @Parameter(description = "Artifact UUID on this typed route, or a percent-encoded full IRI.", required = true)
       @PathParam(PP_ID) String id,
       @Parameter(description = ArtifactApiDocs.COMPACT_ON_WRITE)
       @QueryParam("compact") Optional<Boolean> compactParam,
@@ -264,7 +264,7 @@ public class TemplateElementsResource extends AbstractArtifactCrudResource {
       @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Internal server error")
   })
   public Response deleteTemplateElement(
-      @Parameter(description = "Artifact identifier, as an absolute IRI.", required = true)
+      @Parameter(description = "Artifact UUID on this typed route, or a percent-encoded full IRI.", required = true)
       @PathParam(PP_ID) String id) throws CedarException {
     return deleteArtifact(id, CedarPermission.TEMPLATE_ELEMENT_DELETE, CedarErrorKey.TEMPLATE_ELEMENT_NOT_FOUND,
         CedarErrorKey.TEMPLATE_ELEMENT_NOT_DELETED);

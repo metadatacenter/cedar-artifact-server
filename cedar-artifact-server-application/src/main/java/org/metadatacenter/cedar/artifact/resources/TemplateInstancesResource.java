@@ -81,7 +81,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
 
   public TemplateInstancesResource(CedarConfig cedarConfig, TemplateInstanceService<String, JsonNode> templateInstanceService,
                                    TemplateService<String, JsonNode> templateService) {
-    super(cedarConfig, logger, "artifact instance", "artifact instances",
+    super(cedarConfig, CedarResourceType.INSTANCE, logger, "artifact instance", "artifact instances",
         cedarConfig.getArtifactRESTAPI().getSummaries().getInstance().getFields(), false);
     this.templateInstanceService = templateInstanceService;
     this.templateService = templateService;
@@ -217,14 +217,21 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
       @QueryParam("compact") Optional<Boolean> compactParam) throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
+    id = linkedDataUtil.resolveResourceId(CedarResourceType.INSTANCE, id);
     c.must(id).be(ValidUrl);
     c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_READ);
 
+    // An explicit format names the representation, so it wins over Accept negotiation. Accept may
+    // name N-Quads too, which is the representation that format=rdf-nquad selects.
+    boolean negotiated = format.isEmpty();
     Optional<MediaType> responseType = Optional.empty();
-    if (format.isEmpty()) {
-      responseType = negotiatedArtifactResponseType();
+    if (negotiated) {
+      responseType = ArtifactYamlTranscoder.negotiateInstanceResponseType(httpHeaders.getAcceptableMediaTypes());
       if (responseType.isEmpty()) {
         return notAcceptableArtifactFormatResponse();
+      }
+      if (ArtifactYamlTranscoder.APPLICATION_NQUADS_TYPE.equals(responseType.get())) {
+        format = Optional.of(OutputFormatType.RDF_NQUAD.getValue());
       }
     }
 
@@ -249,22 +256,27 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
       JsonNode templateInstance = snapshot.content();
       MongoUtils.removeIdField(templateInstance);
       long revision = snapshot.revision();
-      // An explicit format names the representation, so it wins over Accept negotiation.
-      if (format.isEmpty() && !ArtifactYamlTranscoder.isJson(responseType.get())) {
-        return Response.ok()
-            .header(HttpHeaders.ETAG, etag(revision, responseType.get(),
-                compactParam.isPresent() && compactParam.get()))
-            .header(HttpHeaders.VARY, HttpHeaders.ACCEPT)
-            .entity(ArtifactYamlTranscoder.jsonToYaml(templateInstance, CedarResourceType.INSTANCE,
-                compactParam.isPresent() && compactParam.get()))
-            .type(responseType.get())
-            .build();
+      boolean compact = compactParam.isPresent() && compactParam.get();
+      if (format.isEmpty() && ArtifactYamlTranscoder.isYaml(responseType.get())) {
+        try {
+          String yaml = ArtifactYamlTranscoder.jsonToYaml(templateInstance, CedarResourceType.INSTANCE, compact);
+          return Response.ok()
+              .header(HttpHeaders.ETAG, etag(revision, responseType.get(), compact))
+              .header(HttpHeaders.VARY, HttpHeaders.ACCEPT)
+              .entity(yaml)
+              .type(responseType.get())
+              .build();
+        } catch (ArtifactYamlTranscoder.UnreadableArtifactException e) {
+          if (!acceptsJson()) {
+            return noYamlFormResponse(id, CedarResourceType.INSTANCE, e);
+          }
+        }
       }
       OutputFormatType formatType = OutputFormatTypeDetector.detectFormat(format);
       Response.ResponseBuilder responseBuilder = Response.fromResponse(
           sendFormattedTemplateInstance(templateInstance, formatType))
           .header(HttpHeaders.ETAG, etag(revision, formatType));
-      if (format.isEmpty()) {
+      if (negotiated) {
         responseBuilder.header(HttpHeaders.VARY, HttpHeaders.ACCEPT);
       }
       return responseBuilder.build();
@@ -363,6 +375,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
       String requestBody) throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
+    id = linkedDataUtil.resolveResourceId(CedarResourceType.INSTANCE, id);
     c.must(id).be(ValidUrl);
     rejectCompactOnWriteOperations(compactParam);
     if (negotiatedArtifactResponseType().isEmpty()) {
@@ -471,6 +484,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
       @PathParam(PP_ID) String id) throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
+    id = linkedDataUtil.resolveResourceId(CedarResourceType.INSTANCE, id);
     c.must(id).be(ValidUrl);
     c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_DELETE);
     return deleteArtifactFromDatabase(c, id, CedarErrorKey.TEMPLATE_INSTANCE_NOT_FOUND,

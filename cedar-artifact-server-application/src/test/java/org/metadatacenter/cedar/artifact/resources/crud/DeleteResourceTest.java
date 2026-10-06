@@ -47,6 +47,28 @@ public class DeleteResourceTest extends AbstractResourceCrudTest {
 
   @ParameterizedTest
   @MethodSource("getCommonParams1")
+  void shortAddressDeletesTheSameStoredIdentity(JsonNode sampleResource, CedarResourceType resourceType)
+      throws Exception {
+    String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
+    JsonNode created = createResource(setSchemaIsBasedOn(sampleTemplate, sampleResource, resourceType), resourceType);
+    String id = created.get("@id").asText();
+    createdResources.put(id, resourceType);
+    String legacy = url + "/" + URLEncoder.encode(id, "UTF-8");
+    String shortAddress = url + "/" + id.substring(id.lastIndexOf('/') + 1);
+    try (Response read = testClient.target(legacy).request().header("Authorization", authHeader).get()) {
+      Assertions.assertEquals(200, read.getStatus());
+      try (Response deleted = testClient.target(shortAddress).request().header("Authorization", authHeader)
+          .header("If-Match", read.getHeaderString("ETag")).delete()) {
+        Assertions.assertEquals(204, deleted.getStatus());
+      }
+    }
+    try (Response absent = testClient.target(legacy).request().header("Authorization", authHeader).get()) {
+      Assertions.assertEquals(404, absent.getStatus());
+    }
+  }
+
+  @ParameterizedTest
+  @MethodSource("getCommonParams1")
   void staleDeleteCannotRemoveANewerArtifact(JsonNode sampleResource, CedarResourceType resourceType)
       throws Exception {
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
