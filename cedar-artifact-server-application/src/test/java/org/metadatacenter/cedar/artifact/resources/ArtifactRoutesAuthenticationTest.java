@@ -4,12 +4,15 @@ import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
+import org.metadatacenter.cedar.artifact.ArtifactServerApplication;
 import org.metadatacenter.config.ArtifactServiceConfig;
+import org.metadatacenter.util.test.ResourceRegistration;
 import org.metadatacenter.util.test.RouteSurface;
 import org.metadatacenter.util.test.TestAuthUtil;
 import org.metadatacenter.util.test.TestHttpClient;
 
 import java.net.URI;
+import java.io.IOException;
 import java.net.http.HttpRequest;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -26,7 +29,7 @@ class ArtifactRoutesAuthenticationTest extends BaseServerTest {
 
   private record Credentials(String name, String serviceKey, String user) { }
 
-  private List<RouteSurface.Endpoint> businessEndpoints() {
+  private List<RouteSurface.Endpoint> businessEndpoints() throws IOException {
     var config = SERVER_APPLICATION.getEnvironment().jersey().getResourceConfig();
     List<Object> components = new ArrayList<>();
     components.addAll(config.getInstances());
@@ -36,11 +39,8 @@ class ArtifactRoutesAuthenticationTest extends BaseServerTest {
 
     // Shared index, health and diagnostic resources are outside this business-resource package.
     // No business endpoint is exempt from either authentication layer.
-    List<Class<?>> resources = RouteSurface.registeredResourceClasses(components,
-        "org.metadatacenter.cedar.artifact.resources");
-    assertTrue(resources.containsAll(List.of(TemplateFieldsResource.class, TemplateElementsResource.class,
-        TemplatesResource.class, TemplateInstancesResource.class, CommandResource.class, ArtifactCountsResource.class)),
-        "An existing business resource disappeared from Jersey registration: " + resources);
+    List<Class<?>> resources = ResourceRegistration.assertComplete(ArtifactServerApplication.class,
+        "org.metadatacenter.cedar.artifact.resources", components);
     List<RouteSurface.Endpoint> endpoints = RouteSurface.endpoints(resources);
     assertFalse(endpoints.isEmpty(), "The authentication inventory must not pass without probing routes");
     assertEquals(endpoints.size(), endpoints.stream().map(RouteSurface.Endpoint::key).distinct().count(),
@@ -49,7 +49,7 @@ class ArtifactRoutesAuthenticationTest extends BaseServerTest {
   }
 
   @TestFactory
-  Stream<DynamicTest> everyBusinessRouteRequiresBothCredentials() {
+  Stream<DynamicTest> everyBusinessRouteRequiresBothCredentials() throws IOException {
     ArtifactServiceConfig service = TestUtil.getCedarConfig().getArtifactService();
     String validServiceKey = service.requireApiKey();
     assertNotEquals(INVALID_SERVICE_KEY, validServiceKey);
