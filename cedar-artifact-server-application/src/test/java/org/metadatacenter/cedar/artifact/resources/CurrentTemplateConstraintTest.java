@@ -6,6 +6,8 @@ import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
 import org.metadatacenter.util.test.TestAuthUtil;
 
@@ -32,6 +34,72 @@ class CurrentTemplateConstraintTest extends BaseServerTest {
       assertEquals(200, response.getStatus());
       return response.readEntity(ObjectNode.class);
     }
+  }
+
+  @ParameterizedTest
+  @CsvSource({"100,150,Below the minimum 150.", "200,175,Above the maximum 175."})
+  void tightenedNumericRangeRejectsStaleWritesAndPreservesTheInstanceEtag(String invalid, String corrected,
+      String finding) throws Exception {
+    ObjectNode before = read(instanceUrl);
+    String etag = currentEtag(instanceUrl, authHeaderValue);
+    String staleYaml;
+    try (Response response = sendGetRequest(instanceUrl, "application/yaml")) {
+      assertEquals(200, response.getStatus());
+      staleYaml = response.readEntity(String.class);
+    }
+    ObjectNode staleClient = before.deepCopy();
+    ((ObjectNode) staleClient.at("/Export Good/Quantity")).put("@value", invalid);
+    ObjectNode template = read(templateUrl);
+    ((ObjectNode) template.at("/properties/Export Good/properties/Quantity/_valueConstraints"))
+        .put("minValue", 150).put("maxValue", 175);
+    try (Response response = testClient.target(templateUrl).request()
+        .header("Authorization", authHeaderValue).header("If-Match", currentEtag(templateUrl, authHeaderValue))
+        .put(Entity.json(template))) {
+      assertEquals(200, response.getStatus(), response.readEntity(String.class));
+    }
+    for (String query : new String[]{"", "?skip_validation=true", "?verbatim=true"}) {
+      String auth = query.contains("verbatim")
+          ? TestAuthUtil.getAdminUserAuthHeader(TestUtil.getCedarConfig()) : authHeaderValue;
+      try (Response response = testClient.target(instanceUrl + query).request()
+          .header("Authorization", auth).header("If-Match", etag).put(Entity.json(staleClient))) {
+        assertNumericRejected(response, finding);
+      }
+      assertEquals(before, read(instanceUrl));
+      assertEquals(etag, currentEtag(instanceUrl, authHeaderValue));
+    }
+    try (Response response = testClient.target(instanceUrl).request()
+        .header("Authorization", authHeaderValue).header("If-Match", etag)
+        .put(Entity.entity(staleYaml, "application/yaml"))) {
+      assertNumericRejected(response, "Below the minimum 150.");
+    }
+    assertEquals(before, read(instanceUrl));
+    assertEquals(etag, currentEtag(instanceUrl, authHeaderValue));
+    ObjectNode newInstance = staleClient.deepCopy();
+    newInstance.putNull("@id");
+    try (Response response = testClient.target("http://localhost:" + getPortNumber() + "/template-instances")
+        .request().header("Authorization", authHeaderValue).post(Entity.json(newInstance))) {
+      assertNumericRejected(response, finding);
+    }
+    ((ObjectNode) staleClient.at("/Export Good/Quantity")).put("@value", corrected);
+    try (Response response = testClient.target(instanceUrl).request()
+        .header("Authorization", authHeaderValue).header("If-Match", etag).put(Entity.json(staleClient))) {
+      assertEquals(200, response.getStatus(), response.readEntity(String.class));
+    }
+    ObjectNode stored = read(instanceUrl);
+    assertEquals(corrected, stored.at("/Export Good/Quantity/@value").asText());
+    assertNotEquals(etag, currentEtag(instanceUrl, authHeaderValue));
+    ((ObjectNode) stored.at("/Export Good/Quantity")).put("@value", before.at("/Export Good/Quantity/@value").asText());
+    for (ObjectNode value : new ObjectNode[]{before, stored}) {
+      value.remove(java.util.List.of("pav:lastUpdatedOn", "oslc:modifiedBy"));
+    }
+    assertEquals(before, stored, "correction preserves unrelated answers, nested identities and provenance");
+  }
+
+  private void assertNumericRejected(Response response, String finding) {
+    String body = response.readEntity(String.class);
+    assertEquals(400, response.getStatus(), body);
+    assertTrue(body.contains("/Export Good/Quantity/@value"), body);
+    assertTrue(body.contains(finding), body);
   }
 
   @Test void tighteningRegexRefusesCreateAndUpdateButAllowsCorrectionWithTheOriginalInstanceEtag() throws Exception {
