@@ -1,4 +1,8 @@
 server:
+  # Jetty's graceful stop waits for open connections to drain, and a test class that leaves a
+  # response unread holds one open, so each such class waited a second or two at stop: about 43 s
+  # of every run. No test exercises the drain.
+  shutdownGracePeriod: 0s
   applicationConnectors:
   - type: http
     bindHost: 127.0.0.1
