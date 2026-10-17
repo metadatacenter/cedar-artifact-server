@@ -363,9 +363,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     c.must(body).be(NonEmpty);
     JsonNode newArtifact = body.asJson();
 
-    enforceMandatoryFieldsInPut(id, newArtifact, resourceType, notUpdatedKey);
-    enforceMandatoryName(newArtifact, resourceType, notUpdatedKey);
-    reportMismatchedChildIdPrefixes(newArtifact, resourceType, id);
+    enforceReplacementShape(id, newArtifact, resourceType, notUpdatedKey);
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
     if (verbatim) {
@@ -377,32 +375,137 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
         return refusal;
       }
     } else {
-      enforceChildArtifactTypes(newArtifact, resourceType, notUpdatedKey);
-      JsonSchemaTitleAndDescription.derive(newArtifact, resourceType);
-      stampProvenanceForPut(newArtifact, currentArtifact, pi);
-      // and a property IRI for any child added during the edit
-      linkedDataUtil.addChildPropertyIris(newArtifact, resourceType);
+      assignWhatAWriteAssigns(newArtifact, currentArtifact, pi, resourceType, notUpdatedKey);
     }
 
-    Response response = null;
-    {
-      ValidationReport validationReport = validateArtifact(newArtifact, verbatim);
-      ReportUtils.outputLogger(logger, validationReport, true);
-      String validationStatus = validationReport.getValidationStatus();
-      if (validationStatus.equals(CedarValidationReport.IS_VALID)) {
-        response = updateOrCreateArtifactInDatabase(id, newArtifact, pi, c, notCreatedKey, notUpdatedKey,
-            verbatim, currentArtifact, currentRevision, requireNoInstances);
-      } else {
-        response = CedarResponse.badRequest()
-            .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_INVALID)
-            .errorKey(CedarErrorKey.INVALID_DATA)
-            .errorReasonKey(CedarErrorReasonKey.VALIDATION_ERROR)
-            .message(updateValidationErrorMessage(validationReport))
-            .object("validationReport", validationReport)
-            .build();
-      }
+    Response response = refuseInvalidReplacement(newArtifact, verbatim);
+    if (response == null) {
+      response = updateOrCreateArtifactInDatabase(id, newArtifact, pi, c, notCreatedKey, notUpdatedKey,
+          verbatim, currentArtifact, currentRevision, requireNoInstances);
     }
     return negotiateArtifactResponse(response, resourceType);
+  }
+
+  /** The refusals a PUT makes of the document's shape before it changes anything in it. */
+  private void enforceReplacementShape(String id, JsonNode newArtifact, CedarResourceType resourceType,
+                                       CedarErrorKey errorKey) throws CedarException {
+    enforceMandatoryFieldsInPut(id, newArtifact, resourceType, errorKey);
+    enforceMandatoryName(newArtifact, resourceType, errorKey);
+    reportMismatchedChildIdPrefixes(newArtifact, resourceType, id);
+  }
+
+  /**
+   * What an ordinary PUT assigns before it validates: the child types are checked, the title and
+   * description are derived, the provenance this write owns is stamped, and a property IRI is given to
+   * any child added during the edit. {@code currentArtifact} is null when the write creates.
+   */
+  private void assignWhatAWriteAssigns(JsonNode newArtifact, JsonNode currentArtifact, ProvenanceInfo pi,
+                                       CedarResourceType resourceType, CedarErrorKey errorKey) throws CedarException {
+    enforceChildArtifactTypes(newArtifact, resourceType, errorKey);
+    JsonSchemaTitleAndDescription.derive(newArtifact, resourceType);
+    stampProvenanceForPut(newArtifact, currentArtifact, pi);
+    linkedDataUtil.addChildPropertyIris(newArtifact, resourceType);
+  }
+
+  /** The PUT's first validation, of the document as received and assigned; null when it is valid. */
+  private Response refuseInvalidReplacement(JsonNode newArtifact, boolean verbatim) throws CedarException {
+    ValidationReport validationReport = validateArtifact(newArtifact, verbatim);
+    ReportUtils.outputLogger(logger, validationReport, true);
+    if (validationReport.getValidationStatus().equals(CedarValidationReport.IS_VALID)) {
+      return null;
+    }
+    return CedarResponse.badRequest()
+        .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_INVALID)
+        .errorKey(CedarErrorKey.INVALID_DATA)
+        .errorReasonKey(CedarErrorReasonKey.VALIDATION_ERROR)
+        .message(updateValidationErrorMessage(validationReport))
+        .object("validationReport", validationReport)
+        .build();
+  }
+
+  /**
+   * Judges a replacement for an artifact that does not exist yet, exactly as the PUT that replaces it
+   * will once a create has stored it, and stores nothing.
+   *
+   * <p>A command that creates an artifact and then replaces it learns whether the replacement is valid
+   * only after the create has committed. This lets it ask first. The body holds two documents:
+   * {@code created}, the document the create will send, and {@code replacement}, the document the PUT
+   * will send. The create's own shape checks and assignments are applied to {@code created}, to give
+   * the document the PUT will find stored. The replacement then takes the PUT's path against it: its
+   * shape checks, its assignments with update semantics, both validations and the child identifiers and
+   * provenance assigned between them. Only the storing is left out, so a replacement this answers as
+   * valid is one the PUT accepts, and one it refuses is refused with the PUT's own answer.
+   *
+   * <p>{@code created} is not validated here. The create validates what it is sent, and a command may
+   * change that document between asking and creating; a publication, for instance, pins terminology
+   * versions. Its validity is the create's to judge when it happens.
+   *
+   * <p>An identifier that already names an artifact answers 412: the create would not be stored, so
+   * no replacement of it can be.
+   */
+  protected Response judgeReplacementOfArtifactToBeCreated(String id, CedarPermission createPermission,
+                                                           CedarPermission updatePermission,
+                                                           CedarResourceType resourceType,
+                                                           CedarErrorKey notUpdatedKey,
+                                                           String requestBody) throws CedarException {
+    CedarRequestContext c = buildRequestContext();
+    c.must(c.user()).be(LoggedIn);
+    c.must(c.user()).have(createPermission);
+    c.must(c.user()).have(updatePermission);
+    id = linkedDataUtil.resolveResourceId(artifactType, id);
+    c.must(id).be(ValidUrl);
+    c.must(id).be(ValidId);
+
+    JsonNode body;
+    try {
+      body = requestBody == null || requestBody.isBlank() ? null
+          : org.metadatacenter.util.json.JsonMapper.STRICT_MAPPER.readTree(requestBody);
+    } catch (IOException e) {
+      body = null;
+    }
+    if (body == null || !body.path("created").isObject() || !body.path("replacement").isObject() || body.size() != 2) {
+      return CedarResponse.badRequest()
+          .errorKey(CedarErrorKey.INVALID_INPUT)
+          .message("Supply the document a create will store, as 'created', and the document that will replace "
+              + "it, as 'replacement', and nothing else")
+          .build();
+    }
+
+    try {
+      if (findArtifactWithRevisionInService(id) != null) {
+        return CedarResponse.status(CedarResponseStatus.PRECONDITION_FAILED)
+            .id(id)
+            .errorKey(CedarErrorKey.NODE_ALREADY_PRESENT)
+            .message("The identifier already names " + artifactLabel + "; a create there would not be stored")
+            .build();
+      }
+    } catch (IOException e) {
+      throw new CedarProcessingException(e);
+    }
+
+    ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
+
+    // A create by PUT runs the same shape checks under the same key as the replacement that follows it.
+    JsonNode stored = body.get("created").deepCopy();
+    enforceReplacementShape(id, stored, resourceType, notUpdatedKey);
+    assignWhatAWriteAssigns(stored, null, pi, resourceType, notUpdatedKey);
+    if (ensureFieldIds) {
+      ModelUtil.ensureFieldIdsRecursively(stored, null, pi, provenanceUtil, linkedDataUtil);
+    }
+
+    JsonNode replacement = body.get("replacement").deepCopy();
+    enforceReplacementShape(id, replacement, resourceType, notUpdatedKey);
+    assignWhatAWriteAssigns(replacement, stored, pi, resourceType, notUpdatedKey);
+    Response refusal = refuseInvalidReplacement(replacement, false);
+    if (refusal == null) {
+      refusal = normalizeForStorage(id, replacement, stored, pi, false);
+    }
+    if (refusal != null) {
+      return refusal;
+    }
+    return CedarResponse.noContent()
+        .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_VALID)
+        .build();
   }
 
   /** Internal lifecycle projection: changes one link, preserving even legacy document shapes. */
@@ -579,19 +682,9 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     CreateOrUpdate createOrUpdate = null;
     long outputRevision;
     try {
-      if (currentArtifact != null && !verbatim) {
-        provenanceUtil.preserveCreationProvenance(updatedArtifact, currentArtifact);
-      }
-      if (ensureFieldIds && !verbatim) {
-        // The stored artifact, so each child's provenance can record what this write did to that child
-        // rather than what it did to the parent. Null on the create-by-PUT path, where every child is new.
-        logReplacedChildIdentifiers(
-            ModelUtil.ensureFieldIdsRecursively(updatedArtifact, currentArtifact, pi, provenanceUtil,
-                linkedDataUtil), artifactId);
-        Response refusal = refuseInvalidNormalizedArtifact(updatedArtifact);
-        if (refusal != null) {
-          return refusal;
-        }
+      Response refusal = normalizeForStorage(artifactId, updatedArtifact, currentArtifact, pi, verbatim);
+      if (refusal != null) {
+        return refusal;
       }
       if (currentArtifact != null) {
         createOrUpdate = CreateOrUpdate.UPDATE;
@@ -633,6 +726,27 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     } catch (IOException e) {
       return artifactWriteFailureResponse(artifactId, createOrUpdate, notCreatedKey, notUpdatedKey, e);
     }
+  }
+
+  /**
+   * What a write does to a validated document just before storing it: an update keeps the creation
+   * provenance already stored, every child is given an identifier and provenance describing what this
+   * write did to it, and the result is validated again. Null when the document is ready to store.
+   */
+  private Response normalizeForStorage(String artifactId, JsonNode updatedArtifact, JsonNode currentArtifact,
+                                       ProvenanceInfo pi, boolean verbatim) throws CedarException {
+    if (currentArtifact != null && !verbatim) {
+      provenanceUtil.preserveCreationProvenance(updatedArtifact, currentArtifact);
+    }
+    if (ensureFieldIds && !verbatim) {
+      // The stored artifact, so each child's provenance can record what this write did to that child
+      // rather than what it did to the parent. Null on the create-by-PUT path, where every child is new.
+      logReplacedChildIdentifiers(
+          ModelUtil.ensureFieldIdsRecursively(updatedArtifact, currentArtifact, pi, provenanceUtil,
+              linkedDataUtil), artifactId);
+      return refuseInvalidNormalizedArtifact(updatedArtifact);
+    }
+    return null;
   }
 
   private Response artifactWriteFailureResponse(String artifactId, CreateOrUpdate createOrUpdate,
