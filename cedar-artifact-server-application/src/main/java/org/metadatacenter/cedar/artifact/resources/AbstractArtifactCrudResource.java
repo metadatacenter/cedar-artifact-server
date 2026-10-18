@@ -133,8 +133,8 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     {
       ValidationReport validationReport = validateArtifact(artifact, false);
       ReportUtils.outputLogger(logger, validationReport, true);
-      String validationStatus = validationReport.getValidationStatus();
-      if (validationStatus.equals(CedarValidationReport.IS_VALID)) {
+      boolean canSave = validationReport.canSave();
+      if (canSave) {
         response = storeArtifactInDatabase(artifact, pi, notCreatedKey);
       } else {
         response = CedarResponse.badRequest()
@@ -411,7 +411,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
   private Response refuseInvalidReplacement(JsonNode newArtifact, boolean verbatim) throws CedarException {
     ValidationReport validationReport = validateArtifact(newArtifact, verbatim);
     ReportUtils.outputLogger(logger, validationReport, true);
-    if (validationReport.getValidationStatus().equals(CedarValidationReport.IS_VALID)) {
+    if (validationReport.canSave()) {
       return null;
     }
     return CedarResponse.badRequest()
@@ -829,7 +829,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
   private Response refuseInvalidNormalizedArtifact(JsonNode artifact) throws CedarException {
     ValidationReport validationReport = validateArtifact(artifact, false);
     ReportUtils.outputLogger(logger, validationReport, true);
-    if (CedarValidationReport.IS_VALID.equals(validationReport.getValidationStatus())) {
+    if (validationReport.canSave()) {
       return null;
     }
     return CedarResponse.badRequest()

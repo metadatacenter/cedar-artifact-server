@@ -3239,6 +3239,31 @@ components:
           type: integer
           format: int64
           description: How many items match. A lower bound when countCapped is true
+    ValidationFinding:
+      type: object
+      description: "Stable rule codes, categories, JSON Pointer paths and explicit\
+        \ semantic verification outcomes."
+      properties:
+        category:
+          type: string
+          enum:
+          - structural
+          - constraint
+          - completeness
+          - verification
+        code:
+          type: string
+        message:
+          type: string
+        path:
+          type: string
+        verificationStatus:
+          type: string
+          enum:
+          - passed
+          - failed
+          - notChecked
+          - unavailable
     ValidationReport:
       type: object
       description: "What validating an artifact against the CEDAR model found. Returned\
@@ -3246,12 +3271,27 @@ components:
         \ answer, not a failed request. The artifact server produces it, and the resource\
         \ server hands the same document back unchanged."
       properties:
+        canSave:
+          type: boolean
+          description: Whether the context-specific save policy permits this artifact.
+            Structural defects always block.
         errors:
           type: array
           description: "Everything that makes the artifact invalid, in the order found."
           items:
             $ref: "#/components/schemas/ErrorItem"
           uniqueItems: true
+        findings:
+          type: array
+          description: "Stable rule codes, categories, JSON Pointer paths and explicit\
+            \ semantic verification outcomes."
+          items:
+            $ref: "#/components/schemas/ValidationFinding"
+          uniqueItems: true
+        isValid:
+          type: boolean
+          description: "Whether every requested check passed, with no quality findings\
+            \ or unverified checks."
         validates:
           type: string
           description: "Whether the artifact validates, as a string. One error makes\
@@ -3267,7 +3307,10 @@ components:
             $ref: "#/components/schemas/WarningItem"
           uniqueItems: true
       required:
+      - canSave
       - errors
+      - findings
+      - isValid
       - validates
       - warnings
     ValidationTarget:

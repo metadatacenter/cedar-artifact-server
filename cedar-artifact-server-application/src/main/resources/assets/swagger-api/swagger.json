@@ -4304,10 +4304,37 @@
           }
         }
       },
+      "ValidationFinding" : {
+        "type" : "object",
+        "description" : "Stable rule codes, categories, JSON Pointer paths and explicit semantic verification outcomes.",
+        "properties" : {
+          "category" : {
+            "type" : "string",
+            "enum" : [ "structural", "constraint", "completeness", "verification" ]
+          },
+          "code" : {
+            "type" : "string"
+          },
+          "message" : {
+            "type" : "string"
+          },
+          "path" : {
+            "type" : "string"
+          },
+          "verificationStatus" : {
+            "type" : "string",
+            "enum" : [ "passed", "failed", "notChecked", "unavailable" ]
+          }
+        }
+      },
       "ValidationReport" : {
         "type" : "object",
         "description" : "What validating an artifact against the CEDAR model found. Returned with 200 whether or not the artifact is valid: an invalid artifact is an answer, not a failed request. The artifact server produces it, and the resource server hands the same document back unchanged.",
         "properties" : {
+          "canSave" : {
+            "type" : "boolean",
+            "description" : "Whether the context-specific save policy permits this artifact. Structural defects always block."
+          },
           "errors" : {
             "type" : "array",
             "description" : "Everything that makes the artifact invalid, in the order found.",
@@ -4315,6 +4342,18 @@
               "$ref" : "#/components/schemas/ErrorItem"
             },
             "uniqueItems" : true
+          },
+          "findings" : {
+            "type" : "array",
+            "description" : "Stable rule codes, categories, JSON Pointer paths and explicit semantic verification outcomes.",
+            "items" : {
+              "$ref" : "#/components/schemas/ValidationFinding"
+            },
+            "uniqueItems" : true
+          },
+          "isValid" : {
+            "type" : "boolean",
+            "description" : "Whether every requested check passed, with no quality findings or unverified checks."
           },
           "validates" : {
             "type" : "string",
@@ -4330,7 +4369,7 @@
             "uniqueItems" : true
           }
         },
-        "required" : [ "errors", "validates", "warnings" ]
+        "required" : [ "canSave", "errors", "findings", "isValid", "validates", "warnings" ]
       },
       "ValidationTarget" : {
         "description" : "What POST /command/validate accepts as JSON: an artifact, or an instance together with the\ntemplate to validate it against. The composite form is a JSON convenience rather than an\nartifact, so it has no YAML equivalent.\n",

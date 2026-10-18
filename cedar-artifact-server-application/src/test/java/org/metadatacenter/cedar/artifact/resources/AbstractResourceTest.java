@@ -47,7 +47,11 @@ public abstract class AbstractResourceTest {
         "CEDAR_ARTIFACT_HTTP_PORT", "0",
         "CEDAR_ARTIFACT_ADMIN_PORT", "0",
         "CEDAR_ARTIFACT_STOP_PORT", "0",
-        "CEDAR_REDIS_PERSISTENT_PORT", "1"));
+        "CEDAR_REDIS_PERSISTENT_PORT", "1",
+        "CEDAR_TERMINOLOGY_SERVER_HOST", "127.0.0.1",
+        "CEDAR_TERMINOLOGY_HTTP_PORT", "1",
+        "CEDAR_BRIDGE_SERVER_HOST", "127.0.0.1",
+        "CEDAR_BRIDGE_HTTP_PORT", "1"));
   }
 
   protected static Logger log;

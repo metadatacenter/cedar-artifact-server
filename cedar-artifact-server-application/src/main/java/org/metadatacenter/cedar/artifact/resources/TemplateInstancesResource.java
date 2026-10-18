@@ -159,9 +159,9 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
     // response null when true, so it neither skipped nor stored coherently.
     ValidationReport validationReport = validateArtifact(templateInstance, false);
     ReportUtils.outputLogger(logger, validationReport, true);
-    String validationStatus = validationReport.getValidationStatus();
+    boolean canSave = validationReport.canSave();
     Response response;
-    if (validationStatus.equals(CedarValidationReport.IS_VALID)) {
+    if (canSave) {
       response = storeArtifactInDatabase(templateInstance, pi, CedarErrorKey.TEMPLATE_INSTANCE_NOT_CREATED);
     } else {
       response = CedarResponse.badRequest()
@@ -443,7 +443,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
     {
       ValidationReport validationReport = validateArtifact(newInstance, verbatim);
       ReportUtils.outputLogger(logger, validationReport, true);
-      if (!CedarValidationReport.IS_VALID.equals(validationReport.getValidationStatus())) {
+      if (!validationReport.canSave()) {
         Response response = CedarResponse.badRequest()
             .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_INVALID)
             .errorKey(CedarErrorKey.INVALID_DATA)
