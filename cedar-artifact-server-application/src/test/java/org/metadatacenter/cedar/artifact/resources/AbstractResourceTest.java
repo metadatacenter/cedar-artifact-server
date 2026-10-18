@@ -12,6 +12,7 @@ import io.dropwizard.util.Duration;
 import org.glassfish.jersey.client.ClientProperties;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
 import org.metadatacenter.cedar.artifact.ArtifactServerApplication;
 import org.metadatacenter.cedar.artifact.ArtifactServerConfiguration;
 import org.metadatacenter.cedar.artifact.resources.utils.TestConstants;
@@ -32,6 +33,7 @@ import static org.metadatacenter.cedar.artifact.resources.utils.TestConstants.DE
 import static org.metadatacenter.cedar.artifact.resources.utils.TestConstants.TEST_CONFIG_FILE;
 import static org.metadatacenter.constant.HttpConstants.CREATED;
 
+@Tag("integration")
 public abstract class AbstractResourceTest {
 
   static {

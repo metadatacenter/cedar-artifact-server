@@ -14,6 +14,7 @@ import io.dropwizard.util.Duration;
 import org.glassfish.jersey.client.ClientProperties;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
 import org.metadatacenter.cedar.artifact.ArtifactServerApplication;
 import org.metadatacenter.cedar.artifact.ArtifactServerConfiguration;
 import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
@@ -32,6 +33,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.metadatacenter.constant.HttpConstants.HTTP_HEADER_AUTHORIZATION;
 
+@Tag("integration")
 public abstract class BaseServerTest {
 
   static {

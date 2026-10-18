@@ -6,6 +6,7 @@ import io.dropwizard.testing.ResourceHelpers;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.metadatacenter.cedar.artifact.ArtifactServerApplication;
 import org.metadatacenter.cedar.artifact.ArtifactServerConfiguration;
@@ -28,6 +29,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /** Proves the deployed exception boundary against the real MongoDB driver, not a mocked DAO. */
+@Tag("integration")
 class ArtifactMongoOutageTest {
 
   static {
