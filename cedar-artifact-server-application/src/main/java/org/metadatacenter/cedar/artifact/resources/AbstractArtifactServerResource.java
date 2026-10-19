@@ -108,8 +108,11 @@ public abstract class AbstractArtifactServerResource extends CedarMicroserviceRe
 
   protected ValidationReport validateTemplate(JsonNode template) throws CedarException {
     try {
-      return withReaderVerdict(newModelValidator().validateTemplate(template), template,
+      ValidationReport report = withReaderVerdict(newModelValidator().validateTemplate(template), template,
           (reader, artifact) -> reader.readTemplateSchemaArtifact(artifact));
+      if (report.canSave() && report instanceof CedarValidationReport cedarReport)
+        semanticVerification().defaults(template, "", cedarReport);
+      return report;
     } catch (Exception e) {
       throw new CedarProcessingException(e);
     }
@@ -117,8 +120,11 @@ public abstract class AbstractArtifactServerResource extends CedarMicroserviceRe
 
   protected ValidationReport validateTemplateElement(JsonNode templateElement) throws CedarException {
     try {
-      return withReaderVerdict(newModelValidator().validateTemplateElement(templateElement), templateElement,
+      ValidationReport report = withReaderVerdict(newModelValidator().validateTemplateElement(templateElement), templateElement,
           (reader, artifact) -> reader.readElementSchemaArtifact(artifact));
+      if (report.canSave() && report instanceof CedarValidationReport cedarReport)
+        semanticVerification().defaults(templateElement, "", cedarReport);
+      return report;
     } catch (Exception e) {
       throw new CedarProcessingException(e);
     }
@@ -126,8 +132,11 @@ public abstract class AbstractArtifactServerResource extends CedarMicroserviceRe
 
   protected ValidationReport validateTemplateField(JsonNode templateField) throws CedarException {
     try {
-      return withReaderVerdict(newModelValidator().validateTemplateField(templateField), templateField,
+      ValidationReport report = withReaderVerdict(newModelValidator().validateTemplateField(templateField), templateField,
           (reader, artifact) -> reader.readFieldSchemaArtifact(artifact));
+      if (report.canSave() && report instanceof CedarValidationReport cedarReport)
+        semanticVerification().defaults(templateField, "", cedarReport);
+      return report;
     } catch (Exception e) {
       throw new CedarProcessingException(e);
     }
@@ -147,7 +156,7 @@ public abstract class AbstractArtifactServerResource extends CedarMicroserviceRe
    */
   private static ValidationReport withReaderVerdict(ValidationReport report, JsonNode artifact,
                                                     BiConsumer<JsonArtifactReader, ObjectNode> read) {
-    if (!CedarValidationReport.IS_VALID.equals(report.getValidationStatus()) || !(artifact instanceof ObjectNode node)) {
+    if (!report.canSave() || !(artifact instanceof ObjectNode node)) {
       return report;
     }
     try {
@@ -161,6 +170,10 @@ public abstract class AbstractArtifactServerResource extends CedarMicroserviceRe
   }
 
   private static ValidationReport withError(ValidationReport report, ErrorItem error) {
+    if (report instanceof CedarValidationReport cedarReport) {
+      cedarReport.addError(error);
+      return cedarReport;
+    }
     CedarValidationReport combined = CedarValidationReport.newEmptyReport();
     report.getWarnings().forEach(combined::addWarning);
     report.getErrors().forEach(combined::addError);
@@ -170,10 +183,19 @@ public abstract class AbstractArtifactServerResource extends CedarMicroserviceRe
 
   protected ValidationReport validateTemplateInstance(JsonNode templateInstance, JsonNode instanceSchema) throws CedarException {
     try {
-      return newModelValidator().validateTemplateInstance(templateInstance, instanceSchema);
+      ValidationReport report = newModelValidator().validateTemplateInstance(templateInstance, instanceSchema);
+      if (report.canSave() && report instanceof CedarValidationReport cedarReport)
+        semanticVerification().instance(templateInstance, instanceSchema, "", cedarReport);
+      return report;
     } catch (Exception e) {
       throw new CedarProcessingException(e);
     }
+  }
+
+  private SemanticValueVerification semanticVerification() {
+    return new SemanticValueVerification(cedarConfig.getServers().getTerminology().getBase(),
+        cedarConfig.getServers().getBridge().getBase(),
+        httpHeaders == null ? null : httpHeaders.getHeaderString(HttpHeaders.AUTHORIZATION));
   }
 
   private static ModelValidator newModelValidator() {

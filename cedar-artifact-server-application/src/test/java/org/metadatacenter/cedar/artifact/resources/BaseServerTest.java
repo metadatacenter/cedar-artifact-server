@@ -14,6 +14,7 @@ import io.dropwizard.util.Duration;
 import org.glassfish.jersey.client.ClientProperties;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
 import org.metadatacenter.cedar.artifact.ArtifactServerApplication;
 import org.metadatacenter.cedar.artifact.ArtifactServerConfiguration;
 import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
@@ -32,6 +33,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.metadatacenter.constant.HttpConstants.HTTP_HEADER_AUTHORIZATION;
 
+@Tag("integration")
 public abstract class BaseServerTest {
 
   static {
@@ -47,7 +49,11 @@ public abstract class BaseServerTest {
         "CEDAR_ARTIFACT_HTTP_PORT", "0",
         "CEDAR_ARTIFACT_ADMIN_PORT", "0",
         "CEDAR_ARTIFACT_STOP_PORT", "0",
-        "CEDAR_REDIS_PERSISTENT_PORT", "1"));
+        "CEDAR_REDIS_PERSISTENT_PORT", "1",
+        "CEDAR_TERMINOLOGY_SERVER_HOST", "127.0.0.1",
+        "CEDAR_TERMINOLOGY_HTTP_PORT", "1",
+        "CEDAR_BRIDGE_SERVER_HOST", "127.0.0.1",
+        "CEDAR_BRIDGE_HTTP_PORT", "1"));
   }
 
   protected static String authHeaderValue;

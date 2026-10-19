@@ -201,6 +201,22 @@ public class RepresentationMatrixTest extends AbstractRestTest {
           (t, template) -> "type: element\nname: Representation Matrix Element\n"),
       new Body("a field in YAML", CedarResourceType.FIELD, "application/yaml",
           (t, template) -> "type: text-field\nname: Representation Matrix Field\n"),
+      // JSON reaches the write through a different path from YAML: it is parsed as sent rather than
+      // transcoded, and the write completes identifier and provenance before it validates.
+      new Body("a template in JSON as the server stores it", CedarResourceType.TEMPLATE, "application/json",
+          (t, template) -> t.storedSchemaJson(CedarResourceType.TEMPLATE).toString()),
+      new Body("an element in JSON as the server stores it", CedarResourceType.ELEMENT, "application/json",
+          (t, template) -> t.storedSchemaJson(CedarResourceType.ELEMENT).toString()),
+      new Body("a field in JSON as the server stores it", CedarResourceType.FIELD, "application/json",
+          (t, template) -> t.storedSchemaJson(CedarResourceType.FIELD).toString()),
+      // The write derives both from the name, so hand-written JSON often leaves them out.
+      new Body("a template in JSON without its derived title and description", CedarResourceType.TEMPLATE,
+          "application/json", (t, template) -> {
+            ObjectNode stored = t.storedSchemaJson(CedarResourceType.TEMPLATE);
+            stored.remove("title");
+            stored.remove("description");
+            return stored.toString();
+          }),
       new Body("an instance in YAML carrying one of its two fields", CedarResourceType.INSTANCE, "application/yaml",
           (t, template) -> instanceYaml(template, true, false)),
       new Body("an instance in YAML carrying both fields", CedarResourceType.INSTANCE, "application/yaml",
@@ -264,6 +280,22 @@ public class RepresentationMatrixTest extends AbstractRestTest {
     String id = JsonMapper.STRICT_MAPPER.readTree(created).path(LinkedData.ID).asText();
     createdResources.put(id, kind);
     return id;
+  }
+
+  /**
+   * The JSON the server stores for a template, element or field, less what the server assigns: the
+   * identifier and the four provenance values a create fills in.
+   */
+  private ObjectNode storedSchemaJson(CedarResourceType kind) throws IOException {
+    String id = create(kind);
+    Response response = request(url(kind, id)).header("Accept", "application/json").get();
+    ObjectNode stored = (ObjectNode) JsonMapper.STRICT_MAPPER.readTree(response.readEntity(String.class));
+    Assertions.assertEquals(200, response.getStatus(), stored.toString());
+    for (String assigned : List.of(LinkedData.ID, "pav:createdOn", "pav:createdBy", "pav:lastUpdatedOn",
+        "oslc:modifiedBy")) {
+      stored.remove(assigned);
+    }
+    return stored;
   }
 
   /** The JSON the server stores for an instance of the template, both fields filled. */

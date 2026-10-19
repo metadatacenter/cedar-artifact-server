@@ -110,6 +110,21 @@ public class TemplatesResource extends AbstractArtifactCrudResource {
     return updateVersionPredecessor(id, body);
   }
 
+  /**
+   * Internal: judges the definition a new draft will be given, as the PUT that gives it will, before
+   * anything is created. The resource server asks before it publishes a template and drafts its
+   * successor, so a definition the PUT would refuse is refused while nothing has changed.
+   */
+  @POST
+  @Path("/{id}/replacement-judgement")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Operation(hidden = true)
+  public Response judgeReplacementOfTemplateToBeCreated(@PathParam("id") String id, String body)
+      throws CedarException {
+    return judgeReplacementOfArtifactToBeCreated(id, CedarPermission.TEMPLATE_CREATE,
+        CedarPermission.TEMPLATE_UPDATE, CedarResourceType.TEMPLATE, CedarErrorKey.TEMPLATE_NOT_UPDATED, body);
+  }
+
   @POST
   @Timed
   @Produces({MediaType.APPLICATION_JSON, HttpConstants.CONTENT_TYPE_APPLICATION_YAML, "application/yaml"})
