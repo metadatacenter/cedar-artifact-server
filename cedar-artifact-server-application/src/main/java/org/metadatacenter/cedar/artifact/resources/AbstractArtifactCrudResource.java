@@ -688,6 +688,14 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
       }
       if (currentArtifact != null) {
         createOrUpdate = CreateOrUpdate.UPDATE;
+        // Browser assessments are advisory. Fence a changed child version against both stored
+        // and in-flight instances at the actual write, including callers that skip the assessment.
+        // Administrative verbatim repairs retain their explicit separate contract.
+        if (!verbatim && artifactType == CedarResourceType.TEMPLATE
+            && TemplateValidationShape.replacesChildren(currentArtifact, updatedArtifact)
+            && !TemplateValidationShape.equivalent(currentArtifact, updatedArtifact)) {
+          requireNoInstances = true;
+        }
         outputArtifact = requireNoInstances
             ? updateUnreferencedArtifactInService(artifactId, updatedArtifact, currentRevision)
             : updateArtifactInService(artifactId, updatedArtifact, currentRevision);
