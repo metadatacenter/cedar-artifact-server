@@ -1,6 +1,7 @@
 package org.metadatacenter.cedar.artifact.resources.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.Invocation;
 import jakarta.ws.rs.core.Response;
@@ -12,11 +13,13 @@ import org.metadatacenter.model.CedarResourceType;
 import org.metadatacenter.util.json.JsonMapper;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -55,6 +58,45 @@ public class FieldPayloadBoundaryTest extends AbstractRestTest {
     JsonNode updated = JsonMapper.STRICT_MAPPER.readTree(updatedBody);
     assertEquals(id, updated.path(LinkedData.ID).asText());
     assertEquals("Renamed Field", updated.path("schema:name").asText());
+  }
+
+  /*
+   * A fractional number is read as a BigDecimal and stored as a Decimal128. Since release 2.9.25 it came back
+   * from the store as {"$numberDecimal": "1E-7"}, an object where the field had a number, so a field saved with
+   * fractional bounds no longer validated and could not be opened. It must read back as it was written, as JSON
+   * from the response and from a fresh read, and as YAML.
+   */
+  @Test
+  public void fractionalBoundsReadBackAsTheNumbersThatWereWritten() throws IOException {
+    Response createdResponse = request(fieldsUrl())
+        .post(Entity.entity("type: numeric-field\nname: Rate\ndatatype: xsd:decimal\n", APPLICATION_YAML));
+    String createdBody = createdResponse.readEntity(String.class);
+    assertEquals(CedarResponseStatus.CREATED.getStatusCode(), createdResponse.getStatus(), createdBody);
+    JsonNode created = JsonMapper.STRICT_MAPPER.readTree(createdBody);
+    String id = created.path(LinkedData.ID).asText();
+    createdResources.put(id, CedarResourceType.FIELD);
+
+    String url = fieldUrl(id);
+    ObjectNode edited = (ObjectNode) JsonMapper.STRICT_MAPPER.readTree(request(url).get().readEntity(String.class));
+    ((ObjectNode) edited.path("_valueConstraints"))
+        .setAll((ObjectNode) JsonMapper.STRICT_MAPPER.readTree("{\"minValue\": 1e-07, \"maxValue\": 0.5}"));
+    Response updatedResponse = request(url).header("If-Match", currentEtag(url, authHeaderTestUser1))
+        .put(Entity.json(edited.toString()));
+    String updatedBody = updatedResponse.readEntity(String.class);
+    assertEquals(CedarResponseStatus.OK.getStatusCode(), updatedResponse.getStatus(), updatedBody);
+
+    for (JsonNode read : new JsonNode[] {JsonMapper.STRICT_MAPPER.readTree(updatedBody),
+        JsonMapper.STRICT_MAPPER.readTree(request(url).get().readEntity(String.class))}) {
+      JsonNode constraints = read.path("_valueConstraints");
+      assertTrue(constraints.path("minValue").isNumber(), read.toString());
+      assertEquals(0, constraints.path("minValue").decimalValue().compareTo(new BigDecimal("1E-7")));
+      assertEquals(0, constraints.path("maxValue").decimalValue().compareTo(new BigDecimal("0.5")));
+      assertFalse(read.toString().contains("$numberDecimal"), read.toString());
+    }
+    Response yamlResponse = request(url).accept(APPLICATION_YAML).get();
+    String yaml = yamlResponse.readEntity(String.class);
+    assertEquals(CedarResponseStatus.OK.getStatusCode(), yamlResponse.getStatus(), yaml);
+    assertFalse(yaml.contains("numberDecimal"), yaml);
   }
 
   @Test
