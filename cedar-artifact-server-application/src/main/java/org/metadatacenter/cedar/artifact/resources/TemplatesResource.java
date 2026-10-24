@@ -354,16 +354,6 @@ public class TemplatesResource extends AbstractArtifactCrudResource {
   }
 
   @Override
-  protected JsonNode createArtifactInService(JsonNode template) throws IOException {
-    return templateService.createTemplate(template);
-  }
-
-  @Override
-  protected JsonNode findArtifactInService(String id) throws IOException {
-    return templateService.findTemplate(id);
-  }
-
-  @Override
   protected ArtifactWithRevision<JsonNode> findArtifactWithRevisionInService(String id) throws IOException {
     return templateService.findTemplateWithRevision(id);
   }

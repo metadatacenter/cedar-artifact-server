@@ -47,7 +47,7 @@ import static org.metadatacenter.constant.CedarQueryParameters.*;
     @SecurityRequirementEntry(name = "api_key"), @SecurityRequirementEntry(name = "artifact_service")})
 public class TemplateElementsResource extends AbstractArtifactCrudResource {
 
-  private static final Logger logger = LoggerFactory.getLogger(TemplateInstancesResource.class);
+  private static final Logger logger = LoggerFactory.getLogger(TemplateElementsResource.class);
 
   private static TemplateElementService<String, JsonNode> templateElementService;
 
@@ -273,16 +273,6 @@ public class TemplateElementsResource extends AbstractArtifactCrudResource {
   @Override
   protected ArtifactWithRevision<JsonNode> createArtifactWithRevisionInService(JsonNode artifact) throws IOException {
     return templateElementService.createTemplateElementWithRevision(artifact);
-  }
-
-  @Override
-  protected JsonNode createArtifactInService(JsonNode templateElement) throws IOException {
-    return templateElementService.createTemplateElement(templateElement);
-  }
-
-  @Override
-  protected JsonNode findArtifactInService(String id) throws IOException {
-    return templateElementService.findTemplateElement(id);
   }
 
   @Override
