@@ -585,8 +585,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/CedarError"
           description: "The supplied If-Match value is stale, weak, or malformed,\
-            \ or the artifact has been written since it was read. Where a revision\
-            \ still exists, the error body's `parameters.currentETag` identifies it."
+            \ or another writer created, changed or deleted the artifact after it\
+            \ was read. When a revision exists, the error body's `parameters.currentETag`\
+            \ identifies it, unless the server could not read it after refusing the\
+            \ write. A template that instances reference can not be deleted or have\
+            \ its children replaced, and that refusal carries the `errorReasonKey`\
+            \ `templateReferencedInInstances`."
         "428":
           content:
             application/json:
@@ -888,8 +892,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/CedarError"
           description: "The supplied If-Match value is stale, weak, or malformed,\
-            \ or the artifact has been written since it was read. Where a revision\
-            \ still exists, the error body's `parameters.currentETag` identifies it."
+            \ or another writer created, changed or deleted the artifact after it\
+            \ was read. When a revision exists, the error body's `parameters.currentETag`\
+            \ identifies it, unless the server could not read it after refusing the\
+            \ write. A template that instances reference can not be deleted or have\
+            \ its children replaced, and that refusal carries the `errorReasonKey`\
+            \ `templateReferencedInInstances`."
         "428":
           content:
             application/json:
@@ -1171,8 +1179,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/CedarError"
           description: "The supplied If-Match value is stale, weak, or malformed,\
-            \ or the artifact has been written since it was read. Where a revision\
-            \ still exists, the error body's `parameters.currentETag` identifies it."
+            \ or another writer created, changed or deleted the artifact after it\
+            \ was read. When a revision exists, the error body's `parameters.currentETag`\
+            \ identifies it, unless the server could not read it after refusing the\
+            \ write. A template that instances reference can not be deleted or have\
+            \ its children replaced, and that refusal carries the `errorReasonKey`\
+            \ `templateReferencedInInstances`."
         "428":
           content:
             application/json:
@@ -1474,8 +1486,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/CedarError"
           description: "The supplied If-Match value is stale, weak, or malformed,\
-            \ or the artifact has been written since it was read. Where a revision\
-            \ still exists, the error body's `parameters.currentETag` identifies it."
+            \ or another writer created, changed or deleted the artifact after it\
+            \ was read. When a revision exists, the error body's `parameters.currentETag`\
+            \ identifies it, unless the server could not read it after refusing the\
+            \ write. A template that instances reference can not be deleted or have\
+            \ its children replaced, and that refusal carries the `errorReasonKey`\
+            \ `templateReferencedInInstances`."
         "428":
           content:
             application/json:
@@ -1762,8 +1778,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/CedarError"
           description: "The supplied If-Match value is stale, weak, or malformed,\
-            \ or the artifact has been written since it was read. Where a revision\
-            \ still exists, the error body's `parameters.currentETag` identifies it."
+            \ or another writer created, changed or deleted the artifact after it\
+            \ was read. When a revision exists, the error body's `parameters.currentETag`\
+            \ identifies it, unless the server could not read it after refusing the\
+            \ write. A template that instances reference can not be deleted or have\
+            \ its children replaced, and that refusal carries the `errorReasonKey`\
+            \ `templateReferencedInInstances`."
         "428":
           content:
             application/json:
@@ -2092,8 +2112,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/CedarError"
           description: "The supplied If-Match value is stale, weak, or malformed,\
-            \ or the artifact has been written since it was read. Where a revision\
-            \ still exists, the error body's `parameters.currentETag` identifies it."
+            \ or another writer created, changed or deleted the artifact after it\
+            \ was read. When a revision exists, the error body's `parameters.currentETag`\
+            \ identifies it, unless the server could not read it after refusing the\
+            \ write. A template that instances reference can not be deleted or have\
+            \ its children replaced, and that refusal carries the `errorReasonKey`\
+            \ `templateReferencedInInstances`."
         "428":
           content:
             application/json:
@@ -2376,8 +2400,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/CedarError"
           description: "The supplied If-Match value is stale, weak, or malformed,\
-            \ or the artifact has been written since it was read. Where a revision\
-            \ still exists, the error body's `parameters.currentETag` identifies it."
+            \ or another writer created, changed or deleted the artifact after it\
+            \ was read. When a revision exists, the error body's `parameters.currentETag`\
+            \ identifies it, unless the server could not read it after refusing the\
+            \ write. A template that instances reference can not be deleted or have\
+            \ its children replaced, and that refusal carries the `errorReasonKey`\
+            \ `templateReferencedInInstances`."
         "428":
           content:
             application/json:
@@ -2679,8 +2707,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/CedarError"
           description: "The supplied If-Match value is stale, weak, or malformed,\
-            \ or the artifact has been written since it was read. Where a revision\
-            \ still exists, the error body's `parameters.currentETag` identifies it."
+            \ or another writer created, changed or deleted the artifact after it\
+            \ was read. When a revision exists, the error body's `parameters.currentETag`\
+            \ identifies it, unless the server could not read it after refusing the\
+            \ write. A template that instances reference can not be deleted or have\
+            \ its children replaced, and that refusal carries the `errorReasonKey`\
+            \ `templateReferencedInInstances`."
         "428":
           content:
             application/json:

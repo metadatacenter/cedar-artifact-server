@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.mongodb.MongoTimeoutException;
 import io.dropwizard.testing.DropwizardTestSupport;
 import io.dropwizard.testing.ResourceHelpers;
 import jakarta.ws.rs.client.Client;
@@ -17,7 +18,12 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.metadatacenter.artifacts.model.core.TemplateSchemaArtifact;
+import org.metadatacenter.artifacts.model.core.TextField;
+import org.metadatacenter.artifacts.model.renderer.JsonArtifactRenderer;
 import org.metadatacenter.cedar.artifact.ArtifactServerApplication;
 import org.metadatacenter.cedar.artifact.ArtifactServerConfiguration;
 import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
@@ -36,8 +42,10 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Named.named;
 
 /**
  * When the store fails under a write, or another writer commits between the request's read and its
@@ -237,6 +245,8 @@ public class ArtifactWriteFaultTest {
   private static void assertMovedOnTo(Reply reply, Reply current) {
     assertEquals(412, reply.status(), reply.body().toString());
     assertEquals(CedarErrorKey.ARTIFACT_HAS_MOVED_ON.getValue(), reply.errorKey(), reply.body().toString());
+    assertTrue(reply.body().path("errorReasonKey").isMissingNode() || reply.body().path("errorReasonKey").isNull(),
+        "a race is not a refusal for references: " + reply.body());
     assertEquals(current.etag(), reply.currentETag().asText(null),
         "a refused write names the revision that is current, so a client can read it and decide again");
   }
@@ -302,24 +312,39 @@ public class ArtifactWriteFaultTest {
   }
 
   /**
-   * The store refused the deletion because the artifact moved on, so nothing was deleted and the answer
-   * is a refusal. Failing to read the revision that won only leaves it unnamed. Answering 500 instead
-   * would report a definite refusal as an outcome nobody knows, which the resource server keeps for a
-   * background retry rather than abandoning.
+   * The store refused the write because the artifact moved on, so nothing was written and the answer is
+   * a refusal. Failing to read the revision that won only leaves it unnamed, whether the read fails as
+   * an IOException or as the driver's own exception. Answering 500 or 503 instead would report a
+   * definite refusal as an outcome nobody knows, which the resource server keeps for a background retry
+   * rather than abandoning.
    */
-  @Test
-  void aDeletionRefusedForAConflictIsRefusedEvenWhenTheWinnerCannotBeRead() throws Exception {
+  @ParameterizedTest
+  @MethodSource("refusalsWhoseWinnerCannotBeRead")
+  void aWriteRefusedForAConflictIsRefusedEvenWhenTheWinnerCannotBeRead(String write, Interruption readFailure)
+      throws Exception {
     Stored element = create("template-elements", "Conflict unread");
-    before("deleteTemplateElement", () -> {
+    boolean deleting = write.equals("DELETE");
+    before(deleting ? "deleteTemplateElement" : "updateTemplateElement", () -> {
       anotherWriterRenames(element, "Renamed by another writer").run();
-      before("findTemplateElementWithRevision", storeFailure());
+      before("findTemplateElementWithRevision", readFailure);
     });
 
-    Reply deleted = delete(element);
+    Reply refused = deleting ? delete(element) : put(element, "", renamed(element, "Renamed by this request"));
 
-    assertEquals(412, deleted.status(), deleted.body().toString());
-    assertEquals(CedarErrorKey.ARTIFACT_HAS_MOVED_ON.getValue(), deleted.errorKey(), deleted.body().toString());
+    assertEquals(412, refused.status(), refused.body().toString());
+    assertEquals(CedarErrorKey.ARTIFACT_HAS_MOVED_ON.getValue(), refused.errorKey(), refused.body().toString());
+    assertTrue(refused.currentETag().isMissingNode() || refused.currentETag().isNull(),
+        "a revision the server could not read is not named: " + refused.body());
     assertEquals("Renamed by another writer", stored(element).path("schema:name").asText());
+  }
+
+  private static Stream<Arguments> refusalsWhoseWinnerCannotBeRead() {
+    Interruption mongoTimeout = () -> {
+      throw new MongoTimeoutException("Timed out while waiting for a server");
+    };
+    return Stream.of("DELETE", "PUT").flatMap(write -> Stream.of(
+        Arguments.of(write, named("an IOException", storeFailure())),
+        Arguments.of(write, named("a MongoDB timeout", mongoTimeout))));
   }
 
   // Replacement and creation
@@ -333,6 +358,29 @@ public class ArtifactWriteFaultTest {
 
     assertMovedOnTo(updated, get(element));
     assertEquals("Renamed by another writer", stored(element).path("schema:name").asText());
+  }
+
+  /**
+   * A template write that replaces children passes the reference fence. When another writer changes the
+   * template first, the fence refuses it as the race it is, and not as a template instances reference.
+   */
+  @ParameterizedTest
+  @ValueSource(strings = {"", "/inclusion"})
+  void aFencedTemplateUpdateThatLosesARaceAnswersAsARace(String suffix) throws Exception {
+    Stored template = create("templates", "Restructured while renamed");
+    before("updateTemplateIfUnreferenced", anotherWriterRenames(template, "Renamed by another writer"));
+
+    Reply updated = put(template, suffix, withANewChild(template));
+
+    assertMovedOnTo(updated, get(template));
+    assertEquals("Renamed by another writer", stored(template).path("schema:name").asText());
+  }
+
+  /** A replacement that adds a child, which an ordinary PUT sends through the reference fence. */
+  private static ObjectNode withANewChild(Stored template) {
+    return new JsonArtifactRenderer().renderTemplateSchemaArtifact(TemplateSchemaArtifact.builder()
+        .withName("Restructured by this request").withJsonLdId(java.net.URI.create(template.id()))
+        .withFieldSchema(TextField.builder().withName("New field").build()).build());
   }
 
   /**
@@ -375,6 +423,27 @@ public class ArtifactWriteFaultTest {
 
     assertServerError(put(absent, "", absent.body()), CedarErrorKey.TEMPLATE_ELEMENT_NOT_CREATED, absent);
     assertNull(stored(absent));
+  }
+
+  /**
+   * The read found nothing, and another writer inserted the identifier before this request did, so the
+   * unique index refused the insert. The answer names the revision that won, as an update's refusal does.
+   */
+  @Test
+  void aCreateByPutThatLosesTheInsertRaceIsRefusedAndNamesTheRevisionThatWon() throws Exception {
+    Stored source = create("template-elements", "Source for a contested identifier");
+    String id = TestUtil.getCedarConfig().getLinkedDataUtil()
+        .buildNewLinkedDataId(org.metadatacenter.model.CedarResourceType.ELEMENT);
+    Stored absent = new Stored("template-elements", id,
+        base() + "/template-elements/" + URLEncoder.encode(id, StandardCharsets.UTF_8), null,
+        source.body().deepCopy().put("@id", id));
+    before("createTemplateElementWithRevision", () -> TestUtil.templateElementService.createTemplateElement(
+        absent.body().deepCopy().put("schema:name", "Created by another writer")));
+
+    Reply created = put(absent, "", absent.body());
+
+    assertMovedOnTo(created, get(absent));
+    assertEquals("Created by another writer", stored(absent).path("schema:name").asText());
   }
 
   @Test

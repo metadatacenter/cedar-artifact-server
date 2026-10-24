@@ -24,6 +24,10 @@ import org.metadatacenter.artifacts.model.core.TemplateSchemaArtifact;
 import org.metadatacenter.artifacts.model.renderer.JsonArtifactRenderer;
 import org.metadatacenter.server.service.TemplateInstanceService;
 import org.metadatacenter.util.json.JsonMapper;
+import org.metadatacenter.error.CedarErrorKey;
+import org.metadatacenter.error.CedarErrorReasonKey;
+import org.junit.jupiter.params.provider.Arguments;
+import java.util.stream.Stream;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Proxy;
@@ -292,6 +296,107 @@ public class TemplateDeletionRaceTest {
     assertSame(failure, observed);
     assertEquals(uncertain ? 412 : 204, delete(template).status(),
         "only a write that might still commit should prevent template deletion");
+  }
+
+  private static Stream<Arguments> referencedTemplateWrites() {
+    return Stream.of("PUT", "PUT /inclusion", "DELETE").flatMap(write -> Stream.of(
+        Arguments.of(write, "a stored instance"), Arguments.of(write, "an instance write in progress")));
+  }
+
+  /**
+   * A template that instances reference can not be deleted or have its children replaced. When the
+   * store's reference fence refuses the write, the answer stays 412, since the precondition the request
+   * was sent under no longer holds. The body is the deletion pre-check's: the operation's own key, and
+   * the reason that instances reference the template, so a caller can tell this refusal from a race.
+   * It names the template's revision, which the refusal leaves current.
+   */
+  @org.junit.jupiter.params.ParameterizedTest(name = "{0} blocked by {1}")
+  @org.junit.jupiter.params.provider.MethodSource("referencedTemplateWrites")
+  void aWriteTheReferenceFenceRefusesSaysThatInstancesReferenceTheTemplate(String write, String reference)
+      throws Exception {
+    Template template = createTemplate();
+    Reply before = get(template.url());
+    Reply refused = reference.equals("a stored instance") ? withAStoredInstance(template, write)
+        : whileAnInstanceWriteIsInProgress(template, () -> attempt(template, write));
+
+    JsonNode body = JsonMapper.STRICT_MAPPER.readTree(refused.body());
+    assertEquals(412, refused.status(), refused.body());
+    assertEquals((write.equals("DELETE") ? CedarErrorKey.TEMPLATE_NOT_DELETED : CedarErrorKey.TEMPLATE_NOT_UPDATED)
+        .getValue(), body.path("errorKey").asText(), refused.body());
+    assertEquals(CedarErrorReasonKey.TEMPLATE_REFERENCED_IN_INSTANCES.getValue(),
+        body.path("errorReasonKey").asText(), refused.body());
+    assertTrue(body.path("message").asText().startsWith("Instances reference the template"), refused.body());
+    assertEquals(template.etag(), body.path("parameters").path("currentETag").asText(), refused.body());
+    Reply after = get(template.url());
+    assertEquals(before.etag(), after.etag(), "a refused write moved the template");
+    assertEquals(JsonMapper.STRICT_MAPPER.readTree(before.body()), JsonMapper.STRICT_MAPPER.readTree(after.body()));
+  }
+
+  private Reply attempt(Template template, String write) {
+    return switch (write) {
+      case "PUT" -> updateInclusion(template, "");
+      case "PUT /inclusion" -> updateInclusion(template);
+      default -> delete(template);
+    };
+  }
+
+  /**
+   * A stored instance blocks a replacement at the fence. A deletion's pre-check counts stored instances
+   * first and answers 400, so the instance is stored after that count and before the fence.
+   */
+  private Reply withAStoredInstance(Template template, String write) throws Exception {
+    if (!write.equals("DELETE")) {
+      assertEquals(201, createInstance(template).status());
+      return attempt(template, write);
+    }
+    var executor = Executors.newSingleThreadExecutor();
+    try (Pause pause = new Pause("countReferencingTemplate", true)) {
+      var deleting = executor.submit(() -> delete(template));
+      assertTrue(pause.entered.await(10, TimeUnit.SECONDS), "delete did not reach the reference check");
+      assertEquals(201, createInstance(template).status());
+      pause.resume.countDown();
+      return deleting.get(15, TimeUnit.SECONDS);
+    } finally {
+      executor.shutdownNow();
+    }
+  }
+
+  /** Holds a reservation as another service instance's instance write would, until the attempt returns. */
+  private Reply whileAnInstanceWriteIsInProgress(Template template, java.util.concurrent.Callable<Reply> attempt)
+      throws Exception {
+    var config = TestUtil.getCedarConfig().getArtifactServerConfig();
+    var client = org.metadatacenter.bridge.CedarDataServices.getInstance()
+        .getMongoClientFactoryForDocuments().getClient();
+    var guard = new org.metadatacenter.server.dao.mongodb.TemplateReferenceGuard(client,
+        config.getDatabaseName(), config.getMongoCollectionName(org.metadatacenter.model.CedarResourceType.TEMPLATE),
+        config.getMongoCollectionName(org.metadatacenter.model.CedarResourceType.INSTANCE));
+    String id = TestUtil.getCedarConfig().getLinkedDataUtil()
+        .buildNewLinkedDataId(org.metadatacenter.model.CedarResourceType.INSTANCE);
+    var body = JsonMapper.STRICT_MAPPER.createObjectNode().put("@id", id)
+        .put("schema:name", "Reserved instance").put("schema:isBasedOn", template.id());
+    CountDownLatch reserved = new CountDownLatch(1);
+    CountDownLatch insert = new CountDownLatch(1);
+    var executor = Executors.newSingleThreadExecutor();
+    try {
+      var writing = executor.submit(() -> guard.write(body, -1, () -> {
+        reserved.countDown();
+        try {
+          assertTrue(insert.await(10, TimeUnit.SECONDS));
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+          throw new java.io.IOException(e);
+        }
+        return TestUtil.templateInstanceService.createTemplateInstance(body);
+      }));
+      assertTrue(reserved.await(10, TimeUnit.SECONDS));
+      Reply refused = attempt.call();
+      insert.countDown();
+      writing.get(10, TimeUnit.SECONDS);
+      return refused;
+    } finally {
+      insert.countDown();
+      executor.shutdownNow();
+    }
   }
 
   /** Pause at one real Mongo service boundary; no return value is fabricated. */

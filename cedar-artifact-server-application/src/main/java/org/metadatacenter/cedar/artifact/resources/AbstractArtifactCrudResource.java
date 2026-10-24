@@ -1,6 +1,7 @@
 package org.metadatacenter.cedar.artifact.resources;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.mongodb.MongoException;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.constant.CustomHttpConstants;
 import org.metadatacenter.constant.HttpConstants;
@@ -20,6 +21,7 @@ import org.metadatacenter.model.validation.report.ValidationReport;
 import org.metadatacenter.rest.assertion.noun.CedarRequestBody;
 import org.metadatacenter.rest.context.CedarRequestContext;
 import org.metadatacenter.server.dao.ArtifactRevisionConflictException;
+import org.metadatacenter.server.dao.TemplateReferencedException;
 import org.metadatacenter.server.dao.ArtifactWithRevision;
 import org.metadatacenter.server.RevisionPrecondition;
 import org.metadatacenter.server.model.provenance.ProvenanceInfo;
@@ -730,13 +732,14 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
           .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_VALID)
           .entity(outputArtifact)
           .build();
+    } catch (TemplateReferencedException e) {
+      return referencedTemplateRefusal(artifactId, notUpdatedKey, "updated");
     } catch (ArtifactRevisionConflictException e) {
       // On the create path the read found nothing and another writer inserted the identifier first, so the
-      // unique index refused this insert. The response carries no ETag there, and a retry of the same PUT
-      // after a fresh GET becomes an update. On the update path the revision this request read is no longer
-      // current, so it is not the one to name.
-      return createOrUpdate == CreateOrUpdate.UPDATE ? movedOnSinceRead(artifactId)
-          : movedOnResponse(artifactId, null);
+      // unique index refused this insert. On the update path the revision this request read is no longer
+      // current. Either way the answer names the revision that won, and a retry with it in If-Match
+      // becomes an update of what that writer stored.
+      return movedOnSinceRead(artifactId);
     } catch (ArtifactServerResourceNotFoundException e) {
       // Only a replacement reports a missing artifact. An insert has nothing to miss.
       return disappearedDuringConditionalUpdate(artifactId);
@@ -798,20 +801,45 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
   /**
    * Answers a conditional write the store refused because the artifact moved on after this request read
    * it. The store is read again so the answer can name the revision that is now current, or say that
-   * the artifact is gone. The refusal stands when that read fails: the write did not happen, and only
-   * the name of the revision that won is unknown. A 500 would report the definite refusal as an unknown
-   * outcome, and a caller may retry an unknown outcome once whatever blocked the write has gone.
+   * the artifact is gone. The refusal stands when that read fails, whether as an IOException or as the
+   * driver's own exception: the write did not happen, and only the name of the revision that won is
+   * unknown. A 500 or 503 would report the definite refusal as an unknown outcome, and a caller may
+   * retry an unknown outcome once whatever blocked the write has gone.
    */
   private Response movedOnSinceRead(String artifactId) {
     ArtifactWithRevision<JsonNode> current;
     try {
       current = findArtifactWithRevisionInService(artifactId);
-    } catch (IOException e) {
+    } catch (IOException | MongoException e) {
       logger.warn("Could not read the current revision of {} after the store refused a write to it", artifactId, e);
       return movedOnResponse(artifactId, null);
     }
     return current == null ? disappearedDuringConditionalUpdate(artifactId)
         : movedOnResponse(artifactId, current.revision());
+  }
+
+  /**
+   * Answers a template write the store's reference fence refused because instances reference the
+   * template, stored ones or one being written. The status stays 412, since the precondition the request
+   * was sent under no longer holds. The body is the deletion pre-check's, so a caller can tell this
+   * refusal from a race: the operation's own key, and the reason that instances reference the template.
+   * A retry against the revision it names is refused again until the references are gone.
+   */
+  private Response referencedTemplateRefusal(String templateId, CedarErrorKey errorKey, String operation) {
+    Long currentRevision = null;
+    try {
+      ArtifactWithRevision<JsonNode> current = findArtifactWithRevisionInService(templateId);
+      currentRevision = current == null ? null : current.revision();
+    } catch (IOException | MongoException e) {
+      logger.warn("Could not read the current revision of {} after the store refused a write to it", templateId, e);
+    }
+    return CedarResponse.status(CedarResponseStatus.PRECONDITION_FAILED)
+        .id(templateId)
+        .errorKey(errorKey)
+        .errorReasonKey(CedarErrorReasonKey.TEMPLATE_REFERENCED_IN_INSTANCES)
+        .message("Instances reference the template, so it can not be " + operation)
+        .parameter("currentETag", currentRevision == null ? null : etag(currentRevision))
+        .build();
   }
 
   protected Response disappearedDuringConditionalUpdate(String artifactId) {
@@ -941,6 +969,8 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
       } else {
         deleteArtifactInService(id, snapshot.revision());
       }
+    } catch (TemplateReferencedException e) {
+      return referencedTemplateRefusal(id, notDeletedKey, "deleted");
     } catch (ArtifactRevisionConflictException e) {
       // The template store's reference fence reports a template that has gone as a conflict too.
       return movedOnSinceRead(id);
