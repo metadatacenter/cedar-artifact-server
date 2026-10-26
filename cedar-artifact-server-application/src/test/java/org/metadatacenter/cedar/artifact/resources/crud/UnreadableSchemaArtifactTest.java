@@ -97,6 +97,15 @@ public class UnreadableSchemaArtifactTest extends AbstractResourceCrudTest {
     Assertions.assertEquals(before, countResources(CedarResourceType.TEMPLATE));
   }
 
+  /** The control for the refusals below: the same group under an ordinary key is stored. */
+  @Test
+  public void createStoresTheAttributeValueGroupUnderAnOrdinaryKey() {
+    Response response = post(rekeyed(ONE_ATTRIBUTE_VALUE_GROUP, "_attribute", "Characteristics"));
+    Assertions.assertEquals(CedarResponseStatus.CREATED.getStatusCode(), response.getStatus(),
+        () -> String.valueOf(errorMessages(response)));
+    createdResources.put(response.readEntity(JsonNode.class).get(LinkedData.ID).asText(), CedarResourceType.TEMPLATE);
+  }
+
   @ParameterizedTest
   @ValueSource(strings = {"name", "annotations", "children"})
   public void createRefusesAnAttributeValueGroupStoredUnderAKeyItsYamlFormReserves(String key) {
