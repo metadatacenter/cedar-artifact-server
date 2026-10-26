@@ -408,7 +408,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
     boolean verbatim = verbatimParam != null && verbatimParam.isPresent() && verbatimParam.get();
     if (verbatim) {
       c.must(c.user()).have(CedarPermission.WRITE_ARTIFACT_VERBATIM);
-      Response refusal = refuseVerbatimWriteWeCannotHonour(id, CedarResourceType.INSTANCE);
+      Response refusal = refuseVerbatimWriteWeCannotHonour(id, currentTemplateInstance);
       if (refusal != null) {
         return refusal;
       }
@@ -494,16 +494,6 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
   @Override
   protected ArtifactWithRevision<JsonNode> createArtifactWithRevisionInService(JsonNode artifact) throws IOException {
     return templateInstanceService.createTemplateInstanceWithRevision(artifact, validatedTemplateRevision());
-  }
-
-  @Override
-  protected JsonNode createArtifactInService(JsonNode templateInstance) throws IOException {
-    return templateInstanceService.createTemplateInstance(templateInstance);
-  }
-
-  @Override
-  protected JsonNode findArtifactInService(String id) throws IOException {
-    return templateInstanceService.findTemplateInstance(id);
   }
 
   @Override

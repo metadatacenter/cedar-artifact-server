@@ -1,6 +1,7 @@
 package org.metadatacenter.cedar.artifact.resources;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.mongodb.MongoException;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.constant.CustomHttpConstants;
 import org.metadatacenter.constant.HttpConstants;
@@ -20,6 +21,7 @@ import org.metadatacenter.model.validation.report.ValidationReport;
 import org.metadatacenter.rest.assertion.noun.CedarRequestBody;
 import org.metadatacenter.rest.context.CedarRequestContext;
 import org.metadatacenter.server.dao.ArtifactRevisionConflictException;
+import org.metadatacenter.server.dao.TemplateReferencedException;
 import org.metadatacenter.server.dao.ArtifactWithRevision;
 import org.metadatacenter.server.RevisionPrecondition;
 import org.metadatacenter.server.model.provenance.ProvenanceInfo;
@@ -42,6 +44,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static org.metadatacenter.rest.assertion.GenericAssertions.*;
@@ -69,10 +72,6 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
   }
 
   protected abstract ArtifactWithRevision<JsonNode> createArtifactWithRevisionInService(JsonNode artifact) throws IOException;
-
-  protected abstract JsonNode createArtifactInService(JsonNode artifact) throws IOException;
-
-  protected abstract JsonNode findArtifactInService(String id) throws IOException;
 
   protected abstract ArtifactWithRevision<JsonNode> findArtifactWithRevisionInService(String id) throws IOException;
 
@@ -353,7 +352,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     boolean verbatim = verbatimParam != null && verbatimParam.isPresent() && verbatimParam.get();
     if (verbatim) {
       c.must(c.user()).have(CedarPermission.WRITE_ARTIFACT_VERBATIM);
-      Response refusal = refuseVerbatimWriteWeCannotHonour(id, resourceType);
+      Response refusal = refuseVerbatimWriteWeCannotHonour(id, currentArtifact);
       if (refusal != null) {
         return refusal;
       }
@@ -517,14 +516,22 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     // The internal-service filter also authenticates this route. Reuse the existing filesystem
     // administrator authority; this service does not need access to the administrator's secret.
     c.must(c.user()).have(CedarPermission.WRITE_NOT_WRITABLE_NODE);
+    // The patch is parsed apart from the store calls below. A store read can fail as a JSON processing
+    // error, and that failure is not the caller's.
+    JsonNode patch;
     try {
-      JsonNode patch = org.metadatacenter.util.json.JsonMapper.STRICT_MAPPER.readTree(requestBody);
-      if (patch == null || !patch.isObject() || patch.size() != 1 || !patch.has("previousVersion")
-          || !(patch.get("previousVersion").isNull() || patch.get("previousVersion").isTextual())) {
-        return CedarResponse.badRequest().message("Supply only previousVersion, as an absolute URL or null").build();
-      }
-      String previous = patch.get("previousVersion").isNull() ? null : patch.get("previousVersion").asText();
-      if (previous != null) c.must(previous).be(ValidUrl);
+      patch = requestBody == null || requestBody.isBlank() ? null
+          : org.metadatacenter.util.json.JsonMapper.STRICT_MAPPER.readTree(requestBody);
+    } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+      return CedarResponse.badRequest().message("Invalid lifecycle patch JSON").build();
+    }
+    if (patch == null || !patch.isObject() || patch.size() != 1 || !patch.has("previousVersion")
+        || !(patch.get("previousVersion").isNull() || patch.get("previousVersion").isTextual())) {
+      return CedarResponse.badRequest().message("Supply only previousVersion, as an absolute URL or null").build();
+    }
+    String previous = patch.get("previousVersion").isNull() ? null : patch.get("previousVersion").asText();
+    if (previous != null) c.must(previous).be(ValidUrl);
+    try {
       var snapshot = findArtifactWithRevisionInService(id);
       if (snapshot == null) return CedarResponse.notFound().build();
       if ("*".equals(c.getIfMatchHeader())) {
@@ -539,11 +546,9 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
       updateArtifactInService(id, document, snapshot.revision());
       return CedarResponse.ok().header(HttpHeaders.ETAG, etag(snapshot.revision() + 1L)).build();
     } catch (ArtifactRevisionConflictException e) {
-      return movedOnResponse(id, null);
+      return movedOnSinceRead(id);
     } catch (ArtifactServerResourceNotFoundException e) {
       return disappearedDuringConditionalUpdate(id);
-    } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
-      return CedarResponse.badRequest().message("Invalid lifecycle patch JSON").build();
     } catch (IOException e) {
       throw new CedarProcessingException(e);
     }
@@ -569,9 +574,13 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
    * nothing would otherwise create, which is a different operation -- and it needs a body this server has
    * not rewritten, which a YAML request is not: a transcode decides the JSON, so what is stored is the
    * transcoder's reading rather than the caller's document.
+   *
+   * <p>{@code currentArtifact} is what the request's own read found, and it alone decides whether there
+   * is an artifact to replace. The write takes the create path whenever that read found nothing, so a
+   * second read here that found an artifact another writer had just inserted would let a verbatim write
+   * create one.
    */
-  protected Response refuseVerbatimWriteWeCannotHonour(String artifactId, CedarResourceType resourceType)
-      throws CedarException {
+  protected Response refuseVerbatimWriteWeCannotHonour(String artifactId, JsonNode currentArtifact) {
     if (ArtifactYamlTranscoder.isYaml(httpHeaders.getMediaType())) {
       return CedarResponse.badRequest()
           .id(artifactId)
@@ -580,13 +589,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
               + "stored is not what was sent")
           .build();
     }
-    JsonNode current;
-    try {
-      current = findArtifactInService(artifactId);
-    } catch (IOException e) {
-      throw new CedarProcessingException(e);
-    }
-    if (current == null) {
+    if (currentArtifact == null) {
       return CedarResponse.notFound()
           .id(artifactId)
           .errorKey(CedarErrorKey.ARTIFACT_NOT_FOUND)
@@ -600,6 +603,8 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
    * Refuses a verbatim write carrying a child identifier that is not an absolute IRI. On an ordinary write
    * such an identifier is minted over; here it cannot be, because nothing may be altered, and it must not
    * be stored, because a temporary identifier resolves to nothing and no later write will replace it.
+   * An ordinary write mints at every depth, so every depth is checked, and a nested child is reported by
+   * its path through the elements that hold it.
    */
   protected Response refuseVerbatimChildIdentifiers(JsonNode artifact, CedarResourceType resourceType) {
     if (resourceType == CedarResourceType.INSTANCE) {
@@ -622,11 +627,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
       return null;
     }
     List<String> unusable = new ArrayList<>();
-    ModelUtil.forEachChild(artifact, (name, child) -> {
-      if (!ModelUtil.hasUsableChildId(child)) {
-        unusable.add(name);
-      }
-    });
+    collectUnusableChildIds(artifact, "", unusable);
     if (unusable.isEmpty()) {
       return null;
     }
@@ -636,6 +637,16 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
             + "absolute IRI. These are not: " + String.join(", ", unusable))
         .parameter("children", String.join(", ", unusable))
         .build();
+  }
+
+  private static void collectUnusableChildIds(JsonNode parent, String parentPath, List<String> unusable) {
+    ModelUtil.forEachChild(parent, (name, child) -> {
+      String path = parentPath.isEmpty() ? name : parentPath + "/" + name;
+      if (!ModelUtil.hasUsableChildId(child)) {
+        unusable.add(path);
+      }
+      collectUnusableChildIds(child, path, unusable);
+    });
   }
 
   private void collectUnusableElementOccurrenceIds(JsonNode node, String path, List<String> unusable) {
@@ -721,16 +732,17 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
           .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_VALID)
           .entity(outputArtifact)
           .build();
+    } catch (TemplateReferencedException e) {
+      return referencedTemplateRefusal(artifactId, notUpdatedKey, "updated");
     } catch (ArtifactRevisionConflictException e) {
       // On the create path the read found nothing and another writer inserted the identifier first, so the
-      // unique index refused this insert. currentRevision is null there; the response carries no ETag, and
-      // a retry of the same PUT after a fresh GET becomes an update.
-      return movedOnResponse(artifactId, currentRevision);
+      // unique index refused this insert. On the update path the revision this request read is no longer
+      // current. Either way the answer names the revision that won, and a retry with it in If-Match
+      // becomes an update of what that writer stored.
+      return movedOnSinceRead(artifactId);
     } catch (ArtifactServerResourceNotFoundException e) {
-      if (createOrUpdate == CreateOrUpdate.UPDATE) {
-        return disappearedDuringConditionalUpdate(artifactId);
-      }
-      return artifactWriteFailureResponse(artifactId, createOrUpdate, notCreatedKey, notUpdatedKey, e);
+      // Only a replacement reports a missing artifact. An insert has nothing to miss.
+      return disappearedDuringConditionalUpdate(artifactId);
     } catch (IOException e) {
       return artifactWriteFailureResponse(artifactId, createOrUpdate, notCreatedKey, notUpdatedKey, e);
     }
@@ -740,11 +752,21 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
    * What a write does to a validated document just before storing it: an update keeps the creation
    * provenance already stored, every child is given an identifier and provenance describing what this
    * write did to it, and the result is validated again. Null when the document is ready to store.
+   *
+   * <p>A field or an instance takes no normalization here beyond its creation provenance, so it is
+   * validated again only when the stored values replaced what the request stated. A stored value the
+   * model refuses would otherwise reach storage through a request that was valid, which is what the
+   * second validation exists to prevent.
    */
   private Response normalizeForStorage(String artifactId, JsonNode updatedArtifact, JsonNode currentArtifact,
                                        ProvenanceInfo pi, boolean verbatim) throws CedarException {
+    boolean creationProvenanceReplaced = false;
     if (currentArtifact != null && !verbatim) {
+      JsonNode statedOn = updatedArtifact.get(ProvenanceUtil.PAV_CREATED_ON);
+      JsonNode statedBy = updatedArtifact.get(ProvenanceUtil.PAV_CREATED_BY);
       provenanceUtil.preserveCreationProvenance(updatedArtifact, currentArtifact);
+      creationProvenanceReplaced = !Objects.equals(statedOn, updatedArtifact.get(ProvenanceUtil.PAV_CREATED_ON))
+          || !Objects.equals(statedBy, updatedArtifact.get(ProvenanceUtil.PAV_CREATED_BY));
     }
     if (ensureFieldIds && !verbatim) {
       // The stored artifact, so each child's provenance can record what this write did to that child
@@ -754,9 +776,10 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
               linkedDataUtil), artifactId);
       return refuseInvalidNormalizedArtifact(updatedArtifact);
     }
-    return null;
+    return creationProvenanceReplaced ? refuseInvalidNormalizedArtifact(updatedArtifact) : null;
   }
 
+  /** Answers a store failure during the insert or the replacement, the only calls that can raise one. */
   private Response artifactWriteFailureResponse(String artifactId, CreateOrUpdate createOrUpdate,
                                                 CedarErrorKey notCreatedKey, CedarErrorKey notUpdatedKey,
                                                 Exception exception) {
@@ -767,12 +790,56 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
       responseBuilder
           .errorKey(notCreatedKey)
           .message("The " + artifactLabel + " can not be created using id:" + artifactId);
-    } else if (createOrUpdate == CreateOrUpdate.UPDATE) {
+    } else {
       responseBuilder
           .errorKey(notUpdatedKey)
           .message("The " + artifactLabel + " can not be updated by id:" + artifactId);
     }
     return responseBuilder.build();
+  }
+
+  /**
+   * Answers a conditional write the store refused because the artifact moved on after this request read
+   * it. The store is read again so the answer can name the revision that is now current, or say that
+   * the artifact is gone. The refusal stands when that read fails, whether as an IOException or as the
+   * driver's own exception: the write did not happen, and only the name of the revision that won is
+   * unknown. A 500 or 503 would report the definite refusal as an unknown outcome, and a caller may
+   * retry an unknown outcome once whatever blocked the write has gone.
+   */
+  private Response movedOnSinceRead(String artifactId) {
+    ArtifactWithRevision<JsonNode> current;
+    try {
+      current = findArtifactWithRevisionInService(artifactId);
+    } catch (IOException | MongoException e) {
+      logger.warn("Could not read the current revision of {} after the store refused a write to it", artifactId, e);
+      return movedOnResponse(artifactId, null);
+    }
+    return current == null ? disappearedDuringConditionalUpdate(artifactId)
+        : movedOnResponse(artifactId, current.revision());
+  }
+
+  /**
+   * Answers a template write the store's reference fence refused because instances reference the
+   * template, stored ones or one being written. The status stays 412, since the precondition the request
+   * was sent under no longer holds. The body is the deletion pre-check's, so a caller can tell this
+   * refusal from a race: the operation's own key, and the reason that instances reference the template.
+   * A retry against the revision it names is refused again until the references are gone.
+   */
+  private Response referencedTemplateRefusal(String templateId, CedarErrorKey errorKey, String operation) {
+    Long currentRevision = null;
+    try {
+      ArtifactWithRevision<JsonNode> current = findArtifactWithRevisionInService(templateId);
+      currentRevision = current == null ? null : current.revision();
+    } catch (IOException | MongoException e) {
+      logger.warn("Could not read the current revision of {} after the store refused a write to it", templateId, e);
+    }
+    return CedarResponse.status(CedarResponseStatus.PRECONDITION_FAILED)
+        .id(templateId)
+        .errorKey(errorKey)
+        .errorReasonKey(CedarErrorReasonKey.TEMPLATE_REFERENCED_IN_INSTANCES)
+        .message("Instances reference the template, so it can not be " + operation)
+        .parameter("currentETag", currentRevision == null ? null : etag(currentRevision))
+        .build();
   }
 
   protected Response disappearedDuringConditionalUpdate(String artifactId) {
@@ -902,24 +969,13 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
       } else {
         deleteArtifactInService(id, snapshot.revision());
       }
+    } catch (TemplateReferencedException e) {
+      return referencedTemplateRefusal(id, notDeletedKey, "deleted");
     } catch (ArtifactRevisionConflictException e) {
-      try {
-        ArtifactWithRevision<JsonNode> current = findArtifactWithRevisionInService(id);
-        return movedOnResponse(id, current == null ? null : current.revision());
-      } catch (IOException readFailure) {
-        return CedarResponse.internalServerError()
-            .id(id)
-            .errorKey(notDeletedKey)
-            .message("The " + artifactLabel + " changed while it was being deleted")
-            .exception(readFailure)
-            .build();
-      }
+      // The template store's reference fence reports a template that has gone as a conflict too.
+      return movedOnSinceRead(id);
     } catch (ArtifactServerResourceNotFoundException e) {
-      return CedarResponse.status(CedarResponseStatus.PRECONDITION_FAILED)
-          .id(id)
-          .errorKey(CedarErrorKey.ARTIFACT_HAS_MOVED_ON)
-          .message("The " + artifactLabel + " no longer exists")
-          .build();
+      return disappearedDuringConditionalUpdate(id);
     } catch (IOException e) {
       return CedarResponse.internalServerError()
           .id(id)

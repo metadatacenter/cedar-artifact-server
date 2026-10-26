@@ -27,8 +27,10 @@ final class ArtifactApiDocs {
       + "identifier. Supplying it for an absent artifact fails with 412 rather than creating one.";
 
   static final String PRECONDITION_FAILED = "The supplied If-Match value is stale, weak, or malformed, "
-      + "or the artifact has been written since it was read. Where a revision still exists, the error "
-      + "body's `parameters.currentETag` identifies it.";
+      + "or another writer created, changed or deleted the artifact after it was read. When a revision "
+      + "exists, the error body's `parameters.currentETag` identifies it, unless the server could not "
+      + "read it after refusing the write. A template that instances reference can not be deleted or have "
+      + "its children replaced, and that refusal carries the `errorReasonKey` `templateReferencedInInstances`.";
 
   static final String PRECONDITION_REQUIRED = "Writing over an artifact that already exists requires its "
       + "current ETag in If-Match.";

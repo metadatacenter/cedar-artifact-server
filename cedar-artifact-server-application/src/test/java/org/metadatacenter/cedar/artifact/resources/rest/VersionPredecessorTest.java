@@ -53,4 +53,39 @@ class VersionPredecessorTest extends AbstractRestTest {
       assertEquals(before,JsonMapper.STRICT_MAPPER.readTree(response.readEntity(String.class)));
     }
   }
+
+  /** Each malformed or unconditional projection is refused, and the template is left as it was. */
+  @Test void aProjectionItCannotApplyExactlyIsRefusedAndChangesNothing() throws Exception {
+    String id, etag;
+    try (var response=testClient.target(baseTestUrl+"/templates").request()
+        .header("Authorization",authHeaderTestUser1).post(Entity.json(getFileContentAsString(MINIMAL_TEMPLATE_NULL_ID)))) {
+      assertEquals(201,response.getStatus());
+      id=JsonMapper.STRICT_MAPPER.readTree(response.readEntity(String.class)).path("@id").asText();
+      etag=response.getHeaderString("ETag");
+      createdResources.put(id,CedarResourceType.TEMPLATE);
+    }
+    String url=getUrlWithId(baseTestUrl,CedarResourceType.TEMPLATE,id)+"/version-predecessor";
+    String admin="apiKey "+TestUtil.getCedarConfig().getAdminUserConfig().getApiKey();
+    String valid="{\"previousVersion\":\"https://example.org/predecessor\"}";
+    var stored=TestUtil.templateService.findTemplate(id);
+    for (String patch : new String[]{"", "not json", "null", "[\"https://example.org/predecessor\"]",
+        "{\"predecessor\":\"https://example.org/predecessor\"}", "{\"previousVersion\":7}",
+        "{\"previousVersion\":\"not an absolute url\"}"}) {
+      try (var response=testClient.target(url).request()
+          .header("Authorization",admin).header("If-Match",etag).put(Entity.json(patch))) {
+        assertEquals(400,response.getStatus(),"patch <"+patch+">: "+response.readEntity(String.class));
+      }
+    }
+    try (var response=testClient.target(url).request()
+        .header("Authorization",admin).header("If-Match","*").put(Entity.json(valid))) {
+      assertEquals(400,response.getStatus(),"a projection must name the revision it changes");
+    }
+    assertEquals(stored,TestUtil.templateService.findTemplate(id));
+    String absent=getUrlWithId(baseTestUrl,CedarResourceType.TEMPLATE,
+        linkedDataUtil.buildNewLinkedDataId(CedarResourceType.TEMPLATE))+"/version-predecessor";
+    try (var response=testClient.target(absent).request()
+        .header("Authorization",admin).header("If-Match",etag).put(Entity.json(valid))) {
+      assertEquals(404,response.getStatus());
+    }
+  }
 }
