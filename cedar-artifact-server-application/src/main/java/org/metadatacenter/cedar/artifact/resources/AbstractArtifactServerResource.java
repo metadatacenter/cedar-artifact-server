@@ -293,9 +293,9 @@ public abstract class AbstractArtifactServerResource extends CedarMicroserviceRe
   /**
    * A child of a template or element must declare which of the two artifact kinds it is, because the
    * identifier minted for a child takes its prefix from that declaration. The meta-schemas already require
-   * '@type' on a child, so this rejects the same artifacts validation would; it exists so that the minting
-   * code is never asked to guess, including when validation is switched off. A multi-instance child with no
-   * 'items' object is refused here for the same reason.
+   * '@type' on a child, and validation reports one that has none where it is, so a write calls this after
+   * validating and before minting: the author is told by the validator, and the minting code is never asked
+   * to guess. A multi-instance child with no 'items' object is refused here for the same reason.
    */
   protected void enforceChildArtifactTypes(JsonNode jsonObject, CedarResourceType resourceType, CedarErrorKey errorKey)
       throws CedarBadRequestException {
