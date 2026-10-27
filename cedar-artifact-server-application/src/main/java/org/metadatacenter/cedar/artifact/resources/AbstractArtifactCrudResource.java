@@ -120,7 +120,6 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
 
     enforceMandatoryNullOrMissingId(artifact, resourceType, notCreatedKey);
     enforceMandatoryName(artifact, resourceType, notCreatedKey);
-    enforceChildArtifactTypes(artifact, resourceType, notCreatedKey);
     JsonSchemaTitleAndDescription.derive(artifact, resourceType);
 
     ProvenanceInfo pi = provenanceUtil.build(c.getCedarUser());
@@ -134,6 +133,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
       ReportUtils.outputLogger(logger, validationReport, true);
       boolean canSave = validationReport.canSave();
       if (canSave) {
+        enforceChildArtifactTypes(artifact, resourceType, notCreatedKey);
         response = storeArtifactInDatabase(artifact, pi, notCreatedKey);
       } else {
         response = CedarResponse.badRequest()
@@ -374,11 +374,14 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
         return refusal;
       }
     } else {
-      assignWhatAWriteAssigns(newArtifact, currentArtifact, pi, resourceType, notUpdatedKey);
+      assignWhatAWriteAssigns(newArtifact, currentArtifact, pi, resourceType);
     }
 
     Response response = refuseInvalidReplacement(newArtifact, verbatim);
     if (response == null) {
+      if (!verbatim) {
+        enforceChildArtifactTypes(newArtifact, resourceType, notUpdatedKey);
+      }
       response = updateOrCreateArtifactInDatabase(id, newArtifact, pi, c, notCreatedKey, notUpdatedKey,
           verbatim, currentArtifact, currentRevision, requireNoInstances);
     }
@@ -394,13 +397,12 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
   }
 
   /**
-   * What an ordinary PUT assigns before it validates: the child types are checked, the title and
-   * description are derived, the provenance this write owns is stamped, and a property IRI is given to
-   * any child added during the edit. {@code currentArtifact} is null when the write creates.
+   * What an ordinary PUT assigns before it validates: the title and description are derived, the
+   * provenance this write owns is stamped, and a property IRI is given to any child added during the
+   * edit. {@code currentArtifact} is null when the write creates.
    */
   private void assignWhatAWriteAssigns(JsonNode newArtifact, JsonNode currentArtifact, ProvenanceInfo pi,
-                                       CedarResourceType resourceType, CedarErrorKey errorKey) throws CedarException {
-    enforceChildArtifactTypes(newArtifact, resourceType, errorKey);
+                                       CedarResourceType resourceType) throws CedarException {
     JsonSchemaTitleAndDescription.derive(newArtifact, resourceType);
     stampProvenanceForPut(newArtifact, currentArtifact, pi);
     linkedDataUtil.addChildPropertyIris(newArtifact, resourceType);
@@ -487,16 +489,19 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     // A create by PUT runs the same shape checks under the same key as the replacement that follows it.
     JsonNode stored = body.get("created").deepCopy();
     enforceReplacementShape(id, stored, resourceType, notUpdatedKey);
-    assignWhatAWriteAssigns(stored, null, pi, resourceType, notUpdatedKey);
+    assignWhatAWriteAssigns(stored, null, pi, resourceType);
+    // Its child identifiers are minted without its being validated, so the child types are checked first.
+    enforceChildArtifactTypes(stored, resourceType, notUpdatedKey);
     if (ensureFieldIds) {
       ModelUtil.ensureFieldIdsRecursively(stored, null, pi, provenanceUtil, linkedDataUtil);
     }
 
     JsonNode replacement = body.get("replacement").deepCopy();
     enforceReplacementShape(id, replacement, resourceType, notUpdatedKey);
-    assignWhatAWriteAssigns(replacement, stored, pi, resourceType, notUpdatedKey);
+    assignWhatAWriteAssigns(replacement, stored, pi, resourceType);
     Response refusal = refuseInvalidReplacement(replacement, false);
     if (refusal == null) {
+      enforceChildArtifactTypes(replacement, resourceType, notUpdatedKey);
       refusal = normalizeForStorage(id, replacement, stored, pi, false);
     }
     if (refusal != null) {

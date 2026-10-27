@@ -2,8 +2,15 @@ package org.metadatacenter.cedar.artifact.resources;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.metadatacenter.artifacts.model.core.Artifact;
+import org.metadatacenter.artifacts.model.core.ElementSchemaArtifact;
+import org.metadatacenter.artifacts.model.core.FieldSchemaArtifact;
+import org.metadatacenter.artifacts.model.core.TemplateInstanceArtifact;
+import org.metadatacenter.artifacts.model.core.TemplateSchemaArtifact;
 import org.metadatacenter.artifacts.model.reader.ArtifactParseException;
 import org.metadatacenter.artifacts.model.reader.JsonArtifactReader;
+import org.metadatacenter.artifacts.model.renderer.JsonArtifactRenderer;
+import org.metadatacenter.artifacts.model.tools.YamlSerializer;
 import org.metadatacenter.cedar.util.dw.CedarMicroserviceResource;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.constant.HttpConstants;
@@ -48,7 +55,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import static com.fasterxml.jackson.databind.node.JsonNodeType.NULL;
 
@@ -108,7 +116,7 @@ public abstract class AbstractArtifactServerResource extends CedarMicroserviceRe
 
   protected ValidationReport validateTemplate(JsonNode template) throws CedarException {
     try {
-      ValidationReport report = withReaderVerdict(newModelValidator().validateTemplate(template), template,
+      ValidationReport report = withModelVerdict(newModelValidator().validateTemplate(template), template,
           (reader, artifact) -> reader.readTemplateSchemaArtifact(artifact));
       if (report.canSave() && report instanceof CedarValidationReport cedarReport)
         semanticVerification().defaults(template, "", cedarReport);
@@ -120,7 +128,7 @@ public abstract class AbstractArtifactServerResource extends CedarMicroserviceRe
 
   protected ValidationReport validateTemplateElement(JsonNode templateElement) throws CedarException {
     try {
-      ValidationReport report = withReaderVerdict(newModelValidator().validateTemplateElement(templateElement), templateElement,
+      ValidationReport report = withModelVerdict(newModelValidator().validateTemplateElement(templateElement), templateElement,
           (reader, artifact) -> reader.readElementSchemaArtifact(artifact));
       if (report.canSave() && report instanceof CedarValidationReport cedarReport)
         semanticVerification().defaults(templateElement, "", cedarReport);
@@ -132,7 +140,7 @@ public abstract class AbstractArtifactServerResource extends CedarMicroserviceRe
 
   protected ValidationReport validateTemplateField(JsonNode templateField) throws CedarException {
     try {
-      ValidationReport report = withReaderVerdict(newModelValidator().validateTemplateField(templateField), templateField,
+      ValidationReport report = withModelVerdict(newModelValidator().validateTemplateField(templateField), templateField,
           (reader, artifact) -> reader.readFieldSchemaArtifact(artifact));
       if (report.canSave() && report instanceof CedarValidationReport cedarReport)
         semanticVerification().defaults(templateField, "", cedarReport);
@@ -143,30 +151,67 @@ public abstract class AbstractArtifactServerResource extends CedarMicroserviceRe
   }
 
   /**
-   * The validator's report, with the artifact library reader's refusal added when the validator found
-   * nothing wrong.
+   * The validator's report, with what the artifact library makes of the artifact added when the
+   * validator found nothing wrong: the reader's refusal, or a rendering that fails.
    *
-   * The validator checks a schema artifact against the CEDAR meta-schema. The reader turns it into
-   * the model, and refuses some artifacts the meta-schema accepts: a child stored under a reserved key,
-   * such as {@code @foo}, {@code __proto__} or an attribute-value group named {@code name}, among
-   * them. Every editor and viewer reads an artifact through the Java reader or its TypeScript twin,
-   * so an artifact the reader refuses is one nothing can open. Refusing it here keeps the server from
-   * storing one. The reader runs only on an artifact the validator accepts, so one defect is never
-   * reported twice. The reader works on a copy, and the artifact stored is the one received.
+   * The validator checks an artifact against the CEDAR meta-schema, and an instance against its
+   * template as well. The reader turns either into the model, and refuses some artifacts the
+   * meta-schema accepts: a child stored under a reserved key, such as {@code @foo}, {@code __proto__}
+   * or an attribute-value group named {@code name}, among them. Every editor and viewer reads an
+   * artifact through the Java reader or its TypeScript twin, so an artifact the reader refuses is one
+   * nothing can open, and one that cannot be rendered as JSON or YAML is one the server cannot serve
+   * in that form. Refusing either here keeps the server from storing it.
+   *
+   * The model never replaces the validation it follows: an instance is still judged against its
+   * template, and the checks run only on an artifact the validator accepts, so one defect is never
+   * reported twice. They work on a copy, the renderings are discarded, and the artifact stored is the
+   * one received.
    */
-  private static ValidationReport withReaderVerdict(ValidationReport report, JsonNode artifact,
-                                                    BiConsumer<JsonArtifactReader, ObjectNode> read) {
+  private static ValidationReport withModelVerdict(ValidationReport report, JsonNode artifact,
+                                                   BiFunction<JsonArtifactReader, ObjectNode, ? extends Artifact> read) {
+    return withModelVerdict(report, artifact, read, RENDERINGS);
+  }
+
+  /** A form the server serves an artifact in, and how the model is written in it. */
+  record Rendering(String format, Function<Artifact, ?> render) {}
+
+  /** The renderings a client can ask for: the model as JSON, and the full YAML form. */
+  static final List<Rendering> RENDERINGS = List.of(
+      new Rendering("JSON", AbstractArtifactServerResource::renderJson),
+      new Rendering("YAML", model -> YamlSerializer.getYAML(model, false, true)));
+
+  static ValidationReport withModelVerdict(ValidationReport report, JsonNode artifact,
+                                           BiFunction<JsonArtifactReader, ObjectNode, ? extends Artifact> read,
+                                           List<Rendering> renderings) {
     if (!report.canSave() || !(artifact instanceof ObjectNode node)) {
       return report;
     }
+    Artifact model;
     try {
-      read.accept(new JsonArtifactReader(), node.deepCopy());
-      return report;
+      model = read.apply(new JsonArtifactReader(), node.deepCopy());
     } catch (ArtifactParseException e) {
       return withError(report, new ErrorItem(e.getParseErrorMessage(), e.getPath()));
     } catch (RuntimeException e) {
       return withError(report, new ErrorItem(String.valueOf(e.getMessage())));
     }
+    for (Rendering rendering : renderings) {
+      try {
+        rendering.render().apply(model);
+      } catch (RuntimeException e) {
+        return withError(report, new ErrorItem("The artifact can not be rendered as " + rendering.format() + ": "
+            + e.getMessage()));
+      }
+    }
+    return report;
+  }
+
+  private static Object renderJson(Artifact model) {
+    JsonArtifactRenderer renderer = new JsonArtifactRenderer();
+    if (model instanceof TemplateSchemaArtifact template) return renderer.renderTemplateSchemaArtifact(template);
+    if (model instanceof ElementSchemaArtifact element) return renderer.renderElementSchemaArtifact(element);
+    if (model instanceof FieldSchemaArtifact field) return renderer.renderFieldSchemaArtifact(field);
+    if (model instanceof TemplateInstanceArtifact instance) return renderer.renderTemplateInstanceArtifact(instance);
+    throw new IllegalArgumentException("No JSON rendering for " + model.getClass().getSimpleName());
   }
 
   private static ValidationReport withError(ValidationReport report, ErrorItem error) {
@@ -183,7 +228,9 @@ public abstract class AbstractArtifactServerResource extends CedarMicroserviceRe
 
   protected ValidationReport validateTemplateInstance(JsonNode templateInstance, JsonNode instanceSchema) throws CedarException {
     try {
-      ValidationReport report = newModelValidator().validateTemplateInstance(templateInstance, instanceSchema);
+      ValidationReport report = withModelVerdict(
+          newModelValidator().validateTemplateInstance(templateInstance, instanceSchema), templateInstance,
+          (reader, artifact) -> reader.readTemplateInstanceArtifact(artifact));
       if (report.canSave() && report instanceof CedarValidationReport cedarReport)
         semanticVerification().instance(templateInstance, instanceSchema, "", cedarReport);
       return report;
@@ -246,9 +293,9 @@ public abstract class AbstractArtifactServerResource extends CedarMicroserviceRe
   /**
    * A child of a template or element must declare which of the two artifact kinds it is, because the
    * identifier minted for a child takes its prefix from that declaration. The meta-schemas already require
-   * '@type' on a child, so this rejects the same artifacts validation would; it exists so that the minting
-   * code is never asked to guess, including when validation is switched off. A multi-instance child with no
-   * 'items' object is refused here for the same reason.
+   * '@type' on a child, and validation reports one that has none where it is, so a write calls this after
+   * validating and before minting: the author is told by the validator, and the minting code is never asked
+   * to guess. A multi-instance child with no 'items' object is refused here for the same reason.
    */
   protected void enforceChildArtifactTypes(JsonNode jsonObject, CedarResourceType resourceType, CedarErrorKey errorKey)
       throws CedarBadRequestException {

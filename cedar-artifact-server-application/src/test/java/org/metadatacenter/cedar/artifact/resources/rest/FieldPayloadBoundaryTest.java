@@ -110,25 +110,52 @@ public class FieldPayloadBoundaryTest extends AbstractRestTest {
     assertEquals(before, countFields(), "malformed YAML must not leave a field behind");
   }
 
+  /*
+   * Whether a field is required, and whether and how often it repeats, is what a template or an element says
+   * of its child, in the child's configuration. A field written on its own has no parent, so it has no
+   * configuration and is neither required nor repeated.
+   */
   @Test
-  public void invalidFieldCardinalityIsRejectedWithoutChangingTheStore() {
+  public void aFieldWrittenOnItsOwnWithAConfigurationIsRejectedWithoutChangingTheStore() {
     int before = countFields();
-    String invalid = """
+    String configured = """
         type: text-field
-        name: Impossible Bounds
+        name: Bounded
         configuration:
           multiple: true
-          minItems: 2
-          maxItems: 1
+          minItems: 1
         """;
 
-    Response response = request(fieldsUrl()).post(Entity.entity(invalid, APPLICATION_YAML));
+    Response response = request(fieldsUrl()).post(Entity.entity(configured, APPLICATION_YAML));
     String body = response.readEntity(String.class);
 
     assertEquals(CedarResponseStatus.BAD_REQUEST.getStatusCode(), response.getStatus(), body);
-    assertTrue(body.contains("minItems") && body.contains("maxItems"), body);
-    assertEquals(before, countFields(), "invalid cardinality must not leave a field behind");
+    assertTrue(body.contains("unknown key") && body.contains("configuration"), body);
+    assertEquals(before, countFields(), "a refused field must not leave a field behind");
   }
+
+  @Test
+  public void aFieldWrittenOnItsOwnThatIsRequiredIsRejectedWithoutChangingTheStore() throws IOException {
+    Response createdResponse = request(fieldsUrl())
+        .post(Entity.entity("type: text-field\nname: Optional\n", APPLICATION_YAML));
+    String createdBody = createdResponse.readEntity(String.class);
+    assertEquals(CedarResponseStatus.CREATED.getStatusCode(), createdResponse.getStatus(), createdBody);
+    ObjectNode created = (ObjectNode) JsonMapper.STRICT_MAPPER.readTree(createdBody);
+    createdResources.put(created.path(LinkedData.ID).asText(), CedarResourceType.FIELD);
+    assertFalse(created.path("_valueConstraints").path("requiredValue").asBoolean(), created.toString());
+
+    int before = countFields();
+    ObjectNode required = created.deepCopy();
+    required.putNull(LinkedData.ID);
+    ((ObjectNode) required.path("_valueConstraints")).put("requiredValue", true);
+    Response response = request(fieldsUrl()).post(Entity.json(required.toString()));
+    String body = response.readEntity(String.class);
+
+    assertEquals(CedarResponseStatus.BAD_REQUEST.getStatusCode(), response.getStatus(), body);
+    assertTrue(body.contains("A field written on its own is not required"), body);
+    assertEquals(before, countFields(), "a refused field must not leave a field behind");
+  }
+
 
   @Test
   public void controlledTermConstraintsSurviveTheFieldEndpoint() throws IOException {
