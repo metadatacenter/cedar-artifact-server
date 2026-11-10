@@ -7,6 +7,8 @@ import org.metadatacenter.model.validation.ValidationFinding;
 import org.metadatacenter.model.validation.ValidationPolicy;
 import org.metadatacenter.model.validation.report.CedarValidationReport;
 import org.metadatacenter.util.json.JsonMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -14,14 +16,23 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Request-scoped exact-identifier checks. A 25-second call limit accommodates the terminology
  * service's 20-second lookup budget; all checks share 30 seconds and at most 256 distinct requests.
  * Unavailability never becomes a negative membership answer. Requests are not retried.
+ *
+ * <p>A save tolerates an unavailable check, so nothing downstream reports one. The reason is logged
+ * here, at most once a minute with a count of the checks that failed in between, because a service
+ * that is down fails every value of every write.
  */
 final class SemanticValueVerification {
   @FunctionalInterface interface Sender { HttpResponse<String> send(HttpRequest request) throws Exception; }
+  private static final Logger log = LoggerFactory.getLogger(SemanticValueVerification.class);
+  private static final long REPORT_INTERVAL = Duration.ofMinutes(1).toNanos();
+  private static final AtomicLong NEXT_REPORT = new AtomicLong(System.nanoTime());
+  private static final AtomicLong UNREPORTED = new AtomicLong();
   private static final HttpClient HTTP = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(2)).build();
   private static final Map<String, String> AUTHORITY_ROUTES = Map.of(
       "ext-orcid", "orcid", "ext-ror", "ror", "ext-rrid", "rrid", "ext-pubmed", "pmid",
@@ -100,23 +111,34 @@ final class SemanticValueVerification {
   }
 
   private JsonNode request(String endpoint, JsonNode body, boolean controlled) {
-    if (endpoint == null || checked.size() >= 256 || System.nanoTime() >= deadline) return unavailable();
+    if (endpoint == null) return unavailable("the verifying service", "no address is configured for it");
+    if (checked.size() >= 256) return unavailable(endpoint, "the write reached its limit of 256 distinct checks");
+    if (System.nanoTime() >= deadline) return unavailable(endpoint, "the write used its 30 seconds of checking");
     try {
       HttpRequest.Builder request = HttpRequest.newBuilder(URI.create(endpoint))
           .timeout(Duration.ofNanos(Math.min(Duration.ofSeconds(25).toNanos(), deadline - System.nanoTime())))
           .header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(body.toString()));
       if (authorization != null) request.header("Authorization", authorization);
       var response = sender.send(request.build());
-      if (response.statusCode() != 200) return unavailable();
+      if (response.statusCode() != 200) return unavailable(endpoint, "it answered " + response.statusCode());
       JsonNode answer = JsonMapper.MAPPER.readTree(response.body());
       if (!answer.path("code").isTextual() || !answer.path("message").isTextual()
           || !ValidationPolicy.acceptsSemanticResult(controlled, answer.path("status").asText(), answer.path("code").asText())
-          || !body.path("iri").equals(answer.path("iri"))) return unavailable();
+          || !body.path("iri").equals(answer.path("iri")))
+        return unavailable(endpoint, "its answer was not a verdict on the identifier it was asked about");
       return answer;
     } catch (InterruptedException interrupted) {
       Thread.currentThread().interrupt();
-      return unavailable();
-    } catch (Exception failure) { return unavailable(); }
+      return unavailable(endpoint, "the request was interrupted");
+    } catch (Exception failure) { return unavailable(endpoint, failure.toString()); }
+  }
+  private static JsonNode unavailable(String endpoint, String reason) {
+    long now = System.nanoTime(), due = NEXT_REPORT.get();
+    if (now - due >= 0 && NEXT_REPORT.compareAndSet(due, now + REPORT_INTERVAL))
+      log.warn("Semantic verification is unavailable at {}: {} ({} earlier unavailable checks went unlogged)",
+          endpoint, reason, UNREPORTED.getAndSet(0));
+    else UNREPORTED.incrementAndGet();
+    return unavailable();
   }
   private static JsonNode unavailable() {
     return JsonMapper.MAPPER.createObjectNode().put("status", "unavailable").put("code", "semanticUnavailable")
