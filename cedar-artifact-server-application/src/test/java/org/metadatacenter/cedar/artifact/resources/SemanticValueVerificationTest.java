@@ -164,4 +164,22 @@ class SemanticValueVerificationTest {
     assertFalse(report.canSave());
     assertFalse(report.isValid());
   }
+
+  @Test void anAddressThatCannotBeRequestedIsUnavailableWithoutAnyRequest() throws Exception {
+    // What an undeclared host and a placeholder port leave in the configuration, and no address at all.
+    for (String base : new String[]{"http://${CEDAR_TERMINOLOGY_SERVER_HOST}:0/", "", null}) {
+      AtomicInteger calls = new AtomicInteger();
+      var report = CedarValidationReport.newInstanceReport();
+      var schema = MAPPER.createObjectNode();
+      schema.putObject("properties").set("term", controlled());
+      new SemanticValueVerification(base, base, null, request -> {
+        calls.incrementAndGet();
+        return response("passed", "https://example.org/term");
+      }).instance(MAPPER.readTree("{\"term\":{\"@id\":\"https://example.org/term\"}}"), schema, "", report);
+      assertEquals(0, calls.get(), String.valueOf(base));
+      assertTrue(report.canSave(), String.valueOf(base));
+      assertEquals(ValidationFinding.VerificationStatus.UNAVAILABLE,
+          report.getFindings().iterator().next().verificationStatus(), String.valueOf(base));
+    }
+  }
 }
