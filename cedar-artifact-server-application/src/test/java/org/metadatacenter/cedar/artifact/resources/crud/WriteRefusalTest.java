@@ -16,6 +16,7 @@ import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
 import org.metadatacenter.constant.LinkedData;
 import org.metadatacenter.error.CedarErrorKey;
 import org.metadatacenter.model.CedarResourceType;
+import org.metadatacenter.server.security.model.auth.CedarPermission;
 import org.metadatacenter.util.json.JsonMapper;
 import org.metadatacenter.util.mongo.MongoUtils;
 import org.metadatacenter.util.test.TestAuthUtil;
@@ -238,6 +239,31 @@ public class WriteRefusalTest extends AbstractResourceCrudTest {
     Assertions.assertEquals("/address", written.body().path("parameters").path("occurrences").asText(),
         written.body().toString());
     Assertions.assertEquals(before, stored(CedarResourceType.INSTANCE, id));
+  }
+
+  /**
+   * A verbatim write skips provenance stamping, child minting and, for a template, the
+   * instance-reference fence, so the verbatim permission is all that keeps an ordinary updater from
+   * forging a creator or replacing a referenced template's children. The resource server checks the
+   * permission first; this pins the artifact server's own check, for every kind.
+   */
+  @ParameterizedTest
+  @EnumSource(value = CedarResourceType.class, names = {"TEMPLATE", "ELEMENT", "FIELD", "INSTANCE"})
+  public void anOrdinaryUserMayNotWriteVerbatim(CedarResourceType type) throws Exception {
+    String id = create(type).get(LinkedData.ID).asText();
+    JsonNode before = stored(type, id);
+    ObjectNode submitted = before.deepCopy();
+    submitted.put("pav:createdBy", "https://metadatacenter.org/users/forged");
+
+    Reply written = reply(testClient.target(url(type, id)).queryParam("verbatim", true)
+        .property(ClientProperties.READ_TIMEOUT, 15000)
+        .request("application/json").header("Authorization", authHeader)
+        .header("If-Match", currentEtag(url(type, id), authHeader)).put(Entity.json(submitted.toString())));
+
+    Assertions.assertEquals(403, written.status(), written.body().toString());
+    Assertions.assertTrue(written.body().toString()
+            .contains(CedarPermission.WRITE_ARTIFACT_VERBATIM.getPermissionName()), written.body().toString());
+    Assertions.assertEquals(before, stored(type, id), "a refused verbatim write moved what was stored");
   }
 
   /** A field has no children, so nothing in it can hold a child identifier to refuse. */
