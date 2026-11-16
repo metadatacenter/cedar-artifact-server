@@ -4,7 +4,9 @@ public class TestConstants {
 
   /* General constants */
   public static final String BASE_URL = "http://localhost";
-  public static int DEFAULT_TIMEOUT = 3000;
+  // A request's time limit. Under a loaded build single requests have taken 7 to 10 s, and a read
+  // timeout reports a slow machine as a failed test.
+  public static final int DEFAULT_TIMEOUT = 15000;
   public static final String TEST_CONFIG_FILE = "test-config.yml";
   public static final String TEST_CLIENT_NAME = "TestClient";
   public static final String[] PROV_FIELDS = {"pav:createdOn", "pav:createdBy", "pav:lastUpdatedOn", "oslc:modifiedBy"};

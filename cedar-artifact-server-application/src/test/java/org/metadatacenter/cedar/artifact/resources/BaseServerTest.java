@@ -32,6 +32,7 @@ import java.util.Set;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.metadatacenter.cedar.artifact.resources.utils.TestConstants.DEFAULT_TIMEOUT;
 import static org.metadatacenter.constant.HttpConstants.HTTP_HEADER_AUTHORIZATION;
 
 @Tag("integration")
@@ -80,9 +81,9 @@ public abstract class BaseServerTest {
     // is required because many tests never read the response entity. reuseForks shares one JVM, so
     // the client name must be unique per build to avoid a metrics-registry collision.
     JerseyClientConfiguration clientConfig = new JerseyClientConfiguration();
-    clientConfig.setTimeout(Duration.milliseconds(3000));
-    clientConfig.setConnectionTimeout(Duration.milliseconds(3000));
-    clientConfig.setConnectionRequestTimeout(Duration.milliseconds(3000));
+    clientConfig.setTimeout(Duration.milliseconds(DEFAULT_TIMEOUT));
+    clientConfig.setConnectionTimeout(Duration.milliseconds(DEFAULT_TIMEOUT));
+    clientConfig.setConnectionRequestTimeout(Duration.milliseconds(DEFAULT_TIMEOUT));
     clientConfig.setMaxConnections(1024);
     clientConfig.setMaxConnectionsPerRoute(1024);
     // Dropwizard's JerseyClientConfiguration enables gzip on the client by default, which leaves it
@@ -97,8 +98,8 @@ public abstract class BaseServerTest {
     String serviceKey = TestUtil.getCedarConfig().getArtifactService().requireApiKey();
     testClient.register((jakarta.ws.rs.client.ClientRequestFilter) request ->
         request.getHeaders().putSingle(org.metadatacenter.config.ArtifactServiceConfig.HEADER, serviceKey));
-    testClient.property(ClientProperties.READ_TIMEOUT, 3000); // 3s
-    testClient.property(ClientProperties.CONNECT_TIMEOUT, 3000);
+    testClient.property(ClientProperties.READ_TIMEOUT, DEFAULT_TIMEOUT);
+    testClient.property(ClientProperties.CONNECT_TIMEOUT, DEFAULT_TIMEOUT);
   }
 
   @AfterAll
