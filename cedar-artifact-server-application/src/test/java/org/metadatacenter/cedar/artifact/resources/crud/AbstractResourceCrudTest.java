@@ -34,18 +34,19 @@ public abstract class AbstractResourceCrudTest extends AbstractResourceTest {
 
   static {
     log = LoggerFactory.getLogger("Test");
-    try {
-      sampleTemplate = TestUtil.readFileAsJson(SAMPLE_TEMPLATE_PATH);
-      sampleElement = TestUtil.readFileAsJson(SAMPLE_ELEMENT_PATH);
-      sampleField = TestUtil.readFileAsJson(SAMPLE_FIELD_PATH);
-      sampleInstance = TestUtil.readFileAsJson(SAMPLE_INSTANCE_PATH);
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
   }
 
+  /**
+   * Runs after the harness has redirected the environment. Reading the samples loads TestUtil, whose
+   * static initializer opens the document store the environment names, so it must not run when the
+   * class loads.
+   */
   @BeforeAll
-  public static void oneTimeSetUpAbstract() {
+  public static void oneTimeSetUpAbstract() throws IOException {
+    sampleTemplate = TestUtil.readFileAsJson(SAMPLE_TEMPLATE_PATH);
+    sampleElement = TestUtil.readFileAsJson(SAMPLE_ELEMENT_PATH);
+    sampleField = TestUtil.readFileAsJson(SAMPLE_FIELD_PATH);
+    sampleInstance = TestUtil.readFileAsJson(SAMPLE_INSTANCE_PATH);
     performOneTimeSetup();
     authHeader = authHeaderTestUser1;
   }

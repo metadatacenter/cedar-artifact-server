@@ -38,10 +38,6 @@ import static org.metadatacenter.constant.HttpConstants.HTTP_HEADER_AUTHORIZATIO
 @Tag("integration")
 public abstract class BaseServerTest {
 
-  static {
-    redirectEnvironment();
-  }
-
   private static void redirectEnvironment() {
     // Must run before anything builds the CEDAR configuration: the document store comes from an
     // in-process MongoDB, and Redis goes to a dead port, since queue writes are best-effort -
