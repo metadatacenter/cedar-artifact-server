@@ -2,6 +2,7 @@ package org.metadatacenter.cedar.artifact.resources;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.mongodb.MongoException;
 import org.metadatacenter.artifacts.model.core.Artifact;
 import org.metadatacenter.artifacts.model.core.ElementSchemaArtifact;
 import org.metadatacenter.artifacts.model.core.FieldSchemaArtifact;
@@ -473,6 +474,11 @@ public abstract class AbstractArtifactServerResource extends CedarMicroserviceRe
         return new HttpRequestJsonBody(JsonMapper.STRICT_MAPPER.readTree(json));
       } catch (ArtifactYamlTranscoder.CompactYamlBodyException e) {
         throw new CedarBadRequestException(e.getMessage(), e);
+      } catch (MongoException e) {
+        // A YAML instance is completed against its template, read from the store. A store that fails
+        // that read is not a malformed body: the shared mapper answers an outage as 503, without the
+        // driver's account of the cluster that a 400 would carry to the caller.
+        throw e;
       } catch (Exception e) {
         throw new CedarBadRequestException("There was an error converting the YAML request body to JSON", e);
       }

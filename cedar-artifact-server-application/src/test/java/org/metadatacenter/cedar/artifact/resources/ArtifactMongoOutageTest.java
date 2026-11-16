@@ -8,6 +8,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.metadatacenter.cedar.artifact.ArtifactServerApplication;
 import org.metadatacenter.cedar.artifact.ArtifactServerConfiguration;
 import org.metadatacenter.config.CedarConfig;
@@ -27,6 +30,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
 /** Proves the deployed exception boundary against the real MongoDB driver, not a mocked DAO. */
 @Tag("integration")
@@ -79,18 +83,65 @@ class ArtifactMongoOutageTest {
   @Test
   void artifactReadReturnsSanitizedServiceUnavailable() throws Exception {
     String id = URLEncoder.encode("https://example.org/templates/mongo-outage", StandardCharsets.UTF_8);
-    HttpRequest request = HttpRequest.newBuilder()
-        .uri(URI.create("http://localhost:" + SERVER.getLocalPort() + "/templates/" + id))
+    HttpResponse<String> response = send("GET", "/templates/" + id, null, null, null);
+    assertSanitizedServiceUnavailable(response);
+  }
+
+  /** The route of each kind, and a body a create of that kind accepts. */
+  private static Stream<Arguments> writes() {
+    Map<String, String> routes = Map.of(
+        "template", "/templates",
+        "element", "/template-elements",
+        "text-field", "/template-fields",
+        "instance", "/template-instances");
+    Map<String, String> bodies = Map.of(
+        "template", "type: template\nname: Outage Template\n",
+        "element", "type: element\nname: Outage Element\n",
+        "text-field", "type: text-field\nname: Outage Field\n",
+        "instance", "type: instance\nname: Outage Instance\nisBasedOn: https://example.org/templates/mongo-outage\n");
+    return routes.keySet().stream().sorted().flatMap(kind -> {
+      String route = routes.get(kind);
+      String id = URLEncoder.encode("https://example.org" + route + "/mongo-outage", StandardCharsets.UTF_8);
+      return Stream.of(
+          Arguments.of(kind + " POST", "POST", route, bodies.get(kind), null),
+          Arguments.of(kind + " conditional PUT", "PUT", route + "/" + id, bodies.get(kind), "\"1\""),
+          Arguments.of(kind + " conditional DELETE", "DELETE", route + "/" + id, null, "\"1\""));
+    });
+  }
+
+  /**
+   * The write handlers catch IOException, which the real driver never throws for an outage. What a
+   * caller sees then rests on the shared exception mapper alone, and a catch broadened to Exception
+   * around a write would turn the 503 a caller may retry into a 500.
+   */
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("writes")
+  void artifactWriteReturnsSanitizedServiceUnavailable(String name, String method, String path, String body,
+                                                       String ifMatch) throws Exception {
+    HttpResponse<String> response = send(method, path, body, body == null ? null : "application/yaml", ifMatch);
+    assertSanitizedServiceUnavailable(response);
+  }
+
+  private static HttpResponse<String> send(String method, String path, String body, String contentType,
+                                           String ifMatch) throws Exception {
+    HttpRequest.Builder request = HttpRequest.newBuilder()
+        .uri(URI.create("http://localhost:" + SERVER.getLocalPort() + path))
         .timeout(Duration.ofSeconds(5))
         .header("Authorization", authorization)
         .header(org.metadatacenter.config.ArtifactServiceConfig.HEADER,
             CedarConfig.getInstance(CedarEnvironmentVariableProvider.getFor(SystemComponent.SERVER_ARTIFACT))
                 .getArtifactService().requireApiKey())
-        .GET()
-        .build();
+        .method(method, body == null ? HttpRequest.BodyPublishers.noBody() : HttpRequest.BodyPublishers.ofString(body));
+    if (contentType != null) {
+      request.header("Content-Type", contentType);
+    }
+    if (ifMatch != null) {
+      request.header("If-Match", ifMatch);
+    }
+    return CLIENT.send(request.build(), HttpResponse.BodyHandlers.ofString());
+  }
 
-    HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
-
+  private static void assertSanitizedServiceUnavailable(HttpResponse<String> response) throws Exception {
     Assertions.assertEquals(503, response.statusCode(), response.body());
     JsonNode error = JsonMapper.STRICT_MAPPER.readTree(response.body());
     Assertions.assertEquals("SERVICE_UNAVAILABLE", error.path("status").asText(), response.body());
