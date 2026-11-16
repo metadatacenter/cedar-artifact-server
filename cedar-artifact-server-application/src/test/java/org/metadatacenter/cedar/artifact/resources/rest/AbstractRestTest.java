@@ -2,19 +2,27 @@ package org.metadatacenter.cedar.artifact.resources.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.metadatacenter.cedar.artifact.resources.AbstractResourceTest;
 import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
+import org.metadatacenter.constant.LinkedData;
 import org.metadatacenter.model.CedarResourceType;
+import org.metadatacenter.util.json.JsonMapper;
+import org.metadatacenter.util.mongo.MongoUtils;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import static org.metadatacenter.constant.HttpConstants.HTTP_AUTH_HEADER_APIKEY_PREFIX;
 
@@ -77,6 +85,56 @@ public abstract class AbstractRestTest extends AbstractResourceTest {
   public void tearDown() {
     // Remove all resources created previously
     removeResources(createdResources);
+  }
+
+  /** What a create assigns at any depth: identifiers and provenance. Everything else is the caller's. */
+  private static final Set<String> ASSIGNED_BY_A_CREATE =
+      Set.of(LinkedData.ID, "pav:createdOn", "pav:createdBy", "pav:lastUpdatedOn", "oslc:modifiedBy");
+
+  /**
+   * A create that answered 201 stored the document it answered with, and that document is the one
+   * sent, changed only where a create assigns a value. A status alone would pass a create that stored
+   * something else.
+   */
+  protected static void assertCreatedAsSent(String sent, String answered, CedarResourceType type) throws IOException {
+    JsonNode answer = JsonMapper.STRICT_MAPPER.readTree(answered);
+    String id = answer.get(LinkedData.ID).asText();
+    JsonNode stored = switch (type) {
+      case TEMPLATE -> TestUtil.templateService.findTemplate(id);
+      case ELEMENT -> TestUtil.templateElementService.findTemplateElement(id);
+      case FIELD -> TestUtil.templateFieldService.findTemplateField(id);
+      default -> TestUtil.templateInstanceService.findTemplateInstance(id);
+    };
+    Assertions.assertNotNull(stored, "a create answered 201 and stored nothing under " + id);
+    MongoUtils.removeIdField(stored);
+    Assertions.assertEquals(answer, stored, "a create answered with a document other than the one it stored");
+    List<String> differences = new ArrayList<>();
+    compareOutsideAssignments("", JsonMapper.STRICT_MAPPER.readTree(sent), stored, differences);
+    Assertions.assertEquals(List.of(), differences, "a create stored a document other than the one sent");
+  }
+
+  private static void compareOutsideAssignments(String path, JsonNode sent, JsonNode stored, List<String> differences) {
+    if (sent.isObject() && stored.isObject()) {
+      Set<String> keys = new TreeSet<>();
+      sent.fieldNames().forEachRemaining(keys::add);
+      stored.fieldNames().forEachRemaining(keys::add);
+      keys.removeAll(ASSIGNED_BY_A_CREATE);
+      for (String key : keys) {
+        if (!sent.has(key)) {
+          differences.add(path + "/" + key + " was added");
+        } else if (!stored.has(key)) {
+          differences.add(path + "/" + key + " was dropped");
+        } else {
+          compareOutsideAssignments(path + "/" + key, sent.get(key), stored.get(key), differences);
+        }
+      }
+    } else if (sent.isArray() && stored.isArray() && sent.size() == stored.size()) {
+      for (int i = 0; i < sent.size(); i++) {
+        compareOutsideAssignments(path + "/" + i, sent.get(i), stored.get(i), differences);
+      }
+    } else if (!sent.equals(stored)) {
+      differences.add(path + " was " + sent + " and is " + stored);
+    }
   }
 
   protected JsonNode getFileContentAsJson(String jsonFileName) throws IOException {

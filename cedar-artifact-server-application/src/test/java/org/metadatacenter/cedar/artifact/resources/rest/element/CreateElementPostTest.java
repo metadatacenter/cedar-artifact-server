@@ -120,6 +120,9 @@ public class CreateElementPostTest extends AbstractRestTest {
     int responseStatus = response.getStatus();
     int expectedResponseStatus = getExpectedResponseStatus(generator, js, rt, auth, idInBodyGenerator);
     Assertions.assertEquals(expectedResponseStatus, responseStatus);
+    if (responseStatus == CedarResponseStatus.CREATED.getStatusCode()) {
+      assertCreatedAsSent(originalFileContent, createdBody, resourceType);
+    }
   }
 
   private int getExpectedResponseStatus(TestParameterArrayGeneratorGenerator generator,
