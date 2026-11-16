@@ -22,6 +22,7 @@ import org.metadatacenter.constant.LinkedData;
 import org.metadatacenter.util.json.JsonMapper;
 import org.metadatacenter.util.test.EmbeddedCedarMongo;
 import org.metadatacenter.util.test.TestAuthUtil;
+import org.metadatacenter.model.request.OutputFormatType;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -141,6 +142,21 @@ public abstract class BaseServerTest {
     Response response = sendDeleteRequest(
         TestRequestUrls.forDeletingInstance(getPortNumber(), instanceId));
     checkStatusOk(response);
+  }
+
+  /**
+   * An export fixture with the instance's stored creation and update times put in place of its
+   * {{createdOn}} and {{lastUpdatedOn}} placeholders, which are the only values the server sets at
+   * upload rather than taking from the uploaded document.
+   */
+  protected String exportFixture(String path, String instanceId) {
+    Response stored = sendGetRequest(TestRequestUrls.forFindingInstance(getPortNumber(), instanceId,
+        OutputFormatType.JSONLD.getValue()));
+    checkStatusOk(stored);
+    JsonNode instance = stored.readEntity(JsonNode.class);
+    return TestResourcesUtils.getStringContent(path)
+        .replace("{{createdOn}}", instance.get("pav:createdOn").asText())
+        .replace("{{lastUpdatedOn}}", instance.get("pav:lastUpdatedOn").asText());
   }
 
   protected Response sendGetRequest(String requestUrl) {

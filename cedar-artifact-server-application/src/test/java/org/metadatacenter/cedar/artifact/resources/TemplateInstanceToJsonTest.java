@@ -1,5 +1,6 @@
 package org.metadatacenter.cedar.artifact.resources;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -8,6 +9,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.RepeatedTest;
 import org.metadatacenter.model.request.OutputFormatType;
+import org.metadatacenter.util.json.JsonMapper;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -43,7 +45,7 @@ public class TemplateInstanceToJsonTest extends BaseServerTest {
 
   // Reuse the fixture identifier after deletion: the exported validator must follow the new revision.
   @RepeatedTest(2)
-  public void shouldGetJsonOutput() {
+  public void shouldGetJsonOutput() throws Exception {
     Response response = sendGetRequest(
         TestRequestUrls.forFindingInstance(getPortNumber(), instanceExampleId,
             OutputFormatType.JSON.getValue()));
@@ -51,8 +53,9 @@ public class TemplateInstanceToJsonTest extends BaseServerTest {
     // Assert header
     assertThat(response.getHeaderString(HttpHeaders.CONTENT_TYPE), is(MediaType.APPLICATION_JSON));
     assertEquals(instanceEtag.substring(0, instanceEtag.length() - 1) + "-json\"", response.getHeaderString(HttpHeaders.ETAG));
-    // Assert content
-    String responseContent = response.readEntity(String.class);
-    System.out.println(responseContent);
+    // The JSON export is the instance with its JSON-LD keywords removed, which is the whole of it
+    JsonNode exported = response.readEntity(JsonNode.class);
+    assertEquals(JsonMapper.STRICT_MAPPER.readTree(
+        exportFixture("instances/usecase-instance-export.json", instanceExampleId)), exported);
   }
 }
