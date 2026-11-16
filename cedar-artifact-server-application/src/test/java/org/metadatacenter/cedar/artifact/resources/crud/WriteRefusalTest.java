@@ -24,9 +24,11 @@ import org.metadatacenter.util.test.TestAuthUtil;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Named.named;
+import static org.metadatacenter.model.ModelNodeNames.SCHEMA_IS_BASED_ON;
 
 /**
  * The artifact server refuses each write below, and every refusal leaves storage as it was.
@@ -168,29 +170,52 @@ public class WriteRefusalTest extends AbstractResourceCrudTest {
 
   // Verbatim writes
 
-  @Test
-  public void aVerbatimWriteWithAYamlBodyIsRefused() throws Exception {
-    String id = createTemplate().get(LinkedData.ID).asText();
-    JsonNode before = stored(CedarResourceType.TEMPLATE, id);
-
-    Reply written = reply(verbatim(CedarResourceType.TEMPLATE, id, true)
-        .put(Entity.entity(TEMPLATE_WITH_NESTED_CHILDREN, APPLICATION_YAML)));
-
-    assertVerbatimRefused(written);
-    Assertions.assertEquals(before, stored(CedarResourceType.TEMPLATE, id));
+  /** The YAML a write of this kind takes, restating the stored artifact's name and, for an instance, its template. */
+  private static String yamlFor(CedarResourceType type, JsonNode artifact) {
+    return switch (type) {
+      case TEMPLATE -> TEMPLATE_WITH_NESTED_CHILDREN;
+      case ELEMENT -> ELEMENT_WITH_A_CHILD;
+      case FIELD -> "type: text-field\nname: Refusal Field\n";
+      case INSTANCE -> "type: instance\nname: Refusal Instance\nisBasedOn: "
+          + artifact.get(SCHEMA_IS_BASED_ON).asText() + "\n";
+      default -> throw new IllegalArgumentException(type.toString());
+    };
   }
 
-  @Test
-  public void aVerbatimWriteToAnIdentifierThatHoldsNothingIsRefusedAndCreatesNothing() throws Exception {
-    ObjectNode source = create(CedarResourceType.ELEMENT);
-    String id = linkedDataUtil.buildNewLinkedDataId(CedarResourceType.ELEMENT);
+  /**
+   * Every kind refuses a verbatim YAML body. The instance resource keeps its own copy of this refusal,
+   * which the template, element and field cases do not reach.
+   */
+  @ParameterizedTest
+  @EnumSource(value = CedarResourceType.class, names = {"TEMPLATE", "ELEMENT", "FIELD", "INSTANCE"})
+  public void aVerbatimWriteWithAYamlBodyIsRefused(CedarResourceType type) throws Exception {
+    ObjectNode created = create(type);
+    String id = created.get(LinkedData.ID).asText();
+    JsonNode before = stored(type, id);
+
+    Reply written = reply(verbatim(type, id, true).put(Entity.entity(yamlFor(type, created), APPLICATION_YAML)));
+
+    assertVerbatimRefused(written);
+    Assertions.assertEquals(before, stored(type, id));
+  }
+
+  /** Every kind refuses a verbatim write to an identifier that holds nothing, the instance resource by its own copy. */
+  @ParameterizedTest
+  @EnumSource(value = CedarResourceType.class, names = {"TEMPLATE", "ELEMENT", "FIELD", "INSTANCE"})
+  public void aVerbatimWriteToAnIdentifierThatHoldsNothingIsRefusedAndCreatesNothing(CedarResourceType type)
+      throws Exception {
+    ObjectNode source = create(type);
+    String id = linkedDataUtil.buildNewLinkedDataId(type);
     ObjectNode submitted = source.deepCopy().put(LinkedData.ID, id);
 
-    Reply written = reply(verbatim(CedarResourceType.ELEMENT, id, false).put(Entity.json(submitted.toString())));
+    Reply written = reply(verbatim(type, id, false).put(Entity.json(submitted.toString())));
+    if (written.status() / 100 == 2) {
+      createdResources.put(id, type);
+    }
 
     Assertions.assertEquals(404, written.status(), written.body().toString());
     Assertions.assertEquals(CedarErrorKey.ARTIFACT_NOT_FOUND.getValue(), written.errorKey(), written.body().toString());
-    Assertions.assertNull(stored(CedarResourceType.ELEMENT, id), "a verbatim write created an artifact");
+    Assertions.assertNull(stored(type, id), "a verbatim write created an artifact");
   }
 
   private static Stream<Arguments> childIdentifierPlacements() {
@@ -277,6 +302,66 @@ public class WriteRefusalTest extends AbstractResourceCrudTest {
 
     Assertions.assertEquals(200, written.status(), written.body().toString());
     Assertions.assertEquals(submitted, stored(CedarResourceType.FIELD, id));
+  }
+
+  // Instances without a template
+
+  private static Stream<Arguments> missingTemplates() {
+    return Stream.of(
+        Arguments.of(named("naming a template that does not exist", (UnaryOperator<ObjectNode>) instance ->
+            instance.put(SCHEMA_IS_BASED_ON, linkedDataUtil.buildNewLinkedDataId(CedarResourceType.TEMPLATE)))),
+        Arguments.of(named("naming no template", (UnaryOperator<ObjectNode>) instance -> {
+          instance.remove(SCHEMA_IS_BASED_ON);
+          return instance;
+        })));
+  }
+
+  private static void assertRefusedForItsTemplate(Reply reply, JsonNode instance) {
+    Assertions.assertEquals(400, reply.status(), reply.body().toString());
+    Assertions.assertEquals(CedarErrorKey.INVALID_INPUT.getValue(), reply.errorKey(), reply.body().toString());
+    Assertions.assertTrue(reply.body().toString().contains(SCHEMA_IS_BASED_ON), reply.body().toString());
+    if (instance.has(SCHEMA_IS_BASED_ON)) {
+      Assertions.assertEquals(instance.get(SCHEMA_IS_BASED_ON).asText(),
+          reply.body().path("parameters").path(SCHEMA_IS_BASED_ON).asText(), reply.body().toString());
+    }
+  }
+
+  /** An instance is validated against its template, so one without a template is never created. */
+  @ParameterizedTest
+  @MethodSource("missingTemplates")
+  public void anInstanceWithoutATemplateIsNotCreated(UnaryOperator<ObjectNode> template) throws Exception {
+    ObjectNode submitted = template.apply(create(CedarResourceType.INSTANCE).deepCopy());
+    submitted.putNull(LinkedData.ID);
+    int instancesBefore = countResources(CedarResourceType.INSTANCE);
+
+    Reply written = reply(testClient.target(route(CedarResourceType.INSTANCE))
+        .property(ClientProperties.READ_TIMEOUT, 15000).request("application/json")
+        .header("Authorization", authHeader).post(Entity.json(submitted.toString())));
+    if (written.status() == 201) {
+      createdResources.put(written.body().path(LinkedData.ID).asText(), CedarResourceType.INSTANCE);
+    }
+
+    assertRefusedForItsTemplate(written, submitted);
+    Assertions.assertEquals(instancesBefore, countResources(CedarResourceType.INSTANCE),
+        "a refused create stored an instance");
+  }
+
+  /** An instance is validated against its template, so an update that leaves it without one is refused. */
+  @ParameterizedTest
+  @MethodSource("missingTemplates")
+  public void anInstanceUpdateWithoutATemplateIsRefused(UnaryOperator<ObjectNode> template) throws Exception {
+    String id = create(CedarResourceType.INSTANCE).get(LinkedData.ID).asText();
+    JsonNode before = stored(CedarResourceType.INSTANCE, id);
+    ObjectNode submitted = template.apply(before.deepCopy());
+
+    Reply written = reply(testClient.target(url(CedarResourceType.INSTANCE, id))
+        .property(ClientProperties.READ_TIMEOUT, 15000).request("application/json")
+        .header("Authorization", authHeader)
+        .header("If-Match", currentEtag(url(CedarResourceType.INSTANCE, id), authHeader))
+        .put(Entity.json(submitted.toString())));
+
+    assertRefusedForItsTemplate(written, submitted);
+    Assertions.assertEquals(before, stored(CedarResourceType.INSTANCE, id), "a refused update moved what was stored");
   }
 
   // Normalization
