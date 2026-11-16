@@ -18,6 +18,7 @@ import org.metadatacenter.constant.LinkedData;
 import org.metadatacenter.error.CedarErrorKey;
 import org.metadatacenter.exception.ArtifactServerResourceNotFoundException;
 import org.metadatacenter.http.CedarResponseStatus;
+import org.metadatacenter.id.CedarUserId;
 import org.metadatacenter.model.CedarResourceType;
 import org.metadatacenter.server.security.model.auth.CedarPermission;
 import org.metadatacenter.server.security.model.user.CedarUser;
@@ -25,6 +26,7 @@ import org.metadatacenter.server.dao.ArtifactRevisionConflictException;
 import org.metadatacenter.server.service.TemplateElementService;
 import org.metadatacenter.util.json.JsonMapper;
 import org.metadatacenter.util.mongo.MongoUtils;
+import org.metadatacenter.util.test.InMemoryUserService;
 import org.metadatacenter.util.test.TestAuthUtil;
 
 import java.io.IOException;
@@ -274,11 +276,16 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
     String id = "https://repo.metadatacenter.org/artifacts/" + UUID.randomUUID();
     ((ObjectNode) prepared).put(LinkedData.ID, id);
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType) + "/" + URLEncoder.encode(id, "UTF-8");
-    CedarUser updateOnlyUser = TestAuthUtil.getTestUser2(TestUtil.getCedarConfig());
+    // The change is written through the user service authentication reads, which hands out copies:
+    // editing the fixture user object alone changes nothing a request sees.
+    InMemoryUserService users = TestAuthUtil.getInMemoryUserService(TestUtil.getCedarConfig());
+    CedarUserId updateOnlyUserId =
+        CedarUserId.build(TestAuthUtil.getTestUser2(TestUtil.getCedarConfig()).getId());
+    CedarUser updateOnlyUser = users.findUser(updateOnlyUserId);
     List<String> originalPermissions = List.copyOf(updateOnlyUser.getPermissions());
     CedarPermission updatePermission = CedarPermission.getUpdateForArtifactType(resourceType);
-    updateOnlyUser.setPermissions(List.of(CedarPermission.LOGGED_IN.getPermissionName(),
-        updatePermission.getPermissionName()));
+    users.replaceRolesAndPermissions(updateOnlyUserId, updateOnlyUser.getRoles(),
+        List.of(CedarPermission.LOGGED_IN.getPermissionName(), updatePermission.getPermissionName()));
     try {
       Response response = testClient.target(url).request()
           .header(HttpHeaders.AUTHORIZATION, TestAuthUtil.getTestUser2AuthHeader(TestUtil.getCedarConfig()))
@@ -286,7 +293,7 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
       assertRefused(response, CedarResponseStatus.FORBIDDEN, CedarErrorKey.PERMISSION_MISSING,
         CedarPermission.getCreateForArtifactType(resourceType).getPermissionName(), resourceType, id, null);
     } finally {
-      updateOnlyUser.setPermissions(originalPermissions);
+      users.replaceRolesAndPermissions(updateOnlyUserId, updateOnlyUser.getRoles(), originalPermissions);
     }
   }
 
