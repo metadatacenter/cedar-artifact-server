@@ -25,6 +25,7 @@ public abstract class AbstractResourceCrudTest extends AbstractResourceTest {
 
   protected static JsonNode sampleTemplate;
   protected static JsonNode sampleElement;
+  protected static JsonNode sampleField;
   protected static JsonNode sampleInstance;
 
   protected static String authHeader;
@@ -36,6 +37,7 @@ public abstract class AbstractResourceCrudTest extends AbstractResourceTest {
     try {
       sampleTemplate = TestUtil.readFileAsJson(SAMPLE_TEMPLATE_PATH);
       sampleElement = TestUtil.readFileAsJson(SAMPLE_ELEMENT_PATH);
+      sampleField = TestUtil.readFileAsJson(SAMPLE_FIELD_PATH);
       sampleInstance = TestUtil.readFileAsJson(SAMPLE_INSTANCE_PATH);
     } catch (IOException e) {
       e.printStackTrace();
@@ -105,6 +107,7 @@ public abstract class AbstractResourceCrudTest extends AbstractResourceTest {
     return new Object[]{
         new Object[]{sampleTemplate, CedarResourceType.TEMPLATE},
         new Object[]{sampleElement, CedarResourceType.ELEMENT},
+        new Object[]{sampleField, CedarResourceType.FIELD},
         new Object[]{sampleInstance, CedarResourceType.INSTANCE}
     };
   }

@@ -63,7 +63,8 @@ public class ConditionalWriteMatrixTest extends AbstractResourceCrudTest {
   @Test
   public void everyConditionalWriteAnswersEveryIfMatchByTheSameRule() throws Exception {
     List<Kind> kinds = List.of(new Kind(CedarResourceType.TEMPLATE, sampleTemplate),
-        new Kind(CedarResourceType.ELEMENT, sampleElement), new Kind(CedarResourceType.INSTANCE, sampleInstance));
+        new Kind(CedarResourceType.ELEMENT, sampleElement), new Kind(CedarResourceType.FIELD, sampleField),
+        new Kind(CedarResourceType.INSTANCE, sampleInstance));
     List<String> differences = new ArrayList<>();
     for (Kind kind : kinds) {
       for (String method : List.of("PUT", "DELETE")) {

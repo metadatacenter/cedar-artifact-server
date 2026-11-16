@@ -28,6 +28,7 @@ public class TestConstants {
 
   /* Template Fields */
   public static final String FIELD_ROUTE = "template-fields";
+  public static final String SAMPLE_FIELD_PATH = "crud/SampleTemplateField.json";
 
   /* Template Instances */
   public static final String INSTANCE_ROUTE = "template-instances";
