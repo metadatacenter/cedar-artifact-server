@@ -419,7 +419,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
     JsonNode newInstance = body.asJson();
 
     enforceMandatoryFieldsInPut(id, newInstance, CedarResourceType.INSTANCE, CedarErrorKey.TEMPLATE_INSTANCE_NOT_UPDATED);
-    enforceMandatoryName(newInstance, CedarResourceType.INSTANCE, CedarErrorKey.TEMPLATE_INSTANCE_NOT_CREATED);
+    enforceMandatoryName(newInstance, CedarResourceType.INSTANCE, CedarErrorKey.TEMPLATE_INSTANCE_NOT_UPDATED);
 
     if (verbatim) {
       Response refusal = refuseVerbatimChildIdentifiers(newInstance, CedarResourceType.INSTANCE);

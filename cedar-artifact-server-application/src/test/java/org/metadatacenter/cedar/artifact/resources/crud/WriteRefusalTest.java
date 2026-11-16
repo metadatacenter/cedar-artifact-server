@@ -364,6 +364,25 @@ public class WriteRefusalTest extends AbstractResourceCrudTest {
     Assertions.assertEquals(before, stored(CedarResourceType.INSTANCE, id), "a refused update moved what was stored");
   }
 
+  /** An update of an instance that names nothing is refused with the update's key, not the create's. */
+  @Test
+  public void anInstanceUpdateWithoutANameIsRefusedAsAnUpdate() throws Exception {
+    String id = create(CedarResourceType.INSTANCE).get(LinkedData.ID).asText();
+    JsonNode before = stored(CedarResourceType.INSTANCE, id);
+    ObjectNode submitted = ((ObjectNode) before.deepCopy()).put("schema:name", "");
+
+    Reply written = reply(testClient.target(url(CedarResourceType.INSTANCE, id))
+        .property(ClientProperties.READ_TIMEOUT, 15000).request("application/json")
+        .header("Authorization", authHeader)
+        .header("If-Match", currentEtag(url(CedarResourceType.INSTANCE, id), authHeader))
+        .put(Entity.json(submitted.toString())));
+
+    Assertions.assertEquals(400, written.status(), written.body().toString());
+    Assertions.assertEquals(CedarErrorKey.TEMPLATE_INSTANCE_NOT_UPDATED.getValue(), written.errorKey(),
+        written.body().toString());
+    Assertions.assertEquals(before, stored(CedarResourceType.INSTANCE, id), "a refused update moved what was stored");
+  }
+
   // Normalization
 
   /**
