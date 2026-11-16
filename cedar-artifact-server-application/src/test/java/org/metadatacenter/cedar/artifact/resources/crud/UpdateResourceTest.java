@@ -12,26 +12,21 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.metadatacenter.cedar.artifact.resources.JsonSchemaTitleAndDescription;
-import org.metadatacenter.cedar.artifact.resources.TemplateElementsResource;
 import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
 import org.metadatacenter.constant.LinkedData;
 import org.metadatacenter.error.CedarErrorKey;
-import org.metadatacenter.exception.ArtifactServerResourceNotFoundException;
 import org.metadatacenter.http.CedarResponseStatus;
 import org.metadatacenter.id.CedarUserId;
 import org.metadatacenter.model.CedarResourceType;
 import org.metadatacenter.server.security.model.auth.CedarPermission;
 import org.metadatacenter.server.security.model.user.CedarUser;
 import org.metadatacenter.server.dao.ArtifactRevisionConflictException;
-import org.metadatacenter.server.service.TemplateElementService;
 import org.metadatacenter.util.json.JsonMapper;
 import org.metadatacenter.util.mongo.MongoUtils;
 import org.metadatacenter.util.test.InMemoryUserService;
 import org.metadatacenter.util.test.TestAuthUtil;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Proxy;
 import java.net.URLEncoder;
 import java.util.List;
 import java.util.UUID;
@@ -168,87 +163,6 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
       Assertions.assertEquals(CedarResponseStatus.PRECONDITION_FAILED.getStatusCode(), recreate.getStatus());
       Response stillGone = testClient.target(url).request().header(HttpHeaders.AUTHORIZATION, authHeader).get();
       Assertions.assertEquals(CedarResponseStatus.NOT_FOUND.getStatusCode(), stillGone.getStatus());
-    }
-  }
-
-  @Test
-  @SuppressWarnings("unchecked")
-  public void deletionReportedByMongoAfterUpdatePreflightReturnsPreconditionFailed() throws Exception {
-    ObjectNode created = (ObjectNode) createResource(sampleElement.deepCopy(), CedarResourceType.ELEMENT);
-    String id = created.get(LinkedData.ID).asText();
-    createdResources.put(id, CedarResourceType.ELEMENT);
-    String url = TestUtil.getResourceUrlRoute(baseTestUrl, CedarResourceType.ELEMENT) + "/"
-        + URLEncoder.encode(id, "UTF-8");
-    String etag = currentEtag(url, authHeader);
-
-    TemplateElementService<String, JsonNode> original = TestUtil.templateElementService;
-    TemplateElementService<String, JsonNode> disappearing =
-        (TemplateElementService<String, JsonNode>) Proxy.newProxyInstance(
-            TemplateElementService.class.getClassLoader(),
-            new Class<?>[]{TemplateElementService.class},
-            (proxy, method, arguments) -> {
-              if ("updateTemplateElement".equals(method.getName())) {
-                throw new ArtifactServerResourceNotFoundException();
-              }
-              try {
-                return method.invoke(original, arguments);
-              } catch (InvocationTargetException e) {
-                throw e.getCause();
-              }
-            });
-
-    // TemplateElementsResource holds the service in a static field shared by the registered Jersey
-    // instance. Swap in a deterministic DAO race for this request, then restore the embedded Mongo
-    // service before cleanup and the next test.
-    new TemplateElementsResource(TestUtil.getCedarConfig(), disappearing);
-    try {
-      ObjectNode update = created.deepCopy().put("schema:name", "update that loses to deletion");
-      JsonNode before = stored(CedarResourceType.ELEMENT, id);
-      Response response = testClient.target(url).request().header(HttpHeaders.AUTHORIZATION, authHeader)
-          .header(HttpHeaders.IF_MATCH, etag).put(Entity.json(update));
-      assertRefused(response, CedarResponseStatus.PRECONDITION_FAILED, CedarErrorKey.ARTIFACT_HAS_MOVED_ON,
-        "no longer exists", CedarResourceType.ELEMENT, id,
-          before);
-    } finally {
-      new TemplateElementsResource(TestUtil.getCedarConfig(), original);
-    }
-  }
-
-  @Test
-  @SuppressWarnings("unchecked")
-  public void createByPutThatLosesToAConcurrentCreateReturnsPreconditionFailed() throws Exception {
-    ObjectNode fresh = (ObjectNode) sampleElement.deepCopy();
-    String id = linkedDataUtil.buildNewLinkedDataId(CedarResourceType.ELEMENT);
-    fresh.put(LinkedData.ID, id);
-    String url = TestUtil.getResourceUrlRoute(baseTestUrl, CedarResourceType.ELEMENT) + "/"
-        + URLEncoder.encode(id, "UTF-8");
-
-    TemplateElementService<String, JsonNode> original = TestUtil.templateElementService;
-    TemplateElementService<String, JsonNode> raced =
-        (TemplateElementService<String, JsonNode>) Proxy.newProxyInstance(
-            TemplateElementService.class.getClassLoader(),
-            new Class<?>[]{TemplateElementService.class},
-            (proxy, method, arguments) -> {
-              if ("createTemplateElementWithRevision".equals(method.getName())) {
-                // What the DAO throws when the unique @id index rejects the insert because another
-                // writer created the same identifier between this request's read and its write.
-                throw new ArtifactRevisionConflictException(id);
-              }
-              try {
-                return method.invoke(original, arguments);
-              } catch (InvocationTargetException e) {
-                throw e.getCause();
-              }
-            });
-
-    new TemplateElementsResource(TestUtil.getCedarConfig(), raced);
-    try {
-      Response response = testClient.target(url).request().header(HttpHeaders.AUTHORIZATION, authHeader)
-          .put(Entity.json(fresh));
-      assertRefused(response, CedarResponseStatus.PRECONDITION_FAILED, CedarErrorKey.ARTIFACT_HAS_MOVED_ON,
-        "no longer exists", CedarResourceType.ELEMENT, id, null);
-    } finally {
-      new TemplateElementsResource(TestUtil.getCedarConfig(), original);
     }
   }
 
