@@ -127,6 +127,45 @@ public class ReplacementJudgementTest extends AbstractRestTest {
     }
   }
 
+  /**
+   * The judgement mints the created document's child identifiers without validating it, so the child
+   * types the minting relies on are checked first, and an untyped child or a multi-instance child with
+   * no items is refused rather than minted under a guessed prefix. Every other write validates first,
+   * so this is the one route that reaches those refusals.
+   */
+  static Stream<Arguments> unmintableChildren() {
+    return Stream.of(
+        Arguments.of("a child that declares no type", "must declare a recognised '@type'",
+            (Consumer<ObjectNode>) created ->
+                ((ObjectNode) created.path("properties").path("notes")).remove(LinkedData.TYPE)),
+        Arguments.of("a multi-instance child with no items", "must contain an 'items' object",
+            (Consumer<ObjectNode>) created -> ((ObjectNode) created.path("properties")).putObject("notes")
+                .put("type", "array").put("minItems", 0)));
+  }
+
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("unmintableChildren")
+  public void aCreatedDocumentWhoseChildCanNotBeMintedIsRefused(String name, String reason,
+                                                                Consumer<ObjectNode> change) throws IOException {
+    ObjectNode source = storedTemplate();
+    String judged = linkedDataUtil.buildNewLinkedDataId(CedarResourceType.TEMPLATE);
+    ObjectNode created = successorOf(source, judged);
+    change.accept(created);
+    ObjectNode body = JsonMapper.STRICT_MAPPER.createObjectNode();
+    body.set("created", created);
+    body.set("replacement", successorOf(source, judged));
+
+    Response judgement = request(url(judged) + "/replacement-judgement").post(Entity.json(body.toString()));
+    String answer = judgement.readEntity(String.class);
+
+    Assertions.assertEquals(400, judgement.getStatus(), answer);
+    JsonNode refusal = JsonMapper.STRICT_MAPPER.readTree(answer);
+    Assertions.assertEquals("templateNotUpdated", refusal.path("errorKey").asText(), answer);
+    Assertions.assertTrue(refusal.path("message").asText().contains(reason), answer);
+    Assertions.assertEquals("notes", refusal.path("parameters").path("property").asText(), answer);
+    Assertions.assertEquals(404, request(url(judged)).get().getStatus(), "the judgement stored the successor");
+  }
+
   @Test
   public void anIdentifierThatAlreadyNamesATemplateIsRefusedAndLeftAsItWas() throws IOException {
     ObjectNode source = storedTemplate();
