@@ -15,6 +15,7 @@ import org.metadatacenter.cedar.artifact.resources.JsonSchemaTitleAndDescription
 import org.metadatacenter.cedar.artifact.resources.TemplateElementsResource;
 import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
 import org.metadatacenter.constant.LinkedData;
+import org.metadatacenter.error.CedarErrorKey;
 import org.metadatacenter.exception.ArtifactServerResourceNotFoundException;
 import org.metadatacenter.http.CedarResponseStatus;
 import org.metadatacenter.model.CedarResourceType;
@@ -22,6 +23,7 @@ import org.metadatacenter.server.security.model.auth.CedarPermission;
 import org.metadatacenter.server.security.model.user.CedarUser;
 import org.metadatacenter.server.dao.ArtifactRevisionConflictException;
 import org.metadatacenter.server.service.TemplateElementService;
+import org.metadatacenter.util.json.JsonMapper;
 import org.metadatacenter.util.mongo.MongoUtils;
 import org.metadatacenter.util.test.TestAuthUtil;
 
@@ -199,9 +201,12 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
     new TemplateElementsResource(TestUtil.getCedarConfig(), disappearing);
     try {
       ObjectNode update = created.deepCopy().put("schema:name", "update that loses to deletion");
+      JsonNode before = stored(CedarResourceType.ELEMENT, id);
       Response response = testClient.target(url).request().header(HttpHeaders.AUTHORIZATION, authHeader)
           .header(HttpHeaders.IF_MATCH, etag).put(Entity.json(update));
-      Assertions.assertEquals(CedarResponseStatus.PRECONDITION_FAILED.getStatusCode(), response.getStatus());
+      assertRefused(response, CedarResponseStatus.PRECONDITION_FAILED, CedarErrorKey.ARTIFACT_HAS_MOVED_ON,
+        "no longer exists", CedarResourceType.ELEMENT, id,
+          before);
     } finally {
       new TemplateElementsResource(TestUtil.getCedarConfig(), original);
     }
@@ -238,8 +243,8 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
     try {
       Response response = testClient.target(url).request().header(HttpHeaders.AUTHORIZATION, authHeader)
           .put(Entity.json(fresh));
-      Assertions.assertEquals(CedarResponseStatus.PRECONDITION_FAILED.getStatusCode(), response.getStatus(),
-          () -> response.readEntity(String.class));
+      assertRefused(response, CedarResponseStatus.PRECONDITION_FAILED, CedarErrorKey.ARTIFACT_HAS_MOVED_ON,
+        "no longer exists", CedarResourceType.ELEMENT, id, null);
     } finally {
       new TemplateElementsResource(TestUtil.getCedarConfig(), original);
     }
@@ -278,7 +283,8 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
       Response response = testClient.target(url).request()
           .header(HttpHeaders.AUTHORIZATION, TestAuthUtil.getTestUser2AuthHeader(TestUtil.getCedarConfig()))
           .put(Entity.json(prepared));
-      Assertions.assertEquals(CedarResponseStatus.FORBIDDEN.getStatusCode(), response.getStatus());
+      assertRefused(response, CedarResponseStatus.FORBIDDEN, CedarErrorKey.PERMISSION_MISSING,
+        CedarPermission.getCreateForArtifactType(resourceType).getPermissionName(), resourceType, id, null);
     } finally {
       updateOnlyUser.setPermissions(originalPermissions);
     }
@@ -295,10 +301,11 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
 
     ObjectNode submitted = brokenStored.deepCopy();
     submitted.put("schema:name", "Edited old template");
+    JsonNode before = stored(CedarResourceType.TEMPLATE, id);
     Response response = put(submitted, id, CedarResourceType.TEMPLATE);
 
-    Assertions.assertEquals(CedarResponseStatus.BAD_REQUEST.getStatusCode(), response.getStatus());
-    response.close();
+    assertRefused(response, CedarResponseStatus.BAD_REQUEST, CedarErrorKey.INVALID_DATA,
+        "Property IRI for child '" + FIELD_NAME + "' must be an absolute IRI", CedarResourceType.TEMPLATE, id, before);
   }
 
   @Test
@@ -334,10 +341,11 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
     submitted.put("schema:name", "Edited template");
     propertyMapping(submitted, FIELD_NAME).putArray("enum").add("");
 
+    JsonNode before = stored(CedarResourceType.TEMPLATE, id);
     Response response = put(submitted, id, CedarResourceType.TEMPLATE);
 
-    Assertions.assertEquals(CedarResponseStatus.BAD_REQUEST.getStatusCode(), response.getStatus());
-    response.close();
+    assertRefused(response, CedarResponseStatus.BAD_REQUEST, CedarErrorKey.INVALID_DATA,
+        "Property IRI for child '" + FIELD_NAME + "' must be an absolute IRI", CedarResourceType.TEMPLATE, id, before);
   }
 
   @Test
@@ -350,10 +358,11 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
 
     ObjectNode submitted = brokenStored.deepCopy();
     submitted.put("schema:name", "Edited legacy template");
+    JsonNode before = stored(CedarResourceType.TEMPLATE, id);
     Response response = put(submitted, id, CedarResourceType.TEMPLATE);
 
-    Assertions.assertEquals(CedarResponseStatus.BAD_REQUEST.getStatusCode(), response.getStatus());
-    response.close();
+    assertRefused(response, CedarResponseStatus.BAD_REQUEST, CedarErrorKey.INVALID_DATA,
+        "missing required properties (['$schema'])", CedarResourceType.TEMPLATE, id, before);
 
     // A client can still repair the stored declaration explicitly in the same ordinary PUT.
     ((ObjectNode) submitted.path("properties").path(FIELD_NAME))
@@ -371,10 +380,11 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
     submitted.put("schema:name", "Removed a required child declaration");
     ((ObjectNode) submitted.path("properties").path(FIELD_NAME)).remove("$schema");
 
+    JsonNode before = stored(CedarResourceType.TEMPLATE, id);
     Response response = put(submitted, id, CedarResourceType.TEMPLATE);
 
-    Assertions.assertEquals(CedarResponseStatus.BAD_REQUEST.getStatusCode(), response.getStatus());
-    response.close();
+    assertRefused(response, CedarResponseStatus.BAD_REQUEST, CedarErrorKey.INVALID_DATA,
+        "missing required properties (['$schema'])", CedarResourceType.TEMPLATE, id, before);
   }
 
   @Test
@@ -386,10 +396,11 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
     TestUtil.templateService.updateTemplate(id, brokenStored.deepCopy(), TestUtil.templateService.getTemplateRevision(id));
 
     ObjectNode submitted = brokenStored.deepCopy();
+    JsonNode before = stored(CedarResourceType.TEMPLATE, id);
     Response response = verbatimPut(submitted, id, CedarResourceType.TEMPLATE);
 
-    Assertions.assertEquals(CedarResponseStatus.BAD_REQUEST.getStatusCode(), response.getStatus());
-    response.close();
+    assertRefused(response, CedarResponseStatus.BAD_REQUEST, CedarErrorKey.INVALID_DATA,
+        "missing required properties (['$schema'])", CedarResourceType.TEMPLATE, id, before);
   }
 
   @Test
@@ -403,10 +414,11 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
 
     ObjectNode submitted = brokenStored.deepCopy();
     submitted.put("schema:name", "Edited old template provenance");
+    JsonNode before = stored(CedarResourceType.TEMPLATE, id);
     Response response = put(submitted, id, CedarResourceType.TEMPLATE);
 
-    Assertions.assertEquals(CedarResponseStatus.BAD_REQUEST.getStatusCode(), response.getStatus());
-    response.close();
+    assertRefused(response, CedarResponseStatus.BAD_REQUEST, CedarErrorKey.INVALID_DATA,
+        "pav:derivedFrom must be an absolute IRI", CedarResourceType.TEMPLATE, id, before);
   }
 
   @Test
@@ -440,10 +452,11 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
     submitted.put("schema:name", "Introduced invalid provenance");
     submitted.put("pav:derivedFrom", "");
 
+    JsonNode before = stored(CedarResourceType.TEMPLATE, id);
     Response response = put(submitted, id, CedarResourceType.TEMPLATE);
 
-    Assertions.assertEquals(CedarResponseStatus.BAD_REQUEST.getStatusCode(), response.getStatus());
-    response.close();
+    assertRefused(response, CedarResponseStatus.BAD_REQUEST, CedarErrorKey.INVALID_DATA,
+        "pav:derivedFrom must be an absolute IRI", CedarResourceType.TEMPLATE, id, before);
   }
 
   @Test
@@ -458,10 +471,11 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
 
     ObjectNode submitted = brokenStored.deepCopy();
     submitted.put("schema:name", "Edited old instance");
+    JsonNode before = stored(CedarResourceType.INSTANCE, id);
     Response response = put(submitted, id, CedarResourceType.INSTANCE);
 
-    Assertions.assertEquals(CedarResponseStatus.BAD_REQUEST.getStatusCode(), response.getStatus());
-    response.close();
+    assertRefused(response, CedarResponseStatus.BAD_REQUEST, CedarErrorKey.INVALID_DATA,
+        "Element occurrence @id must be an absolute IRI or null", CedarResourceType.INSTANCE, id, before);
   }
 
   @Test
@@ -499,10 +513,11 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
     submitted.put("schema:name", "Edited instance");
     ((ObjectNode) submitted.get(ELEMENT_NAME)).put(LinkedData.ID, "");
 
+    JsonNode before = stored(CedarResourceType.INSTANCE, id);
     Response response = put(submitted, id, CedarResourceType.INSTANCE);
 
-    Assertions.assertEquals(CedarResponseStatus.BAD_REQUEST.getStatusCode(), response.getStatus());
-    response.close();
+    assertRefused(response, CedarResponseStatus.BAD_REQUEST, CedarErrorKey.INVALID_DATA,
+        "Element occurrence @id must be an absolute IRI or null", CedarResourceType.INSTANCE, id, before);
   }
 
   @Test
@@ -516,10 +531,11 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
 
     ObjectNode submitted = brokenStored.deepCopy();
     submitted.put("schema:name", "Edited old attribute-value instance");
+    JsonNode before = stored(CedarResourceType.INSTANCE, id);
     Response response = put(submitted, id, CedarResourceType.INSTANCE);
 
-    Assertions.assertEquals(CedarResponseStatus.BAD_REQUEST.getStatusCode(), response.getStatus());
-    response.close();
+    assertRefused(response, CedarResponseStatus.BAD_REQUEST, CedarErrorKey.INVALID_DATA,
+        "Attribute-value name '@context' is reserved", CedarResourceType.INSTANCE, id, before);
 
     // A deliberate client correction is still accepted; names are no longer silently removed.
     submitted.putArray(ATTRIBUTE_VALUE_FIELD_NAME).add(DUPLICATE_ATTRIBUTE_NAME);
@@ -536,10 +552,11 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
     ObjectNode submitted = withInvalidAttributeValueNames(created.deepCopy());
     submitted.put("schema:name", "Edited attribute-value instance");
 
+    JsonNode before = stored(CedarResourceType.INSTANCE, id);
     Response response = put(submitted, id, CedarResourceType.INSTANCE);
 
-    Assertions.assertEquals(CedarResponseStatus.BAD_REQUEST.getStatusCode(), response.getStatus());
-    response.close();
+    assertRefused(response, CedarResponseStatus.BAD_REQUEST, CedarErrorKey.INVALID_DATA,
+        "Attribute-value name '@context' is reserved", CedarResourceType.INSTANCE, id, before);
   }
 
   @Test
@@ -554,10 +571,11 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
       TestUtil.templateInstanceService.updateTemplateInstance(id, brokenStored.deepCopy(),
           TestUtil.templateInstanceService.getTemplateInstanceRevision(id));
 
+      JsonNode before = stored(CedarResourceType.INSTANCE, id);
       Response refused = put(brokenStored.deepCopy(), id, CedarResourceType.INSTANCE);
-      Assertions.assertEquals(CedarResponseStatus.BAD_REQUEST.getStatusCode(), refused.getStatus(),
-          "an inherited reserved, colliding, or duplicate name must not be silently removed");
-      refused.close();
+      // An inherited reserved, colliding, or duplicate name must not be silently removed.
+      assertRefused(refused, CedarResponseStatus.BAD_REQUEST, CedarErrorKey.INVALID_DATA,
+        "Attribute-value name '" + unsafeName + "'", CedarResourceType.INSTANCE, id, before);
 
       Response corrected = put(created.deepCopy(), id, CedarResourceType.INSTANCE);
       Assertions.assertEquals(CedarResponseStatus.OK.getStatusCode(), corrected.getStatus());
@@ -622,6 +640,39 @@ public class UpdateResourceTest extends AbstractResourceCrudTest {
     MongoUtils.removeIdField(storedInstance);
     Assertions.assertEquals(submitted, storedInstance,
         "the stored instance differs from the one the verbatim write submitted");
+  }
+
+  /** Reads the artifact as storage holds it, or null when there is none, leaving out Mongo's own key. */
+  private static JsonNode stored(CedarResourceType type, String id) throws IOException {
+    JsonNode document = switch (type) {
+      case TEMPLATE -> TestUtil.templateService.findTemplate(id);
+      case ELEMENT -> TestUtil.templateElementService.findTemplateElement(id);
+      case FIELD -> TestUtil.templateFieldService.findTemplateField(id);
+      case INSTANCE -> TestUtil.templateInstanceService.findTemplateInstance(id);
+      default -> throw new IllegalArgumentException(type.toString());
+    };
+    if (document != null) {
+      MongoUtils.removeIdField(document);
+    }
+    return document;
+  }
+
+  /**
+   * A refusal answers its status with the error key and the reason of the check that refused it, so a
+   * refusal by an unrelated earlier check does not pass, and it leaves storage holding what it held
+   * before the request, which is {@code before} or nothing.
+   */
+  private static void assertRefused(Response response, CedarResponseStatus status, CedarErrorKey errorKey,
+                                    String reason, CedarResourceType type, String id, JsonNode before)
+      throws IOException {
+    String body;
+    try (response) {
+      body = response.readEntity(String.class);
+    }
+    Assertions.assertEquals(status.getStatusCode(), response.getStatus(), body);
+    Assertions.assertEquals(errorKey.getValue(), JsonMapper.STRICT_MAPPER.readTree(body).path("errorKey").asText(), body);
+    Assertions.assertTrue(body.contains(reason), "the refusal does not give its reason, " + reason + ": " + body);
+    Assertions.assertEquals(before, stored(type, id), "a refused write moved what was stored");
   }
 
   private ObjectNode createTemplateWithElement() {

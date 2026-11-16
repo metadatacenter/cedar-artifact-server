@@ -82,11 +82,25 @@ public class ConditionalWriteMatrixTest extends AbstractResourceCrudTest {
               }
             }
             Invocation.Builder write = request(url, tag.value().apply(current));
+            String cell = kind.type() + " " + method + " / " + tag.name() + " / " + (exists ? "exists" : "deleted");
+            int expected = expected(method, tag, exists);
             try (Response answer = method.equals("PUT") ? write.put(Entity.json(created)) : write.delete()) {
-              int expected = expected(method, tag, exists);
               if (answer.getStatus() != expected)
-                differences.add(kind.type() + " " + method + " / " + tag.name() + " / "
-                    + (exists ? "exists" : "deleted") + ": " + answer.getStatus() + " where " + expected);
+                differences.add(cell + ": " + answer.getStatus() + " where " + expected);
+            }
+            // A refusal must leave the store as it was. The PUT sends back the document it read, so
+            // a refused write that landed anyway would show only as a new revision, or as a deleted
+            // artifact restored.
+            if (expected >= 400) {
+              try (Response after = testClient.target(url).request()
+                  .header(HttpHeaders.AUTHORIZATION, authHeader).get()) {
+                after.bufferEntity();
+                if (exists && !current.equals(after.getHeaderString(HttpHeaders.ETAG)))
+                  differences.add(cell + ": the refusal left " + after.getStatus() + " "
+                      + after.getHeaderString(HttpHeaders.ETAG) + " where " + current + " was stored");
+                if (!exists && after.getStatus() != 404)
+                  differences.add(cell + ": the refusal left the deleted artifact readable");
+              }
             }
           }
         }
