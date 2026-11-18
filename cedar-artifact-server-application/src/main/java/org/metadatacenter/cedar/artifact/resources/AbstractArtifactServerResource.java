@@ -14,7 +14,6 @@ import org.metadatacenter.artifacts.model.renderer.JsonArtifactRenderer;
 import org.metadatacenter.artifacts.model.tools.YamlSerializer;
 import org.metadatacenter.cedar.util.dw.CedarMicroserviceResource;
 import org.metadatacenter.config.CedarConfig;
-import org.metadatacenter.constant.HttpConstants;
 import org.metadatacenter.constant.LinkedData;
 import org.metadatacenter.error.CedarErrorKey;
 import org.metadatacenter.error.CedarErrorPack;
@@ -39,7 +38,6 @@ import org.metadatacenter.server.service.TemplateService;
 import org.metadatacenter.util.JsonPointerValuePair;
 import org.metadatacenter.util.ModelUtil;
 import org.metadatacenter.util.artifact.ArtifactYamlTranscoder;
-import org.metadatacenter.util.http.CedarResponse;
 import org.metadatacenter.util.http.RevisionPreconditionParser;
 import org.metadatacenter.util.json.JsonMapper;
 import org.metadatacenter.util.mongo.MongoUtils;
@@ -421,6 +419,11 @@ public abstract class AbstractArtifactServerResource extends CedarMicroserviceRe
   // YAML content negotiation. Storage is JSON only: YAML is a request and response
   // representation, transcoded per request by ArtifactYamlTranscoder.
 
+  /**
+   * The representation the Accept header selects. It is never empty inside a resource method that declares
+   * the types it produces, because Jersey answers 406 before the method runs when the header names none of
+   * them, and those are the types negotiation chooses among.
+   */
   protected Optional<MediaType> negotiatedArtifactResponseType() {
     return ArtifactYamlTranscoder.negotiateResponseType(httpHeaders.getAcceptableMediaTypes());
   }
@@ -434,14 +437,6 @@ public abstract class AbstractArtifactServerResource extends CedarMicroserviceRe
                                         ArtifactYamlTranscoder.UnreadableArtifactException e) {
     return Response.fromResponse(ArtifactYamlTranscoder.noYamlFormResponse(id, resourceType, e))
         .header(HttpHeaders.VARY, HttpHeaders.ACCEPT)
-        .build();
-  }
-
-  protected Response notAcceptableArtifactFormatResponse() {
-    return CedarResponse.notAcceptable()
-        .message("None of the media types in the Accept header can be produced")
-        .parameter("allowed media types",
-            Arrays.toString(new String[]{MediaType.APPLICATION_JSON, HttpConstants.CONTENT_TYPE_APPLICATION_YAML}))
         .build();
   }
 

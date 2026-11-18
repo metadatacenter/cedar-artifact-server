@@ -110,9 +110,6 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(createPermission);
     rejectCompactOnWriteOperations(compactParam);
-    if (negotiatedArtifactResponseType().isEmpty()) {
-      return notAcceptableArtifactFormatResponse();
-    }
 
     CedarRequestBody body = artifactRequestBody(requestBody, resourceType);
     c.must(body).be(NonEmpty);
@@ -205,9 +202,6 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     c.must(id).be(ValidUrl);
 
     Optional<MediaType> responseType = negotiatedArtifactResponseType();
-    if (responseType.isEmpty()) {
-      return notAcceptableArtifactFormatResponse();
-    }
 
     ArtifactWithRevision<JsonNode> snapshot;
     try {
@@ -322,9 +316,6 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     id = linkedDataUtil.resolveResourceId(artifactType, id);
     c.must(id).be(ValidUrl);
     rejectCompactOnWriteOperations(compactParam);
-    if (negotiatedArtifactResponseType().isEmpty()) {
-      return notAcceptableArtifactFormatResponse();
-    }
 
     JsonNode currentArtifact;
     Long currentRevision = null;

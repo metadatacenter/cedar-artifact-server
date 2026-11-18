@@ -139,9 +139,6 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(CedarPermission.TEMPLATE_INSTANCE_CREATE);
     rejectCompactOnWriteOperations(compactParam);
-    if (negotiatedArtifactResponseType().isEmpty()) {
-      return notAcceptableArtifactFormatResponse();
-    }
 
     CedarRequestBody body = artifactRequestBody(requestBody, CedarResourceType.INSTANCE, templateService::findTemplate);
     c.must(body).be(NonEmpty);
@@ -227,9 +224,6 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
     Optional<MediaType> responseType = Optional.empty();
     if (negotiated) {
       responseType = ArtifactYamlTranscoder.negotiateInstanceResponseType(httpHeaders.getAcceptableMediaTypes());
-      if (responseType.isEmpty()) {
-        return notAcceptableArtifactFormatResponse();
-      }
       if (ArtifactYamlTranscoder.APPLICATION_NQUADS_TYPE.equals(responseType.get())) {
         format = Optional.of(OutputFormatType.RDF_NQUAD.getValue());
       }
@@ -378,9 +372,6 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
     id = linkedDataUtil.resolveResourceId(CedarResourceType.INSTANCE, id);
     c.must(id).be(ValidUrl);
     rejectCompactOnWriteOperations(compactParam);
-    if (negotiatedArtifactResponseType().isEmpty()) {
-      return notAcceptableArtifactFormatResponse();
-    }
 
     JsonNode currentTemplateInstance;
     Long currentRevision = null;
