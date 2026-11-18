@@ -46,6 +46,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiFunction;
 
 import static org.metadatacenter.rest.assertion.GenericAssertions.*;
 
@@ -58,6 +59,10 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
   private final String artifactLabel;
   private final String artifactsLabel;
   private final boolean ensureFieldIds;
+
+  /** Mints a created artifact's child identifiers, package-private so a test can substitute a defective step. */
+  volatile BiFunction<JsonNode, ProvenanceInfo, List<ModelUtil.MintedChildId>> createdChildIdMinter =
+      (artifact, pi) -> ModelUtil.ensureFieldIdsRecursively(artifact, pi, provenanceUtil, linkedDataUtil);
 
   protected AbstractArtifactCrudResource(CedarConfig cedarConfig, CedarResourceType artifactType, Logger logger, String artifactLabel,
                                          String artifactsLabel, List<String> summaryFields, boolean ensureFieldIds) {
@@ -149,8 +154,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
       throws CedarException {
     try {
       if (ensureFieldIds) {
-        logReplacedChildIdentifiers(
-            ModelUtil.ensureFieldIdsRecursively(artifact, pi, provenanceUtil, linkedDataUtil), null);
+        logReplacedChildIdentifiers(createdChildIdMinter.apply(artifact, pi), null);
         Response refusal = refuseInvalidNormalizedArtifact(artifact);
         if (refusal != null) {
           return refusal;
