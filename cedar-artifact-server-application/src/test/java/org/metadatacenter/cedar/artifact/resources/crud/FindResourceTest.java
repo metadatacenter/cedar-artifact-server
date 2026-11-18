@@ -227,7 +227,7 @@ public class FindResourceTest extends AbstractResourceCrudTest {
   }
 
   /** Every artifact of the kind the listing holds, by identifier, read page by page. */
-  private static Map<String, JsonNode> listAll(CedarResourceType resourceType, String limit, Map<String, String> params)
+  private Map<String, JsonNode> listAll(CedarResourceType resourceType, String limit, Map<String, String> params)
       throws URISyntaxException {
     Map<String, JsonNode> listed = new HashMap<>();
     int pageSize = limit.isEmpty()
@@ -306,7 +306,7 @@ public class FindResourceTest extends AbstractResourceCrudTest {
     return new Object[]{CedarResourceType.TEMPLATE, CedarResourceType.ELEMENT, CedarResourceType.INSTANCE};
   }
 
-  static Object[] parametersForFindAllResourcesTest() {
+  Object[] parametersForFindAllResourcesTest() {
     List<Object> p1p2Values = Arrays.asList(
         Arrays.asList(CedarResourceType.TEMPLATE, sampleTemplate),
         Arrays.asList(CedarResourceType.ELEMENT, sampleElement),

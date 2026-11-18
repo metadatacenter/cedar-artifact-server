@@ -33,7 +33,7 @@ import static org.metadatacenter.model.CedarResourceType.ELEMENT;
 
 public class CreateElementPutTest extends AbstractRestTest {
 
-  private static int index = -1;
+  private int index = -1;
 
   @ParameterizedTest
   @MethodSource("getParamsCreateElementPut")

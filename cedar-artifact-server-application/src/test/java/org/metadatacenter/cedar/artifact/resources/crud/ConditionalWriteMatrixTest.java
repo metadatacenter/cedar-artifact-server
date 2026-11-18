@@ -110,7 +110,7 @@ public class ConditionalWriteMatrixTest extends AbstractResourceCrudTest {
     Assertions.assertEquals(List.of(), differences);
   }
 
-  private static Invocation.Builder request(String url, String ifMatch) {
+  private Invocation.Builder request(String url, String ifMatch) {
     Invocation.Builder builder = testClient.target(url).request().header(HttpHeaders.AUTHORIZATION, authHeader);
     return ifMatch == null ? builder : builder.header(HttpHeaders.IF_MATCH, ifMatch);
   }

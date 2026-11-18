@@ -15,6 +15,7 @@ import org.glassfish.jersey.client.ClientProperties;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.TestInstance;
 import org.metadatacenter.cedar.artifact.ArtifactServerApplication;
 import org.metadatacenter.cedar.artifact.ArtifactServerConfiguration;
 import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
@@ -35,7 +36,12 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.metadatacenter.cedar.artifact.resources.utils.TestConstants.DEFAULT_TIMEOUT;
 import static org.metadatacenter.constant.HttpConstants.HTTP_HEADER_AUTHORIZATION;
 
+/**
+ * Starts one artifact server for each concrete test class, with a client authenticated as the test user.
+ * Both belong to the test instance, which JUnit keeps for the whole class, so no two classes share either.
+ */
 @Tag("integration")
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class BaseServerTest {
 
   private static void redirectEnvironment() {
@@ -54,20 +60,20 @@ public abstract class BaseServerTest {
         "CEDAR_BRIDGE_HTTP_PORT", "1"));
   }
 
-  protected static String authHeaderValue;
-
-  protected static Client testClient;
-
-  public static final DropwizardTestSupport<ArtifactServerConfiguration> SERVER_APPLICATION =
+  protected final DropwizardTestSupport<ArtifactServerConfiguration> serverApplication =
       new DropwizardTestSupport<>(ArtifactServerApplication.class,
           ResourceHelpers.resourceFilePath("test-config.yml"));
 
+  protected String authHeaderValue;
+
+  protected Client testClient;
+
   @BeforeAll
-  public static void startServerAndClient() throws Exception {
-    // The abstract harness is reused by several concrete test classes. The class-isolation
-    // extension restores the process environment after each one, so redirect it again here.
+  public void startServerAndClient() throws Exception {
+    // The class-isolation extension restores the process environment after each class, so each
+    // class redirects it again before its server starts.
     redirectEnvironment();
-    SERVER_APPLICATION.before();
+    serverApplication.before();
     // Replace the Neo4j-backed user service wired at application startup with an in-memory one,
     // so API-key authentication needs no live Neo4j (and no Keycloak)
     TestAuthUtil.installInMemoryUserService(TestUtil.getCedarConfig());
@@ -87,7 +93,7 @@ public abstract class BaseServerTest {
     // "ZipException: Not in GZIP format". The tests do not need compression; disable it.
     clientConfig.setGzipEnabled(false);
     clientConfig.setGzipEnabledForRequests(false);
-    testClient = new JerseyClientBuilder(SERVER_APPLICATION.getEnvironment())
+    testClient = new JerseyClientBuilder(serverApplication.getEnvironment())
         .using(clientConfig)
         .build("artifact-baseserver-test-client-" + System.nanoTime());
     // The service key is read once: a configuration lookup in the filter ran, and logged, on every request.
@@ -99,15 +105,15 @@ public abstract class BaseServerTest {
   }
 
   @AfterAll
-  public static void stopServerAndClient() {
+  public void stopServerAndClient() {
     if (testClient != null) {
       testClient.close();
     }
-    SERVER_APPLICATION.after();
+    serverApplication.after();
   }
 
   protected int getPortNumber() {
-    return SERVER_APPLICATION.getLocalPort();
+    return serverApplication.getLocalPort();
   }
 
   protected String uploadTemplate(String templateDocument) {
@@ -191,7 +197,7 @@ public abstract class BaseServerTest {
     return request.put(Entity.json(payload));
   }
 
-  protected static String currentEtag(String url, String authorization) {
+  protected String currentEtag(String url, String authorization) {
     Response response = testClient.target(url).request()
         .header(HTTP_HEADER_AUTHORIZATION, authorization)
         .get();

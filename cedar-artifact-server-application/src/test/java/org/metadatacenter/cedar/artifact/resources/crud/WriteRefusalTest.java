@@ -69,15 +69,15 @@ public class WriteRefusalTest extends AbstractResourceCrudTest {
           name: Street
       """;
 
-  private static String route(CedarResourceType type) {
+  private String route(CedarResourceType type) {
     return TestUtil.getResourceUrlRoute(baseTestUrl, type);
   }
 
-  private static String url(CedarResourceType type, String id) {
+  private String url(CedarResourceType type, String id) {
     return route(type) + "/" + URLEncoder.encode(id, StandardCharsets.UTF_8);
   }
 
-  private static ObjectNode createFromYaml(CedarResourceType type, String yaml) {
+  private ObjectNode createFromYaml(CedarResourceType type, String yaml) {
     try (Response created = testClient.target(route(type)).property(ClientProperties.READ_TIMEOUT, 15000)
         .request("application/json").header("Authorization", authHeader)
         .post(Entity.entity(yaml, APPLICATION_YAML))) {
@@ -91,11 +91,11 @@ public class WriteRefusalTest extends AbstractResourceCrudTest {
     }
   }
 
-  private static ObjectNode createTemplate() {
+  private ObjectNode createTemplate() {
     return createFromYaml(CedarResourceType.TEMPLATE, TEMPLATE_WITH_NESTED_CHILDREN);
   }
 
-  private static ObjectNode create(CedarResourceType type) {
+  private ObjectNode create(CedarResourceType type) {
     return switch (type) {
       case TEMPLATE -> createTemplate();
       case ELEMENT -> createFromYaml(type, ELEMENT_WITH_A_CHILD);
@@ -142,7 +142,7 @@ public class WriteRefusalTest extends AbstractResourceCrudTest {
     }
   }
 
-  private static Reply reply(Response response) throws IOException {
+  private Reply reply(Response response) throws IOException {
     try (response) {
       String entity = response.readEntity(String.class);
       return new Reply(response.getStatus(), entity == null || entity.isBlank()
@@ -150,7 +150,7 @@ public class WriteRefusalTest extends AbstractResourceCrudTest {
     }
   }
 
-  private static Invocation.Builder verbatim(CedarResourceType type, String id, boolean withEtag) {
+  private Invocation.Builder verbatim(CedarResourceType type, String id, boolean withEtag) {
     String admin = TestAuthUtil.getAdminUserAuthHeader(TestUtil.getCedarConfig());
     Invocation.Builder request = testClient.target(url(type, id)).queryParam("verbatim", true)
         .property(ClientProperties.READ_TIMEOUT, 15000)
@@ -158,7 +158,7 @@ public class WriteRefusalTest extends AbstractResourceCrudTest {
     return withEtag ? request.header("If-Match", currentEtag(url(type, id), admin)) : request;
   }
 
-  private static Reply verbatimPut(CedarResourceType type, String id, JsonNode body) throws IOException {
+  private Reply verbatimPut(CedarResourceType type, String id, JsonNode body) throws IOException {
     return reply(verbatim(type, id, true).put(Entity.json(body.toString())));
   }
 
@@ -306,7 +306,7 @@ public class WriteRefusalTest extends AbstractResourceCrudTest {
 
   // Instances without a template
 
-  private static Stream<Arguments> missingTemplates() {
+  private Stream<Arguments> missingTemplates() {
     return Stream.of(
         Arguments.of(named("naming a template that does not exist", (UnaryOperator<ObjectNode>) instance ->
             instance.put(SCHEMA_IS_BASED_ON, linkedDataUtil.buildNewLinkedDataId(CedarResourceType.TEMPLATE)))),

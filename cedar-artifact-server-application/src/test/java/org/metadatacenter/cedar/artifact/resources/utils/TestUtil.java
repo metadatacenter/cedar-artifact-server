@@ -28,11 +28,11 @@ import static org.metadatacenter.cedar.artifact.resources.utils.TestConstants.*;
 
 public class TestUtil {
 
-  public static CedarConfig cedarConfig;
-  public static TemplateFieldService<String, JsonNode> templateFieldService;
-  public static TemplateElementService<String, JsonNode> templateElementService;
-  public static TemplateService<String, JsonNode> templateService;
-  public static TemplateInstanceService<String, JsonNode> templateInstanceService;
+  public static final CedarConfig cedarConfig;
+  public static final TemplateFieldService<String, JsonNode> templateFieldService;
+  public static final TemplateElementService<String, JsonNode> templateElementService;
+  public static final TemplateService<String, JsonNode> templateService;
+  public static final TemplateInstanceService<String, JsonNode> templateInstanceService;
 
   static {
     cedarConfig = getCedarConfig();

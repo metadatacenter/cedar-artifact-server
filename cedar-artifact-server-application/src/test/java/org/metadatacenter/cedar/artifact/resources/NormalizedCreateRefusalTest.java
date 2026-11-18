@@ -81,17 +81,17 @@ public class NormalizedCreateRefusalTest extends AbstractRestTest {
     assertNull(storedIdByName(kind, name), "a create refused after normalization stored an artifact");
   }
 
-  private static Response post(CedarResourceType kind, String name) {
+  private Response post(CedarResourceType kind, String name) {
     return testClient.target(baseTestUrl + "/" + kind.getPrefix()).request()
         .header(AUTHORIZATION, authHeaderTestUser1)
         .post(Entity.entity("type: " + kind.getValue() + "\nname: " + name + "\n", "application/yaml"));
   }
 
   /** The application's own resource for the kind, as Jersey serves it. */
-  private static AbstractArtifactCrudResource resource(CedarResourceType kind) {
+  private AbstractArtifactCrudResource resource(CedarResourceType kind) {
     Class<? extends AbstractArtifactCrudResource> type =
         kind == CedarResourceType.TEMPLATE ? TemplatesResource.class : TemplateElementsResource.class;
-    ServletContainer jersey = (ServletContainer) SERVER_APPLICATION.getEnvironment().getJerseyServletContainer();
+    ServletContainer jersey = (ServletContainer) serverApplication.getEnvironment().getJerseyServletContainer();
     return jersey.getApplicationHandler().getInjectionManager().getInstance(type);
   }
 

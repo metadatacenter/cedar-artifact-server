@@ -230,7 +230,7 @@ public class AcceptHeaderResponseTest extends AbstractRestTest {
         : "type: instance\nname: " + name + "\nisBasedOn: " + templateId + "\n";
   }
 
-  private static ObjectNode storedJson(CedarResourceType kind, String id) throws IOException {
+  private ObjectNode storedJson(CedarResourceType kind, String id) throws IOException {
     Response response = request(url(kind, id)).header("Accept", "application/json").get();
     return (ObjectNode) JsonMapper.STRICT_MAPPER.readTree(response.readEntity(String.class));
   }
@@ -250,11 +250,11 @@ public class AcceptHeaderResponseTest extends AbstractRestTest {
     return accept.header() == null ? request : request.header("Accept", accept.header());
   }
 
-  private static String url(CedarResourceType kind, String id) {
+  private String url(CedarResourceType kind, String id) {
     return baseTestUrl + "/" + kind.getPrefix() + "/" + URLEncoder.encode(id, StandardCharsets.UTF_8);
   }
 
-  private static Invocation.Builder request(String url) {
+  private Invocation.Builder request(String url) {
     return testClient.target(url).request().header(AUTHORIZATION, authHeaderTestUser1);
   }
 

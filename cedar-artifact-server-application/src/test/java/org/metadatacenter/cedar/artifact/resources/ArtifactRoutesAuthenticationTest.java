@@ -30,7 +30,7 @@ class ArtifactRoutesAuthenticationTest extends BaseServerTest {
   private record Credentials(String name, String serviceKey, String user) { }
 
   private List<RouteSurface.Endpoint> businessEndpoints() throws IOException {
-    var config = SERVER_APPLICATION.getEnvironment().jersey().getResourceConfig();
+    var config = serverApplication.getEnvironment().jersey().getResourceConfig();
     List<Object> components = new ArrayList<>();
     components.addAll(config.getInstances());
     components.addAll(config.getSingletons());

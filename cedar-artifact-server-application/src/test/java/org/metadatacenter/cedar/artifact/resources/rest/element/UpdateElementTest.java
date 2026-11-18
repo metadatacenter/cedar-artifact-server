@@ -35,7 +35,7 @@ import static org.metadatacenter.model.CedarResourceType.ELEMENT;
 public class UpdateElementTest extends AbstractRestTest {
 
   private static final String TEST_DESCRIPTION_VALUE = "New description";
-  private static int index = -1;
+  private int index = -1;
 
   @ParameterizedTest
   @MethodSource("getParamsUpdateElementPut")

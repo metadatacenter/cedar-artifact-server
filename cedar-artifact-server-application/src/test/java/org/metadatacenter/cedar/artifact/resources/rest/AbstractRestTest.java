@@ -1,34 +1,26 @@
 package org.metadatacenter.cedar.artifact.resources.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.metadatacenter.cedar.artifact.resources.AbstractResourceTest;
 import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
 import org.metadatacenter.constant.LinkedData;
 import org.metadatacenter.model.CedarResourceType;
 import org.metadatacenter.util.json.JsonMapper;
 import org.metadatacenter.util.mongo.MongoUtils;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
 import static org.metadatacenter.constant.HttpConstants.HTTP_AUTH_HEADER_APIKEY_PREFIX;
 
 public abstract class AbstractRestTest extends AbstractResourceTest {
-
-  protected static Map<String, CedarResourceType> createdResources;
 
   private static final String FILE_BASE_PATH = "rest/";
 
@@ -52,39 +44,9 @@ public abstract class AbstractRestTest extends AbstractResourceTest {
 
   protected boolean showTestDebug = false;
 
-  static {
-    log = LoggerFactory.getLogger("REST Test");
-  }
-
   @BeforeAll
-  public static void oneTimeSetUpAbstract() {
+  public void oneTimeSetUpAbstract() {
     performOneTimeSetup();
-  }
-
-  @AfterAll
-  public static void cleanUp() {
-    if (testClient != null) {
-      testClient.close();
-    }
-  }
-
-  /**
-   * Sets up the test fixture.
-   * (Called before every test case method.)
-   */
-  @BeforeEach
-  public void setUp() {
-    createdResources = new HashMap<>();
-  }
-
-  /**
-   * Tears down the test fixture.
-   * (Called after every test case method.)
-   */
-  @AfterEach
-  public void tearDown() {
-    // Remove all resources created previously
-    removeResources(createdResources);
   }
 
   /** What a create assigns at any depth: identifiers and provenance. Everything else is the caller's. */

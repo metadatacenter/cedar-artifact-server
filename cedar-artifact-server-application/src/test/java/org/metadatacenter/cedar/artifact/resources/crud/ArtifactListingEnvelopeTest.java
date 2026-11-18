@@ -28,6 +28,7 @@ public class ArtifactListingEnvelopeTest extends AbstractResourceCrudTest {
 
   @BeforeEach
   public void createTemplates() {
+    createdIds.clear();
     for (int i = 0; i < CREATED; i++) {
       JsonNode created = createResource(sampleTemplate, CedarResourceType.TEMPLATE);
       String id = created.get(LinkedData.ID).asText();
@@ -36,11 +37,11 @@ public class ArtifactListingEnvelopeTest extends AbstractResourceCrudTest {
     }
   }
 
-  private static String templates(String query) {
+  private String templates(String query) {
     return TestUtil.getResourceUrlRoute(baseTestUrl, CedarResourceType.TEMPLATE) + query;
   }
 
-  private static JsonNode get(String url) {
+  private JsonNode get(String url) {
     Response response = testClient.target(url).request().header("Authorization", authHeader).get();
     Assertions.assertEquals(200, response.getStatus(), url);
     Assertions.assertNull(response.getHeaderString("Total-Count"), "the count is in the body, not a header");
@@ -48,7 +49,7 @@ public class ArtifactListingEnvelopeTest extends AbstractResourceCrudTest {
     return response.readEntity(JsonNode.class);
   }
 
-  private static int status(String url) {
+  private int status(String url) {
     return testClient.target(url).request().header("Authorization", authHeader).get().getStatus();
   }
 

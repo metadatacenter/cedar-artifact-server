@@ -242,11 +242,11 @@ public class ReplacementJudgementTest extends AbstractRestTest {
     return messages;
   }
 
-  private static String url(String id) {
+  private String url(String id) {
     return baseTestUrl + "/templates/" + URLEncoder.encode(id, StandardCharsets.UTF_8);
   }
 
-  private static Invocation.Builder request(String url) {
+  private Invocation.Builder request(String url) {
     return testClient.target(url).request().header(AUTHORIZATION, authHeaderTestUser1);
   }
 }

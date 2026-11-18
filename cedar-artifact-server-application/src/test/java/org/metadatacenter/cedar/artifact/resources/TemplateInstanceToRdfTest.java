@@ -24,11 +24,11 @@ public class TemplateInstanceToRdfTest extends BaseServerTest {
   private String templateExampleId;
   private String instanceExampleId;
 
-  private static String templateExample;
-  private static String instanceExample;
+  private String templateExample;
+  private String instanceExample;
 
   @BeforeAll
-  public static void loadTestPayload() {
+  public void loadTestPayload() {
     templateExample = TestResourcesUtils.getStringContent("instances/usecase-template.json");
     instanceExample = TestResourcesUtils.getStringContent("instances/usecase-instance.jsonld");
   }
