@@ -11,8 +11,11 @@ import io.dropwizard.client.JerseyClientConfiguration;
 import io.dropwizard.util.Duration;
 import org.glassfish.jersey.client.ClientProperties;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.TestInstance;
 import org.metadatacenter.cedar.artifact.ArtifactServerApplication;
 import org.metadatacenter.cedar.artifact.ArtifactServerConfiguration;
 import org.metadatacenter.cedar.artifact.resources.utils.TestConstants;
@@ -24,8 +27,10 @@ import org.metadatacenter.server.jsonld.LinkedDataUtil;
 import org.metadatacenter.util.test.EmbeddedCedarMongo;
 import org.metadatacenter.util.test.TestAuthUtil;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
@@ -33,12 +38,14 @@ import static org.metadatacenter.cedar.artifact.resources.utils.TestConstants.DE
 import static org.metadatacenter.cedar.artifact.resources.utils.TestConstants.TEST_CONFIG_FILE;
 import static org.metadatacenter.constant.HttpConstants.CREATED;
 
+/**
+ * Starts one artifact server for each concrete test class and holds what its tests share: the server's
+ * address, a client, the test user's credentials and the artifacts the current test created. All of it
+ * belongs to the test instance, which JUnit keeps for the whole class, so no two classes share any of it.
+ */
 @Tag("integration")
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class AbstractResourceTest {
-
-  static {
-    redirectEnvironment();
-  }
 
   private static void redirectEnvironment() {
     // Must run before anything builds the CEDAR configuration: the document store comes from an
@@ -48,7 +55,6 @@ public abstract class AbstractResourceTest {
     EmbeddedCedarMongo.startAndRedirectEnvironment(java.util.Map.of(
         "CEDAR_ARTIFACT_HTTP_PORT", "0",
         "CEDAR_ARTIFACT_ADMIN_PORT", "0",
-        "CEDAR_ARTIFACT_STOP_PORT", "0",
         "CEDAR_REDIS_PERSISTENT_PORT", "1",
         "CEDAR_TERMINOLOGY_SERVER_HOST", "127.0.0.1",
         "CEDAR_TERMINOLOGY_HTTP_PORT", "1",
@@ -56,34 +62,48 @@ public abstract class AbstractResourceTest {
         "CEDAR_BRIDGE_HTTP_PORT", "1"));
   }
 
-  protected static Logger log;
+  protected static final Logger log = LoggerFactory.getLogger(AbstractResourceTest.class);
 
-  protected static String baseTestUrl;
-  protected static String authHeaderTestUser1;
-  protected static Client testClient;
-  protected static LinkedDataUtil linkedDataUtil;
-  protected static TestDataGenerationContext tdctx;
-
-
-  public static final DropwizardTestSupport<ArtifactServerConfiguration> SERVER_APPLICATION =
+  protected final DropwizardTestSupport<ArtifactServerConfiguration> serverApplication =
       new DropwizardTestSupport<>(ArtifactServerApplication.class,
           ResourceHelpers.resourceFilePath(TEST_CONFIG_FILE));
 
+  protected String baseTestUrl;
+  protected String authHeaderTestUser1;
+  protected Client testClient;
+  protected LinkedDataUtil linkedDataUtil;
+  protected TestDataGenerationContext tdctx;
+
+  /** The artifacts the current test created, removed after it. */
+  protected Map<String, CedarResourceType> createdResources = new HashMap<>();
+
   @BeforeAll
-  public static void startServerApplication() throws Exception {
-    // The abstract harness is reused by several concrete test classes. The class-isolation
-    // extension restores the process environment after each one, so redirect it again here.
+  public void startServerApplication() throws Exception {
+    // The class-isolation extension restores the process environment after each class, so each
+    // class redirects it again before its server starts.
     redirectEnvironment();
-    SERVER_APPLICATION.before();
+    serverApplication.before();
   }
 
   @AfterAll
-  public static void stopServerApplication() {
-    SERVER_APPLICATION.after();
+  public void stopServerApplication() {
+    if (testClient != null) {
+      testClient.close();
+    }
+    serverApplication.after();
   }
 
+  @BeforeEach
+  public void startCleanupBookkeeping() {
+    createdResources = new HashMap<>();
+  }
 
-  protected static void performOneTimeSetup() {
+  @AfterEach
+  public void removeCreatedResources() {
+    removeResources(createdResources);
+  }
+
+  protected void performOneTimeSetup() {
     // Replace the Neo4j-backed user service wired at application startup with an in-memory one,
     // so API-key authentication needs no live Neo4j (and no Keycloak)
     TestAuthUtil.installInMemoryUserService(TestUtil.getCedarConfig());
@@ -92,7 +112,7 @@ public abstract class AbstractResourceTest {
     authHeaderTestUser1 = TestAuthUtil.getTestUser1AuthHeader(TestUtil.getCedarConfig());
 
     // Test server url
-    baseTestUrl = TestConstants.BASE_URL + ":" + SERVER_APPLICATION.getLocalPort();
+    baseTestUrl = TestConstants.BASE_URL + ":" + serverApplication.getLocalPort();
 
     // Set up test client. Many tests check only the response status and never read the entity,
     // which keeps the pooled connection leased until the response is garbage collected; the pool
@@ -116,12 +136,13 @@ public abstract class AbstractResourceTest {
     // update, delete, find). The tests do not need compression; disable it so responses are read as-is.
     clientConfig.setGzipEnabled(false);
     clientConfig.setGzipEnabledForRequests(false);
-    testClient = new JerseyClientBuilder(SERVER_APPLICATION.getEnvironment())
+    testClient = new JerseyClientBuilder(serverApplication.getEnvironment())
         .using(clientConfig)
         .build("artifact-test-client-" + System.nanoTime());
+    // The service key is read once: a configuration lookup in the filter ran, and logged, on every request.
+    String serviceKey = TestUtil.getCedarConfig().getArtifactService().requireApiKey();
     testClient.register((jakarta.ws.rs.client.ClientRequestFilter) request ->
-        request.getHeaders().putSingle(org.metadatacenter.config.ArtifactServiceConfig.HEADER,
-            TestUtil.getCedarConfig().getArtifactService().requireApiKey()));
+        request.getHeaders().putSingle(org.metadatacenter.config.ArtifactServiceConfig.HEADER, serviceKey));
     testClient.property(ClientProperties.READ_TIMEOUT, DEFAULT_TIMEOUT);
     testClient.property(ClientProperties.CONNECT_TIMEOUT, DEFAULT_TIMEOUT);
     testClient.property(ClientProperties.SUPPRESS_HTTP_COMPLIANCE_VALIDATION, true);
@@ -136,7 +157,7 @@ public abstract class AbstractResourceTest {
   }
 
   // Create a artifact
-  protected static JsonNode createResource(JsonNode resource, CedarResourceType resourceType) {
+  protected JsonNode createResource(JsonNode resource, CedarResourceType resourceType) {
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, resourceType);
     Response response = testClient.target(url).request().header(AUTHORIZATION, authHeaderTestUser1).post(Entity.json(resource));
     if (response.getStatus() != CREATED) {
@@ -145,7 +166,7 @@ public abstract class AbstractResourceTest {
     return response.readEntity(JsonNode.class);
   }
 
-  protected static String currentEtag(String url, String authorization) {
+  protected String currentEtag(String url, String authorization) {
     Response response = testClient.target(url).request().header(AUTHORIZATION, authorization).get();
     String etag = response.getHeaderString("ETag");
     response.close();

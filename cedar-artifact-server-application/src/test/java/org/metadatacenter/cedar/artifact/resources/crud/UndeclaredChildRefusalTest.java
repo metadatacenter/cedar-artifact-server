@@ -42,7 +42,7 @@ public class UndeclaredChildRefusalTest extends AbstractResourceCrudTest {
     Assertions.assertTrue(errors.get(0).path("message").asText().contains(phrase), errors::toString);
   }
 
-  private static Response post(JsonNode template) {
+  private Response post(JsonNode template) {
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, CedarResourceType.TEMPLATE);
     return testClient.target(url).request().header("Authorization", authHeader).post(Entity.json(template));
   }

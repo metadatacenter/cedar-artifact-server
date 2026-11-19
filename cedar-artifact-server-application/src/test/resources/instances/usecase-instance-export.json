@@ -1,0 +1,18 @@
+{
+  "Company Name": "Cedar Inc.",
+  "Export Good": {
+    "Product Name": "Redwood plank",
+    "Quantity": "100"
+  },
+  "Import Good": {
+    "Product Name": "Redwood",
+    "Quantity": "200"
+  },
+  "schema:isBasedOn": "https://repo.metadatacenter.orgx/templates/05c16cd5-debb-46d5-9fd8-c32dfff8d777",
+  "schema:name": "Nested Template metadata",
+  "schema:description": "",
+  "pav:createdOn": "{{createdOn}}",
+  "pav:createdBy": "https://metadatacenter.org/users/11111111-2222-3333-4444-555555555555",
+  "pav:lastUpdatedOn": "{{lastUpdatedOn}}",
+  "oslc:modifiedBy": "https://metadatacenter.org/users/11111111-2222-3333-4444-555555555555"
+}

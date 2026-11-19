@@ -15,6 +15,8 @@ logging:
   level: INFO
   loggers:
     org.metadatacenter: DEBUG
+    # Each configuration lookup logs about 136 lines at DEBUG, which was 96% of the suite's output.
+    org.metadatacenter.config.environment.CedarEnvironmentVariableProvider: INFO
   appenders:
     - type: console
       threshold: ALL

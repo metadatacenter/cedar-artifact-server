@@ -28,6 +28,8 @@ import org.metadatacenter.cedar.artifact.ArtifactServerApplication;
 import org.metadatacenter.cedar.artifact.ArtifactServerConfiguration;
 import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
 import org.metadatacenter.error.CedarErrorKey;
+import org.metadatacenter.exception.ArtifactServerResourceNotFoundException;
+import org.metadatacenter.server.dao.ArtifactRevisionConflictException;
 import org.metadatacenter.server.service.TemplateElementService;
 import org.metadatacenter.server.service.TemplateService;
 import org.metadatacenter.util.json.JsonMapper;
@@ -62,7 +64,7 @@ public class ArtifactWriteFaultTest {
   static {
     EmbeddedCedarMongo.startAndRedirectEnvironment(Map.of(
         "CEDAR_ARTIFACT_HTTP_PORT", "0", "CEDAR_ARTIFACT_ADMIN_PORT", "0",
-        "CEDAR_ARTIFACT_STOP_PORT", "0", "CEDAR_REDIS_PERSISTENT_PORT", "1",
+        "CEDAR_REDIS_PERSISTENT_PORT", "1",
         "CEDAR_TERMINOLOGY_SERVER_HOST", "127.0.0.1", "CEDAR_TERMINOLOGY_HTTP_PORT", "1",
         "CEDAR_BRIDGE_SERVER_HOST", "127.0.0.1", "CEDAR_BRIDGE_HTTP_PORT", "1"));
   }
@@ -444,6 +446,40 @@ public class ArtifactWriteFaultTest {
 
     assertMovedOnTo(created, get(absent));
     assertEquals("Created by another writer", stored(absent).path("schema:name").asText());
+  }
+
+  /** The store reports the artifact gone only when the update reaches it, after the read found it. */
+  @Test
+  void anUpdateTheStoreFindsNothingToReplaceAnswersThatItNoLongerExists() throws Exception {
+    Stored element = create("template-elements", "Gone at the write");
+    before("updateTemplateElement", () -> {
+      throw new ArtifactServerResourceNotFoundException();
+    });
+
+    Reply updated = put(element, "", renamed(element, "Never stored"));
+
+    assertNoLongerExists(updated);
+    assertEquals("Gone at the write", stored(element).path("schema:name").asText());
+  }
+
+  /** The unique index refuses the insert of a create by PUT, and the refusal is answered as a lost race. */
+  @Test
+  void aCreateByPutTheUniqueIndexRefusesAnswersAsALostRace() throws Exception {
+    Stored source = create("template-elements", "Source for a refused insert");
+    String id = TestUtil.getCedarConfig().getLinkedDataUtil()
+        .buildNewLinkedDataId(org.metadatacenter.model.CedarResourceType.ELEMENT);
+    Stored absent = new Stored("template-elements", id,
+        base() + "/template-elements/" + URLEncoder.encode(id, StandardCharsets.UTF_8), null,
+        source.body().deepCopy().put("@id", id));
+    before("createTemplateElementWithRevision", () -> {
+      throw new ArtifactRevisionConflictException(id);
+    });
+
+    Reply created = put(absent, "", absent.body());
+
+    assertEquals(412, created.status(), created.body().toString());
+    assertEquals(CedarErrorKey.ARTIFACT_HAS_MOVED_ON.getValue(), created.errorKey(), created.body().toString());
+    assertNull(stored(absent));
   }
 
   @Test

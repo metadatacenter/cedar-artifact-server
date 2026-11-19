@@ -339,18 +339,18 @@ public class RepresentationMatrixTest extends AbstractRestTest {
     Assertions.assertEquals(1, changed, "the stored " + kind.getValue() + " was not found to change");
   }
 
-  private static String jsonEtag(String url) {
+  private String jsonEtag(String url) {
     Response response = testClient.target(url).request().header(AUTHORIZATION, authHeaderTestUser1)
         .header("Accept", "application/json").get();
     response.close();
     return response.getHeaderString("ETag");
   }
 
-  private static String url(CedarResourceType kind, String id) {
+  private String url(CedarResourceType kind, String id) {
     return baseTestUrl + "/" + kind.getPrefix() + "/" + URLEncoder.encode(id, StandardCharsets.UTF_8);
   }
 
-  private static Invocation.Builder request(String url) {
+  private Invocation.Builder request(String url) {
     return testClient.target(url).request().header(AUTHORIZATION, authHeaderTestUser1);
   }
 

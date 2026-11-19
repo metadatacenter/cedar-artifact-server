@@ -32,7 +32,7 @@ import static org.metadatacenter.model.CedarResourceType.TEMPLATE;
 
 public class CreateTemplatePostTest extends AbstractRestTest {
 
-  private static int index = -1;
+  private int index = -1;
 
   @ParameterizedTest
   @MethodSource("getParamsCreateTemplatePost")
@@ -119,6 +119,9 @@ public class CreateTemplatePostTest extends AbstractRestTest {
     int responseStatus = response.getStatus();
     int expectedResponseStatus = getExpectedResponseStatus(generator, js, rt, auth, idInBodyGenerator);
     Assertions.assertEquals(expectedResponseStatus, responseStatus);
+    if (responseStatus == CedarResponseStatus.CREATED.getStatusCode()) {
+      assertCreatedAsSent(originalFileContent, createdBody, resourceType);
+    }
   }
 
   private int getExpectedResponseStatus(TestParameterArrayGeneratorGenerator generator,

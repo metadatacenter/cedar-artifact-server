@@ -62,7 +62,7 @@ public class UnreadableSchemaArtifactTest extends AbstractResourceCrudTest {
     return result;
   }
 
-  private static Response post(JsonNode template) {
+  private Response post(JsonNode template) {
     String url = TestUtil.getResourceUrlRoute(baseTestUrl, CedarResourceType.TEMPLATE);
     return testClient.target(url).request().header("Authorization", authHeader).post(Entity.json(template));
   }

@@ -1,0 +1,14 @@
+<https://repo.metadatacenter.orgx/template-instances/99a260fb-3fd7-4f53-9c9c-7a2831ecad39> <https://schema.metadatacenter.orgx/properties/7b426039-e270-41e4-b375-ca5aafcca85d> "Cedar Inc." .
+<https://repo.metadatacenter.orgx/template-instances/99a260fb-3fd7-4f53-9c9c-7a2831ecad39> <https://schema.metadatacenter.orgx/properties/de8267a4-eb54-46b8-826c-8c0220c39e15> <https://repo.metadatacenter.orgx/template-element-instances/da3d1935-b5ba-4f9a-8859-5ec8b92ca2e3> .
+<https://repo.metadatacenter.orgx/template-instances/99a260fb-3fd7-4f53-9c9c-7a2831ecad39> <http://schema.org/name> "Nested Template metadata" .
+<https://repo.metadatacenter.orgx/template-instances/99a260fb-3fd7-4f53-9c9c-7a2831ecad39> <http://schema.org/description> "" .
+<https://repo.metadatacenter.orgx/template-instances/99a260fb-3fd7-4f53-9c9c-7a2831ecad39> <http://purl.org/pav/createdOn> "{{createdOn}}"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+<https://repo.metadatacenter.orgx/template-instances/99a260fb-3fd7-4f53-9c9c-7a2831ecad39> <http://purl.org/pav/createdBy> <https://metadatacenter.org/users/11111111-2222-3333-4444-555555555555> .
+<https://repo.metadatacenter.orgx/template-instances/99a260fb-3fd7-4f53-9c9c-7a2831ecad39> <http://purl.org/pav/lastUpdatedOn> "{{lastUpdatedOn}}"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+<https://repo.metadatacenter.orgx/template-instances/99a260fb-3fd7-4f53-9c9c-7a2831ecad39> <http://open-services.net/ns/core#modifiedBy> <https://metadatacenter.org/users/11111111-2222-3333-4444-555555555555> .
+<https://repo.metadatacenter.orgx/template-instances/99a260fb-3fd7-4f53-9c9c-7a2831ecad39> <https://schema.metadatacenter.orgx/properties/8c6db8e9-0e17-43ac-b155-ab60abd3db6f> <https://repo.metadatacenter.orgx/template-element-instances/7ea6b8eb-2a15-4486-ad86-d8fee97cae51> .
+<https://repo.metadatacenter.orgx/template-instances/99a260fb-3fd7-4f53-9c9c-7a2831ecad39> <http://schema.org/isBasedOn> <https://repo.metadatacenter.orgx/templates/05c16cd5-debb-46d5-9fd8-c32dfff8d777> .
+<https://repo.metadatacenter.orgx/template-element-instances/da3d1935-b5ba-4f9a-8859-5ec8b92ca2e3> <https://schema.metadatacenter.orgx/properties/7a99894d-401d-4b03-9d9d-beb9588540c5> "Redwood plank" .
+<https://repo.metadatacenter.orgx/template-element-instances/da3d1935-b5ba-4f9a-8859-5ec8b92ca2e3> <https://schema.metadatacenter.orgx/properties/9011c2b2-8388-4b08-ad5a-75632b47ec80> "100"^^<http://www.w3.org/2001/XMLSchema#decimal> .
+<https://repo.metadatacenter.orgx/template-element-instances/7ea6b8eb-2a15-4486-ad86-d8fee97cae51> <https://schema.metadatacenter.orgx/properties/7a99894d-401d-4b03-9d9d-beb9588540c5> "Redwood" .
+<https://repo.metadatacenter.orgx/template-element-instances/7ea6b8eb-2a15-4486-ad86-d8fee97cae51> <https://schema.metadatacenter.orgx/properties/9011c2b2-8388-4b08-ad5a-75632b47ec80> "200"^^<http://www.w3.org/2001/XMLSchema#decimal> .

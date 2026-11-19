@@ -55,7 +55,7 @@ public class CreateByPutProvenanceTest extends AbstractResourceCrudTest {
     assertServerCreationProvenance(stored);
   }
 
-  private static Object[] createByPutArtifacts() {
+  private Object[] createByPutArtifacts() {
     return getCommonParams1();
   }
 

@@ -20,7 +20,11 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static org.metadatacenter.cedar.artifact.resources.utils.TestConstants.*;
 
@@ -204,18 +208,77 @@ public class FindResourceTest extends AbstractResourceCrudTest {
             TestUtil.cedarConfig.getArtifactRESTAPI().getPagination().getDefaultPageSize());
       }
       Assertions.assertEquals(expectedSize, actual.size());
-      // Check the elements retrieved. This check is currently limited to the first page of results, and it is done
-      // only if the number of returned resources is big enough to contain all created resources.
-      if (initialCount + CREATE_RESOURCES_COUNT == actual.size()) {
-        List<JsonNode> expected = resources;
-        if (summary.compareTo("true") != 0) {
-          Assertions.assertTrue(actual.containsAll(expected));
+      // The created artifacts are listed whatever else the store holds: the pages are walked with the
+      // same parameters, and each created artifact is found among them, in full or as its summary.
+      Map<String, JsonNode> listed = listAll(resourceType, limit, summary.isEmpty() ? Map.of() : Map.of("summary", summary));
+      for (JsonNode created : resources) {
+        String id = created.get(LinkedData.ID).asText();
+        JsonNode item = listed.get(id);
+        Assertions.assertNotNull(item, "the listing left out " + id);
+        if ("true".equals(summary)) {
+          assertSummaryOf(created, item);
         } else {
-          Assertions.assertFalse(actual.containsAll(expected));
+          Assertions.assertEquals(created, item);
         }
       }
     } catch (URISyntaxException e) {
       e.printStackTrace();
+    }
+  }
+
+  /** Every artifact of the kind the listing holds, by identifier, read page by page. */
+  private Map<String, JsonNode> listAll(CedarResourceType resourceType, String limit, Map<String, String> params)
+      throws URISyntaxException {
+    Map<String, JsonNode> listed = new HashMap<>();
+    int pageSize = limit.isEmpty()
+        ? TestUtil.cedarConfig.getArtifactRESTAPI().getPagination().getDefaultPageSize() : Integer.parseInt(limit);
+    int total = Integer.MAX_VALUE;
+    for (int offset = 0; offset < total; offset += pageSize) {
+      URIBuilder b = new URIBuilder(TestUtil.getResourceUrlRoute(baseTestUrl, resourceType))
+          .addParameter("limit", String.valueOf(pageSize)).addParameter("offset", String.valueOf(offset));
+      params.forEach(b::addParameter);
+      Response page = testClient.target(b.build().toString()).request().header("Authorization", authHeader).get();
+      Assertions.assertEquals(CedarResponseStatus.OK.getStatusCode(), page.getStatus());
+      JsonNode body = page.readEntity(JsonNode.class);
+      total = body.get("totalCount").asInt();
+      for (JsonNode artifact : body.get("artifacts")) {
+        listed.put(artifact.get(LinkedData.ID).asText(), artifact);
+      }
+    }
+    return listed;
+  }
+
+  /** A summary carries the identifier and the UI title and description, and nothing else. */
+  private static void assertSummaryOf(JsonNode created, JsonNode summary) {
+    Set<String> fields = new HashSet<>();
+    summary.fieldNames().forEachRemaining(fields::add);
+    Assertions.assertTrue(Set.of(LinkedData.ID, "_ui").containsAll(fields), "summary fields: " + fields);
+    Assertions.assertEquals(created.get(LinkedData.ID), summary.get(LinkedData.ID));
+    Set<String> uiFields = new HashSet<>();
+    summary.path("_ui").fieldNames().forEachRemaining(uiFields::add);
+    Assertions.assertTrue(Set.of("title", "description").containsAll(uiFields), "summary _ui fields: " + uiFields);
+    for (String uiField : uiFields) {
+      Assertions.assertEquals(created.path("_ui").get(uiField), summary.path("_ui").get(uiField));
+    }
+  }
+
+  /** {@code field_names} lists exactly the fields it names, for every artifact the listing holds. */
+  @ParameterizedTest
+  @MethodSource("getCommonParams1")
+  public void findAllWithFieldNamesListsOnlyThoseFields(JsonNode sampleResource, CedarResourceType resourceType)
+      throws URISyntaxException {
+    JsonNode created = createResource(setSchemaIsBasedOn(sampleTemplate, sampleResource.deepCopy(), resourceType),
+        resourceType);
+    String id = created.get(LinkedData.ID).asText();
+    createdResources.put(id, resourceType);
+
+    Map<String, JsonNode> listed = listAll(resourceType, "", Map.of("field_names", "@id,schema:name"));
+
+    Assertions.assertEquals(created.get("schema:name"), listed.get(id).get("schema:name"));
+    for (JsonNode artifact : listed.values()) {
+      Set<String> fields = new HashSet<>();
+      artifact.fieldNames().forEachRemaining(fields::add);
+      Assertions.assertTrue(Set.of(LinkedData.ID, "schema:name").containsAll(fields), "listed fields: " + fields);
     }
   }
 
@@ -243,7 +306,7 @@ public class FindResourceTest extends AbstractResourceCrudTest {
     return new Object[]{CedarResourceType.TEMPLATE, CedarResourceType.ELEMENT, CedarResourceType.INSTANCE};
   }
 
-  static Object[] parametersForFindAllResourcesTest() {
+  Object[] parametersForFindAllResourcesTest() {
     List<Object> p1p2Values = Arrays.asList(
         Arrays.asList(CedarResourceType.TEMPLATE, sampleTemplate),
         Arrays.asList(CedarResourceType.ELEMENT, sampleElement),

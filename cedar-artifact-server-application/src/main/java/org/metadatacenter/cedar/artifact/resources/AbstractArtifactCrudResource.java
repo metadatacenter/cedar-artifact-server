@@ -46,6 +46,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiFunction;
 
 import static org.metadatacenter.rest.assertion.GenericAssertions.*;
 
@@ -58,6 +59,10 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
   private final String artifactLabel;
   private final String artifactsLabel;
   private final boolean ensureFieldIds;
+
+  /** Mints a created artifact's child identifiers, package-private so a test can substitute a defective step. */
+  volatile BiFunction<JsonNode, ProvenanceInfo, List<ModelUtil.MintedChildId>> createdChildIdMinter =
+      (artifact, pi) -> ModelUtil.ensureFieldIdsRecursively(artifact, pi, provenanceUtil, linkedDataUtil);
 
   protected AbstractArtifactCrudResource(CedarConfig cedarConfig, CedarResourceType artifactType, Logger logger, String artifactLabel,
                                          String artifactsLabel, List<String> summaryFields, boolean ensureFieldIds) {
@@ -110,9 +115,6 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     c.must(c.user()).be(LoggedIn);
     c.must(c.user()).have(createPermission);
     rejectCompactOnWriteOperations(compactParam);
-    if (negotiatedArtifactResponseType().isEmpty()) {
-      return notAcceptableArtifactFormatResponse();
-    }
 
     CedarRequestBody body = artifactRequestBody(requestBody, resourceType);
     c.must(body).be(NonEmpty);
@@ -152,8 +154,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
       throws CedarException {
     try {
       if (ensureFieldIds) {
-        logReplacedChildIdentifiers(
-            ModelUtil.ensureFieldIdsRecursively(artifact, pi, provenanceUtil, linkedDataUtil), null);
+        logReplacedChildIdentifiers(createdChildIdMinter.apply(artifact, pi), null);
         Response refusal = refuseInvalidNormalizedArtifact(artifact);
         if (refusal != null) {
           return refusal;
@@ -205,9 +206,6 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     c.must(id).be(ValidUrl);
 
     Optional<MediaType> responseType = negotiatedArtifactResponseType();
-    if (responseType.isEmpty()) {
-      return notAcceptableArtifactFormatResponse();
-    }
 
     ArtifactWithRevision<JsonNode> snapshot;
     try {
@@ -322,9 +320,6 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     id = linkedDataUtil.resolveResourceId(artifactType, id);
     c.must(id).be(ValidUrl);
     rejectCompactOnWriteOperations(compactParam);
-    if (negotiatedArtifactResponseType().isEmpty()) {
-      return notAcceptableArtifactFormatResponse();
-    }
 
     JsonNode currentArtifact;
     Long currentRevision = null;

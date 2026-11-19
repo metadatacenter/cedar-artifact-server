@@ -24,11 +24,11 @@ public class TemplateInstanceToRdfTest extends BaseServerTest {
   private String templateExampleId;
   private String instanceExampleId;
 
-  private static String templateExample;
-  private static String instanceExample;
+  private String templateExample;
+  private String instanceExample;
 
   @BeforeAll
-  public static void loadTestPayload() {
+  public void loadTestPayload() {
     templateExample = TestResourcesUtils.getStringContent("instances/usecase-template.json");
     instanceExample = TestResourcesUtils.getStringContent("instances/usecase-instance.jsonld");
   }
@@ -56,9 +56,15 @@ public class TemplateInstanceToRdfTest extends BaseServerTest {
     // Assert header
     assertThat(response.getHeaderString(HttpHeaders.CONTENT_TYPE), is("application/n-quads"));
     assertEquals(instanceEtag.substring(0, instanceEtag.length() - 1) + "-rdf-nquad\"", response.getHeaderString(HttpHeaders.ETAG));
-    // Assert content
+    // N-Quads carry no order, so the statements are compared as a set
     String responseContent = response.readEntity(String.class);
-    System.out.println(responseContent);
+    assertEquals(statements(exportFixture("instances/usecase-instance-export.nq", instanceExampleId)),
+        statements(responseContent));
+  }
+
+  private static java.util.Set<String> statements(String nquads) {
+    return nquads.lines().map(String::strip).filter(line -> !line.isEmpty())
+        .collect(java.util.stream.Collectors.toCollection(java.util.TreeSet::new));
   }
 
   @Test

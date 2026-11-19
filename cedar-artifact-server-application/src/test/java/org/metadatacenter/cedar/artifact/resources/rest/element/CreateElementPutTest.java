@@ -33,7 +33,7 @@ import static org.metadatacenter.model.CedarResourceType.ELEMENT;
 
 public class CreateElementPutTest extends AbstractRestTest {
 
-  private static int index = -1;
+  private int index = -1;
 
   @ParameterizedTest
   @MethodSource("getParamsCreateElementPut")
@@ -114,12 +114,20 @@ public class CreateElementPutTest extends AbstractRestTest {
       response = request.put(null);
     }
 
-    createdResources.put(idInURL, CedarResourceType.ELEMENT);
-
-    int responseStatus = response.getStatus();
-    int expectedResponseStatus = getExpectedResponseStatus(generator, js, rt, auth, idInURLGenerator,
-        idInBodyGenerator);
-    Assertions.assertEquals(expectedResponseStatus, responseStatus);
+    try (response) {
+      createdResources.put(idInURL, CedarResourceType.ELEMENT);
+      // Status-only assertions still own an HTTP entity. Drain it before closing,
+      // so hundreds of parameterized cases do not leave leased connections or
+      // unfinished response writes for the server's graceful shutdown.
+      response.bufferEntity();
+      int responseStatus = response.getStatus();
+      int expectedResponseStatus = getExpectedResponseStatus(generator, js, rt, auth, idInURLGenerator,
+          idInBodyGenerator);
+      Assertions.assertEquals(expectedResponseStatus, responseStatus);
+      if (responseStatus == CedarResponseStatus.CREATED.getStatusCode()) {
+        assertCreatedAsSent(originalFileContent, response.readEntity(String.class), resourceType);
+      }
+    }
   }
 
   private int getExpectedResponseStatus(TestParameterArrayGeneratorGenerator generator,

@@ -43,7 +43,7 @@ public class TemplateDeletionRaceTest {
   static {
     EmbeddedCedarMongo.startAndRedirectEnvironment(Map.of(
         "CEDAR_ARTIFACT_HTTP_PORT", "0", "CEDAR_ARTIFACT_ADMIN_PORT", "0",
-        "CEDAR_ARTIFACT_STOP_PORT", "0", "CEDAR_REDIS_PERSISTENT_PORT", "1"));
+        "CEDAR_REDIS_PERSISTENT_PORT", "1"));
   }
   private static final DropwizardTestSupport<ArtifactServerConfiguration> SERVER =
       new DropwizardTestSupport<>(RaceApplication.class, ResourceHelpers.resourceFilePath("test-config.yml"));

@@ -49,12 +49,12 @@ public class TemplateFieldsResource extends AbstractArtifactCrudResource {
 
   private static final Logger logger = LoggerFactory.getLogger(TemplateFieldsResource.class);
 
-  private static TemplateFieldService<String, JsonNode> templateFieldService;
+  private final TemplateFieldService<String, JsonNode> templateFieldService;
 
   public TemplateFieldsResource(CedarConfig cedarConfig, TemplateFieldService<String, JsonNode> templateFieldService) {
     super(cedarConfig, CedarResourceType.FIELD, logger, "artifact field", "artifact fields",
         cedarConfig.getArtifactRESTAPI().getSummaries().getField().getFields(), false);
-    TemplateFieldsResource.templateFieldService = templateFieldService;
+    this.templateFieldService = templateFieldService;
   }
 
   @PUT

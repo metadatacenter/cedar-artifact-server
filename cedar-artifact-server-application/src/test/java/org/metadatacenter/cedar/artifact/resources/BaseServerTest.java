@@ -15,6 +15,7 @@ import org.glassfish.jersey.client.ClientProperties;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.TestInstance;
 import org.metadatacenter.cedar.artifact.ArtifactServerApplication;
 import org.metadatacenter.cedar.artifact.ArtifactServerConfiguration;
 import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
@@ -22,6 +23,7 @@ import org.metadatacenter.constant.LinkedData;
 import org.metadatacenter.util.json.JsonMapper;
 import org.metadatacenter.util.test.EmbeddedCedarMongo;
 import org.metadatacenter.util.test.TestAuthUtil;
+import org.metadatacenter.model.request.OutputFormatType;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -31,14 +33,16 @@ import java.util.Set;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.metadatacenter.cedar.artifact.resources.utils.TestConstants.DEFAULT_TIMEOUT;
 import static org.metadatacenter.constant.HttpConstants.HTTP_HEADER_AUTHORIZATION;
 
+/**
+ * Starts one artifact server for each concrete test class, with a client authenticated as the test user.
+ * Both belong to the test instance, which JUnit keeps for the whole class, so no two classes share either.
+ */
 @Tag("integration")
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class BaseServerTest {
-
-  static {
-    redirectEnvironment();
-  }
 
   private static void redirectEnvironment() {
     // Must run before anything builds the CEDAR configuration: the document store comes from an
@@ -48,7 +52,6 @@ public abstract class BaseServerTest {
     EmbeddedCedarMongo.startAndRedirectEnvironment(java.util.Map.of(
         "CEDAR_ARTIFACT_HTTP_PORT", "0",
         "CEDAR_ARTIFACT_ADMIN_PORT", "0",
-        "CEDAR_ARTIFACT_STOP_PORT", "0",
         "CEDAR_REDIS_PERSISTENT_PORT", "1",
         "CEDAR_TERMINOLOGY_SERVER_HOST", "127.0.0.1",
         "CEDAR_TERMINOLOGY_HTTP_PORT", "1",
@@ -56,20 +59,20 @@ public abstract class BaseServerTest {
         "CEDAR_BRIDGE_HTTP_PORT", "1"));
   }
 
-  protected static String authHeaderValue;
-
-  protected static Client testClient;
-
-  public static final DropwizardTestSupport<ArtifactServerConfiguration> SERVER_APPLICATION =
+  protected final DropwizardTestSupport<ArtifactServerConfiguration> serverApplication =
       new DropwizardTestSupport<>(ArtifactServerApplication.class,
           ResourceHelpers.resourceFilePath("test-config.yml"));
 
+  protected String authHeaderValue;
+
+  protected Client testClient;
+
   @BeforeAll
-  public static void startServerAndClient() throws Exception {
-    // The abstract harness is reused by several concrete test classes. The class-isolation
-    // extension restores the process environment after each one, so redirect it again here.
+  public void startServerAndClient() throws Exception {
+    // The class-isolation extension restores the process environment after each class, so each
+    // class redirects it again before its server starts.
     redirectEnvironment();
-    SERVER_APPLICATION.before();
+    serverApplication.before();
     // Replace the Neo4j-backed user service wired at application startup with an in-memory one,
     // so API-key authentication needs no live Neo4j (and no Keycloak)
     TestAuthUtil.installInMemoryUserService(TestUtil.getCedarConfig());
@@ -79,9 +82,9 @@ public abstract class BaseServerTest {
     // is required because many tests never read the response entity. reuseForks shares one JVM, so
     // the client name must be unique per build to avoid a metrics-registry collision.
     JerseyClientConfiguration clientConfig = new JerseyClientConfiguration();
-    clientConfig.setTimeout(Duration.milliseconds(3000));
-    clientConfig.setConnectionTimeout(Duration.milliseconds(3000));
-    clientConfig.setConnectionRequestTimeout(Duration.milliseconds(3000));
+    clientConfig.setTimeout(Duration.milliseconds(DEFAULT_TIMEOUT));
+    clientConfig.setConnectionTimeout(Duration.milliseconds(DEFAULT_TIMEOUT));
+    clientConfig.setConnectionRequestTimeout(Duration.milliseconds(DEFAULT_TIMEOUT));
     clientConfig.setMaxConnections(1024);
     clientConfig.setMaxConnectionsPerRoute(1024);
     // Dropwizard's JerseyClientConfiguration enables gzip on the client by default, which leaves it
@@ -89,26 +92,27 @@ public abstract class BaseServerTest {
     // "ZipException: Not in GZIP format". The tests do not need compression; disable it.
     clientConfig.setGzipEnabled(false);
     clientConfig.setGzipEnabledForRequests(false);
-    testClient = new JerseyClientBuilder(SERVER_APPLICATION.getEnvironment())
+    testClient = new JerseyClientBuilder(serverApplication.getEnvironment())
         .using(clientConfig)
         .build("artifact-baseserver-test-client-" + System.nanoTime());
+    // The service key is read once: a configuration lookup in the filter ran, and logged, on every request.
+    String serviceKey = TestUtil.getCedarConfig().getArtifactService().requireApiKey();
     testClient.register((jakarta.ws.rs.client.ClientRequestFilter) request ->
-        request.getHeaders().putSingle(org.metadatacenter.config.ArtifactServiceConfig.HEADER,
-            TestUtil.getCedarConfig().getArtifactService().requireApiKey()));
-    testClient.property(ClientProperties.READ_TIMEOUT, 3000); // 3s
-    testClient.property(ClientProperties.CONNECT_TIMEOUT, 3000);
+        request.getHeaders().putSingle(org.metadatacenter.config.ArtifactServiceConfig.HEADER, serviceKey));
+    testClient.property(ClientProperties.READ_TIMEOUT, DEFAULT_TIMEOUT);
+    testClient.property(ClientProperties.CONNECT_TIMEOUT, DEFAULT_TIMEOUT);
   }
 
   @AfterAll
-  public static void stopServerAndClient() {
+  public void stopServerAndClient() {
     if (testClient != null) {
       testClient.close();
     }
-    SERVER_APPLICATION.after();
+    serverApplication.after();
   }
 
   protected int getPortNumber() {
-    return SERVER_APPLICATION.getLocalPort();
+    return serverApplication.getLocalPort();
   }
 
   protected String uploadTemplate(String templateDocument) {
@@ -141,6 +145,21 @@ public abstract class BaseServerTest {
     Response response = sendDeleteRequest(
         TestRequestUrls.forDeletingInstance(getPortNumber(), instanceId));
     checkStatusOk(response);
+  }
+
+  /**
+   * An export fixture with the instance's stored creation and update times put in place of its
+   * {{createdOn}} and {{lastUpdatedOn}} placeholders, which are the only values the server sets at
+   * upload rather than taking from the uploaded document.
+   */
+  protected String exportFixture(String path, String instanceId) {
+    Response stored = sendGetRequest(TestRequestUrls.forFindingInstance(getPortNumber(), instanceId,
+        OutputFormatType.JSONLD.getValue()));
+    checkStatusOk(stored);
+    JsonNode instance = stored.readEntity(JsonNode.class);
+    return TestResourcesUtils.getStringContent(path)
+        .replace("{{createdOn}}", instance.get("pav:createdOn").asText())
+        .replace("{{lastUpdatedOn}}", instance.get("pav:lastUpdatedOn").asText());
   }
 
   protected Response sendGetRequest(String requestUrl) {
@@ -177,7 +196,7 @@ public abstract class BaseServerTest {
     return request.put(Entity.json(payload));
   }
 
-  protected static String currentEtag(String url, String authorization) {
+  protected String currentEtag(String url, String authorization) {
     Response response = testClient.target(url).request()
         .header(HTTP_HEADER_AUTHORIZATION, authorization)
         .get();

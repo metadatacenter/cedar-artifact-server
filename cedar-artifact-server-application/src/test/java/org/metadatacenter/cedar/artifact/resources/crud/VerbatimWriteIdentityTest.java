@@ -14,6 +14,7 @@ import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
 import org.metadatacenter.constant.LinkedData;
 import org.metadatacenter.http.CedarResponseStatus;
 import org.metadatacenter.model.CedarResourceType;
+import org.metadatacenter.util.json.JsonMapper;
 import org.metadatacenter.util.mongo.MongoUtils;
 import org.metadatacenter.util.test.TestAuthUtil;
 
@@ -127,6 +128,66 @@ public class VerbatimWriteIdentityTest extends AbstractResourceCrudTest {
 
     assertStoresItOrNothing(defective, id, CedarResourceType.INSTANCE,
         () -> TestUtil.templateInstanceService.findTemplateInstance(id));
+  }
+
+  /**
+   * Changes a write's validation accepts, each made to a child. Templates and elements are the kinds
+   * whose children an ordinary write mints and stamps with the writer's provenance, and a verbatim
+   * write skips that step, so these are the cases where a success must still store what was sent:
+   * the changed child keeps the provenance the caller stated rather than the administrator's.
+   */
+  private static Stream<Arguments> childChanges() {
+    UnaryOperator<ObjectNode> description = artifact -> {
+      ((ObjectNode) artifact.at("/properties/note")).put("schema:description", "Stated by a repair");
+      return artifact;
+    };
+    UnaryOperator<ObjectNode> legacyProvenance = artifact -> {
+      ((ObjectNode) artifact.at("/properties/note"))
+          .put("pav:lastUpdatedOn", "2017-03-01T09:30:00-08:00")
+          .put("oslc:modifiedBy", "https://metadatacenter.org/users/legacy-editor");
+      return artifact;
+    };
+    return Stream.of(CedarResourceType.TEMPLATE, CedarResourceType.ELEMENT).flatMap(kind -> Stream.of(
+        Arguments.of(kind, named("a child's description", description)),
+        Arguments.of(kind, named("a child's legacy provenance", legacyProvenance))));
+  }
+
+  @ParameterizedTest(name = "{0}: {1}")
+  @MethodSource("childChanges")
+  public void aVerbatimWriteThatChangesAChildStoresItAsSent(CedarResourceType kind, UnaryOperator<ObjectNode> change)
+      throws Exception {
+    String id = createWithOneChild(kind);
+    StoredArtifact storage = kind == CedarResourceType.TEMPLATE
+        ? () -> TestUtil.templateService.findTemplate(id)
+        : () -> TestUtil.templateElementService.findTemplateElement(id);
+    ObjectNode submitted = change.apply((ObjectNode) stripped(storage.read()));
+
+    Response response = verbatimPut(submitted, id, kind);
+    String body = response.readEntity(String.class);
+    response.close();
+
+    Assertions.assertEquals(CedarResponseStatus.OK.getStatusCode(), response.getStatus(), body);
+    Assertions.assertEquals(submitted, stripped(storage.read()),
+        "a verbatim write reported success while storing a different document");
+  }
+
+  private String createWithOneChild(CedarResourceType kind) throws IOException {
+    String yaml = "type: " + (kind == CedarResourceType.TEMPLATE ? "template" : "element") + "\n"
+        + "name: Verbatim Child " + kind.getValue() + "\n"
+        + "children:\n"
+        + "  - key: note\n"
+        + "    type: text-field\n"
+        + "    name: Note\n";
+    Response created = testClient.target(TestUtil.getResourceUrlRoute(baseTestUrl, kind))
+        .property(ClientProperties.READ_TIMEOUT, 15000)
+        .request("application/json").header("Authorization", authHeader)
+        .post(Entity.entity(yaml, "application/yaml"));
+    String body = created.readEntity(String.class);
+    created.close();
+    Assertions.assertEquals(CedarResponseStatus.CREATED.getStatusCode(), created.getStatus(), body);
+    String id = JsonMapper.STRICT_MAPPER.readTree(body).get(LinkedData.ID).asText();
+    createdResources.put(id, kind);
+    return id;
   }
 
   /** Reads storage rather than the response, since the promise is about what was stored. */
