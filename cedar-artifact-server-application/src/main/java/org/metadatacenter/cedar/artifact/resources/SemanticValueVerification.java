@@ -15,13 +15,18 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Request-scoped exact-identifier checks. A 25-second call limit accommodates the terminology
- * service's 20-second lookup budget; all checks share 30 seconds and at most 256 distinct requests.
- * Unavailability never becomes a negative membership answer. Requests are not retried.
+ * Request-scoped exact-identifier checks. Each request may take 5 seconds, and all checks of a write
+ * share 30 seconds and at most 256 distinct requests. A request that fails or runs out of time marks
+ * its service unresponsive for the rest of the write, so every later check of that service is
+ * unavailable without a request. A save therefore waits at most 5 seconds for a service that does
+ * not answer, such as the terminology service while BioPortal hangs, whose own lookup budget is 20
+ * seconds. Unavailability never becomes a negative membership answer. Requests are not retried.
  *
  * <p>A save tolerates an unavailable check, so nothing downstream reports one. The reason is logged
  * here, at most once a minute with a count of the checks that failed in between, because a service
@@ -33,6 +38,7 @@ final class SemanticValueVerification {
   private static final long REPORT_INTERVAL = Duration.ofMinutes(1).toNanos();
   private static final AtomicLong NEXT_REPORT = new AtomicLong(System.nanoTime());
   private static final AtomicLong UNREPORTED = new AtomicLong();
+  private static final Duration CALL_LIMIT = Duration.ofSeconds(5);
   private static final HttpClient HTTP = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(2)).build();
   private static final Map<String, String> AUTHORITY_ROUTES = Map.of(
       "ext-orcid", "orcid", "ext-ror", "ror", "ext-rrid", "rrid", "ext-pubmed", "pmid",
@@ -40,6 +46,7 @@ final class SemanticValueVerification {
   private final String terminologyBase, bridgeBase, authorization;
   private final Sender sender;
   private final Map<String, JsonNode> checked = new HashMap<>();
+  private final Set<String> unresponsive = new HashSet<>();
   private final long deadline = System.nanoTime() + Duration.ofSeconds(30).toNanos();
 
   SemanticValueVerification(String terminologyBase, String bridgeBase, String authorization) {
@@ -114,13 +121,17 @@ final class SemanticValueVerification {
     if (endpoint == null) return unavailable("the verifying service", "no address is configured for it");
     if (checked.size() >= 256) return unavailable(endpoint, "the write reached its limit of 256 distinct checks");
     if (System.nanoTime() >= deadline) return unavailable(endpoint, "the write used its 30 seconds of checking");
+    if (unresponsive.contains(endpoint)) return unavailable(endpoint, "an earlier check of this write found it unresponsive");
     try {
       HttpRequest.Builder request = HttpRequest.newBuilder(URI.create(endpoint))
-          .timeout(Duration.ofNanos(Math.min(Duration.ofSeconds(25).toNanos(), deadline - System.nanoTime())))
+          .timeout(Duration.ofNanos(Math.min(CALL_LIMIT.toNanos(), deadline - System.nanoTime())))
           .header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(body.toString()));
       if (authorization != null) request.header("Authorization", authorization);
       var response = sender.send(request.build());
-      if (response.statusCode() != 200) return unavailable(endpoint, "it answered " + response.statusCode());
+      if (response.statusCode() != 200) {
+        unresponsive.add(endpoint);
+        return unavailable(endpoint, "it answered " + response.statusCode());
+      }
       JsonNode answer = JsonMapper.MAPPER.readTree(response.body());
       if (!answer.path("code").isTextual() || !answer.path("message").isTextual()
           || !ValidationPolicy.acceptsSemanticResult(controlled, answer.path("status").asText(), answer.path("code").asText())
@@ -129,8 +140,12 @@ final class SemanticValueVerification {
       return answer;
     } catch (InterruptedException interrupted) {
       Thread.currentThread().interrupt();
+      unresponsive.add(endpoint);
       return unavailable(endpoint, "the request was interrupted");
-    } catch (Exception failure) { return unavailable(endpoint, failure.toString()); }
+    } catch (Exception failure) {
+      unresponsive.add(endpoint);
+      return unavailable(endpoint, failure.toString());
+    }
   }
   private static JsonNode unavailable(String endpoint, String reason) {
     long now = System.nanoTime(), due = NEXT_REPORT.get();

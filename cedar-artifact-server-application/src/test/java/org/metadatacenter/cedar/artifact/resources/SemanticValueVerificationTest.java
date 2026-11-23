@@ -182,4 +182,61 @@ class SemanticValueVerificationTest {
           report.getFindings().iterator().next().verificationStatus(), String.valueOf(base));
     }
   }
+
+  @Test void aServiceThatTimesOutIsNotAskedAgainInTheSameWriteWhileAnotherServiceStillIs() throws Exception {
+    var schema = MAPPER.createObjectNode();
+    var properties = schema.putObject("properties");
+    properties.set("first", controlled());
+    properties.set("second", controlled());
+    properties.putObject("orcid").putObject("_ui").put("inputType", "ext-orcid");
+    var instance = MAPPER.readTree("""
+        {"first":{"@id":"https://example.org/one"},"second":{"@id":"https://example.org/two"},
+         "orcid":{"@id":"https://orcid.org/0000-0002-1825-0097"}}
+        """);
+    var asked = new java.util.ArrayList<String>();
+    var report = CedarValidationReport.newInstanceReport();
+    new SemanticValueVerification("http://terms", "http://bridge", null, request -> {
+      asked.add(request.uri().toString());
+      assertTrue(request.timeout().orElseThrow().compareTo(java.time.Duration.ofSeconds(5)) <= 0);
+      if (request.uri().getHost().equals("terms")) throw new java.net.http.HttpTimeoutException("request timed out");
+      return response("passed", "authorityVerified", "https://orcid.org/0000-0002-1825-0097");
+    }).instance(instance, schema, "", report);
+    assertEquals(java.util.List.of("http://terms/bioportal/validate-term", "http://bridge/ext-auth/orcid/verify"), asked);
+    assertEquals(2, report.getFindings().stream()
+        .filter(f -> f.verificationStatus() == ValidationFinding.VerificationStatus.UNAVAILABLE).count());
+    assertTrue(report.canSave());
+  }
+
+  @Test void aWriteWaitsAboutFiveSecondsForATerminologyServiceThatNeverAnswers() throws Exception {
+    var hanging = new java.util.concurrent.CountDownLatch(1);
+    var server = com.sun.net.httpserver.HttpServer.create(
+        new java.net.InetSocketAddress(java.net.InetAddress.getLoopbackAddress(), 0), 0);
+    server.setExecutor(java.util.concurrent.Executors.newCachedThreadPool());
+    server.createContext("/", exchange -> {
+      try { hanging.await(); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+      exchange.close();
+    });
+    server.start();
+    try {
+      var schema = MAPPER.createObjectNode();
+      var properties = schema.putObject("properties");
+      for (String key : new String[]{"a", "b", "c"}) properties.set(key, controlled());
+      var instance = MAPPER.readTree("""
+          {"a":{"@id":"https://example.org/a"},"b":{"@id":"https://example.org/b"},"c":{"@id":"https://example.org/c"}}
+          """);
+      var report = CedarValidationReport.newInstanceReport();
+      long start = System.nanoTime();
+      new SemanticValueVerification("http://127.0.0.1:" + server.getAddress().getPort(), "", null)
+          .instance(instance, schema, "", report);
+      double seconds = (System.nanoTime() - start) / 1e9;
+      assertTrue(seconds >= 4.5 && seconds < 8, "took " + seconds + " s");
+      assertEquals(3, report.getFindings().size());
+      assertTrue(report.getFindings().stream()
+          .allMatch(f -> f.verificationStatus() == ValidationFinding.VerificationStatus.UNAVAILABLE));
+      assertTrue(report.canSave());
+    } finally {
+      hanging.countDown();
+      server.stop(0);
+    }
+  }
 }
