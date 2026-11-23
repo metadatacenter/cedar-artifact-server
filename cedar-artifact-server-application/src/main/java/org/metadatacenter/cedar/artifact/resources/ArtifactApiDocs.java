@@ -50,9 +50,9 @@ final class ArtifactApiDocs {
   static final String VERBATIM = "Store the body exactly as supplied, without preserving creation "
       + "provenance or minting missing child identifiers. Requires the verbatim-write permission.";
 
-  static final String LIMIT = "Maximum number of artifacts to return.";
+  static final String LIMIT = "How many artifacts to return, from 1 to 500. Defaults to 100.";
 
-  static final String OFFSET = "Number of artifacts to skip before the first one returned.";
+  static final String OFFSET = "How many artifacts to skip before the first one returned. Defaults to 0.";
 
   static final String SUMMARY = "Return only the summary fields configured for this artifact type.";
 

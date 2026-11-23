@@ -471,7 +471,7 @@
         "description" : "List template elements, one page at a time. The body carries the page's artifacts beside the size of the whole collection and links to the neighbouring pages. An offset past the end answers an empty page.",
         "operationId" : "findAllTemplateElements",
         "parameters" : [ {
-          "description" : "Maximum number of artifacts to return.",
+          "description" : "How many artifacts to return, from 1 to 500. Defaults to 100.",
           "in" : "query",
           "name" : "limit",
           "schema" : {
@@ -479,7 +479,7 @@
             "format" : "int32"
           }
         }, {
-          "description" : "Number of artifacts to skip before the first one returned.",
+          "description" : "How many artifacts to skip before the first one returned. Defaults to 0.",
           "in" : "query",
           "name" : "offset",
           "schema" : {
@@ -1306,7 +1306,7 @@
         "description" : "List template fields, one page at a time. The body carries the page's artifacts beside the size of the whole collection and links to the neighbouring pages. An offset past the end answers an empty page.",
         "operationId" : "findAllTemplateFields",
         "parameters" : [ {
-          "description" : "Maximum number of artifacts to return.",
+          "description" : "How many artifacts to return, from 1 to 500. Defaults to 100.",
           "in" : "query",
           "name" : "limit",
           "schema" : {
@@ -1314,7 +1314,7 @@
             "format" : "int32"
           }
         }, {
-          "description" : "Number of artifacts to skip before the first one returned.",
+          "description" : "How many artifacts to skip before the first one returned. Defaults to 0.",
           "in" : "query",
           "name" : "offset",
           "schema" : {
@@ -2141,7 +2141,7 @@
         "description" : "List template instances, one page at a time. The body carries the page's artifacts beside the size of the whole collection and links to the neighbouring pages. An offset past the end answers an empty page.",
         "operationId" : "findAllTemplateInstances",
         "parameters" : [ {
-          "description" : "Maximum number of artifacts to return.",
+          "description" : "How many artifacts to return, from 1 to 500. Defaults to 100.",
           "in" : "query",
           "name" : "limit",
           "schema" : {
@@ -2149,7 +2149,7 @@
             "format" : "int32"
           }
         }, {
-          "description" : "Number of artifacts to skip before the first one returned.",
+          "description" : "How many artifacts to skip before the first one returned. Defaults to 0.",
           "in" : "query",
           "name" : "offset",
           "schema" : {
@@ -3025,7 +3025,7 @@
         "description" : "List templates, one page at a time. The body carries the page's artifacts beside the size of the whole collection and links to the neighbouring pages. An offset past the end answers an empty page.",
         "operationId" : "findAllTemplates",
         "parameters" : [ {
-          "description" : "Maximum number of artifacts to return.",
+          "description" : "How many artifacts to return, from 1 to 500. Defaults to 100.",
           "in" : "query",
           "name" : "limit",
           "schema" : {
@@ -3033,7 +3033,7 @@
             "format" : "int32"
           }
         }, {
-          "description" : "Number of artifacts to skip before the first one returned.",
+          "description" : "How many artifacts to skip before the first one returned. Defaults to 0.",
           "in" : "query",
           "name" : "offset",
           "schema" : {

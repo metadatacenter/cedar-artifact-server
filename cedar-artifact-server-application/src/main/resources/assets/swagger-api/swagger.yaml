@@ -342,13 +342,14 @@ paths:
         \ neighbouring pages. An offset past the end answers an empty page."
       operationId: findAllTemplateElements
       parameters:
-      - description: Maximum number of artifacts to return.
+      - description: "How many artifacts to return, from 1 to 500. Defaults to 100."
         in: query
         name: limit
         schema:
           type: integer
           format: int32
-      - description: Number of artifacts to skip before the first one returned.
+      - description: How many artifacts to skip before the first one returned. Defaults
+          to 0.
         in: query
         name: offset
         schema:
@@ -936,13 +937,14 @@ paths:
         \ neighbouring pages. An offset past the end answers an empty page."
       operationId: findAllTemplateFields
       parameters:
-      - description: Maximum number of artifacts to return.
+      - description: "How many artifacts to return, from 1 to 500. Defaults to 100."
         in: query
         name: limit
         schema:
           type: integer
           format: int32
-      - description: Number of artifacts to skip before the first one returned.
+      - description: How many artifacts to skip before the first one returned. Defaults
+          to 0.
         in: query
         name: offset
         schema:
@@ -1530,13 +1532,14 @@ paths:
         \ the neighbouring pages. An offset past the end answers an empty page."
       operationId: findAllTemplateInstances
       parameters:
-      - description: Maximum number of artifacts to return.
+      - description: "How many artifacts to return, from 1 to 500. Defaults to 100."
         in: query
         name: limit
         schema:
           type: integer
           format: int32
-      - description: Number of artifacts to skip before the first one returned.
+      - description: How many artifacts to skip before the first one returned. Defaults
+          to 0.
         in: query
         name: offset
         schema:
@@ -2156,13 +2159,14 @@ paths:
         \ pages. An offset past the end answers an empty page."
       operationId: findAllTemplates
       parameters:
-      - description: Maximum number of artifacts to return.
+      - description: "How many artifacts to return, from 1 to 500. Defaults to 100."
         in: query
         name: limit
         schema:
           type: integer
           format: int32
-      - description: Number of artifacts to skip before the first one returned.
+      - description: How many artifacts to skip before the first one returned. Defaults
+          to 0.
         in: query
         name: offset
         schema:

@@ -117,6 +117,25 @@ public class ArtifactListingEnvelopeTest extends AbstractResourceCrudTest {
   }
 
   @Test
+  public void withoutALimitAPageHoldsUpTo100Artifacts() {
+    for (CedarResourceType type : List.of(CedarResourceType.TEMPLATE, CedarResourceType.ELEMENT,
+        CedarResourceType.FIELD, CedarResourceType.INSTANCE)) {
+      JsonNode page = get(TestUtil.getResourceUrlRoute(baseTestUrl, type));
+      Assertions.assertEquals(100, page.get("request").get("limit").asInt(), type + " defaulted differently");
+    }
+  }
+
+  @Test
+  public void aLimitOf500IsServedAnd501IsRefused() {
+    for (CedarResourceType type : List.of(CedarResourceType.TEMPLATE, CedarResourceType.ELEMENT,
+        CedarResourceType.FIELD, CedarResourceType.INSTANCE)) {
+      String route = TestUtil.getResourceUrlRoute(baseTestUrl, type);
+      Assertions.assertEquals(500, get(route + "?limit=500").get("request").get("limit").asInt(), String.valueOf(type));
+      Assertions.assertEquals(400, status(route + "?limit=501"), String.valueOf(type));
+    }
+  }
+
+  @Test
   public void everyArtifactTypeAnswersTheEnvelope() {
     for (CedarResourceType type : List.of(CedarResourceType.TEMPLATE, CedarResourceType.ELEMENT,
         CedarResourceType.FIELD, CedarResourceType.INSTANCE)) {
