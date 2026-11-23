@@ -117,8 +117,11 @@ public abstract class AbstractArtifactServerResource extends CedarMicroserviceRe
     try {
       ValidationReport report = withModelVerdict(newModelValidator().validateTemplate(template), template,
           (reader, artifact) -> reader.readTemplateSchemaArtifact(artifact));
-      if (report.canSave() && report instanceof CedarValidationReport cedarReport)
-        semanticVerification().defaults(template, "", cedarReport);
+      if (report.canSave() && report instanceof CedarValidationReport cedarReport) {
+        SemanticValueVerification verification = semanticVerification();
+        verification.defaults(template, "", cedarReport);
+        verification.logUnavailable();
+      }
       return report;
     } catch (Exception e) {
       throw new CedarProcessingException(e);
@@ -129,8 +132,11 @@ public abstract class AbstractArtifactServerResource extends CedarMicroserviceRe
     try {
       ValidationReport report = withModelVerdict(newModelValidator().validateTemplateElement(templateElement), templateElement,
           (reader, artifact) -> reader.readElementSchemaArtifact(artifact));
-      if (report.canSave() && report instanceof CedarValidationReport cedarReport)
-        semanticVerification().defaults(templateElement, "", cedarReport);
+      if (report.canSave() && report instanceof CedarValidationReport cedarReport) {
+        SemanticValueVerification verification = semanticVerification();
+        verification.defaults(templateElement, "", cedarReport);
+        verification.logUnavailable();
+      }
       return report;
     } catch (Exception e) {
       throw new CedarProcessingException(e);
@@ -141,8 +147,11 @@ public abstract class AbstractArtifactServerResource extends CedarMicroserviceRe
     try {
       ValidationReport report = withModelVerdict(newModelValidator().validateTemplateField(templateField), templateField,
           (reader, artifact) -> reader.readFieldSchemaArtifact(artifact));
-      if (report.canSave() && report instanceof CedarValidationReport cedarReport)
-        semanticVerification().defaults(templateField, "", cedarReport);
+      if (report.canSave() && report instanceof CedarValidationReport cedarReport) {
+        SemanticValueVerification verification = semanticVerification();
+        verification.defaults(templateField, "", cedarReport);
+        verification.logUnavailable();
+      }
       return report;
     } catch (Exception e) {
       throw new CedarProcessingException(e);
@@ -230,8 +239,11 @@ public abstract class AbstractArtifactServerResource extends CedarMicroserviceRe
       ValidationReport report = withModelVerdict(
           newModelValidator().validateTemplateInstance(templateInstance, instanceSchema), templateInstance,
           (reader, artifact) -> reader.readTemplateInstanceArtifact(artifact));
-      if (report.canSave() && report instanceof CedarValidationReport cedarReport)
-        semanticVerification().instance(templateInstance, instanceSchema, "", cedarReport);
+      if (report.canSave() && report instanceof CedarValidationReport cedarReport) {
+        SemanticValueVerification verification = semanticVerification();
+        verification.instance(templateInstance, instanceSchema, "", cedarReport);
+        verification.logUnavailable();
+      }
       return report;
     } catch (Exception e) {
       throw new CedarProcessingException(e);

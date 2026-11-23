@@ -16,7 +16,6 @@ import org.metadatacenter.model.CedarResourceType;
 import org.metadatacenter.model.request.OutputFormatType;
 import org.metadatacenter.model.CreateOrUpdate;
 import org.metadatacenter.model.validation.report.CedarValidationReport;
-import org.metadatacenter.model.validation.report.ReportUtils;
 import org.metadatacenter.model.validation.report.ValidationReport;
 import org.metadatacenter.rest.assertion.noun.CedarRequestBody;
 import org.metadatacenter.rest.context.CedarRequestContext;
@@ -132,7 +131,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     // without it is one nothing has ever checked against the model it claims to follow.
     {
       ValidationReport validationReport = validateArtifact(artifact, false);
-      ReportUtils.outputLogger(logger, validationReport, true);
+      ValidationReportLog.write(logger, validationReport);
       boolean canSave = validationReport.canSave();
       if (canSave) {
         enforceChildArtifactTypes(artifact, resourceType, notCreatedKey);
@@ -406,7 +405,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
   /** The PUT's first validation, of the document as received and assigned; null when it is valid. */
   private Response refuseInvalidReplacement(JsonNode newArtifact, boolean verbatim) throws CedarException {
     ValidationReport validationReport = validateArtifact(newArtifact, verbatim);
-    ReportUtils.outputLogger(logger, validationReport, true);
+    ValidationReportLog.write(logger, validationReport);
     if (validationReport.canSave()) {
       return null;
     }
@@ -903,7 +902,7 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
    */
   private Response refuseInvalidNormalizedArtifact(JsonNode artifact) throws CedarException {
     ValidationReport validationReport = validateArtifact(artifact, false);
-    ReportUtils.outputLogger(logger, validationReport, true);
+    ValidationReportLog.write(logger, validationReport);
     if (validationReport.canSave()) {
       return null;
     }

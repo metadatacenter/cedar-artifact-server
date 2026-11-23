@@ -30,7 +30,6 @@ import org.metadatacenter.model.request.OutputFormatType;
 import org.metadatacenter.model.request.OutputFormatTypeDetector;
 import org.metadatacenter.model.trimmer.JsonLdDocument;
 import org.metadatacenter.model.validation.report.CedarValidationReport;
-import org.metadatacenter.model.validation.report.ReportUtils;
 import org.metadatacenter.model.validation.report.ValidationReport;
 import org.metadatacenter.rest.assertion.noun.CedarRequestBody;
 import org.metadatacenter.rest.context.CedarRequestContext;
@@ -155,7 +154,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
     // unchecked instance to enter the repository. It previously also left the
     // response null when true, so it neither skipped nor stored coherently.
     ValidationReport validationReport = validateArtifact(templateInstance, false);
-    ReportUtils.outputLogger(logger, validationReport, true);
+    ValidationReportLog.write(logger, validationReport);
     boolean canSave = validationReport.canSave();
     Response response;
     if (canSave) {
@@ -433,7 +432,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
 
     {
       ValidationReport validationReport = validateArtifact(newInstance, verbatim);
-      ReportUtils.outputLogger(logger, validationReport, true);
+      ValidationReportLog.write(logger, validationReport);
       if (!validationReport.canSave()) {
         Response response = CedarResponse.badRequest()
             .header(CustomHttpConstants.HEADER_CEDAR_VALIDATION_STATUS, CedarValidationReport.IS_INVALID)

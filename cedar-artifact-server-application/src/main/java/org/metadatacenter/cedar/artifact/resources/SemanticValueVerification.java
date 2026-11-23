@@ -16,9 +16,11 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 /**
  * Request-scoped exact-identifier checks. Each request may take 5 seconds, and all checks of a write
@@ -28,16 +30,14 @@ import java.util.concurrent.atomic.AtomicLong;
  * not answer, such as the terminology service while BioPortal hangs, whose own lookup budget is 20
  * seconds. Unavailability never becomes a negative membership answer. Requests are not retried.
  *
- * <p>A save tolerates an unavailable check, so nothing downstream reports one. The reason is logged
- * here, at most once a minute with a count of the checks that failed in between, because a service
- * that is down fails every value of every write.
+ * <p>A save tolerates an unavailable check, so nothing downstream reports one. The write's
+ * unavailable values are logged as one line, counted by service and reason, rather than one line
+ * each: a service that is down fails every value of every write, and a large instance holds
+ * hundreds. The validation report returned to the caller still names each value.
  */
 final class SemanticValueVerification {
   @FunctionalInterface interface Sender { HttpResponse<String> send(HttpRequest request) throws Exception; }
   private static final Logger log = LoggerFactory.getLogger(SemanticValueVerification.class);
-  private static final long REPORT_INTERVAL = Duration.ofMinutes(1).toNanos();
-  private static final AtomicLong NEXT_REPORT = new AtomicLong(System.nanoTime());
-  private static final AtomicLong UNREPORTED = new AtomicLong();
   private static final Duration CALL_LIMIT = Duration.ofSeconds(5);
   private static final HttpClient HTTP = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(2)).build();
   private static final Map<String, String> AUTHORITY_ROUTES = Map.of(
@@ -47,6 +47,7 @@ final class SemanticValueVerification {
   private final Sender sender;
   private final Map<String, JsonNode> checked = new HashMap<>();
   private final Set<String> unresponsive = new HashSet<>();
+  private final Map<String, Integer> unavailableValues = new LinkedHashMap<>();
   private final long deadline = System.nanoTime() + Duration.ofSeconds(30).toNanos();
 
   SemanticValueVerification(String terminologyBase, String bridgeBase, String authorization) {
@@ -112,6 +113,8 @@ final class SemanticValueVerification {
       case "notChecked" -> ValidationFinding.VerificationStatus.NOT_CHECKED;
       default -> ValidationFinding.VerificationStatus.UNAVAILABLE;
     };
+    if (status == ValidationFinding.VerificationStatus.UNAVAILABLE)
+      unavailableValues.merge(result.path("reason").asText(result.path("message").asText("no reason given")), 1, Integer::sum);
     String code = result.path("code").asText("semanticUnavailable");
     report.resolveVerification(new ValidationFinding(code, ValidationPolicy.category(code), path,
         result.path("message").asText("Semantic verification is unavailable."), status));
@@ -147,17 +150,24 @@ final class SemanticValueVerification {
       return unavailable(endpoint, failure.toString());
     }
   }
-  private static JsonNode unavailable(String endpoint, String reason) {
-    long now = System.nanoTime(), due = NEXT_REPORT.get();
-    if (now - due >= 0 && NEXT_REPORT.compareAndSet(due, now + REPORT_INTERVAL))
-      log.warn("Semantic verification is unavailable at {}: {} ({} earlier unavailable checks went unlogged)",
-          endpoint, reason, UNREPORTED.getAndSet(0));
-    else UNREPORTED.incrementAndGet();
-    return unavailable();
+  /**
+   * One line describing the values of this write that went without verification, counted by
+   * service and reason, or nothing when every value was verified.
+   */
+  Optional<String> unavailableSummary() {
+    int total = unavailableValues.values().stream().mapToInt(Integer::intValue).sum();
+    if (total == 0) return Optional.empty();
+    return Optional.of("Semantic verification was unavailable for " + total + (total == 1 ? " value" : " values")
+        + " of this write: " + unavailableValues.entrySet().stream()
+            .map(e -> e.getValue() + " because " + e.getKey()).collect(Collectors.joining("; ")));
   }
-  private static JsonNode unavailable() {
+  /** Logs {@link #unavailableSummary()} once, after a write's checks. */
+  void logUnavailable() {
+    unavailableSummary().ifPresent(log::warn);
+  }
+  private static JsonNode unavailable(String endpoint, String reason) {
     return JsonMapper.MAPPER.createObjectNode().put("status", "unavailable").put("code", "semanticUnavailable")
-        .put("message", "Semantic verification is unavailable.");
+        .put("message", "Semantic verification is unavailable.").put("reason", endpoint + " " + reason);
   }
   private static String endpoint(String base, String path) {
     return base == null || base.isEmpty() ? null : base + (base.endsWith("/") ? "" : "/") + path;

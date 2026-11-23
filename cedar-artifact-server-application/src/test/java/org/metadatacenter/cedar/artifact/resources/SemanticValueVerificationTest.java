@@ -197,13 +197,19 @@ class SemanticValueVerificationTest {
         """);
     var asked = new java.util.ArrayList<String>();
     var report = CedarValidationReport.newInstanceReport();
-    new SemanticValueVerification("http://terms", "http://bridge", null, request -> {
+    var verification = new SemanticValueVerification("http://terms", "http://bridge", null, request -> {
       asked.add(request.uri().toString());
       assertTrue(request.timeout().orElseThrow().compareTo(java.time.Duration.ofSeconds(5)) <= 0);
       if (request.uri().getHost().equals("terms")) throw new java.net.http.HttpTimeoutException("request timed out");
       return response("passed", "authorityVerified", "https://orcid.org/0000-0002-1825-0097");
-    }).instance(instance, schema, "", report);
+    });
+    assertEquals(java.util.Optional.empty(), verification.unavailableSummary());
+    verification.instance(instance, schema, "", report);
     assertEquals(java.util.List.of("http://terms/bioportal/validate-term", "http://bridge/ext-auth/orcid/verify"), asked);
+    assertEquals(java.util.Optional.of("Semantic verification was unavailable for 2 values of this write: "
+        + "1 because http://terms/bioportal/validate-term java.net.http.HttpTimeoutException: request timed out; "
+        + "1 because http://terms/bioportal/validate-term an earlier check of this write found it unresponsive"),
+        verification.unavailableSummary());
     assertEquals(2, report.getFindings().stream()
         .filter(f -> f.verificationStatus() == ValidationFinding.VerificationStatus.UNAVAILABLE).count());
     assertTrue(report.canSave());
