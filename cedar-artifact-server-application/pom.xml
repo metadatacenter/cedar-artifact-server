@@ -234,21 +234,6 @@
 
     <plugins>
 
-      <!--
-        The tests redirect the CEDAR environment variables (embedded Mongo, alternate server
-        ports) through a CedarEnvironmentSource override instead of reflective environment
-        rewriting, so no add-opens flags are needed and the test classes share a JVM
-        (reuseForks true): CedarConfig.getInstance rebuilds whenever the override changes.
-      -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <configuration>
-          <reuseForks>true</reuseForks>
-        </configuration>
-      </plugin>
-
-
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
