@@ -132,7 +132,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
       @Parameter(description = "Accepted for wire compatibility and ignored: every write is validated.")
       @QueryParam(QP_SKIP_VALIDATION) Optional<Boolean> skipValidation,
       @Parameter(description = ArtifactApiDocs.COMPACT_ON_WRITE)
-      @QueryParam("compact") Optional<Boolean> compactParam,
+      @QueryParam(QP_COMPACT) Optional<Boolean> compactParam,
       String requestBody) throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
@@ -210,7 +210,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
           + "`rdf-nquad`. Named explicitly, it wins over Accept negotiation.")
       @QueryParam(QP_FORMAT) Optional<String> format,
       @Parameter(description = ArtifactApiDocs.COMPACT_ON_READ)
-      @QueryParam("compact") Optional<Boolean> compactParam) throws CedarException {
+      @QueryParam(QP_COMPACT) Optional<Boolean> compactParam) throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
     id = linkedDataUtil.resolveResourceId(CedarResourceType.INSTANCE, id);
@@ -362,7 +362,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
       @Parameter(description = "Instance identifier, as an absolute IRI.", required = true)
       @PathParam(PP_ID) String id,
       @Parameter(description = ArtifactApiDocs.COMPACT_ON_WRITE)
-      @QueryParam("compact") Optional<Boolean> compactParam,
+      @QueryParam(QP_COMPACT) Optional<Boolean> compactParam,
       @Parameter(description = ArtifactApiDocs.VERBATIM)
       @QueryParam(QP_VERBATIM) Optional<Boolean> verbatimParam,
       String requestBody) throws CedarException {

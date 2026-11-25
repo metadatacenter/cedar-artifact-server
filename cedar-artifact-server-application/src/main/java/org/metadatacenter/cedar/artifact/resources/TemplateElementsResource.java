@@ -61,7 +61,7 @@ public class TemplateElementsResource extends AbstractArtifactCrudResource {
   @Path("/{id}/version-predecessor")
   @Consumes(MediaType.APPLICATION_JSON)
   @Operation(hidden = true)
-  public Response projectVersionPredecessor(@PathParam("id") String id, String body) throws CedarException {
+  public Response projectVersionPredecessor(@PathParam(PP_ID) String id, String body) throws CedarException {
     return updateVersionPredecessor(id, body);
   }
 
@@ -108,7 +108,7 @@ public class TemplateElementsResource extends AbstractArtifactCrudResource {
   })
   public Response createTemplateElement(
       @Parameter(description = ArtifactApiDocs.COMPACT_ON_WRITE)
-      @QueryParam("compact") Optional<Boolean> compactParam,
+      @QueryParam(QP_COMPACT) Optional<Boolean> compactParam,
       String requestBody) throws CedarException {
     return createArtifact(CedarPermission.TEMPLATE_ELEMENT_CREATE, CedarResourceType.ELEMENT,
         CedarErrorKey.TEMPLATE_ELEMENT_NOT_CREATED, requestBody, compactParam);
@@ -146,7 +146,7 @@ public class TemplateElementsResource extends AbstractArtifactCrudResource {
       @Parameter(description = "Artifact UUID on this typed route, or a percent-encoded full IRI.", required = true)
       @PathParam(PP_ID) String id,
       @Parameter(description = ArtifactApiDocs.COMPACT_ON_READ)
-      @QueryParam("compact") Optional<Boolean> compactParam) throws CedarException {
+      @QueryParam(QP_COMPACT) Optional<Boolean> compactParam) throws CedarException {
     return findArtifact(id, CedarPermission.TEMPLATE_ELEMENT_READ, CedarErrorKey.TEMPLATE_ELEMENT_NOT_FOUND, CedarResourceType.ELEMENT, compactParam);
   }
 
@@ -236,7 +236,7 @@ public class TemplateElementsResource extends AbstractArtifactCrudResource {
       @Parameter(description = "Artifact UUID on this typed route, or a percent-encoded full IRI.", required = true)
       @PathParam(PP_ID) String id,
       @Parameter(description = ArtifactApiDocs.COMPACT_ON_WRITE)
-      @QueryParam("compact") Optional<Boolean> compactParam,
+      @QueryParam(QP_COMPACT) Optional<Boolean> compactParam,
       @Parameter(description = ArtifactApiDocs.VERBATIM)
       @QueryParam(QP_VERBATIM) Optional<Boolean> verbatimParam,
       String requestBody) throws CedarException {

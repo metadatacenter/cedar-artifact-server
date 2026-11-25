@@ -260,7 +260,8 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
 
     PagedQuery pagedQuery = new PagedQuery(cedarConfig.getArtifactRESTAPI().getPagination())
         .limit(limitParam)
-        .offset(offsetParam);
+        .offset(offsetParam)
+        .queryParameters(uriInfo.getQueryParameters());
     pagedQuery.validate();
 
     Integer limit = pagedQuery.getLimit();

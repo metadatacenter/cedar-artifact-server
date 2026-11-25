@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.metadatacenter.cedar.artifact.resources.utils.TestUtil;
 import org.metadatacenter.constant.LinkedData;
 import org.metadatacenter.model.CedarResourceType;
+import org.metadatacenter.util.json.JsonMapper;
 
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
@@ -114,6 +115,18 @@ public class ArtifactListingEnvelopeTest extends AbstractResourceCrudTest {
     Assertions.assertEquals(400, status(templates("?limit=0")));
     Assertions.assertEquals(400, status(templates("?limit=501")));
     Assertions.assertEquals(400, status(templates("?offset=-1")));
+  }
+
+  @Test
+  public void aPageNumberParameterIsRefusedNamingIt() throws Exception {
+    for (String name : List.of("page", "pageSize", "page_size")) {
+      Response response = testClient.target(templates("?" + name + "=2")).request().header("Authorization", authHeader)
+          .get();
+      String body = response.readEntity(String.class);
+      Assertions.assertEquals(400, response.getStatus(), name + " -> " + body);
+      Assertions.assertEquals("2", JsonMapper.STRICT_MAPPER.readTree(body).path("parameters").path(name).asText(null),
+          name + " -> " + body);
+    }
   }
 
   @Test
