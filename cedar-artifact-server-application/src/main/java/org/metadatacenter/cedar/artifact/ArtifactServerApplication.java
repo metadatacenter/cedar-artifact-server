@@ -40,6 +40,7 @@ public class ArtifactServerApplication extends CedarMicroserviceApplicationWithM
   @Override
   public void runApp(ArtifactServerConfiguration configuration, Environment environment) {
 
+    environment.jersey().register(new org.metadatacenter.cedar.util.dw.ArtifactReadFormatFilter());
     environment.jersey().register(new ArtifactServiceAuthenticationFilter(cedarConfig.getArtifactService()));
 
     final CedarMicroserviceIndexResource index =

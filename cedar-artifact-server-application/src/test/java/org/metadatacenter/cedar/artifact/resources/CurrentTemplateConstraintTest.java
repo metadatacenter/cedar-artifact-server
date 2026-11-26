@@ -38,7 +38,7 @@ class CurrentTemplateConstraintTest extends BaseServerTest {
     }
   }
   private ObjectNode report(ObjectNode instance) {
-    try (Response response = testClient.target("http://localhost:" + getPortNumber() + "/command/validate?resource_type=instance")
+    try (Response response = testClient.target("http://localhost:" + getPortNumber() + "/artifact-validations/instance")
         .request().header("Authorization", authHeaderValue).post(Entity.json(instance))) {
       String text = response.readEntity(String.class);
       assertEquals(200, response.getStatus(), text);

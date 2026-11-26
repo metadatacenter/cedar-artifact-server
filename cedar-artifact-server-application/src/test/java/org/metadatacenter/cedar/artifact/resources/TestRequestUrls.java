@@ -36,18 +36,18 @@ public class TestRequestUrls {
   }
 
   public static String forValidatingTemplate(int portNumber) {
-    return String.format("%s:%d/command/validate?resource_type=template", SERVICE_BASE_URL, portNumber);
+    return String.format("%s:%d/artifact-validations/template", SERVICE_BASE_URL, portNumber);
   }
 
   public static String forValidatingElement(int portNumber) {
-    return String.format("%s:%d/command/validate?resource_type=element", SERVICE_BASE_URL, portNumber);
+    return String.format("%s:%d/artifact-validations/element", SERVICE_BASE_URL, portNumber);
   }
 
   public static String forValidatingField(int portNumber) {
-    return String.format("%s:%d/command/validate?resource_type=field", SERVICE_BASE_URL, portNumber);
+    return String.format("%s:%d/artifact-validations/field", SERVICE_BASE_URL, portNumber);
   }
 
   public static String forValidatingInstance(int portNumber) {
-    return String.format("%s:%d/command/validate?resource_type=instance", SERVICE_BASE_URL, portNumber);
+    return String.format("%s:%d/artifact-validations/instance", SERVICE_BASE_URL, portNumber);
   }
 }

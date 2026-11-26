@@ -117,6 +117,8 @@ public class TemplateFieldsResource extends AbstractArtifactCrudResource {
   @GET
   @Timed
   @Path("/{id}")
+  @Parameter(name = "format", in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+      description = "Output representation: jsonld, json, yaml or rdf-nquad; overrides Accept.")
   @Produces({MediaType.APPLICATION_JSON, HttpConstants.CONTENT_TYPE_APPLICATION_YAML, "application/yaml"})
   @Operation(summary = "Get a template field",
       description = "Get a template field by identifier. " + ArtifactApiDocs.READ_FORMAT)

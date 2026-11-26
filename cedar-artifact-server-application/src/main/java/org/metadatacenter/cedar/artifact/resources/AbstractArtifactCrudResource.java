@@ -204,7 +204,8 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
     id = linkedDataUtil.resolveResourceId(artifactType, id);
     c.must(id).be(ValidUrl);
 
-    Optional<MediaType> responseType = negotiatedArtifactResponseType();
+    String format = uriInfo.getQueryParameters().getFirst("format");
+    Optional<MediaType> responseType = ArtifactYamlTranscoder.negotiateResponseType(httpHeaders.getAcceptableMediaTypes());
 
     ArtifactWithRevision<JsonNode> snapshot;
     try {
@@ -228,7 +229,11 @@ public abstract class AbstractArtifactCrudResource extends AbstractArtifactServe
       MongoUtils.removeIdField(artifact);
       long revision = snapshot.revision();
       boolean compact = compactParam.isPresent() && compactParam.get();
-      if (!ArtifactYamlTranscoder.isJson(responseType.get())) {
+      if ("json".equals(format)) {
+        return Response.ok(new org.metadatacenter.model.trimmer.JsonLdDocument(artifact).asJson(), MediaType.APPLICATION_JSON)
+            .header(HttpHeaders.ETAG, etag(revision, OutputFormatType.JSON)).build();
+      }
+      if (ArtifactYamlTranscoder.isYaml(responseType.get())) {
         try {
           String yaml = ArtifactYamlTranscoder.jsonToYaml(artifact, resourceType, compact);
           return Response.ok()

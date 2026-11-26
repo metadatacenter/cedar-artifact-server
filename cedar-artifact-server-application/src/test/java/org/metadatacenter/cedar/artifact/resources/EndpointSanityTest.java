@@ -11,13 +11,13 @@ import static org.metadatacenter.constant.HttpConstants.HTTP_HEADER_AUTHORIZATIO
 public class EndpointSanityTest extends BaseServerTest {
 
   @Test
-  public void shouldRejectValidationWithoutResourceTypeAsBadRequest() {
-    Response response = testClient.target("http://localhost:" + getPortNumber() + "/command/validate")
+  public void validationRequiresAResourceTypePathSegment() {
+    Response response = testClient.target("http://localhost:" + getPortNumber() + "/artifact-validations")
         .request()
         .header(HTTP_HEADER_AUTHORIZATION, authHeaderValue)
         .post(jakarta.ws.rs.client.Entity.json("{}"));
 
-    assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
+    assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatus());
   }
 
   /**

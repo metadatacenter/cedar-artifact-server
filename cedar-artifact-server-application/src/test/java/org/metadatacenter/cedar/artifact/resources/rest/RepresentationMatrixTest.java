@@ -183,6 +183,44 @@ public class RepresentationMatrixTest extends AbstractRestTest {
     }
   }
 
+  @org.junit.jupiter.api.Test
+  public void explicitFormatsOverrideAcceptForUuidAndFullIriReads() throws Exception {
+    for (CedarResourceType kind : KINDS) {
+      String id = create(kind);
+      for (String address : List.of(url(kind, id), baseTestUrl + "/" + kind.getPrefix() + "/"
+          + org.metadatacenter.id.CedarResourceAddress.pathId(id))) {
+        try (Response yaml = request(address + "?format=yaml").header("Accept", "text/html").get()) {
+          assertRepresentation(yaml, "application/yaml");
+          Assertions.assertTrue(yaml.readEntity(String.class).startsWith("type:"));
+        }
+        try (Response json = request(address + "?format=jsonld").header("Accept", "application/yaml").get()) {
+          assertRepresentation(json, "application/json");
+          Assertions.assertEquals(id, JsonMapper.STRICT_MAPPER.readTree(json.readEntity(String.class)).path("@id").asText());
+        }
+        try (Response json = request(address + "?format=json").header("Accept", "application/yaml").get()) {
+          assertRepresentation(json, "application/json");
+          Assertions.assertFalse(JsonMapper.STRICT_MAPPER.readTree(json.readEntity(String.class)).has("@context"));
+        }
+        try (Response rdf = request(address + "?format=rdf-nquad").header("Accept", "application/json").get()) {
+          if (kind == CedarResourceType.INSTANCE) {
+            assertRepresentation(rdf, "application/n-quads");
+            Assertions.assertFalse(rdf.readEntity(String.class).isBlank());
+          } else {
+            Assertions.assertEquals(406, rdf.getStatus());
+          }
+        }
+        try (Response invalid = request(address + "?format=xml").get()) {
+          Assertions.assertEquals(400, invalid.getStatus());
+        }
+      }
+    }
+  }
+
+  private static void assertRepresentation(Response response, String type) {
+    Assertions.assertEquals(200, response.getStatus());
+    Assertions.assertEquals(type, stripParameters(response.getMediaType().toString()));
+  }
+
   /** A body sent to the validate command and to a write, and how it is sent. */
   private record Body(String label, CedarResourceType kind, String mediaType, Body.Source source) {
     interface Source {
@@ -243,7 +281,7 @@ public class RepresentationMatrixTest extends AbstractRestTest {
     String templateId = create(CedarResourceType.TEMPLATE);
     String content = body.source().body(this, templateId);
 
-    Response validated = request(baseTestUrl + "/command/validate?resource_type=" + body.kind().getValue())
+    Response validated = request(baseTestUrl + "/artifact-validations/" + body.kind().getValue())
         .post(Entity.entity(content, body.mediaType()));
     String validation = validated.readEntity(String.class);
     boolean validates = validated.getStatus() == 200

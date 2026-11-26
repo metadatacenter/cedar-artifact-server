@@ -130,7 +130,7 @@ public class AcceptHeaderResponseTest extends AbstractRestTest {
         response = withAccept(request(url(kind, id)), accept).get();
       }
       case GET_WITH_FORMAT -> {
-        expected = accept.formatRead();
+        expected = Outcome.JSON;
         response = withAccept(request(url(kind, id) + "?format=jsonld"), accept).get();
       }
       case PUT_EXISTING -> response = withAccept(request(url(kind, id)).header("If-Match", "\"1\""), accept)

@@ -34,7 +34,7 @@ components:
   schemas:
     ValidationTarget:
       description: |
-        What POST /command/validate accepts as JSON: an artifact, or an instance together with the
+        What POST /artifact-validations/{resource_type} accepts as JSON: an artifact, or an instance together with the
         template to validate it against. The composite form is a JSON convenience rather than an
         artifact, so it has no YAML equivalent.
       oneOf:

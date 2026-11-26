@@ -30,7 +30,7 @@ class ArtifactServiceBoundaryTest extends AbstractRestTest {
         }
       }
     }
-    assertEquals(401, send("POST", "/command/validate?resource_type=instance", null, authHeaderTestUser1).statusCode());
+    assertEquals(401, send("POST", "/artifact-validations/instance", null, authHeaderTestUser1).statusCode());
   }
 
   @Test

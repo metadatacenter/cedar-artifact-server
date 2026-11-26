@@ -41,7 +41,7 @@ paths:
       summary: Describe this CEDAR service
       tags:
       - Service
-  /command/validate:
+  /artifact-validations/{resource_type}:
     post:
       description: "Validate an artifact against the CEDAR model without storing it.\
         \ The body may be JSON or YAML, selected by the Content-Type header, so a\
@@ -55,7 +55,7 @@ paths:
       parameters:
       - description: "Artifact type to validate against: `template`, `element`, `field`,\
           \ or `instance`."
-        in: query
+        in: path
         name: resource_type
         required: true
         schema:
@@ -616,6 +616,12 @@ paths:
         \ selected by the Accept header."
       operationId: findTemplateElement
       parameters:
+      - description: "Output representation: jsonld, json, yaml or rdf-nquad; overrides\
+          \ Accept."
+        in: query
+        name: format
+        schema:
+          type: string
       - description: "Artifact UUID on this typed route, or a percent-encoded full\
           \ IRI."
         in: path
@@ -1211,6 +1217,12 @@ paths:
         \ by the Accept header."
       operationId: findTemplateField
       parameters:
+      - description: "Output representation: jsonld, json, yaml or rdf-nquad; overrides\
+          \ Accept."
+        in: query
+        name: format
+        schema:
+          type: string
       - description: "Artifact UUID on this typed route, or a percent-encoded full\
           \ IRI."
         in: path
@@ -2434,6 +2446,12 @@ paths:
         \ by the Accept header."
       operationId: findTemplate
       parameters:
+      - description: "Output representation: jsonld, json, yaml or rdf-nquad; overrides\
+          \ Accept."
+        in: query
+        name: format
+        schema:
+          type: string
       - description: "Artifact UUID on this typed route, or a percent-encoded full\
           \ IRI."
         in: path
@@ -3351,7 +3369,7 @@ components:
       - warnings
     ValidationTarget:
       description: |
-        What POST /command/validate accepts as JSON: an artifact, or an instance together with the
+        What POST /artifact-validations/{resource_type} accepts as JSON: an artifact, or an instance together with the
         template to validate it against. The composite form is a JSON convenience rather than an
         artifact, so it has no YAML equivalent.
       oneOf:

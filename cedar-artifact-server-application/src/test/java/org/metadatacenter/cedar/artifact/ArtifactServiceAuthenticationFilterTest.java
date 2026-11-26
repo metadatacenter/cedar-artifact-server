@@ -58,8 +58,8 @@ class ArtifactServiceAuthenticationFilterTest {
       var spec = JsonMapper.STRICT_MAPPER.readTree(input);
       var paths = spec.path("paths");
       for (String path : List.of("/templates", "/template-elements", "/template-fields", "/template-instances",
-          "/command/validate")) {
-        var operation = paths.path(path).path(path.startsWith("/command") ? "post" : "get");
+          "/artifact-validations/{resource_type}")) {
+        var operation = paths.path(path).path(path.startsWith("/artifact-validations") ? "post" : "get");
         assertFalse(operation.isMissingNode(), path);
         var security = operation.has("security") ? operation.path("security") : spec.path("security");
         assertEquals(1, security.size(), path);

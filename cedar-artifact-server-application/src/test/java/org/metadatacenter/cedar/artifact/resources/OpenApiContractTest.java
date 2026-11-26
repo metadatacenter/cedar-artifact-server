@@ -47,7 +47,7 @@ class OpenApiContractTest {
   @Test
   void validationReportsAndTheirRequestsAreDescribed() throws IOException {
     JsonNode spec = readSpec();
-    JsonNode validate = spec.path("paths").path("/command/validate").path("post");
+    JsonNode validate = spec.path("paths").path("/artifact-validations/{resource_type}").path("post");
     assertEquals("#/components/schemas/ValidationTarget",
         validate.path("requestBody").path("content").path("application/json").path("schema").path("$ref").asText());
     assertEquals("#/components/schemas/ArtifactDocument",

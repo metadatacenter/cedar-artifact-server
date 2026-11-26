@@ -33,7 +33,7 @@ import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.io.IOException;
@@ -42,7 +42,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.metadatacenter.constant.CedarQueryParameters.QP_RESOURCE_TYPE;
 import static org.metadatacenter.rest.assertion.GenericAssertions.LoggedIn;
 
-@Path("/command")
+@Path("/artifact-validations")
 @Produces(MediaType.APPLICATION_JSON)
 @Tag(name = "Command")
 @SecurityRequirement(name = "", combine = {
@@ -72,7 +72,7 @@ public class CommandResource extends AbstractArtifactServerResource {
    */
   @POST
   @Timed
-  @Path("/validate")
+  @Path("/{resource_type}")
   @Consumes({MediaType.APPLICATION_JSON, HttpConstants.CONTENT_TYPE_APPLICATION_YAML, "application/yaml"})
   @Operation(summary = "Validate an artifact",
       description = "Validate an artifact against the CEDAR model without storing it. The body may be "
@@ -102,7 +102,7 @@ public class CommandResource extends AbstractArtifactServerResource {
   public Response validateResource(
       @Parameter(description = "Artifact type to validate against: `template`, `element`, `field`, "
           + "or `instance`.", required = true)
-      @QueryParam(QP_RESOURCE_TYPE) String type,
+      @PathParam(QP_RESOURCE_TYPE) String type,
       String requestBody) throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);

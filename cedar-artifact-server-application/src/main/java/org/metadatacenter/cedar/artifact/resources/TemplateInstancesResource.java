@@ -220,8 +220,9 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
     // An explicit format names the representation, so it wins over Accept negotiation. Accept may
     // name N-Quads too, which is the representation that format=rdf-nquad selects.
     boolean negotiated = format.isEmpty();
+    boolean explicitYaml = format.filter("yaml"::equals).isPresent();
     Optional<MediaType> responseType = Optional.empty();
-    if (negotiated) {
+    if (negotiated || explicitYaml) {
       responseType = ArtifactYamlTranscoder.negotiateInstanceResponseType(httpHeaders.getAcceptableMediaTypes());
       if (ArtifactYamlTranscoder.APPLICATION_NQUADS_TYPE.equals(responseType.get())) {
         format = Optional.of(OutputFormatType.RDF_NQUAD.getValue());
@@ -250,7 +251,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
       MongoUtils.removeIdField(templateInstance);
       long revision = snapshot.revision();
       boolean compact = compactParam.isPresent() && compactParam.get();
-      if (format.isEmpty() && ArtifactYamlTranscoder.isYaml(responseType.get())) {
+      if ((format.isEmpty() || explicitYaml) && ArtifactYamlTranscoder.isYaml(responseType.get())) {
         try {
           String yaml = ArtifactYamlTranscoder.jsonToYaml(templateInstance, CedarResourceType.INSTANCE, compact);
           return Response.ok()
