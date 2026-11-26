@@ -60,6 +60,11 @@ paths:
         required: true
         schema:
           type: string
+          enum:
+          - template
+          - element
+          - field
+          - instance
       requestBody:
         content:
           application/json:
@@ -616,12 +621,18 @@ paths:
         \ selected by the Accept header."
       operationId: findTemplateElement
       parameters:
-      - description: "Output representation: jsonld, json, yaml or rdf-nquad; overrides\
-          \ Accept."
+      - description: Output representation; overrides Accept. Unknown or repeated
+          values return 400. RDF N-Quads is supported for instances only; schema artifacts
+          return 406.
         in: query
         name: format
         schema:
           type: string
+          enum:
+          - jsonld
+          - json
+          - yaml
+          - rdf-nquad
       - description: "Artifact UUID on this typed route, or a percent-encoded full\
           \ IRI."
         in: path
@@ -1217,12 +1228,18 @@ paths:
         \ by the Accept header."
       operationId: findTemplateField
       parameters:
-      - description: "Output representation: jsonld, json, yaml or rdf-nquad; overrides\
-          \ Accept."
+      - description: Output representation; overrides Accept. Unknown or repeated
+          values return 400. RDF N-Quads is supported for instances only; schema artifacts
+          return 406.
         in: query
         name: format
         schema:
           type: string
+          enum:
+          - jsonld
+          - json
+          - yaml
+          - rdf-nquad
       - description: "Artifact UUID on this typed route, or a percent-encoded full\
           \ IRI."
         in: path
@@ -1754,7 +1771,8 @@ paths:
         required: true
         schema:
           type: string
-      - description: "Instance identifier, as an absolute IRI."
+      - description: "Instance identifier, as a bare UUID or a percent-encoded absolute\
+          \ IRI."
         in: path
         name: id
         required: true
@@ -1824,18 +1842,24 @@ paths:
         \ directly and wins over Accept negotiation."
       operationId: findTemplateInstance
       parameters:
-      - description: "Instance identifier, as an absolute IRI."
+      - description: "Instance identifier, as a bare UUID or a percent-encoded absolute\
+          \ IRI."
         in: path
         name: id
         required: true
         schema:
           type: string
-      - description: "Representation to return: `jsonld` (the default), `json`, or\
-          \ `rdf-nquad`. Named explicitly, it wins over Accept negotiation."
+      - description: Output representation; overrides Accept. Unknown or repeated
+          values return 400.
         in: query
         name: format
         schema:
           type: string
+          enum:
+          - jsonld
+          - json
+          - yaml
+          - rdf-nquad
       - description: "Return the compact YAML form. It is a lossy read-time convenience,\
           \ so it is accepted only on reads."
         in: query
@@ -1986,7 +2010,8 @@ paths:
         name: If-Match
         schema:
           type: string
-      - description: "Instance identifier, as an absolute IRI."
+      - description: "Instance identifier, as a bare UUID or a percent-encoded absolute\
+          \ IRI."
         in: path
         name: id
         required: true
@@ -2446,12 +2471,18 @@ paths:
         \ by the Accept header."
       operationId: findTemplate
       parameters:
-      - description: "Output representation: jsonld, json, yaml or rdf-nquad; overrides\
-          \ Accept."
+      - description: Output representation; overrides Accept. Unknown or repeated
+          values return 400. RDF N-Quads is supported for instances only; schema artifacts
+          return 406.
         in: query
         name: format
         schema:
           type: string
+          enum:
+          - jsonld
+          - json
+          - yaml
+          - rdf-nquad
       - description: "Artifact UUID on this typed route, or a percent-encoded full\
           \ IRI."
         in: path

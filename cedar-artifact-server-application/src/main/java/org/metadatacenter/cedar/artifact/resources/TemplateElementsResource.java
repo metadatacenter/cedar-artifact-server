@@ -118,7 +118,9 @@ public class TemplateElementsResource extends AbstractArtifactCrudResource {
   @Timed
   @Path("/{id}")
   @Parameter(name = "format", in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
-      description = "Output representation: jsonld, json, yaml or rdf-nquad; overrides Accept.")
+      description = "Output representation; overrides Accept. Unknown or repeated values return 400. "
+          + "RDF N-Quads is supported for instances only; schema artifacts return 406.",
+      schema = @Schema(type = "string", allowableValues = {"jsonld", "json", "yaml", "rdf-nquad"}))
   @Produces({MediaType.APPLICATION_JSON, HttpConstants.CONTENT_TYPE_APPLICATION_YAML, "application/yaml"})
   @Operation(summary = "Get a template element",
       description = "Get a template element by identifier. " + ArtifactApiDocs.READ_FORMAT)

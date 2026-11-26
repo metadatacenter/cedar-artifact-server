@@ -204,10 +204,10 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
       @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Internal server error")
   })
   public Response findTemplateInstance(
-      @Parameter(description = "Instance identifier, as an absolute IRI.", required = true)
+      @Parameter(description = "Instance identifier, as a bare UUID or a percent-encoded absolute IRI.", required = true)
       @PathParam(PP_ID) String id,
-      @Parameter(description = "Representation to return: `jsonld` (the default), `json`, or "
-          + "`rdf-nquad`. Named explicitly, it wins over Accept negotiation.")
+      @Parameter(description = "Output representation; overrides Accept. Unknown or repeated values return 400.",
+          schema = @Schema(type = "string", allowableValues = {"jsonld", "json", "yaml", "rdf-nquad"}))
       @QueryParam(QP_FORMAT) Optional<String> format,
       @Parameter(description = ArtifactApiDocs.COMPACT_ON_READ)
       @QueryParam(QP_COMPACT) Optional<Boolean> compactParam) throws CedarException {
@@ -360,7 +360,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
       @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Internal server error")
   })
   public Response updateTemplateInstance(
-      @Parameter(description = "Instance identifier, as an absolute IRI.", required = true)
+      @Parameter(description = "Instance identifier, as a bare UUID or a percent-encoded absolute IRI.", required = true)
       @PathParam(PP_ID) String id,
       @Parameter(description = ArtifactApiDocs.COMPACT_ON_WRITE)
       @QueryParam(QP_COMPACT) Optional<Boolean> compactParam,
@@ -471,7 +471,7 @@ public class TemplateInstancesResource extends AbstractArtifactCrudResource {
       @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Internal server error")
   })
   public Response deleteTemplateInstance(
-      @Parameter(description = "Instance identifier, as an absolute IRI.", required = true)
+      @Parameter(description = "Instance identifier, as a bare UUID or a percent-encoded absolute IRI.", required = true)
       @PathParam(PP_ID) String id) throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);

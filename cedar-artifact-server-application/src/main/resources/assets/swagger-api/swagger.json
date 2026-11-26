@@ -35,7 +35,8 @@
           "name" : "resource_type",
           "required" : true,
           "schema" : {
-            "type" : "string"
+            "type" : "string",
+            "enum" : [ "template", "element", "field", "instance" ]
           }
         } ],
         "requestBody" : {
@@ -852,11 +853,12 @@
         "description" : "Get a template element by identifier. Served as JSON or YAML, selected by the Accept header.",
         "operationId" : "findTemplateElement",
         "parameters" : [ {
-          "description" : "Output representation: jsonld, json, yaml or rdf-nquad; overrides Accept.",
+          "description" : "Output representation; overrides Accept. Unknown or repeated values return 400. RDF N-Quads is supported for instances only; schema artifacts return 406.",
           "in" : "query",
           "name" : "format",
           "schema" : {
-            "type" : "string"
+            "type" : "string",
+            "enum" : [ "jsonld", "json", "yaml", "rdf-nquad" ]
           }
         }, {
           "description" : "Artifact UUID on this typed route, or a percent-encoded full IRI.",
@@ -1694,11 +1696,12 @@
         "description" : "Get a template field by identifier. Served as JSON or YAML, selected by the Accept header.",
         "operationId" : "findTemplateField",
         "parameters" : [ {
-          "description" : "Output representation: jsonld, json, yaml or rdf-nquad; overrides Accept.",
+          "description" : "Output representation; overrides Accept. Unknown or repeated values return 400. RDF N-Quads is supported for instances only; schema artifacts return 406.",
           "in" : "query",
           "name" : "format",
           "schema" : {
-            "type" : "string"
+            "type" : "string",
+            "enum" : [ "jsonld", "json", "yaml", "rdf-nquad" ]
           }
         }, {
           "description" : "Artifact UUID on this typed route, or a percent-encoded full IRI.",
@@ -2449,7 +2452,7 @@
             "type" : "string"
           }
         }, {
-          "description" : "Instance identifier, as an absolute IRI.",
+          "description" : "Instance identifier, as a bare UUID or a percent-encoded absolute IRI.",
           "in" : "path",
           "name" : "id",
           "required" : true,
@@ -2543,7 +2546,7 @@
         "description" : "Get a template instance by identifier. Served as JSON or YAML, selected by the Accept header. An explicit `format` names the representation directly and wins over Accept negotiation.",
         "operationId" : "findTemplateInstance",
         "parameters" : [ {
-          "description" : "Instance identifier, as an absolute IRI.",
+          "description" : "Instance identifier, as a bare UUID or a percent-encoded absolute IRI.",
           "in" : "path",
           "name" : "id",
           "required" : true,
@@ -2551,11 +2554,12 @@
             "type" : "string"
           }
         }, {
-          "description" : "Representation to return: `jsonld` (the default), `json`, or `rdf-nquad`. Named explicitly, it wins over Accept negotiation.",
+          "description" : "Output representation; overrides Accept. Unknown or repeated values return 400.",
           "in" : "query",
           "name" : "format",
           "schema" : {
-            "type" : "string"
+            "type" : "string",
+            "enum" : [ "jsonld", "json", "yaml", "rdf-nquad" ]
           }
         }, {
           "description" : "Return the compact YAML form. It is a lossy read-time convenience, so it is accepted only on reads.",
@@ -2776,7 +2780,7 @@
             "type" : "string"
           }
         }, {
-          "description" : "Instance identifier, as an absolute IRI.",
+          "description" : "Instance identifier, as a bare UUID or a percent-encoded absolute IRI.",
           "in" : "path",
           "name" : "id",
           "required" : true,
@@ -3420,11 +3424,12 @@
         "description" : "Get a template by identifier. Served as JSON or YAML, selected by the Accept header.",
         "operationId" : "findTemplate",
         "parameters" : [ {
-          "description" : "Output representation: jsonld, json, yaml or rdf-nquad; overrides Accept.",
+          "description" : "Output representation; overrides Accept. Unknown or repeated values return 400. RDF N-Quads is supported for instances only; schema artifacts return 406.",
           "in" : "query",
           "name" : "format",
           "schema" : {
-            "type" : "string"
+            "type" : "string",
+            "enum" : [ "jsonld", "json", "yaml", "rdf-nquad" ]
           }
         }, {
           "description" : "Artifact UUID on this typed route, or a percent-encoded full IRI.",

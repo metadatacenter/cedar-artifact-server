@@ -101,7 +101,8 @@ public class CommandResource extends AbstractArtifactServerResource {
   })
   public Response validateResource(
       @Parameter(description = "Artifact type to validate against: `template`, `element`, `field`, "
-          + "or `instance`.", required = true)
+          + "or `instance`.", required = true,
+          schema = @Schema(type = "string", allowableValues = {"template", "element", "field", "instance"}))
       @PathParam(QP_RESOURCE_TYPE) String type,
       String requestBody) throws CedarException {
     CedarRequestContext c = buildRequestContext();
